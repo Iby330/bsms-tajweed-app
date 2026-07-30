@@ -234,7 +234,7 @@ export function answerToConcepts(
   answer: string,
   questionPoints: number,
 ): { id: string; desc: string; marks: number }[] {
-  const parts = [...answer.matchAll(/(.+?)\((\d+)(?:\s*marks?)?\)/gs)].map((m, i) => ({
+  const parts = [...answer.matchAll(/([\s\S]+?)\((\d+)(?:\s*marks?)?\)/g)].map((m, i) => ({
     id: `c${i + 1}`,
     desc: m[1].replace(/\s+/g, " ").trim(),
     marks: parseInt(m[2], 10),
