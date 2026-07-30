@@ -144,7 +144,7 @@ async function main() {
       student_id: id, start_surah: 114, target_count: 43,
     });
     // deliberate spread: ~a third below pace, a third on, a third above
-    const passed = 6 + Math.floor(rand() * 16); // 6..21
+    const passed = 18 + Math.floor(rand() * 20); // 18..37 — late-year spread
     const rows = (surahs ?? []).slice(0, passed).map((su, j) => ({
       student_id: id,
       surah_number: su.number,
@@ -159,10 +159,13 @@ async function main() {
 
   // ── homework activity ───────────────────────────────────────────────
   const { data: homeworks } = await db
-    .from("homeworks").select("id, number, total_marks").lte("number", 4).order("number");
+    .from("homeworks").select("id, number, total_marks").lte("number", 21).order("number");
   const { data: allQuestions } = await db
     .from("questions")
     .select("id, homework_id, qtype, points, is_bonus, is_task, options, rubric");
+
+  // newest homework in the seeded range — left unapproved on purpose
+  const QUEUE_HW = Math.max(...(homeworks ?? []).map((h) => h.number));
 
   let submissionCount = 0;
   let queuedCount = 0;
@@ -171,13 +174,17 @@ async function main() {
     const qs = (allQuestions ?? []).filter((q) => q.homework_id === hw.id);
     for (const s of STUDENTS) {
       const studentId = studentIds.get(s.name)!;
-      // HW 4 for Al-Aqsa + Salsabeel stays unapproved → live approval queue
+      // the newest homework stays unapproved for two classes → the approval
+      // queue is live on camera during the walkthrough
       const isQueue =
-        hw.number === 4 &&
+        hw.number === QUEUE_HW &&
         (s.className === "Masjid Al-Aqsa" || s.className === "Salsabeel");
       // a few students simply didn't submit — proves zeros are EXCLUDED,
       // not counted, in the termly average
-      const skipped = hw.number === 3 && (s.name === "Idris Kaya" || s.name === "Jamila Varga");
+      const skipped =
+        (hw.number === 3 && (s.name === "Idris Kaya" || s.name === "Jamila Varga")) ||
+        (hw.number === 11 && s.name === "Idris Kaya") ||
+        (hw.number === 17 && s.name === "Harun Delgado");
       if (skipped) continue;
 
       const ability = 0.55 + rand() * 0.45; // per-student-per-hw quality
@@ -190,12 +197,12 @@ async function main() {
             student_id: studentId,
             status: isQueue ? "submitted" : "approved",
             is_late: rand() < 0.08,
-            submitted_at: new Date(Date.UTC(2026, 9, 6 + hw.number * 7)).toISOString(),
+            submitted_at: new Date(Date.UTC(2026, 6, 6 + hw.number * 7)).toISOString(),
             ...(isQueue
               ? {}
               : {
                   approved_by: teacherIds.get(s.className)!,
-                  approved_at: new Date(Date.UTC(2026, 9, 8 + hw.number * 7)).toISOString(),
+                  approved_at: new Date(Date.UTC(2026, 6, 8 + hw.number * 7)).toISOString(),
                 }),
           },
           { onConflict: "homework_id,student_id" },
@@ -249,14 +256,17 @@ async function main() {
   console.log(`  ${submissionCount} submissions (${queuedCount} awaiting review)`);
 
   // ── exams: term 1 only (exam is 80% of the grade) ───────────────────
-  const examRows = STUDENTS.map((s) => ({
-    student_id: studentIds.get(s.name)!,
-    term_id: 1,
-    score: Math.round((52 + rand() * 34) * 10) / 10, // out of 89
-    entered_by: teacherIds.get(s.className)!,
-  }));
+  const EXAM_MAX: Record<number, number> = { 1: 89, 2: 93, 3: 98 };
+  const examRows = STUDENTS.flatMap((s) =>
+    [1, 2, 3].map((termId) => ({
+      student_id: studentIds.get(s.name)!,
+      term_id: termId,
+      score: Math.round((EXAM_MAX[termId] * (0.58 + rand() * 0.38)) * 10) / 10,
+      entered_by: teacherIds.get(s.className)!,
+    })),
+  );
   await db.from("exam_scores").upsert(examRows);
-  console.log(`  ${examRows.length} term-1 exam scores`);
+  console.log(`  ${examRows.length} exam scores (all three terms)`);
 
   // ── strikes ─────────────────────────────────────────────────────────
   const strikeSpec: [string, "absence" | "homework" | "conduct", string][] = [
