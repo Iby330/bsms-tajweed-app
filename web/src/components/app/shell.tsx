@@ -5,8 +5,22 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Moon, Sun, type LucideIcon } from "lucide-react";
+import {
+  Moon, Sun, Home, PlaySquare, ClipboardList, BookOpenCheck, User, Library,
+  Landmark, Bell, CheckSquare, Users, GraduationCap, Settings2, CalendarDays,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { NavItem, IconName } from "@/lib/nav";
+
+/** Names → components. The nav config crosses the RSC boundary as plain
+ *  data, so the mapping has to happen here on the client. */
+const ICONS: Record<IconName, LucideIcon> = {
+  home: Home, video: PlaySquare, clipboard: ClipboardList, book: BookOpenCheck,
+  user: User, library: Library, landmark: Landmark, bell: Bell,
+  check: CheckSquare, users: Users, graduation: GraduationCap,
+  settings: Settings2, calendar: CalendarDays,
+};
 
 /**
  * AppShell — the two deliberate layouts (plan: Q14, not just reflow):
@@ -14,13 +28,6 @@ import { cn } from "@/lib/utils";
  *  · mobile: top app bar + bottom tab bar (5 tabs)
  * Nav config is passed in by the (student)/(teacher) group layouts.
  */
-
-export type NavItem = {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-  comingSoon?: boolean;
-};
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
@@ -53,7 +60,7 @@ function NavLink({
   active: boolean;
   variant: "sidebar" | "tab";
 }) {
-  const Icon = item.icon;
+  const Icon = ICONS[item.icon];
   if (variant === "sidebar") {
     return (
       <Link
