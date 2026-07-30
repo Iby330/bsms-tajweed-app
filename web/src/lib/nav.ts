@@ -33,7 +33,7 @@ export const teacherNav: NavItem[] = [
   { href: "/teacher/roster", label: "Roster", icon: "users" },
   { href: "/teacher/hifz", label: "Hifz", icon: "book" },
   { href: "/teacher/classes", label: "Classes", icon: "graduation" },
-  { href: "/coming-soon/curriculum", label: "Curriculum", icon: "settings", comingSoon: true },
+  { href: "/teacher/curriculum", label: "Curriculum", icon: "settings" },
   { href: "/coming-soon/notifications", label: "Notifications", icon: "bell", comingSoon: true },
 ];
 export const teacherMobileNav: NavItem[] = teacherNav.slice(0, 5);
