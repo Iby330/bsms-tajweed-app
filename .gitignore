@@ -1,0 +1,25 @@
+.env
+.env.local
+*.pyc
+__pycache__/
+.venv/
+venv/
+node_modules/
+.DS_Store
+.claude/skill-research/
+.claude/settings.local.json
+dist/
+build/
+.next/
+*.log
+
+# ── privacy: real-student data never leaves this machine ──
+brainstorms/
+Tajweed Master Spreadsheet 2025_26/
+Tawjeed HW Master Guide .md
+# ── local tooling / unrelated workspaces ──
+.tooling/
+.claude/
+Agentic Workflow Transition Workspace/
+*.code-workspace
+supabase/.temp/
