@@ -94,22 +94,26 @@ describe("hizbBlocks", () => {
 
 describe("checkStatus", () => {
   it("mid-block: surahs to go until the check", () => {
-    expect(checkStatus(hizbBlocks(RUN, passedFirstN(12))))
+    const p = passedFirstN(12);
+    expect(checkStatus(hizbBlocks(RUN, p), p))
       .toEqual({ kind: "toGo", hizb: 60, remaining: 16 });
   });
   it("block finished, next untouched: ready for the check", () => {
-    expect(checkStatus(hizbBlocks(RUN, passedFirstN(28))))
+    const p = passedFirstN(28);
+    expect(checkStatus(hizbBlocks(RUN, p), p))
       .toEqual({ kind: "ready", hizb: 60 });
   });
   it("next block started: back to counting down", () => {
-    expect(checkStatus(hizbBlocks(RUN, passedFirstN(29))))
+    const p = passedFirstN(29);
+    expect(checkStatus(hizbBlocks(RUN, p), p))
       .toEqual({ kind: "toGo", hizb: 59, remaining: 8 });
   });
   it("whole run passed: done", () => {
-    expect(checkStatus(hizbBlocks(RUN, passedFirstN(43)))).toEqual({ kind: "done" });
+    const p = passedFirstN(43);
+    expect(checkStatus(hizbBlocks(RUN, p), p)).toEqual({ kind: "done" });
   });
   it("no blocks: null", () => {
-    expect(checkStatus([])).toBeNull();
+    expect(checkStatus([], new Set())).toBeNull();
   });
   it("returning student at a boundary is NOT told to redo last year's check", () => {
     // start_surah 86: hizb 60 is complete only via assumedPassed, zero real records
@@ -121,6 +125,14 @@ describe("checkStatus", () => {
   it("a real finished block still reports ready when earned records back it", () => {
     const earned = passedFirstN(28);
     expect(checkStatus(hizbBlocks(RUN, earned), earned))
+      .toEqual({ kind: "ready", hizb: 60 });
+  });
+  it("returning student who finishes their first block this year IS ready", () => {
+    // start 100: surahs 114..101 assumed from last year; this year they pass 100..87
+    const list = RUN.slice(14); // starts at surah 100
+    const earned = new Set(list.slice(0, 14).map((s) => s.number)); // 100..87 — completes hizb 60
+    const assumed = assumedPassed(RUN, list, earned);
+    expect(checkStatus(hizbBlocks(RUN, assumed), earned))
       .toEqual({ kind: "ready", hizb: 60 });
   });
 });
