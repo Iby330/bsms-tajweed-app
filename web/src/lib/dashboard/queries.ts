@@ -55,6 +55,65 @@ export async function getStudentProgress(studentId: string, termId: number) {
   };
 }
 
+/** Per-term marks for the Progress tab. `getStudentProgress` answers "how am I
+ *  doing right now"; this answers "how has the whole year gone". */
+export type TermProgress = {
+  termId: number;
+  examMax: number;
+  hwAvg: number | null;
+  termPct: number | null;
+  examScore: number | null;
+};
+
+export async function getFullProgress(studentId: string) {
+  const db = await supabaseServer();
+  const [terms, avgs, pcts, exams, eoy, hifz, strikes] = await Promise.all([
+    db.from("terms").select("id, exam_max").order("id"),
+    db.from("v_termly_avg").select("term_id, hw_avg").eq("student_id", studentId),
+    db.from("v_term_pct").select("term_id, term_pct").eq("student_id", studentId),
+    db.from("exam_scores").select("term_id, score").eq("student_id", studentId),
+    db.from("v_eoy").select("eoy_pct").eq("student_id", studentId).maybeSingle(),
+    db.from("v_hifz_progress").select("passed, target_count, start_surah, pct")
+      .eq("student_id", studentId).maybeSingle(),
+    db.from("strikes").select("term_id, reason, note, issued_at")
+      .eq("student_id", studentId).order("issued_at"),
+  ]);
+
+  const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
+  // views expose term_id as nullable — drop any row that lost its term
+  const byTerm = <T extends { term_id: number | null }>(rows: T[] | null) =>
+    new Map<number, T>(
+      (rows ?? [])
+        .filter((r) => r.term_id !== null)
+        .map((r) => [r.term_id as number, r] as const),
+    );
+
+  const avgMap = byTerm(avgs.data);
+  const pctMap = byTerm(pcts.data);
+  const examMap = byTerm(exams.data);
+
+  return {
+    terms: (terms.data ?? []).map(
+      (t): TermProgress => ({
+        termId: t.id,
+        examMax: t.exam_max,
+        hwAvg: num(avgMap.get(t.id)?.hw_avg),
+        termPct: num(pctMap.get(t.id)?.term_pct),
+        examScore: num(examMap.get(t.id)?.score),
+      }),
+    ),
+    eoyPct: num(eoy.data?.eoy_pct),
+    hifz: hifz.data
+      ? {
+          passed: Number(hifz.data.passed),
+          target: Number(hifz.data.target_count),
+          startSurah: Number(hifz.data.start_surah),
+        }
+      : null,
+    strikes: strikes.data ?? [],
+  };
+}
+
 export async function getIndividualLeaderboard() {
   const db = await supabaseServer();
   const { data } = await db

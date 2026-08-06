@@ -5,11 +5,13 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Moon, Sun, Home, PlaySquare, ClipboardList, BookOpenCheck, User, Library,
   Landmark, Bell, CheckSquare, Users, GraduationCap, Settings2, CalendarDays,
-  type LucideIcon,
+  LogOut, type LucideIcon,
 } from "lucide-react";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { NavItem, IconName } from "@/lib/nav";
 
@@ -47,6 +49,34 @@ export function ThemeToggle({ className }: { className?: string }) {
       )}
     >
       {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+    </button>
+  );
+}
+
+/** Sign out from anywhere. Lives in the shell because teachers have no
+ *  profile page to hide it on. */
+function SignOutIcon({ className }: { className?: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  return (
+    <button
+      type="button"
+      aria-label="Sign out"
+      title="Sign out"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        await supabaseBrowser().auth.signOut();
+        router.push("/login");
+        router.refresh();
+      }}
+      className={cn(
+        "inline-flex size-9 items-center justify-center rounded-md transition-colors disabled:opacity-50",
+        "hover:bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground",
+        className,
+      )}
+    >
+      <LogOut className="size-4" />
     </button>
   );
 }
@@ -146,9 +176,12 @@ export function AppShell({
             />
           ))}
         </nav>
-        <div className="flex items-center justify-between border-t border-sidebar-border px-4 py-3">
-          <span className="truncate text-xs text-sidebar-foreground/70">{userName}</span>
-          <ThemeToggle />
+        <div className="flex items-center justify-between gap-2 border-t border-sidebar-border px-4 py-3">
+          <span className="min-w-0 truncate text-xs text-sidebar-foreground/70">{userName}</span>
+          <div className="flex shrink-0 items-center">
+            <ThemeToggle />
+            <SignOutIcon />
+          </div>
         </div>
       </aside>
 
@@ -167,7 +200,10 @@ export function AppShell({
             BSMS TAJWEED
           </span>
         </div>
-        <ThemeToggle className="text-foreground/70 hover:bg-muted hover:text-foreground" />
+        <div className="flex items-center">
+          <ThemeToggle className="text-foreground/70 hover:bg-muted hover:text-foreground" />
+          <SignOutIcon className="text-foreground/70 hover:bg-muted hover:text-foreground" />
+        </div>
       </header>
 
       {/* content */}

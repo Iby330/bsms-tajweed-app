@@ -24,3 +24,7 @@ Agentic Workflow Transition Workspace/
 *.code-workspace
 supabase/.temp/
 execution/node_modules
+.superpowers/
+
+# browser debug artifacts from playwright-mcp sessions
+.playwright-mcp/

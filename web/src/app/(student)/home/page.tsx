@@ -4,6 +4,8 @@ import {
   getTermsAndWeeks, currentWeek, currentTermId,
   getStudentProgress, getIndividualLeaderboard, getClassLeaderboards,
 } from "@/lib/dashboard/queries";
+import { getStudentCurriculum } from "@/lib/curriculum/queries";
+import { listHomework, bucketHomework, moduleTitle } from "@/lib/curriculum/tree";
 import { expectedPassed } from "@/lib/hifz/pace";
 import { StatTile } from "@/components/app/stat-tile";
 import { PaceMarker } from "@/components/app/pace-marker";
@@ -11,8 +13,9 @@ import { StrikeDots } from "@/components/app/strike-dots";
 import { LeaderboardWidget } from "@/components/app/leaderboard-widget";
 import { CountdownChip } from "@/components/app/countdown-chip";
 import { MixedText } from "@/components/app/mixed-text";
-import { statusChip } from "@/lib/homework/logic";
-import { cn } from "@/lib/utils";
+import { homeworkLabel } from "@/components/app/homework-row";
+import { SERIES_LABELS, seriesShort } from "@/lib/lessons/series";
+import { isLate } from "@/lib/homework/logic";
 
 export const dynamic = "force-dynamic";
 
@@ -27,10 +30,11 @@ export default async function StudentHome() {
   const termId = currentTermId(terms, now);
   const week = currentWeek(weeks, now);
 
-  const [progress, lbIndividual, lbClasses] = await Promise.all([
+  const [progress, lbIndividual, lbClasses, curriculum] = await Promise.all([
     getStudentProgress(profile.id, termId),
     getIndividualLeaderboard(),
     getClassLeaderboards(),
+    getStudentCurriculum(profile.id, now),
   ]);
 
   const { data: lessons } = week
@@ -40,21 +44,39 @@ export default async function StudentHome() {
     .from("lesson_watches").select("lesson_id").eq("student_id", profile.id);
   const watched = new Set((watches ?? []).map((w) => w.lesson_id));
 
-  const { data: hw } = week
-    ? await db.from("homeworks").select("id, number, title, due_at").eq("week_id", week.id).maybeSingle()
-    : { data: null };
-  const { data: sub } = hw
-    ? await db.from("submissions").select("status").eq("homework_id", hw.id).eq("student_id", profile.id).maybeSingle()
-    : { data: null };
+  // A week can carry more than one course's homework — Term 3 week 1 has both
+  // Tajweed 16 and TFP 1 — so this is a list, not a single row.
+  const { data: hws } = week
+    ? await db
+        .from("homeworks")
+        .select("id, number, title, series, due_at")
+        .eq("week_id", week.id)
+        .order("number")
+    : { data: [] };
+  const { data: weekSubs } = hws?.length
+    ? await db
+        .from("submissions")
+        .select("homework_id, status")
+        .eq("student_id", profile.id)
+        .in("homework_id", hws.map((h) => h.id))
+    : { data: [] };
+  const statusByHw = new Map((weekSubs ?? []).map((s) => [s.homework_id, s.status]));
 
   const { data: released } = await db.from("homeworks").select("id", { count: "exact" });
   const { data: mine } = await db
     .from("submissions").select("id").eq("student_id", profile.id).eq("status", "approved");
 
+  // Overdue work from EARLIER weeks. "This week" alone hides it — a student can
+  // be four homeworks behind and see a screen that says everything is fine.
+  // Renders nothing when there's nothing overdue.
+  const currentWeekHwIds = new Set((hws ?? []).map((h) => h.id));
+  const overdue = bucketHomework(listHomework(curriculum.terms)).needsYou.filter(
+    (e) => isLate(now, e.homework.due_at) && !currentWeekHwIds.has(e.homework.id),
+  );
+
   const expected = progress.hifz
     ? expectedPassed(now, weeks, progress.hifz.target)
     : 0;
-  const chip = statusChip(sub?.status as never);
 
   return (
     <div className="space-y-8">
@@ -65,48 +87,75 @@ export default async function StudentHome() {
         </p>
       </header>
 
+      {overdue.length > 0 && (
+        <section className="rounded-lg border border-danger/25 bg-danger/5 p-4">
+          <h2 className="text-[11px] uppercase tracking-wider text-danger">
+            Overdue <span className="tabular-nums">({overdue.length})</span>
+          </h2>
+          <ul className="mt-2 space-y-1">
+            {overdue.map((e) => (
+              <li key={e.homework.id}>
+                <Link
+                  href={`/homework/${e.homework.number}`}
+                  className="group flex items-baseline justify-between gap-3 rounded px-1 py-0.5 text-sm transition-colors hover:bg-danger/5"
+                >
+                  <span className="min-w-0">
+                    <span className="font-medium group-hover:underline underline-offset-4">
+                      {homeworkLabel(e.homework.number, e.series)}
+                    </span>
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {seriesShort(e.series)} · week {e.weekNumber}
+                    </span>
+                  </span>
+                  <span aria-hidden className="shrink-0 text-xs text-muted-foreground">→</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="space-y-3">
         <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">This week</h2>
         {lessons?.length ? (
           <div className="grid gap-3 sm:grid-cols-2">
-            {lessons.map((l) => (
-              <Link key={l.id} href={`/lessons/${l.id}`}
-                className="group rounded-lg border border-line bg-card p-4 transition-colors hover:border-ink/30">
-                <div className="flex items-start justify-between gap-3">
-                  <MixedText text={l.title} className="text-sm font-medium leading-snug" />
-                  {watched.has(l.id) && <span className="shrink-0 text-xs text-ok">watched ✓</span>}
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {l.series === "umm_al_kitab" ? "Umm al-Kitāb" : l.series === "tfp" ? "Ten Fundamental Principles" : "Tajweed"}
-                  {!l.youtube_id && " · video coming soon"}
-                </p>
-              </Link>
-            ))}
+            {lessons.map((l) => {
+              // No standalone homework cards here — the homework is linked from
+              // the lesson itself. The video carries its course's deadline, since
+              // watching is the first step towards handing in.
+              const hw = (hws ?? []).find((h) => h.series === l.series);
+              const status = hw ? statusByHw.get(hw.id) : undefined;
+              const handedIn =
+                status === "submitted" || status === "auto_marked" || status === "approved";
+              return (
+                <Link key={l.id} href={`/lessons/${l.id}`}
+                  className="group rounded-lg border border-line bg-card p-4 transition-colors hover:border-ink/30">
+                  <div className="flex items-start justify-between gap-3">
+                    {/* cleaned title — the series label below already says the course;
+                        TFP titles clean to "" so fall back to the raw one */}
+                    <MixedText text={moduleTitle(l.title) || l.title} className="text-sm font-medium leading-snug" />
+                    {watched.has(l.id) && <span className="shrink-0 text-xs text-ok">watched ✓</span>}
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs text-muted-foreground">
+                      {SERIES_LABELS[l.series] ?? l.series}
+                      {!l.youtube_id && " · video coming soon"}
+                    </p>
+                    {hw?.due_at && !handedIn && <CountdownChip dueAt={hw.due_at} />}
+                    {hw && handedIn && (
+                      <span className="rounded-md bg-ok/12 px-2 py-0.5 text-xs font-medium text-ok">
+                        homework in ✓
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         ) : (
           <p className="rounded-lg border border-line bg-card p-4 text-sm text-muted-foreground">
             No lessons released yet.
           </p>
-        )}
-
-        {hw && (
-          <Link href={`/homework/${hw.number}`}
-            className="flex items-center justify-between rounded-lg border border-line bg-card p-4 transition-colors hover:border-ink/30">
-            <div className="min-w-0">
-              <div className="text-sm font-medium">Homework {hw.number}</div>
-              <MixedText text={hw.title} className="text-xs text-muted-foreground" />
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <span className={cn(
-                "rounded-md px-2 py-0.5 text-xs font-medium",
-                chip.tone === "ok" && "bg-ok/12 text-ok",
-                chip.tone === "warn" && "bg-warn/12 text-warn",
-                chip.tone === "ink" && "bg-muted text-foreground",
-                chip.tone === "muted" && "bg-muted text-muted-foreground",
-              )}>{chip.label}</span>
-              {hw.due_at && sub?.status !== "approved" && <CountdownChip dueAt={hw.due_at} />}
-            </div>
-          </Link>
         )}
       </section>
 

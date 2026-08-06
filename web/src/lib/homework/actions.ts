@@ -87,14 +87,3 @@ export async function submitHomework(submissionId: string): Promise<void> {
   revalidatePath("/homework");
   revalidatePath("/home");
 }
-
-/** Record that a lesson was watched (fires at ~90% playback). */
-export async function markWatched(lessonId: string): Promise<void> {
-  const profile = await requireStudent();
-  const db = await supabaseServer();
-  await db
-    .from("lesson_watches")
-    .upsert({ student_id: profile.id, lesson_id: lessonId }, { onConflict: "student_id,lesson_id" });
-  revalidatePath("/home");
-  revalidatePath("/lessons");
-}

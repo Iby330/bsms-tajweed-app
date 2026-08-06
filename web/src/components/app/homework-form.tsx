@@ -4,6 +4,7 @@ import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MixedText } from "@/components/app/mixed-text";
 import { MarkBadge } from "@/components/app/mark-badge";
+import { VoiceRecorder } from "@/components/app/voice-recorder";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { saveAnswer, submitHomework } from "@/lib/homework/actions";
@@ -21,6 +22,12 @@ export type ExistingAnswer = {
   auto_rubric: unknown;
 };
 
+export type ExistingVoiceNote = {
+  question_id: string;
+  storage_path: string;
+  duration_s: number | null;
+};
+
 /**
  * The homework form. Every prompt, option and answer renders through
  * <MixedText> because question text carries inline Qur'anic Arabic.
@@ -31,18 +38,21 @@ export function HomeworkForm({
   submissionId,
   questions,
   existing,
+  voiceNotes = [],
   status,
   readOnly,
 }: {
   submissionId: string | null;
   questions: StudentQuestion[];
   existing: ExistingAnswer[];
+  voiceNotes?: ExistingVoiceNote[];
   status: string | null;
   readOnly: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const byQ = new Map(existing.map((a) => [a.question_id, a]));
+  const voiceByQ = new Map(voiceNotes.map((v) => [v.question_id, v]));
 
   const [answers, setAnswers] = useState<Record<string, unknown>>(() =>
     Object.fromEntries(existing.map((a) => [a.question_id, a.response])),
@@ -110,18 +120,19 @@ export function HomeworkForm({
 
             <div className="mt-4">
               {q.is_task ? (
-                <label className="flex items-start gap-2.5 text-sm">
-                  <input
-                    type="checkbox"
-                    disabled={readOnly}
-                    checked={textOf(value) === "done"}
-                    onChange={(e) => update(q.id, textResponse(e.target.checked ? "done" : ""))}
-                    className="mt-0.5 size-4 accent-[var(--ink)]"
+                submissionId ? (
+                  <VoiceRecorder
+                    submissionId={submissionId}
+                    questionId={q.id}
+                    initialPath={voiceByQ.get(q.id)?.storage_path ?? null}
+                    initialDuration={voiceByQ.get(q.id)?.duration_s ?? null}
+                    readOnly={readOnly}
                   />
-                  <span className="text-muted-foreground">
-                    I&apos;ve completed this task and sent my recording.
-                  </span>
-                </label>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Open this homework to start recording.
+                  </p>
+                )
               ) : q.qtype === "mcq" && q.options ? (
                 <ul className="space-y-1.5">
                   {q.options.map((o) => {

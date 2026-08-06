@@ -1,6 +1,7 @@
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks, currentTermId, getIndividualLeaderboard } from "@/lib/dashboard/queries";
 import { ExamInput } from "@/components/app/exam-input";
+import { StrikeManager, type StudentStrike } from "@/components/app/strike-manager";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +35,7 @@ export default async function Roster({
       ids.length ? db.from("v_term_pct").select("student_id, term_id, term_pct").in("student_id", ids) : Promise.resolve({ data: [] }),
       ids.length ? db.from("v_eoy").select("student_id, eoy_pct").in("student_id", ids) : Promise.resolve({ data: [] }),
       ids.length ? db.from("v_hifz_progress").select("student_id, passed, target_count").in("student_id", ids) : Promise.resolve({ data: [] }),
-      ids.length ? db.from("strikes").select("student_id").in("student_id", ids).eq("term_id", termId) : Promise.resolve({ data: [] }),
+      ids.length ? db.from("strikes").select("id, student_id, reason, note, issued_at").in("student_id", ids).eq("term_id", termId).order("issued_at") : Promise.resolve({ data: [] }),
       ids.length ? db.from("exam_scores").select("student_id, term_id, score").in("student_id", ids) : Promise.resolve({ data: [] }),
       getIndividualLeaderboard(),
     ]);
@@ -46,8 +47,12 @@ export default async function Roster({
   const hifzMap = new Map((hifz ?? []).map((r) => [r.student_id!, r]));
   const examMap = new Map((exams ?? []).map((r) => [key(r.student_id, r.term_id), Number(r.score)]));
   const rankMap = new Map(lb.map((r) => [r.name, r.rank]));
-  const strikeCount = new Map<string, number>();
-  for (const s of strikes ?? []) strikeCount.set(s.student_id, (strikeCount.get(s.student_id) ?? 0) + 1);
+  const strikesByStudent = new Map<string, StudentStrike[]>();
+  for (const s of strikes ?? []) {
+    const list = strikesByStudent.get(s.student_id) ?? [];
+    list.push({ id: s.id, reason: s.reason, note: s.note, issued_at: s.issued_at! });
+    strikesByStudent.set(s.student_id, list);
+  }
 
   const pct = (n: number | undefined) => (n === undefined ? "—" : `${n.toFixed(1)}%`);
 
@@ -96,7 +101,7 @@ export default async function Roster({
           <tbody className="divide-y divide-line">
             {(students ?? []).map((s) => {
               const h = hifzMap.get(s.id);
-              const strikes = strikeCount.get(s.id) ?? 0;
+              const studentStrikes = strikesByStudent.get(s.id) ?? [];
               return (
                 <tr key={s.id} className={cn(!s.is_active && "opacity-50")}>
                   <td className="px-4 py-2 font-medium">
@@ -126,8 +131,13 @@ export default async function Roster({
                   <td className="px-2 py-2 text-right tabular-nums">
                     {h ? `${h.passed}/${h.target_count}` : "—"}
                   </td>
-                  <td className={cn("px-4 py-2 text-right tabular-nums", strikes >= 3 && "text-danger font-medium")}>
-                    {strikes}
+                  <td className="px-4 py-2 text-right">
+                    <StrikeManager
+                      studentId={s.id}
+                      studentName={s.full_name}
+                      termId={termId}
+                      strikes={studentStrikes}
+                    />
                   </td>
                 </tr>
               );

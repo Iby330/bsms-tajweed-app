@@ -2,16 +2,11 @@ import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { MixedText } from "@/components/app/mixed-text";
 import { StatTile } from "@/components/app/stat-tile";
+import { LessonVideoInput } from "@/components/app/lesson-video-input";
+import { SERIES_LABELS as SERIES } from "@/lib/lessons/series";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-
-const SERIES: Record<string, string> = {
-  tajweed: "Tajweed",
-  umm_al_kitab: "Umm al-Kitāb",
-  tfp: "Ten Fundamental Principles",
-  seerah: "Seerah",
-};
 
 /** The whole year, exactly as imported — teachers can audit every module. */
 export default async function Curriculum() {
@@ -99,12 +94,13 @@ export default async function Curriculum() {
                   {wLessons.length > 0 && (
                     <ul className="mt-3 space-y-1">
                       {wLessons.map((l) => (
-                        <li key={l.id} className="flex items-baseline gap-2 text-sm">
+                        <li key={l.id} className="flex flex-wrap items-baseline gap-2 text-sm">
                           <span className="w-1 shrink-0 text-muted-foreground">·</span>
                           <MixedText text={l.title} className="min-w-0" />
                           <span className="ml-auto shrink-0 text-xs text-muted-foreground">
-                            {SERIES[l.series]}{!l.youtube_id && " · no video"}
+                            {SERIES[l.series]}
                           </span>
+                          <LessonVideoInput lessonId={l.id} initial={l.youtube_id} />
                         </li>
                       ))}
                     </ul>

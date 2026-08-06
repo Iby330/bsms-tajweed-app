@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { MixedText } from "@/components/app/mixed-text";
+import { VoicePlayback } from "@/components/app/voice-playback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { approveSubmission } from "@/lib/marking/actions";
@@ -29,6 +30,12 @@ export type ReviewAnswer = {
   final_marks: number | null;
 };
 
+export type ReviewVoiceNote = {
+  question_id: string;
+  storage_path: string;
+  duration_s: number | null;
+};
+
 /**
  * Accept-or-edit review. Every mark is pre-filled with the automatic one;
  * the teacher changes what they disagree with and approves once.
@@ -37,16 +44,19 @@ export function ReviewPanel({
   submissionId,
   questions,
   answers,
+  voiceNotes = [],
   approved,
 }: {
   submissionId: string;
   questions: ReviewQuestion[];
   answers: ReviewAnswer[];
+  voiceNotes?: ReviewVoiceNote[];
   approved: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const byQ = new Map(answers.map((a) => [a.question_id, a]));
+  const voiceByQ = new Map(voiceNotes.map((v) => [v.question_id, v]));
 
   const [edits, setEdits] = useState<Record<string, string>>(() =>
     Object.fromEntries(
@@ -161,9 +171,23 @@ export function ReviewPanel({
               ) : (
                 <div className="rounded-md border border-line bg-page p-3">
                   <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                    Student answer
+                    {q.is_task ? "Student recitation" : "Student answer"}
                   </div>
-                  {text ? (
+                  {q.is_task ? (
+                    voiceByQ.has(q.id) ? (
+                      <div className="mt-1.5">
+                        <VoicePlayback
+                          storagePath={voiceByQ.get(q.id)!.storage_path}
+                          durationS={voiceByQ.get(q.id)!.duration_s}
+                          label="Recorded in the app"
+                        />
+                      </div>
+                    ) : (
+                      <p className="mt-1.5 text-sm italic text-muted-foreground">
+                        Nothing recorded for this task.
+                      </p>
+                    )
+                  ) : text ? (
                     <MixedText text={text} className="mt-1.5 block text-sm leading-relaxed" />
                   ) : (
                     <p className="mt-1.5 text-sm italic text-muted-foreground">No answer given.</p>

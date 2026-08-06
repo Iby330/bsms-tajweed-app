@@ -28,7 +28,7 @@ export default async function ReviewDetail({
     await markSubmission(sub.id);
   }
 
-  const [{ data: hw }, { data: student }, { data: questions }, { data: answers }] =
+  const [{ data: hw }, { data: student }, { data: questions }, { data: answers }, { data: voiceNotes }] =
     await Promise.all([
       db.from("homeworks").select("number, title, total_marks").eq("id", sub.homework_id).single(),
       db.from("profiles").select("full_name, class_id").eq("id", sub.student_id).single(),
@@ -37,6 +37,9 @@ export default async function ReviewDetail({
         .eq("homework_id", sub.homework_id).order("position"),
       db.from("answers")
         .select("id, question_id, response, auto_marks, auto_rubric, final_marks")
+        .eq("submission_id", sub.id),
+      db.from("voice_notes")
+        .select("question_id, storage_path, duration_s")
         .eq("submission_id", sub.id),
     ]);
 
@@ -64,6 +67,7 @@ export default async function ReviewDetail({
         submissionId={sub.id}
         questions={(questions ?? []) as never}
         answers={(answers ?? []) as never}
+        voiceNotes={voiceNotes ?? []}
         approved={sub.status === "approved"}
       />
     </div>
