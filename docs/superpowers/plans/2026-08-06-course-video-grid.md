@@ -22,6 +22,25 @@
 
 **`tsx` gotcha:** a script run from outside `web/` compiles as CJS and rejects top-level `await`. Wrap script bodies in `async function main() { … } main();`. This is already recorded in the `apply_migration` journal.
 
+**Branch.** Work happens on `feat/course-video-grid`, branched from `5b4fb8f`. The working tree was clean at branch time.
+
+**Lint baseline — read before running lint.** `npm run lint` **already reports 6 errors and 3 warnings on `main`**, in code this plan does not touch:
+
+| File | Rule |
+|---|---|
+| `app/(student)/lessons/[lessonId]/page.tsx:35` | Cannot call impure function during render |
+| `app/teacher/curriculum/page.tsx:14` | Cannot call impure function during render |
+| `components/app/lesson-player.tsx:91` | Cannot access refs during render |
+| `components/app/login-form.tsx:26` | setState synchronously within an effect |
+| `components/app/shell.tsx:37` | setState synchronously within an effect |
+| `components/app/voice-recorder.tsx:59` | setState synchronously within an effect |
+
+Plus 3 unused-var warnings in `import-forms.test.ts` and `marking/llm.test.ts`.
+
+The bar is **"no NEW problems"**, not "lint is clean". Do not fix these six — they are unrelated to this work and fixing them here would bury the real diff. Count before and after.
+
+**Test baseline:** 175 tests across 9 files, all passing. Production build succeeds.
+
 **Live database.** There is no local Supabase. `execution/apply_migration.ts` talks to the hosted project (`ssqeakiutclbiwizrchh`) through the Management API using `SUPABASE_ACCESS_TOKEN` from `.env`. **Applying a migration touches production data.** Task 5 is gated on explicit user confirmation — do not run it early to "check it works".
 
 ---
@@ -376,7 +395,7 @@ The grid breakpoints match `/courses` and `/courses/[term]`, which both already 
 - [ ] **Step 3: Verify it compiles and lints**
 
 Run: `cd web && npx tsc --noEmit && npm run lint`
-Expected: no errors, no warnings.
+Expected: `tsc` clean. `npm run lint` reports **exactly the 6 pre-existing errors and 3 warnings** described in "Lint baseline" above — no more. Compare the count; if it rises, the new code introduced it and you must fix it. Do not fix the pre-existing six: they are in files this plan does not touch, and cleaning them here would bury the real diff.
 
 - [ ] **Step 4: Commit**
 
@@ -406,7 +425,7 @@ git rm web/src/components/app/module-row.tsx
 - [ ] **Step 3: Full check**
 
 Run: `cd web && npm test && npm run lint && npm run build`
-Expected: all tests pass (the `tree.ts` suite must be green and **unchanged** — if it goes red, the change has leaked past presentation; stop and investigate rather than editing the test), lint clean, build succeeds.
+Expected: all 175 tests pass (the `tree.ts` suite — 44 of them — must be green and **unchanged** — if it goes red, the change has leaked past presentation; stop and investigate rather than editing the test), lint clean, build succeeds.
 
 - [ ] **Step 4: Look at it in the browser**
 

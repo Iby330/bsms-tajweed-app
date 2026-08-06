@@ -18,6 +18,16 @@
  *    4xx with {message}. Non-2xx must be treated as failure, not empty output.
  *  - Write every statement idempotently (if not exists / drop … if exists) so a
  *    half-applied batch can be re-run.
+ *  - This file lives outside web/, so `tsx` compiles it as CJS, which rejects
+ *    top-level await ("Top-level await is currently not supported with the
+ *    cjs output format"). Keep all logic inside main() rather than switching
+ *    to bare top-level awaits.
+ *  - A successful HTTP response does NOT mean the SQL did anything: an UPDATE
+ *    that matches zero rows (e.g. because it targets a title/id that drifted
+ *    from what the migration author expected) still returns 201. Prefer
+ *    writing migrations that target rows by stable identity (position/id),
+ *    not by matching mutable text, and consider a RETURNING clause on data
+ *    migrations so the printed result below isn't just `[]`.
  */
 import { readFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
@@ -53,6 +63,12 @@ async function runSql(token: string, query: string): Promise<unknown> {
   } catch {
     return body;
   }
+}
+
+function summarize(result: unknown): string {
+  const s = JSON.stringify(result);
+  if (s === undefined) return String(result);
+  return s.length > 500 ? `${s.slice(0, 500)}… (${s.length} chars total)` : s;
 }
 
 const LEDGER = `create table if not exists schema_migrations (
@@ -94,13 +110,18 @@ async function main() {
     }
 
     const sql = readFileSync(path, "utf8");
-    await runSql(token, sql);
+    const result = await runSql(token, sql);
     await runSql(
       token,
       `insert into schema_migrations (filename) values ('${name.replace(/'/g, "''")}')
        on conflict (filename) do update set applied_at = now()`,
     );
     console.log(`ok    ${name}`);
+    // Surface whatever the API handed back instead of discarding it. Note the
+    // limit: a bare UPDATE returns [] whether it matched 24 rows or none, so
+    // this alone does NOT prove a data migration did anything — add RETURNING
+    // to make it meaningful, and verify data migrations with a separate query.
+    console.log(`      result: ${summarize(result)}`);
   }
 }
 
