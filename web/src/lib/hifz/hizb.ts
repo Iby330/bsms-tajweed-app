@@ -92,13 +92,19 @@ export type CheckStatus =
   | null;
 
 /** The hero's footer line. "ready" = block finished but its check not yet
- *  presumed done (the next block is untouched). Derived, never authoritative. */
-export function checkStatus(blocks: HizbBlock[]): CheckStatus {
+ *  presumed done (the next block is untouched). Pass `earned` (this year's
+ *  real records, NOT the assumed set) so a returning student who passed the
+ *  previous hizb's check last year isn't told to present it again.
+ *  Derived, never authoritative. */
+export function checkStatus(blocks: HizbBlock[], earned?: Set<number>): CheckStatus {
   if (blocks.length === 0) return null;
   if (blocks.every((b) => b.state === "complete")) return { kind: "done" };
-  const cur = blocks.find((b) => b.state === "current")!;
-  const prev = blocks[blocks.indexOf(cur) - 1];
-  if (cur.passedCount === 0 && prev?.state === "complete")
+  const curIdx = blocks.findIndex((b) => b.state === "current");
+  if (curIdx === -1) return null;
+  const cur = blocks[curIdx];
+  const prev = blocks[curIdx - 1];
+  const earnedPrev = !earned || (prev?.surahs.some((s) => earned.has(s.number)) ?? false);
+  if (cur.passedCount === 0 && prev?.state === "complete" && earnedPrev)
     return { kind: "ready", hizb: prev.hizb };
   return { kind: "toGo", hizb: cur.hizb, remaining: cur.surahs.length - cur.passedCount };
 }

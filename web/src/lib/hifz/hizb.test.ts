@@ -111,6 +111,18 @@ describe("checkStatus", () => {
   it("no blocks: null", () => {
     expect(checkStatus([])).toBeNull();
   });
+  it("returning student at a boundary is NOT told to redo last year's check", () => {
+    // start_surah 86: hizb 60 is complete only via assumedPassed, zero real records
+    const list = RUN.slice(28); // 86 downwards
+    const assumed = assumedPassed(RUN, list, new Set());
+    expect(checkStatus(hizbBlocks(RUN, assumed), new Set()))
+      .toEqual({ kind: "toGo", hizb: 59, remaining: 9 });
+  });
+  it("a real finished block still reports ready when earned records back it", () => {
+    const earned = passedFirstN(28);
+    expect(checkStatus(hizbBlocks(RUN, earned), earned))
+      .toEqual({ kind: "ready", hizb: 60 });
+  });
 });
 
 describe("juzProgress", () => {
@@ -150,11 +162,28 @@ describe("rowPlan", () => {
   });
 });
 
+describe("rowPlan boundaries", () => {
+  it("zero rows", () => {
+    expect(rowPlan(0, new Set())).toEqual([]);
+  });
+  it("nothing kept: one gap", () => {
+    expect(rowPlan(5, new Set())).toEqual([{ kind: "gap", count: 5 }]);
+  });
+  it("everything kept: all nodes", () => {
+    expect(rowPlan(3, new Set([0, 1, 2]))).toEqual([
+      { kind: "node", index: 0 },
+      { kind: "node", index: 1 },
+      { kind: "node", index: 2 },
+    ]);
+  });
+});
+
 describe("structure invariants", () => {
   it("hizb pairs tile their juz exactly — the two tables can't drift apart", () => {
     for (const j of JUZ_BOUNDS) {
       const hs = HIZB_BOUNDS.filter((h) => Math.ceil(h.hizb / 2) === j.juz)
         .sort((a, b) => a.from - b.from);
+      expect(hs).toHaveLength(2);
       expect(hs[0].from).toBe(j.from);
       expect(hs.at(-1)!.to).toBe(j.to);
       expect(hs[1].from).toBe(hs[0].to + 1); // contiguous, no overlap
