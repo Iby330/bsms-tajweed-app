@@ -41,14 +41,20 @@ with vitest alongside `pace.test.ts`:
 - `HIZB_BOUNDS`: the three ranges above, plus juz mapping (Juz 30 "'Amma" = 78–114,
   Juz 29 "Tabarak" = 67–77). Keyed by surah `number`.
 - `hizbOf(surahNumber)` / `juzOf(surahNumber)`.
-- `hizbBlocks(list, passedSet)` → ordered blocks `{ hizb, surahs, passedCount, state }`
-  where state ∈ `complete | current | upcoming`. Blocks are computed over the student's
-  memorisation list (which may start mid-run for returning students).
-- `surahsUntilHizbCheck(list, passedSet)` → count of unpassed surahs remaining in the
-  current hizb block. Counted over the canonical run order, independent of
-  `target_count` (a student whose yearly target ends mid-hizb still sees the true
-  distance to the check).
-- `juzProgress(list, passedSet)` → `{ juzName, juzNameAr, passed, total }` for the juz
+- `assumedPassed(allSurahs, list, passedSet)` → the record set plus every surah before
+  the student's start point. Unconditional by design: any student whose `start_surah`
+  isn't 114 is treated as having passed everything above it (returning students did it
+  in a previous year; there is no override for mid-year joiners or data-entry slips).
+  All derived numbers below use this set; the path itself only shows this year's list.
+- `hizbBlocks(allSurahs, assumedSet)` → ordered blocks `{ hizb, surahs, passedCount,
+  state }` where state ∈ `complete | current | upcoming`. Computed over the FULL run,
+  not the student's list — the hero bars always show all three blocks, and blocks
+  before a returning student's start point render full.
+- `checkStatus(blocks)` → the hero footer line: `toGo` (surahs remaining in the current
+  block, counted over the canonical run independent of `target_count` — a student whose
+  yearly target ends mid-hizb still sees the true distance), `ready` (block finished,
+  next untouched), or `done`.
+- `juzProgress(allSurahs, list, assumedSet)` → `{ juz, name_en, name_ar, passed, total }` for the juz
   the current surah sits in. **Denominator = surahs of that juz within the memorisation
   run**: 37 for Juz 'Amma (whole juz is in-run), 6 for Juz Tabarak (run covers only
   hizb 58; surahs 67–71 are hizb 57, outside the programme).
