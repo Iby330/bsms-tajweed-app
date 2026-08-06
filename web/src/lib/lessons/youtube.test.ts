@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseYouTubeId } from "./youtube";
+import { parseYouTubeId, thumbnailUrl } from "./youtube";
 
 const ID = "dQw4w9WgXcQ";
 
@@ -42,5 +42,19 @@ describe("parseYouTubeId", () => {
     ["an id with illegal characters", "dQw4w9WgX!Q"],
   ])("returns null for %s", (_label, input) => {
     expect(parseYouTubeId(input)).toBeNull();
+  });
+});
+
+describe("thumbnailUrl", () => {
+  it("builds the hqdefault url for an id", () => {
+    expect(thumbnailUrl(ID)).toBe(`https://i.ytimg.com/vi/${ID}/hqdefault.jpg`);
+  });
+
+  it("returns null when there is no video", () => {
+    expect(thumbnailUrl(null)).toBeNull();
+  });
+
+  it("returns null for an empty string rather than a broken url", () => {
+    expect(thumbnailUrl("")).toBeNull();
   });
 });

@@ -24,3 +24,18 @@ export function parseYouTubeId(input: string): string | null {
 
   return null;
 }
+
+/**
+ * Poster frame for a lesson video. No API key, no quota — ytimg serves these
+ * straight from Google's CDN.
+ *
+ * `hqdefault` rather than `maxresdefault`: maxres is true 16:9 but only exists
+ * if the source was uploaded in HD, which is not true of every video on the
+ * channel, and a 404 on a card is worse than a crop. hqdefault is always
+ * present at 480×360 with the 16:9 frame letterboxed inside it — 12.5% bars top
+ * and bottom, which `object-cover` in a 16:9 box crops off exactly.
+ */
+export function thumbnailUrl(youtubeId: string | null): string | null {
+  if (!youtubeId) return null;
+  return `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`;
+}
