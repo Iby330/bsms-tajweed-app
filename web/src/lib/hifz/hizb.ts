@@ -17,6 +17,8 @@ export const HIZB_BOUNDS: HizbRange[] = [
   { hizb: 60, from: 87, to: 114 },
   { hizb: 59, from: 78, to: 86 },
   { hizb: 58, from: 72, to: 77 },
+  // 57 is mapped so hizbOf/juzOf answer honestly for Tabarak surahs outside the
+  // programme. It must never yield a block: `surahs` is seeded 72–114 only.
   { hizb: 57, from: 67, to: 71 },
 ];
 
@@ -46,4 +48,110 @@ export function assumedPassed(
   const startIdx = list[0].order_index;
   for (const s of allSurahs) if (s.order_index < startIdx) out.add(s.number);
   return out;
+}
+
+export type HizbBlockState = "complete" | "current" | "upcoming";
+export type HizbBlock = {
+  hizb: number;
+  surahs: Surah[]; // run order
+  passedCount: number;
+  state: HizbBlockState;
+};
+
+/** Blocks over the FULL run — the hero bars show all of them regardless of
+ *  the student's yearly target. Pass the `assumedPassed` set. */
+export function hizbBlocks(allSurahs: Surah[], passed: Set<number>): HizbBlock[] {
+  const ordered = [...allSurahs].sort((a, b) => a.order_index - b.order_index);
+  const groups = new Map<number, Surah[]>();
+  for (const s of ordered) {
+    const h = hizbOf(s.number);
+    if (h === null) continue;
+    groups.set(h, [...(groups.get(h) ?? []), s]);
+  }
+  const blocks: HizbBlock[] = [...groups.entries()].map(([hizb, surahs]) => ({
+    hizb,
+    surahs,
+    passedCount: surahs.filter((s) => passed.has(s.number)).length,
+    state: "upcoming",
+  }));
+  let currentSeen = false;
+  for (const b of blocks) {
+    if (b.passedCount === b.surahs.length) b.state = "complete";
+    else if (!currentSeen) {
+      b.state = "current";
+      currentSeen = true;
+    }
+  }
+  return blocks;
+}
+
+export type CheckStatus =
+  | { kind: "toGo"; hizb: number; remaining: number }
+  | { kind: "ready"; hizb: number }
+  | { kind: "done" }
+  | null;
+
+/** The hero's footer line. "ready" = block finished but its check not yet
+ *  presumed done (the next block is untouched). Derived, never authoritative. */
+export function checkStatus(blocks: HizbBlock[]): CheckStatus {
+  if (blocks.length === 0) return null;
+  if (blocks.every((b) => b.state === "complete")) return { kind: "done" };
+  const cur = blocks.find((b) => b.state === "current")!;
+  const prev = blocks[blocks.indexOf(cur) - 1];
+  if (cur.passedCount === 0 && prev?.state === "complete")
+    return { kind: "ready", hizb: prev.hizb };
+  return { kind: "toGo", hizb: cur.hizb, remaining: cur.surahs.length - cur.passedCount };
+}
+
+export type JuzProgress = {
+  juz: number;
+  name_en: string;
+  name_ar: string;
+  passed: number;
+  total: number;
+};
+
+/** Progress through the juz the current surah sits in. Denominator = that
+ *  juz's surahs within the run (37 for 'Amma; 6 for Tabarak, since hizb 57
+ *  is outside the programme). Pass the `assumedPassed` set. */
+export function juzProgress(
+  allSurahs: Surah[],
+  list: Surah[],
+  passed: Set<number>,
+): JuzProgress | null {
+  if (list.length === 0) return null;
+  const current = list.find((s) => !passed.has(s.number)) ?? list[list.length - 1];
+  const juz = juzOf(current.number);
+  if (juz === null) return null;
+  const bound = JUZ_BOUNDS.find((j) => j.juz === juz)!;
+  const inJuz = allSurahs.filter((s) => s.number >= bound.from && s.number <= bound.to);
+  return {
+    juz,
+    name_en: bound.name_en,
+    name_ar: bound.name_ar,
+    passed: inJuz.filter((s) => passed.has(s.number)).length,
+    total: inJuz.length,
+  };
+}
+
+export type PathRow = { kind: "node"; index: number } | { kind: "gap"; count: number };
+
+/** Which of `count` rows to render: kept rows as nodes, contiguous hidden
+ *  runs of 3+ collapsed to a "… N more surahs" gap row. */
+export function rowPlan(count: number, keep: Set<number>): PathRow[] {
+  const rows: PathRow[] = [];
+  let i = 0;
+  while (i < count) {
+    if (keep.has(i)) {
+      rows.push({ kind: "node", index: i });
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j < count && !keep.has(j)) j++;
+    if (j - i >= 3) rows.push({ kind: "gap", count: j - i });
+    else for (let k = i; k < j; k++) rows.push({ kind: "node", index: k });
+    i = j;
+  }
+  return rows;
 }
