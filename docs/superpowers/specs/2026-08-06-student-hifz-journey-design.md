@@ -50,10 +50,13 @@ with vitest alongside `pace.test.ts`:
   state }` where state ∈ `complete | current | upcoming`. Computed over the FULL run,
   not the student's list — the hero bars always show all three blocks, and blocks
   before a returning student's start point render full.
-- `checkStatus(blocks)` → the hero footer line: `toGo` (surahs remaining in the current
-  block, counted over the canonical run independent of `target_count` — a student whose
-  yearly target ends mid-hizb still sees the true distance), `ready` (block finished,
-  next untouched), or `done`.
+- `checkStatus(blocks, earnedSet)` → the hero footer line: `toGo` (surahs remaining in
+  the current block, counted over the canonical run independent of `target_count` — a
+  student whose yearly target ends mid-hizb still sees the true distance), `ready`
+  (block finished, next untouched), or `done`. `earnedSet` is this year's REAL records,
+  not the assumed set: `ready` requires at least one earned pass in the finished block,
+  so a returning student is never told to re-present last year's check. Required param
+  by design — the compiler enforces the distinction.
 - `juzProgress(allSurahs, list, assumedSet)` → `{ juz, name_en, name_ar, passed, total }` for the juz
   the current surah sits in. **Denominator = surahs of that juz within the memorisation
   run**: 37 for Juz 'Amma (whole juz is in-run), 6 for Juz Tabarak (run covers only

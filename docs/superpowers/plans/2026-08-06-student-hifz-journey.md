@@ -1056,7 +1056,8 @@ export default async function StudentHifz() {
   // years count; the path itself only ever shows this year's list.
   const assumed = assumedPassed(all, list, passedSet);
   const blocks = hizbBlocks(all, assumed);
-  const check = checkStatus(blocks);
+  // passedSet, not assumed: last year's hizb check doesn't need redoing
+  const check = checkStatus(blocks, passedSet);
   const juz = juzProgress(all, list, assumed);
 
   const passedCount = list.filter((s) => passedSet.has(s.number)).length;
