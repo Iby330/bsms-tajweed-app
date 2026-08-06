@@ -3,7 +3,7 @@ import { currentProfile } from "@/lib/supabase/server";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
 import { findCourse, findTerm } from "@/lib/curriculum/tree";
 import { seriesShort } from "@/lib/lessons/series";
-import { ModuleRow } from "@/components/app/module-row";
+import { ModuleCard } from "@/components/app/module-card";
 import { ProgressBar } from "@/components/app/progress-bar";
 import { Crumbs } from "@/components/app/crumbs";
 
@@ -58,18 +58,19 @@ export default async function CoursePage({
         />
       </div>
 
-      <ul className="space-y-2">
+      <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {course.modules.map((m) => (
-          <ModuleRow
+          <ModuleCard
             key={m.weekId}
             module={m}
+            series={course.series}
             pct={m.homework ? pctByHomeworkId.get(m.homework.id) : undefined}
           />
         ))}
 
         {nextUnlock && (
-          <li className="rounded-lg border border-dashed border-line p-4">
-            <p className="text-sm text-muted-foreground">
+          <li className="flex items-center justify-center rounded-xl border border-dashed border-line p-6">
+            <p className="text-center text-sm text-muted-foreground">
               Week {nextUnlock.number} unlocks{" "}
               <span className="tabular-nums text-foreground">
                 {new Date(nextUnlock.unlockAt).toLocaleDateString("en-GB", {
