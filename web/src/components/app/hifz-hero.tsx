@@ -122,31 +122,24 @@ export function HifzHero({
         ))}
       </div>
 
-      {/* When the student's own list is done, celebrate — even if their target
-          ends mid-hizb and the run's next check is technically still ahead.
-          checkStatus's "done" kind is intentionally not rendered here: whenever
-          it fires, `complete` is true and this branch wins. */}
-      {complete ? (
-        <p className="mt-3 text-sm font-medium text-ok">Target complete — masha&rsquo;Allah.</p>
-      ) : (
-        (check?.kind === "toGo" || check?.kind === "ready") && (
-          <p className="mt-3 text-sm">
-            {check.kind === "toGo" && (
-              <>
-                <span className="font-medium tabular-nums">
-                  {check.remaining} surah{check.remaining === 1 ? "" : "s"}
-                </span>{" "}
-                until your <span className="font-medium">Hizb {check.hizb} check</span> — presenting
-                the whole hizb to your teacher.
-              </>
-            )}
-            {check.kind === "ready" && (
-              <span className="font-medium text-warn">
-                Ready for your Hizb {check.hizb} check <span aria-hidden>◆</span>
-              </span>
-            )}
-          </p>
-        )
+      {/* Completion is celebrated by the journey's terminal card, and the
+          label above already reads "Memorisation target complete" — the
+          footer keeps only actionable lines. A boundary-aligned target can
+          be BOTH complete and ready for its hizb check, so `ready` renders
+          regardless of `complete`. */}
+      {check?.kind === "ready" && (
+        <p className="mt-3 text-sm font-medium text-warn">
+          Ready for your Hizb {check.hizb} check <span aria-hidden>◆</span>
+        </p>
+      )}
+      {!complete && check?.kind === "toGo" && (
+        <p className="mt-3 text-sm">
+          <span className="font-medium tabular-nums">
+            {check.remaining} surah{check.remaining === 1 ? "" : "s"}
+          </span>{" "}
+          until your <span className="font-medium">Hizb {check.hizb} check</span> — presenting
+          the whole hizb to your teacher.
+        </p>
       )}
     </section>
   );

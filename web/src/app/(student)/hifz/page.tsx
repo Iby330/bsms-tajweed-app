@@ -9,6 +9,15 @@ import { HifzRecord, type RecordEntry } from "@/components/app/hifz-record";
 
 export const dynamic = "force-dynamic";
 
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="mx-auto max-w-2xl rounded-lg border border-line bg-card p-8 text-center">
+      <h1 className="text-xl">Hifz</h1>
+      <p className="mt-2 text-sm text-muted-foreground">{message}</p>
+    </div>
+  );
+}
+
 export default async function StudentHifz() {
   const profile = (await currentProfile())!;
   const db = await supabaseServer();
@@ -21,29 +30,18 @@ export default async function StudentHifz() {
   ]);
 
   if (!hp) {
-    return (
-      <div className="rounded-lg border border-line bg-card p-8 text-center">
-        <h1 className="text-xl">Hifz</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Your teacher hasn&apos;t set your memorisation target yet.
-        </p>
-      </div>
-    );
+    return <EmptyState message="Your teacher hasn't set your memorisation target yet." />;
   }
 
   const all = (surahs ?? []) as Surah[];
   if (all.length === 0) {
-    return (
-      <div className="rounded-lg border border-line bg-card p-8 text-center">
-        <h1 className="text-xl">Hifz</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The surah list couldn&apos;t be loaded — please try again shortly.
-        </p>
-      </div>
-    );
+    return <EmptyState message="The surah list couldn't be loaded — please try again shortly." />;
   }
 
   const list = memorisationList(hp.start_surah, hp.target_count, all);
+  if (list.length === 0) {
+    return <EmptyState message="Your teacher hasn't set your memorisation target yet." />;
+  }
   const recordMap = new Map(
     (records ?? []).map((r) => [
       r.surah_number,
@@ -61,10 +59,13 @@ export default async function StudentHifz() {
   const juz = juzProgress(all, list, assumed);
 
   const passedCount = list.filter((s) => passedSet.has(s.number)).length;
-  const expected = expectedPassed(new Date(), weeks, hp.target_count);
-  const pace = expected > 0 ? paceStatus(passedCount, expected) : null;
-  const current = list.find((s) => !passedSet.has(s.number)) ?? list[list.length - 1];
   const complete = passedCount === list.length && list.length > 0;
+  const expected = expectedPassed(new Date(), weeks, Math.min(hp.target_count, list.length));
+  const pace = !complete && expected > 0 ? paceStatus(passedCount, expected) : null;
+  // NB: "current" is also derived inside juzProgress (from assumed) and
+  // HifzJourney (from records); all three agree because assumed only ever
+  // adds surahs strictly before list[0].
+  const current = list.find((s) => !passedSet.has(s.number)) ?? list[list.length - 1];
 
   const byNumber = new Map(all.map((s) => [s.number, s]));
   const entries: RecordEntry[] = (records ?? [])
@@ -89,9 +90,10 @@ export default async function StudentHifz() {
     );
 
   return (
-    <div className="max-w-2xl space-y-5">
+    <div className="mx-auto max-w-2xl space-y-5">
       <header>
         <h1 className="text-2xl">Hifz</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Your memorisation journey.</p>
       </header>
 
       <HifzHero
