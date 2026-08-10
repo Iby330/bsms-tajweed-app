@@ -63,8 +63,15 @@ with vitest alongside `pace.test.ts`:
   hizb 58; surahs 67–71 are hizb 57, outside the programme).
 
 New file `web/src/lib/hifz/surah-meta.ts` — static record for surahs 72–114:
-`{ ayahCount, meaning }` (e.g. 112 → 4 ayahs, "The Sincerity"). Static Qur'anic facts,
-no DB table. Used by hero and current-surah node.
+`{ ayahs, meaning }` (e.g. 112 → 4 ayahs, "The Sincerity"). Static Qur'anic facts,
+no DB table. Used by hero and current-surah node. Verified 43/43 against two
+independent Qur'an APIs during review.
+
+**Year-scoping rule:** `hifz_records` is lifetime (no year column). This year's work
+is exactly the surahs on the student's current list, so the page derives one
+`listNumbers` set and scopes BOTH the earned set fed to `checkStatus` AND the record
+entries through it. A returning student never sees last year's passes in "Your
+record", and is never told to re-present last year's hizb check.
 
 Existing `pace.ts` (`expectedPassed`, `paceStatus`, `memorisationList`) unchanged.
 
@@ -83,15 +90,24 @@ bordered cards, `bg-card`, muted palette, `ok/warn/danger` tokens, `ar-ui` Arabi
 - Below: **hizb blocks** — three segmented horizontal bars, width proportional to
   surah count (28/9/6), filled to each block's passed count, labelled
   "Hizb 60 · 12/28" etc. Blocks before a returning student's start point render full.
-- Footer line: "**16 surahs** until your **Hizb 60 check** — presenting the whole hizb
-  to your teacher." When the current block is fully passed:
-  "**Ready for your Hizb 60 check** ◆". When target complete: "Target complete —
-  masha'Allah."
+- Footer keeps only actionable lines: "**16 surahs** until your **Hizb 60 check** —
+  presenting the whole hizb to your teacher" (hidden once the target is complete), and
+  "**Ready for your Hizb N check** ◆" — which renders regardless of completion, since a
+  boundary-aligned target (28 or 37) is both complete AND ready. The celebration line
+  ("Target complete — masha'Allah.") lives ONLY in the journey's terminal card; the
+  hero's uppercase label switches to "Memorisation target complete". The ready prompt
+  deliberately appears in both the hero (status summary) and the path's milestone card
+  (location + instructions) — different reading modes, not duplication. The pace chip
+  is suppressed when complete, and expected is clamped to the list length so a
+  returning student with an oversized class target can't be complete-and-behind at
+  once.
 
 ### 2. Journey path (new component `hifz-journey.tsx`)
 
-Replaces the flat checklist. Grouped by hizb block, section label per group
-("HIZB 60 — AN-NAS TO AL-A'LA"). Node types, top to bottom:
+Replaces the flat checklist. Grouped by hizb block, section label per group, labelled
+from the student's own (possibly target-truncated) list — a target-20 student reads
+"Hizb 60 — An-Nas to At-Tin" while the hero bar above shows the true 20/28 fraction.
+Node types, top to bottom:
 
 - **Passed**: small filled circle (✓), name + Arabic, pass date right-aligned, small 💬
   mark if a teacher comment exists (the comment itself lives in Your record, not here).
@@ -99,10 +115,14 @@ Replaces the flat checklist. Grouped by hizb block, section label per group
   + ayah count beneath. Nodes wind with a gentle alternating horizontal offset
   (CSS only).
 - **Expected-pace marker**: dashed amber circle inserted at index `expectedPassed - 1`
-  in the run: "class pace is here — {surah}". Omitted when expected = 0 or when it
-  would coincide with the current node.
-- **Upcoming**: ghosted outline nodes. Runs of >4 upcoming nodes within a block
-  collapse to first node + "… N more surahs" + last node before the milestone.
+  in the run: "class pace is here — {surah}". Omitted when expected = 0, when it would
+  coincide with the current node, when the student is dead-on pace (expected = passed —
+  the chip already says it), or when the list is complete. When it falls inside a
+  collapsed future group, that group's label carries "class pace is ahead" instead.
+- **Upcoming**: ghosted outline nodes. Long stretches collapse: the first upcoming
+  node, the group's last node, and any marker-adjacent node stay; contiguous hidden
+  runs of 3+ become one "… N more surahs" row (net effect: upcoming runs of 5+
+  collapse).
 - **Hizb check milestone** (between blocks): dashed gold card — "Hizb 60 check ·
   Present the whole hizb to your teacher in one sitting — then Hizb 59 begins."
   States: upcoming (dashed, muted), **ready** (filled gold accent, "Ready for your
