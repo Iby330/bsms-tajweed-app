@@ -4,16 +4,25 @@ import { useEffect, useRef, useState } from "react";
 import { markWatched } from "@/lib/lessons/actions";
 
 /* Minimal shape of the bits of the YouTube IFrame API we actually use —
- * cheaper than pulling in @types/youtube for four methods. */
+ * cheaper than pulling in @types/youtube for a handful of methods. */
 type YTPlayer = {
   getCurrentTime: () => number;
   getDuration: () => number;
+  unMute: () => void;
+  pauseVideo: () => void;
   destroy: () => void;
 };
 type YTNamespace = {
   Player: new (
     el: HTMLElement,
-    opts: { videoId: string; playerVars?: Record<string, string | number> },
+    opts: {
+      videoId: string;
+      playerVars?: Record<string, string | number>;
+      events?: {
+        onReady?: (e: { target: YTPlayer }) => void;
+        onStateChange?: (e: { data: number }) => void;
+      };
+    },
   ) => YTPlayer;
 };
 declare global {
@@ -25,6 +34,10 @@ declare global {
 
 /** Counts as watched here. Matches the brainstorm: near-the-end, not the credits. */
 const WATCHED_FRACTION = 0.9;
+
+/** How long to wait for the primed frame before giving up on it. Autoplay can
+ *  be blocked outright, and a player left muted by us is worse than a thumbnail. */
+const PRIME_TIMEOUT_MS = 4000;
 
 /** Last known position per lesson. Lives in localStorage rather than the
  *  database: it changes every second, and losing it costs a student seconds. */
@@ -93,6 +106,8 @@ export function LessonPlayer({
   useEffect(() => {
     let player: YTPlayer | null = null;
     let timer: ReturnType<typeof setInterval> | null = null;
+    let primeTimer: ReturnType<typeof setTimeout> | null = null;
+    let priming = false;
     let cancelled = false;
 
     const reachedEnd = () => {
@@ -116,14 +131,53 @@ export function LessonPlayer({
           ? Math.floor(saved.t)
           : null;
 
+      // `start` alone leaves a cold thumbnail behind a play button: the student
+      // is given no sign we remembered anything until they press it. So prime
+      // instead — load autoplaying and muted at the saved position, then pause
+      // on the first PLAYING, which leaves the real frame on screen looking
+      // paused. Muted because autoplay policy won't grant an unmuted one, and
+      // so the burst is silent; unmuted again the moment we pause. Doing it
+      // through playerVars rather than a seekTo in onReady costs one buffer
+      // cycle instead of two — a seek to a position the player already loaded
+      // at is a second round-trip, and a longer flicker.
+      priming = resumeAt !== null;
+      const stopPriming = () => {
+        priming = false;
+        if (primeTimer) clearTimeout(primeTimer);
+        primeTimer = null;
+      };
+
       player = new YT.Player(mountRef.current, {
         videoId: youtubeId,
         playerVars: {
           rel: 0,
           modestbranding: 1,
           playsinline: 1,
-          ...(resumeAt === null ? {} : { start: resumeAt }),
+          // `start` snaps to the nearest keyframe, so we can land up to a
+          // couple of seconds early — cheaper than the seek it replaces.
+          ...(resumeAt === null ? {} : { start: resumeAt, autoplay: 1, mute: 1 }),
         },
+        events:
+          resumeAt === null
+            ? undefined
+            : {
+                onReady: (e) => {
+                  // If autoplay is blocked outright, PLAYING never arrives.
+                  // Disarm rather than leave a trap that would pause the
+                  // student's own playback later — and leave it muted.
+                  primeTimer = setTimeout(() => {
+                    stopPriming();
+                    e.target.unMute();
+                  }, PRIME_TIMEOUT_MS);
+                },
+                onStateChange: (e) => {
+                  // 1 is PLAYING — the shim carries no PlayerState enum.
+                  if (!priming || e.data !== 1) return;
+                  stopPriming();
+                  player?.pauseVideo();
+                  player?.unMute();
+                },
+              },
       });
 
       // Poll the player rather than react to its state events. Playback state
@@ -146,6 +200,7 @@ export function LessonPlayer({
     return () => {
       cancelled = true;
       if (timer) clearInterval(timer);
+      if (primeTimer) clearTimeout(primeTimer);
       player?.destroy();
     };
   }, [lessonId, youtubeId]);
