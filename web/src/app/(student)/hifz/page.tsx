@@ -50,16 +50,22 @@ export default async function StudentHifz() {
   );
   const passedSet = new Set(recordMap.keys());
 
+  // hifz_records is lifetime (no year column); this year's work is exactly
+  // the surahs on the student's current list. Everything the page shows —
+  // check readiness AND the record — is year-scoped through this set.
+  const listNumbers = new Set(list.map((s) => s.number));
+  const earned = new Set([...passedSet].filter((n) => listNumbers.has(n)));
+
   // Derived numbers all use the assumed set so a returning student's earlier
   // years count; the path itself only ever shows this year's list.
   const assumed = assumedPassed(all, list, passedSet);
   const blocks = hizbBlocks(all, assumed);
-  // passedSet, not assumed: last year's hizb check doesn't need redoing
-  const check = checkStatus(blocks, passedSet);
+  // earned, not assumed/lifetime: last year's hizb check doesn't need redoing
+  const check = checkStatus(blocks, earned);
   const juz = juzProgress(all, list, assumed);
 
   const passedCount = list.filter((s) => passedSet.has(s.number)).length;
-  const complete = passedCount === list.length && list.length > 0;
+  const complete = passedCount === list.length;
   const expected = expectedPassed(new Date(), weeks, Math.min(hp.target_count, list.length));
   const pace = !complete && expected > 0 ? paceStatus(passedCount, expected) : null;
   // NB: "current" is also derived inside juzProgress (from assumed) and
@@ -71,7 +77,7 @@ export default async function StudentHifz() {
   const entries: RecordEntry[] = (records ?? [])
     .map((r) => {
       const s = byNumber.get(r.surah_number);
-      return s
+      return s && listNumbers.has(s.number)
         ? {
             number: s.number,
             name_en: s.name_en,
