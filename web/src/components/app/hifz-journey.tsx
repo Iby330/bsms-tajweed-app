@@ -24,10 +24,18 @@ export function HifzJourney({
   records: Map<number, Rec>;
   expected: number;
 }) {
+  if (list.length === 0) return null;
+
   const passedCount = list.filter((s) => records.has(s.number)).length;
   const currentIdx = list.findIndex((s) => !records.has(s.number)); // -1 → all passed
+  // Omit the marker when: no expectation yet, dead-on pace (chip already says it),
+  // the list is complete, or it would sit on the "you are here" node — which is
+  // most of any normal week, since expectedPassed rounds up.
+  const rawMarker = expected > 0 ? Math.min(expected, list.length) - 1 : null;
   const markerIdx =
-    expected > 0 && expected !== passedCount ? Math.min(expected, list.length) - 1 : null;
+    rawMarker !== null && currentIdx !== -1 && rawMarker !== currentIdx && expected !== passedCount
+      ? rawMarker
+      : null;
 
   // Contiguous hizb groups over the list, keeping each surah's global index.
   const groups: { hizb: number | null; start: number; surahs: Surah[] }[] = [];
@@ -41,7 +49,9 @@ export function HifzJourney({
   const groupState = (g: (typeof groups)[number]) => {
     const passed = g.surahs.filter((s) => records.has(s.number)).length;
     if (passed === g.surahs.length) return "complete";
-    if (currentIdx >= g.start && currentIdx < g.start + g.surahs.length) return "current";
+    // any real pass expands the group — out-of-order marks/undo must stay visible
+    if ((currentIdx >= g.start && currentIdx < g.start + g.surahs.length) || passed > 0)
+      return "current";
     return "future";
   };
 
@@ -112,7 +122,7 @@ export function HifzJourney({
                   {li > 0 && (
                     <div
                       className={cn("h-3 w-0.5", rec ? "bg-ok" : "bg-line")}
-                      style={{ marginLeft: offset + 13 }}
+                      style={{ marginLeft: offset + (isCurrent ? 23 : 13) }}
                     />
                   )}
                   {isCurrent ? (
@@ -133,13 +143,13 @@ export function HifzJourney({
                     </div>
                   ) : (
                     <div
-                      className={cn("flex items-center gap-2.5", !rec && "opacity-50")}
+                      className={cn("flex items-center gap-2.5", !rec && "opacity-75")}
                       style={{ marginLeft: offset }}
                     >
                       <span
                         className={cn(
                           "grid size-7 shrink-0 place-items-center rounded-full text-[11px]",
-                          rec ? "bg-ok text-white" : "border border-line text-muted-foreground",
+                          rec ? "bg-ok text-card" : "border border-line text-muted-foreground",
                         )}
                         aria-hidden
                       >
@@ -150,14 +160,16 @@ export function HifzJourney({
                         <span dir="rtl" lang="ar" className="ar-ui">
                           {s.name_ar}
                         </span>
-                        {rec?.teacher_comment && (
-                          <span aria-label="has teacher comment" className="ml-1 text-xs">
-                            💬
-                          </span>
-                        )}
                       </span>
+                      {rec?.teacher_comment && (
+                        <span className="shrink-0 text-xs">
+                          <span aria-hidden>💬</span>
+                          <span className="sr-only">has teacher comment</span>
+                        </span>
+                      )}
                       {rec && (
                         <span className="ml-auto shrink-0 text-xs tabular-nums text-muted-foreground">
+                          <span className="sr-only">passed </span>
                           {fmtDay(rec.passed_at)}
                         </span>
                       )}
