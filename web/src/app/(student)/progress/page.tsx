@@ -122,6 +122,7 @@ export default async function Progress() {
                         key={e.homework.id}
                         entry={e}
                         pct={curriculum.pctByHomeworkId.get(e.homework.id)}
+                        from="progress"
                       />
                     ))}
                   </ul>

@@ -65,6 +65,11 @@ export default async function Lesson({
 
   return (
     <div className="space-y-6">
+      {/* React hoists these into <head>, so the TLS handshake with YouTube is
+          already done by the time the player mounts and asks for the iframe. */}
+      <link rel="preconnect" href="https://www.youtube.com" />
+      <link rel="preconnect" href="https://i.ytimg.com" />
+
       <div>
         <Crumbs
           items={[
@@ -112,7 +117,7 @@ export default async function Lesson({
         )}
         {homework && (
           <Link
-            href={`/homework/${homework.number}`}
+            href={`/homework/${homework.number}?from=video`}
             className="rounded-md border border-line px-3 py-2 text-sm transition-colors hover:bg-muted"
           >
             This week&apos;s homework

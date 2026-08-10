@@ -96,7 +96,7 @@ export default async function StudentHome() {
             {overdue.map((e) => (
               <li key={e.homework.id}>
                 <Link
-                  href={`/homework/${e.homework.number}`}
+                  href={`/homework/${e.homework.number}?from=home`}
                   className="group flex items-baseline justify-between gap-3 rounded px-1 py-0.5 text-sm transition-colors hover:bg-danger/5"
                 >
                   <span className="min-w-0">

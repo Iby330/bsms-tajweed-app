@@ -3,6 +3,7 @@ import { MixedText } from "@/components/app/mixed-text";
 import { CountdownChip } from "@/components/app/countdown-chip";
 import { seriesShort } from "@/lib/lessons/series";
 import type { HomeworkEntry } from "@/lib/curriculum/tree";
+import type { HomeworkOrigin } from "@/lib/homework/back-link";
 import { cn } from "@/lib/utils";
 
 const dmy = (iso: string) =>
@@ -22,9 +23,13 @@ export function homeworkLabel(number: number, series: string): string {
 export function HomeworkRow({
   entry,
   pct,
+  from,
 }: {
   entry: HomeworkEntry;
   pct?: number;
+  /** Screen this row sits on, so the homework page can offer a "back" link
+   *  that retraces the student's actual route. See lib/homework/back-link. */
+  from?: HomeworkOrigin;
 }) {
   const { homework: h } = entry;
   const marked = entry.submission === "approved";
@@ -32,7 +37,7 @@ export function HomeworkRow({
   return (
     <li>
       <Link
-        href={`/homework/${h.number}`}
+        href={`/homework/${h.number}${from ? `?from=${from}` : ""}`}
         className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-muted/60"
       >
         <span className="min-w-0">

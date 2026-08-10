@@ -134,7 +134,7 @@ export function ModuleCard({
 
             {m.homework && (
               <Link
-                href={`/homework/${m.homework.number}`}
+                href={`/homework/${m.homework.number}?from=course`}
                 /* relative + z-10 lifts this above the stretched overlay above. */
                 className="relative z-10 inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-xs transition-colors hover:border-ink/30"
               >

@@ -9,17 +9,21 @@ import { MixedText } from "@/components/app/mixed-text";
 import { Crumbs } from "@/components/app/crumbs";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { seriesShort } from "@/lib/lessons/series";
+import { parseOrigin, homeworkNav } from "@/lib/homework/back-link";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomeworkPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ n: string }>;
+  searchParams: Promise<{ from?: string | string[] }>;
 }) {
-  const { n } = await params;
+  const [{ n }, { from }] = await Promise.all([params, searchParams]);
   const number = Number(n);
   if (!Number.isFinite(number)) notFound();
+  const origin = parseOrigin(from);
 
   const profile = (await currentProfile())!;
   const db = await supabaseServer();
@@ -71,10 +75,20 @@ export default async function HomeworkPage({
   // into "TFP 5" so a student is never shown "Homework 105".
   const label = homeworkLabel(parsed.homework.number, row.series);
 
+  // "Back" is named after wherever they actually came from; the video stays
+  // reachable regardless, since it's a fact about this homework rather than
+  // about their route.
+  const nav = homeworkNav(origin, {
+    lessonId: lesson?.id,
+    termId: week?.term_id,
+    series: row.series,
+    courseLabel: seriesShort(row.series),
+  });
+
   return (
     <div className="space-y-6">
       <header className="space-y-2">
-        {(week || lesson) && (
+        {(week || nav.back || nav.video) && (
           <div className="flex flex-col items-start gap-1">
             {week && (
               <Crumbs
@@ -89,13 +103,25 @@ export default async function HomeworkPage({
                 ]}
               />
             )}
-            {lesson && (
-              <Link
-                href={`/lessons/${lesson.id}`}
-                className="text-xs text-muted-foreground underline underline-offset-4"
-              >
-                ← Back to the video
-              </Link>
+            {(nav.back || nav.video) && (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                {nav.back && (
+                  <Link
+                    href={nav.back.href}
+                    className="text-xs text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
+                  >
+                    ← {nav.back.label}
+                  </Link>
+                )}
+                {nav.video && (
+                  <Link
+                    href={nav.video.href}
+                    className="text-xs text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
+                  >
+                    <span aria-hidden>▸</span> {nav.video.label}
+                  </Link>
+                )}
+              </div>
             )}
           </div>
         )}
