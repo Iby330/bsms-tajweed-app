@@ -3,7 +3,7 @@ import { currentProfile } from "@/lib/supabase/server";
 import { getTermsAndWeeks, currentTermId, getFullProgress } from "@/lib/dashboard/queries";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
 import { listHomework, bucketHomework } from "@/lib/curriculum/tree";
-import { HomeworkRow } from "@/components/app/homework-row";
+import { MarkedHomework } from "@/components/app/marked-homework";
 
 export const dynamic = "force-dynamic";
 
@@ -25,8 +25,12 @@ export default async function Progress() {
   ]);
 
   const termId = currentTermId(calTerms, now);
-  const marked = bucketHomework(listHomework(curriculum.terms)).marked;
-  const markedTerms = [...new Set(marked.map((e) => e.termId))].sort((a, b) => b - a);
+  // Each row carries its own score, so re-ordering is a pure client-side view
+  // over data the page already has.
+  const marked = bucketHomework(listHomework(curriculum.terms)).marked.map((entry) => ({
+    entry,
+    pct: curriculum.pctByHomeworkId.get(entry.homework.id) ?? null,
+  }));
 
   return (
     <div className="space-y-8">
@@ -107,29 +111,7 @@ export default async function Progress() {
             Nothing marked yet.
           </p>
         ) : (
-          <div className="space-y-4">
-            {markedTerms.map((tid) => {
-              const rows = marked.filter((e) => e.termId === tid);
-              return (
-                <div key={tid} className="space-y-1.5">
-                  <h3 className="text-xs text-muted-foreground">
-                    Term {tid}{" "}
-                    <span className="tabular-nums text-muted-foreground/60">· {rows.length}</span>
-                  </h3>
-                  <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-card">
-                    {rows.map((e) => (
-                      <HomeworkRow
-                        key={e.homework.id}
-                        entry={e}
-                        pct={curriculum.pctByHomeworkId.get(e.homework.id)}
-                        from="progress"
-                      />
-                    ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </div>
+          <MarkedHomework rows={marked} />
         )}
       </section>
     </div>
