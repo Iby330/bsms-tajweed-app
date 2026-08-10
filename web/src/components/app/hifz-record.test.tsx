@@ -21,6 +21,7 @@ describe("HifzRecord", () => {
       <HifzRecord entries={[entry(113, "2026-09-19", "lovely tajweed"), entry(114, "2026-09-12")]} />,
     );
     expect(container.textContent).toContain("S113");
+    expect(container.textContent).toContain("س113");
     expect(container.textContent).toContain("lovely tajweed");
     expect(container.textContent).toContain("passed 19 Sept");
     expect(container.querySelector("details")).toBeNull();
@@ -32,6 +33,7 @@ describe("HifzRecord", () => {
       />,
     );
     expect(container.textContent).toContain("Show all 4");
+    expect(container.querySelectorAll("li")).toHaveLength(4);
     const details = container.querySelector("details");
     expect(details).not.toBeNull();
     expect(details!.textContent).toContain("S113");

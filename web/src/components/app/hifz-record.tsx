@@ -1,4 +1,5 @@
 import { fmtDay } from "@/lib/format";
+import { MixedText } from "@/components/app/mixed-text";
 
 export type RecordEntry = {
   number: number;
@@ -18,8 +19,8 @@ export function HifzRecord({ entries }: { entries: RecordEntry[] }) {
   const preview = entries.slice(0, 2);
   const rest = entries.slice(2);
   return (
-    <section aria-label="Your record" className="rounded-lg border border-line bg-card p-5">
-      <h2 className="text-sm font-medium">Your record</h2>
+    <section aria-labelledby="hifz-record-heading" className="rounded-lg border border-line bg-card p-5">
+      <h2 id="hifz-record-heading" className="text-sm font-medium">Your record</h2>
       <ul className="mt-3 space-y-3">
         {preview.map((e) => (
           <RecordRow key={e.number} e={e} />
@@ -27,7 +28,7 @@ export function HifzRecord({ entries }: { entries: RecordEntry[] }) {
       </ul>
       {rest.length > 0 && (
         <details className="group mt-3 border-t border-line pt-3">
-          <summary className="cursor-pointer list-none text-center text-xs font-medium text-ok [&::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none rounded-md text-center text-xs font-medium text-ok focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
             <span className="group-open:hidden">Show all {entries.length} <span aria-hidden>▾</span></span>
             <span className="hidden group-open:inline">Show fewer <span aria-hidden>▴</span></span>
           </summary>
@@ -55,9 +56,10 @@ function RecordRow({ e }: { e: RecordEntry }) {
         </span>
       </p>
       {e.teacher_comment && (
-        <p className="mt-1 rounded-md bg-muted px-2.5 py-1.5 text-xs text-ink-2">
-          {e.teacher_comment}
-        </p>
+        <MixedText
+          text={e.teacher_comment}
+          className="mt-1 block break-words rounded-md bg-muted px-2.5 py-1.5 text-xs text-ink-2"
+        />
       )}
     </li>
   );
