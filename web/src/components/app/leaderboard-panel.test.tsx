@@ -37,6 +37,9 @@ const cohortScope: LbScope = {
 const text = (c: HTMLElement) => c.textContent ?? "";
 const buttonBy = (c: HTMLElement, label: string) =>
   [...c.querySelectorAll("button")].find((b) => (b.textContent ?? "").includes(label))!;
+const scopeSelect = (c: HTMLElement) => c.querySelector("select")!;
+const chooseScope = (c: HTMLElement, key: string) =>
+  fireEvent.change(scopeSelect(c), { target: { value: key } });
 
 describe("LeaderboardPanel", () => {
   it("collapses to the window around the student, not the whole table", () => {
@@ -66,7 +69,7 @@ describe("LeaderboardPanel", () => {
     expect(text(container)).toContain("Adam Khan");
     expect(text(container)).toContain("Omar Farouk");
 
-    fireEvent.click(buttonBy(container, "All brothers"));
+    chooseScope(container, "cohort");
     // cohort scope ranks him 11th, among different neighbours
     expect(text(container)).toContain("Salim Yusuf");
     expect(text(container)).toContain("11");
@@ -80,18 +83,38 @@ describe("LeaderboardPanel", () => {
     fireEvent.click(buttonBy(container, "See all 6"));
     expect(container.querySelectorAll("li")).toHaveLength(6);
 
-    fireEvent.click(buttonBy(container, "All brothers"));
+    chooseScope(container, "cohort");
     // back to the three-row window rather than 4 rows of the new scope
     expect(container.querySelectorAll("li")).toHaveLength(3);
     expect(text(container)).toContain("See all 4");
   });
 
-  it("marks the student's own row as pressed state on the active toggle", () => {
+  it("offers every scope as an option, the first one selected", () => {
     const { container } = render(
       <LeaderboardPanel title="Homework" scopes={[classScope, cohortScope]} />,
     );
-    expect(buttonBy(container, "My class").getAttribute("aria-pressed")).toBe("true");
-    expect(buttonBy(container, "All brothers").getAttribute("aria-pressed")).toBe("false");
+    const select = scopeSelect(container);
+    expect([...select.options].map((o) => o.value)).toEqual(["class", "cohort"]);
+    expect([...select.options].map((o) => o.textContent)).toEqual(["My class", "All brothers"]);
+    expect(select.value).toBe("class");
+
+    chooseScope(container, "cohort");
+    expect(scopeSelect(container).value).toBe("cohort");
+  });
+
+  it("labels the select for screen readers", () => {
+    const { container } = render(
+      <LeaderboardPanel title="Homework" scopes={[classScope, cohortScope]} />,
+    );
+    const select = scopeSelect(container);
+    const label = container.querySelector(`label[for="${select.id}"]`);
+    expect(label).not.toBeNull();
+    expect(label!.textContent).toContain("Homework");
+  });
+
+  it("shows no scope control when there is only one scope", () => {
+    const { container } = render(<LeaderboardPanel title="Homework" scopes={[classScope]} />);
+    expect(container.querySelector("select")).toBeNull();
   });
 
   it("highlights a class row when the rows ARE classes", () => {

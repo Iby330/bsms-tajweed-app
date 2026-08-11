@@ -38,6 +38,7 @@ export function LeaderboardPanel({
   const [activeKey, setActiveKey] = useState(scopes[0]?.key);
   const [expanded, setExpanded] = useState(false);
   const groupId = useId();
+  const selectId = useId();
 
   const scope = scopes.find((s) => s.key === activeKey) ?? scopes[0];
   if (!scope) return null;
@@ -52,37 +53,41 @@ export function LeaderboardPanel({
         <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground">{title}</h3>
 
         {scopes.length > 1 && (
-          <div
-            role="group"
-            aria-label={`${title} scope`}
-            className="flex rounded-md border border-line p-0.5"
-          >
-            {scopes.map((s) => {
-              const isActive = s.key === scope.key;
-              return (
-                <button
-                  key={s.key}
-                  type="button"
-                  aria-pressed={isActive}
-                  aria-controls={groupId}
-                  onClick={() => {
-                    setActiveKey(s.key);
-                    // Collapse on switch: an expanded list of one scope has no
-                    // bearing on how much of the other you wanted to see.
-                    setExpanded(false);
-                  }}
-                  className={cn(
-                    "rounded px-2 py-0.5 text-[11px] transition-colors",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    isActive
-                      ? "bg-ink text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
+          <div className="relative">
+            <label htmlFor={selectId} className="sr-only">
+              {title} leaderboard scope
+            </label>
+            {/* A native select, so a phone opens its own picker rather than a
+                bespoke menu that has to be styled and dismissed by hand. */}
+            <select
+              id={selectId}
+              value={scope.key}
+              aria-controls={groupId}
+              onChange={(e) => {
+                setActiveKey(e.target.value);
+                // Collapse on switch: how much of one scope you opened up says
+                // nothing about how much of the other you wanted to see.
+                setExpanded(false);
+              }}
+              className={cn(
+                "appearance-none rounded-md border border-line bg-card",
+                "py-1 pl-2.5 pr-7 text-xs text-foreground",
+                "transition-colors hover:border-ink/30",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              )}
+            >
+              {scopes.map((s) => (
+                <option key={s.key} value={s.key}>
                   {s.label}
-                </button>
-              );
-            })}
+                </option>
+              ))}
+            </select>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-muted-foreground"
+            >
+              ▼
+            </span>
           </div>
         )}
       </div>
