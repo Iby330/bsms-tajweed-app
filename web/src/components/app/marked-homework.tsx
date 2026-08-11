@@ -2,8 +2,8 @@
 
 import { useId, useMemo, useState } from "react";
 import { HomeworkRow } from "@/components/app/homework-row";
+import { FilterSelect } from "@/components/app/filter-select";
 import { sortHomework, type HomeworkSort, type ScoredHomework } from "@/lib/homework/sort";
-import { cn } from "@/lib/utils";
 
 const SORTS: { value: HomeworkSort; label: string; announce: string }[] = [
   { value: "latest", label: "Latest", announce: "most recent first" },
@@ -28,37 +28,13 @@ export function MarkedHomework({ rows }: { rows: ScoredHomework[] }) {
 
   return (
     <div className="space-y-3">
-      <fieldset className="flex flex-wrap items-center gap-1.5">
-        <legend className="sr-only">Sort marked homework</legend>
-        <span aria-hidden className="mr-0.5 text-xs text-muted-foreground">
-          Sort
-        </span>
-        {SORTS.map((s) => (
-          // `relative` anchors the visually-hidden radio to its own chip, so
-          // focusing it by keyboard scrolls here and not to the page origin.
-          <label key={s.value} className="relative cursor-pointer">
-            <input
-              type="radio"
-              name={`${uid}-sort`}
-              value={s.value}
-              checked={sort === s.value}
-              onChange={() => setSort(s.value)}
-              className="peer sr-only"
-            />
-            <span
-              className={cn(
-                "block rounded-md border px-2.5 py-1 text-xs transition-colors",
-                "peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50",
-                sort === s.value
-                  ? "border-ink bg-ink font-medium text-primary-foreground"
-                  : "border-line text-muted-foreground hover:bg-muted",
-              )}
-            >
-              {s.label}
-            </span>
-          </label>
-        ))}
-      </fieldset>
+      <FilterSelect
+        label="Sort"
+        value={sort}
+        options={SORTS.map((s) => ({ value: s.value, label: s.label }))}
+        onChange={(v) => setSort(v as HomeworkSort)}
+        controls={uid}
+      />
 
       {/* Reordering is silent to a screen reader, and this is always mounted so
           the change is announced rather than merely appearing. */}
@@ -66,7 +42,7 @@ export function MarkedHomework({ rows }: { rows: ScoredHomework[] }) {
         Marked homework sorted {announce}, within each term.
       </p>
 
-      <div className="space-y-4">
+      <div id={uid} className="space-y-4">
         {terms.map((term) => (
           <div key={term.termId} className="space-y-1.5">
             <h3 className="text-xs text-muted-foreground">
