@@ -47,7 +47,7 @@ export default function RootLayout({
       <body
         className={`${archivo.variable} ${inter.variable} ${plexArabic.variable} ${amiriQuran.variable} ${geistMono.variable} min-h-full flex flex-col antialiased`}
       >
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
         </ThemeProvider>
       </body>
