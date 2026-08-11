@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.15"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       answers: {
@@ -508,7 +483,29 @@ export type Database = {
             referencedRelation: "v_hw_pct"
             referencedColumns: ["homework_id"]
           },
+          {
+            foreignKeyName: "questions_homework_id_fkey"
+            columns: ["homework_id"]
+            isOneToOne: false
+            referencedRelation: "v_hw_pct_all"
+            referencedColumns: ["homework_id"]
+          },
         ]
+      }
+      schema_migrations: {
+        Row: {
+          applied_at: string
+          filename: string
+        }
+        Insert: {
+          applied_at?: string
+          filename: string
+        }
+        Update: {
+          applied_at?: string
+          filename?: string
+        }
+        Relationships: []
       }
       strikes: {
         Row: {
@@ -613,6 +610,13 @@ export type Database = {
             columns: ["homework_id"]
             isOneToOne: false
             referencedRelation: "v_hw_pct"
+            referencedColumns: ["homework_id"]
+          },
+          {
+            foreignKeyName: "submissions_homework_id_fkey"
+            columns: ["homework_id"]
+            isOneToOne: false
+            referencedRelation: "v_hw_pct_all"
             referencedColumns: ["homework_id"]
           },
           {
@@ -776,7 +780,48 @@ export type Database = {
           },
         ]
       }
+      v_hifz_progress_all: {
+        Row: {
+          pct: number | null
+          student_id: string | null
+          target_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hifz_profiles_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_hw_pct: {
+        Row: {
+          homework_id: string | null
+          number: number | null
+          pct: number | null
+          student_id: string | null
+          term_id: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weeks_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "terms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_hw_pct_all: {
         Row: {
           homework_id: string | null
           number: number | null
@@ -819,9 +864,20 @@ export type Database = {
         }
         Relationships: []
       }
+      v_lb_hifz_individual: {
+        Row: {
+          class_name: string | null
+          class_rank: number | null
+          full_name: string | null
+          pct: number | null
+          rank: number | null
+        }
+        Relationships: []
+      }
       v_lb_individual: {
         Row: {
           class_name: string | null
+          class_rank: number | null
           full_name: string | null
           pct: number | null
           rank: number | null
@@ -1013,9 +1069,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       qtype_t: ["mcq", "checkbox", "text", "paragraph", "grid"],

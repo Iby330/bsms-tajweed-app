@@ -31,19 +31,25 @@ export function currentTermId(
   return started.length ? started[started.length - 1].id : 1;
 }
 
+/**
+ * What Home needs: the figures a student can act on *today*.
+ *
+ * Deliberately does NOT read v_term_pct or v_eoy. Both inner-join
+ * `exam_scores`, so mid-term they return no row at all and rendered as two
+ * permanently blank tiles for most of the year. Those end-of-term figures
+ * live on the Progress tab, in a table that has room to explain why they are
+ * empty. Home answers "what do I need to do now"; Progress answers "how has
+ * the year gone".
+ */
 export async function getStudentProgress(studentId: string, termId: number) {
   const db = await supabaseServer();
-  const [avg, term, eoy, hifz, strikes] = await Promise.all([
+  const [avg, hifz, strikes] = await Promise.all([
     db.from("v_termly_avg").select("hw_avg").eq("student_id", studentId).eq("term_id", termId).maybeSingle(),
-    db.from("v_term_pct").select("term_pct").eq("student_id", studentId).eq("term_id", termId).maybeSingle(),
-    db.from("v_eoy").select("eoy_pct").eq("student_id", studentId).maybeSingle(),
     db.from("v_hifz_progress").select("passed, target_count, start_surah, pct").eq("student_id", studentId).maybeSingle(),
     db.from("strikes").select("reason, note, issued_at").eq("student_id", studentId).eq("term_id", termId).order("issued_at"),
   ]);
   return {
     hwAvg: avg.data?.hw_avg ? Number(avg.data.hw_avg) : null,
-    termPct: term.data?.term_pct ? Number(term.data.term_pct) : null,
-    eoyPct: eoy.data?.eoy_pct ? Number(eoy.data.eoy_pct) : null,
     hifz: hifz.data
       ? {
           passed: Number(hifz.data.passed),
@@ -118,14 +124,75 @@ export async function getIndividualLeaderboard() {
   const db = await supabaseServer();
   const { data } = await db
     .from("v_lb_individual")
-    .select("full_name, class_name, pct, rank")
+    .select("full_name, class_name, pct, rank, class_rank")
     .order("rank");
   return (data ?? []).map((r) => ({
     name: r.full_name as string,
     className: r.class_name as string,
     pct: Number(r.pct),
     rank: Number(r.rank),
+    classRank: Number(r.class_rank),
   }));
+}
+
+export type LbRow = { name: string; pct: number; rank: number };
+
+/**
+ * The two toggleable leaderboards on Home.
+ *
+ * Both ranks come from SQL — the cohort scope reads `rank`, the class scope
+ * reads `class_rank`. Narrowing a cohort list to one class in JS would leave
+ * ranks 3, 7, 12 with no 1st place, and renumbering them here would move a
+ * standing calculation out of the database. Filtering is all that happens.
+ */
+export async function getHomeLeaderboards(classId: string | null) {
+  const db = await supabaseServer();
+  const [hwInd, hifzInd, hifzClass, cls] = await Promise.all([
+    db.from("v_lb_individual").select("full_name, class_name, pct, rank, class_rank").order("rank"),
+    db.from("v_lb_hifz_individual").select("full_name, class_name, pct, rank, class_rank").order("rank"),
+    db.from("v_lb_hifz_class").select("class_name, pct, rank").order("rank"),
+    classId
+      ? db.from("classes").select("name").eq("id", classId).maybeSingle()
+      : Promise.resolve({ data: null as { name: string } | null }),
+  ]);
+
+  const myClass = cls.data?.name ?? null;
+
+  type IndRow = { full_name: unknown; class_name: unknown; pct: unknown; rank: unknown; class_rank: unknown };
+  const cohort = (rows: IndRow[] | null): LbRow[] =>
+    (rows ?? []).map((r) => ({
+      name: String(r.full_name),
+      pct: Number(r.pct),
+      rank: Number(r.rank),
+    }));
+  const withinClass = (rows: IndRow[] | null): LbRow[] =>
+    (rows ?? [])
+      .filter((r) => myClass !== null && String(r.class_name) === myClass)
+      .map((r) => ({
+        name: String(r.full_name),
+        pct: Number(r.pct),
+        rank: Number(r.class_rank),
+      }))
+      .sort((a, b) => a.rank - b.rank);
+
+  const classRows = (rows: { class_name: unknown; pct: unknown; rank: unknown }[] | null): LbRow[] =>
+    (rows ?? []).map((r) => ({
+      name: String(r.class_name),
+      pct: Number(r.pct),
+      rank: Number(r.rank),
+    }));
+
+  return {
+    myClass,
+    homework: {
+      mine: withinClass(hwInd.data),
+      cohort: cohort(hwInd.data),
+    },
+    hifz: {
+      mine: withinClass(hifzInd.data),
+      classes: classRows(hifzClass.data),
+    },
+  };
 }
 
 export async function getClassLeaderboards() {

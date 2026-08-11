@@ -2,7 +2,7 @@ import Link from "next/link";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import {
   getTermsAndWeeks, currentWeek, currentTermId,
-  getStudentProgress, getIndividualLeaderboard, getClassLeaderboards,
+  getStudentProgress, getHomeLeaderboards,
 } from "@/lib/dashboard/queries";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
 import { listHomework, bucketHomework, moduleTitle } from "@/lib/curriculum/tree";
@@ -10,7 +10,7 @@ import { expectedPassed } from "@/lib/hifz/pace";
 import { StatTile } from "@/components/app/stat-tile";
 import { PaceMarker } from "@/components/app/pace-marker";
 import { StrikeDots } from "@/components/app/strike-dots";
-import { LeaderboardWidget } from "@/components/app/leaderboard-widget";
+import { LeaderboardPanel } from "@/components/app/leaderboard-panel";
 import { CountdownChip } from "@/components/app/countdown-chip";
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
@@ -30,12 +30,17 @@ export default async function StudentHome() {
   const termId = currentTermId(terms, now);
   const week = currentWeek(weeks, now);
 
-  const [progress, lbIndividual, lbClasses, curriculum] = await Promise.all([
+  const [progress, leaderboards, curriculum] = await Promise.all([
     getStudentProgress(profile.id, termId),
-    getIndividualLeaderboard(),
-    getClassLeaderboards(),
+    getHomeLeaderboards(profile.class_id),
     getStudentCurriculum(profile.id, now),
   ]);
+
+  // The cohort scope is the student's own section and only ever that — the
+  // views filter on it in SQL, so this label describes what is shown rather
+  // than choosing it.
+  const cohortNoun = profile.section === "sisters" ? "sisters" : "brothers";
+  const cohortLabel = `All ${cohortNoun}`;
 
   const { data: lessons } = week
     ? await db.from("lessons").select("id, title, series, youtube_id").eq("week_id", week.id).order("position")
@@ -62,17 +67,28 @@ export default async function StudentHome() {
     : { data: [] };
   const statusByHw = new Map((weekSubs ?? []).map((s) => [s.homework_id, s.status]));
 
-  const { data: released } = await db.from("homeworks").select("id", { count: "exact" });
-  const { data: mine } = await db
-    .from("submissions").select("id").eq("student_id", profile.id).eq("status", "approved");
+  const allHomework = listHomework(curriculum.terms);
 
   // Overdue work from EARLIER weeks. "This week" alone hides it — a student can
   // be four homeworks behind and see a screen that says everything is fine.
   // Renders nothing when there's nothing overdue.
   const currentWeekHwIds = new Set((hws ?? []).map((h) => h.id));
-  const overdue = bucketHomework(listHomework(curriculum.terms)).needsYou.filter(
+  const overdue = bucketHomework(allHomework).needsYou.filter(
     (e) => isLate(now, e.homework.due_at) && !currentWeekHwIds.has(e.homework.id),
   );
+
+  // Counted against homework RELEASED SO FAR, not the year's 27. In week 3
+  // "2 of 3" is a figure a student can act on; "2 of 27" reads like being 25
+  // behind, which is just how far through the year they are.
+  //
+  // The numerator is everything handed IN — not just what a teacher has since
+  // approved. With a whole-year denominator that distinction was invisible;
+  // against a released-so-far one it matters, because a student who submitted
+  // all three would otherwise read "1 of 3" as two missing.
+  const releasedHomework = allHomework.filter((e) => e.unlocked);
+  const handedIn = releasedHomework.filter(
+    (e) => e.submission === "submitted" || e.submission === "auto_marked" || e.submission === "approved",
+  ).length;
 
   const expected = progress.hifz
     ? expectedPassed(now, weeks, progress.hifz.target)
@@ -160,12 +176,24 @@ export default async function StudentHome() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">My progress</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">My progress</h2>
+          {/* Term % and End of year deliberately live on Progress, not here:
+              both need the exam, so mid-term they are blank by construction. */}
+          <Link
+            href="/progress"
+            className="text-xs text-ink-2 underline underline-offset-4 hover:text-foreground"
+          >
+            Term by term →
+          </Link>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
           <StatTile label={`Homework avg · T${termId}`} value={pct(progress.hwAvg)} sub="marked homework only" />
-          <StatTile label={`Term ${termId} %`} value={pct(progress.termPct)} sub="80% exam · 20% homework" />
-          <StatTile label="End of year" value={pct(progress.eoyPct)} sub="mean of three terms" />
-          <StatTile label="Submitted" value={`${mine?.length ?? 0} of ${released?.length ?? 0}`} sub="approved homework" />
+          <StatTile
+            label="Submitted"
+            value={`${handedIn} of ${releasedHomework.length}`}
+            sub="handed in so far"
+          />
         </div>
       </section>
 
@@ -189,9 +217,9 @@ export default async function StudentHome() {
         <section className="space-y-3">
           <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">Strikes</h2>
           <div className="rounded-lg border border-line bg-card p-4">
-            <StrikeDots strikes={progress.strikes as never} />
-            <p className="mt-2 text-xs text-muted-foreground">
-              Three strikes in a term means leaving the course. They reset each term.
+            <StrikeDots strikes={progress.strikes} />
+            <p className="mt-3 text-xs text-muted-foreground">
+              Strikes reset at the start of each term.
             </p>
           </div>
         </section>
@@ -199,10 +227,46 @@ export default async function StudentHome() {
 
       <section className="space-y-3">
         <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">Leaderboards</h2>
-        <div className="grid gap-3 lg:grid-cols-3">
-          <LeaderboardWidget title="Homework · me" rows={lbIndividual} selfName={profile.full_name} />
-          <LeaderboardWidget title="Homework · my class" rows={lbClasses.homework} selfName={""} />
-          <LeaderboardWidget title="Hifz · my class" rows={lbClasses.hifz} selfName={""} />
+        <div className="grid gap-3 lg:grid-cols-2">
+          <LeaderboardPanel
+            title="Homework"
+            scopes={[
+              {
+                key: "class",
+                label: "My class",
+                rows: leaderboards.homework.mine,
+                selfName: profile.full_name,
+                noun: "in my class",
+              },
+              {
+                key: "cohort",
+                label: cohortLabel,
+                rows: leaderboards.homework.cohort,
+                selfName: profile.full_name,
+                noun: cohortNoun,
+              },
+            ]}
+          />
+          <LeaderboardPanel
+            title="Hifz"
+            scopes={[
+              {
+                key: "class",
+                label: "My class",
+                rows: leaderboards.hifz.mine,
+                selfName: profile.full_name,
+                noun: "in my class",
+              },
+              {
+                key: "classes",
+                label: "All classes",
+                rows: leaderboards.hifz.classes,
+                // Rows are classes here, so "you" is the student's own class.
+                selfName: leaderboards.myClass ?? "",
+                noun: "classes",
+              },
+            ]}
+          />
         </div>
       </section>
     </div>
