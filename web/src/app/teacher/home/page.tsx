@@ -2,6 +2,7 @@ import Link from "next/link";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks, currentTermId } from "@/lib/dashboard/queries";
 import { StatTile } from "@/components/app/stat-tile";
+import { homeworkLabel } from "@/components/app/homework-row";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +28,12 @@ export default async function TeacherHome() {
     ? await db.from("profiles").select("id, full_name, class_id").in("id", studentIds)
     : { data: [] };
   const nameOf = new Map((people ?? []).map((p) => [p.id, p.full_name]));
+
+  const hwIds = [...new Set((pending ?? []).map((s) => s.homework_id))];
+  const { data: hws } = hwIds.length
+    ? await db.from("homeworks").select("id, number, series").in("id", hwIds)
+    : { data: [] };
+  const hwOf = new Map((hws ?? []).map((h) => [h.id, h]));
 
   const { data: roster } = myClass
     ? await db.from("profiles").select("id").eq("class_id", myClass.id).eq("role", "student").eq("is_active", true)
@@ -67,15 +74,25 @@ export default async function TeacherHome() {
                 </span>
               </div>
               <ul className="mt-3 space-y-1 border-t border-line pt-3">
-                {pending.slice(0, 5).map((s) => (
-                  <li key={s.id} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="truncate">{nameOf.get(s.student_id) ?? "Student"}</span>
-                    <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-                      {s.is_late && <span className="rounded bg-warn/12 px-1.5 py-0.5 text-warn">late</span>}
-                      {s.status === "auto_marked" ? "marked, awaiting approval" : "not yet marked"}
-                    </span>
-                  </li>
-                ))}
+                {pending.slice(0, 5).map((s) => {
+                  const hw = hwOf.get(s.homework_id);
+                  return (
+                    <li key={s.id} className="flex items-center justify-between gap-3 text-sm">
+                      <span className="flex min-w-0 items-baseline gap-2">
+                        <span className="truncate">{nameOf.get(s.student_id) ?? "Student"}</span>
+                        {hw && (
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            {homeworkLabel(hw.number, hw.series)}
+                          </span>
+                        )}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                        {s.is_late && <span className="rounded bg-warn/12 px-1.5 py-0.5 text-warn">late</span>}
+                        {s.status === "auto_marked" ? "marked, awaiting approval" : "not yet marked"}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
               <Link href="/teacher/review" className={cn(buttonVariants({ size: "sm" }), "mt-4")}>
                 Review submissions
