@@ -3,6 +3,7 @@ import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks, currentTermId } from "@/lib/dashboard/queries";
 import { StatTile } from "@/components/app/stat-tile";
 import { homeworkLabel } from "@/components/app/homework-row";
+import { MixedText } from "@/components/app/mixed-text";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +32,7 @@ export default async function TeacherHome() {
 
   const hwIds = [...new Set((pending ?? []).map((s) => s.homework_id))];
   const { data: hws } = hwIds.length
-    ? await db.from("homeworks").select("id, number, series").in("id", hwIds)
+    ? await db.from("homeworks").select("id, number, series, title").in("id", hwIds)
     : { data: [] };
   const hwOf = new Map((hws ?? []).map((h) => [h.id, h]));
 
@@ -81,8 +82,10 @@ export default async function TeacherHome() {
                       <span className="flex min-w-0 items-baseline gap-2">
                         <span className="truncate">{nameOf.get(s.student_id) ?? "Student"}</span>
                         {hw && (
-                          <span className="shrink-0 text-xs text-muted-foreground">
+                          <span className="min-w-0 truncate text-xs text-muted-foreground">
                             {homeworkLabel(hw.number, hw.series)}
+                            {" · "}
+                            <MixedText text={hw.title} />
                           </span>
                         )}
                       </span>
