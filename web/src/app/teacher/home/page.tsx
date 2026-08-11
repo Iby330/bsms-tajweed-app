@@ -4,6 +4,7 @@ import { getTermsAndWeeks, currentTermId } from "@/lib/dashboard/queries";
 import { StatTile } from "@/components/app/stat-tile";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { MixedText } from "@/components/app/mixed-text";
+import { moduleTitle } from "@/lib/curriculum/tree";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +78,9 @@ export default async function TeacherHome() {
               <ul className="mt-3 space-y-1 border-t border-line pt-3">
                 {pending.slice(0, 5).map((s) => {
                   const hw = hwOf.get(s.homework_id);
+                  // seed titles repeat their own designation ("Tajweed
+                  // Homework 21: Waqf wa Ibtidah") — the label already says it
+                  const title = hw ? moduleTitle(hw.title) : "";
                   return (
                     <li key={s.id} className="flex items-center justify-between gap-3 text-sm">
                       <span className="flex min-w-0 items-baseline gap-2">
@@ -84,8 +88,12 @@ export default async function TeacherHome() {
                         {hw && (
                           <span className="min-w-0 truncate text-xs text-muted-foreground">
                             {homeworkLabel(hw.number, hw.series)}
-                            {" · "}
-                            <MixedText text={hw.title} />
+                            {title && (
+                              <>
+                                {" · "}
+                                <MixedText text={title} />
+                              </>
+                            )}
                           </span>
                         )}
                       </span>
