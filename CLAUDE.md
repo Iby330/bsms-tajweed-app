@@ -149,6 +149,51 @@ Serverless endpoints (Modal + Make.com integration) live in
 `Agentic Workflow Transition Workspace/modal_app.py`. Standards are in
 `directives/modal_cloud_framework.md`.
 
+## Hosting — Netlify deploys from `main` only
+
+The app is hosted on Netlify at **https://bsms-tajweed.netlify.app**
+(project `bsms-tajweed`, admin at https://app.netlify.com/projects/bsms-tajweed),
+git-linked to `Iby330/bsms-tajweed-app` with continuous deployment.
+
+**Every push to `main` auto-deploys to production, and only `main` does.**
+Branch deploys and deploy previews are off. This has a consequence worth
+stating plainly:
+
+> **Work on a branch is not live until it reaches `main`.** Pushing a feature
+> branch to GitHub deploys nothing. When work on a branch is finished, merge
+> it into `main` and push `main` — otherwise it exists on GitHub but no
+> student or teacher ever sees it.
+
+The failure mode is quiet, not loud: the branch push succeeds, GitHub shows
+the commits, and production silently keeps serving older code. If a change
+looks absent from the live site, check `git log origin/main..<branch>` before
+suspecting the code.
+
+Conversely, treat a push to `main` as a release: it goes straight to real
+users with no gate. Run the build and tests before merging, not after.
+
+### Build configuration
+Set on the Netlify site, not in the repo root — the app lives in `web/`:
+
+| Setting | Value |
+| --- | --- |
+| Base directory | `web` |
+| Build command | `npm run build` |
+| Publish directory | `.next` (relative to base) |
+| Runtime | `@netlify/plugin-nextjs` (SSR — most routes are server-rendered) |
+| Config file | `web/netlify.toml`, read from *inside* the base directory |
+
+Env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+`SUPABASE_SERVICE_ROLE_KEY`, `GROQ_API_KEY`) are set on the Netlify site and
+must be kept in step with `web/.env.local` by hand — nothing syncs them. A new
+env var added locally will build fine here and fail in production.
+`SECRETS_SCAN_OMIT_KEYS` exempts the two `NEXT_PUBLIC_*` keys from Netlify's
+secrets scanner, which would otherwise fail every build on values Next.js
+inlines into the client bundle deliberately.
+
+Deploy gotchas that cost real time are recorded in `LEARNINGS.md` under
+"APIs & external services", and in the `netlify-deploy` skill's directive.
+
 ## Superpowers Plugin
 
 Superpowers is ON by default. Automatically invoke relevant Superpowers skills
