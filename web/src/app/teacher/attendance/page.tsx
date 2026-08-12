@@ -28,10 +28,9 @@ export default async function Attendance({
       ? sessionParam
       : defaultSessionFor(sessionDate);
 
-  const { terms } = await getTermsAndWeeks();
+  const [{ terms }, mine] = await Promise.all([getTermsAndWeeks(), teacherClass()]);
   const termId = currentTermId(terms, new Date(`${sessionDate}T12:00:00`));
 
-  const mine = await teacherClass();
   if (!mine) {
     return (
       <p className="rounded-lg border border-line bg-card p-6 text-sm text-muted-foreground">
@@ -40,17 +39,18 @@ export default async function Attendance({
     );
   }
 
-  const students = await teacherRoster();
-  const ids = students.map((s) => s.id);
-
-  const { data: records } = ids.length
-    ? await db
-        .from("attendance")
-        .select("student_id, present, absence_reason, strike_id")
-        .eq("session_date", sessionDate)
-        .eq("session_type", sessionType)
-        .in("student_id", ids)
-    : { data: [] };
+  // The register stamps every row it writes with this class, so the session
+  // can be read by class rather than waiting on the roster to name its
+  // students. The rows are the same either way; the round trips are one fewer.
+  const [students, { data: records }] = await Promise.all([
+    teacherRoster(),
+    db
+      .from("attendance")
+      .select("student_id, present, absence_reason, strike_id")
+      .eq("class_id", mine.id)
+      .eq("session_date", sessionDate)
+      .eq("session_type", sessionType),
+  ]);
 
   const href = (next: { date?: string; session?: string }) => {
     const p = new URLSearchParams({

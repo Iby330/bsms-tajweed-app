@@ -1,15 +1,21 @@
-import { supabaseServer } from "@/lib/supabase/server";
-import { teacherClass } from "@/lib/teacher/scope";
+import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function Classes() {
   const db = await supabaseServer();
-  const mine = await teacherClass();
-  const { data: classes } = await db
-    .from("classes").select("id, name, section, teacher_id").order("section").order("name");
-  const { data: people } = await db.from("profiles").select("id, full_name, role, class_id");
+  // Neither list waits on the other, and the profile already carries what the
+  // teacher's own class would have cost a third round trip to look up.
+  const [profile, { data: classes }, { data: people }] = await Promise.all([
+    currentProfile(),
+    db.from("classes").select("id, name, section, teacher_id").order("section").order("name"),
+    db.from("profiles").select("id, full_name, role, class_id"),
+  ]);
+
+  // Same precedence as teacherClass(): the class you own, else the one you were given.
+  const mineId =
+    (classes ?? []).find((c) => c.teacher_id === profile?.id)?.id ?? profile?.class_id ?? null;
 
   const teacherName = new Map((people ?? []).filter((p) => p.role === "teacher").map((p) => [p.id, p.full_name]));
   const counts = new Map<string, number>();
@@ -33,7 +39,7 @@ export default async function Classes() {
           <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">{section}</h2>
           <ul className="divide-y divide-line overflow-hidden glass rounded-2xl">
             {(classes ?? []).filter((c) => c.section === section).map((c) => {
-              const isMine = c.id === mine?.id;
+              const isMine = c.id === mineId;
               return (
                 <li
                   key={c.id}

@@ -9,11 +9,16 @@ export const dynamic = "force-dynamic";
 
 export default async function Roster() {
   const db = await supabaseServer();
-  const { terms } = await getTermsAndWeeks();
-  const termId = currentTermId(terms);
 
-  const mine = await teacherClass();
-  const label = await scopeLabel();
+  // The leaderboard is keyed on nobody and the calendar is cache-served, so
+  // neither has any reason to queue behind the class read.
+  const [{ terms }, mine, lb] = await Promise.all([
+    getTermsAndWeeks(),
+    teacherClass(),
+    getIndividualLeaderboard(),
+  ]);
+  const termId = currentTermId(terms);
+  const label = await scopeLabel(); // reads the class above, already cached
 
   // inactive students stay listed here — the roster is the record of the
   // year, and a student who left still has marks worth reading
@@ -22,7 +27,7 @@ export default async function Roster() {
   const { data: students } = await q.order("full_name");
   const ids = (students ?? []).map((s) => s.id);
 
-  const [{ data: avgs }, { data: termPcts }, { data: eoys }, { data: hifz }, { data: strikes }, { data: exams }, lb] =
+  const [{ data: avgs }, { data: termPcts }, { data: eoys }, { data: hifz }, { data: strikes }, { data: exams }] =
     await Promise.all([
       ids.length ? db.from("v_termly_avg").select("student_id, term_id, hw_avg").in("student_id", ids) : Promise.resolve({ data: [] }),
       ids.length ? db.from("v_term_pct").select("student_id, term_id, term_pct").in("student_id", ids) : Promise.resolve({ data: [] }),
@@ -30,7 +35,6 @@ export default async function Roster() {
       ids.length ? db.from("v_hifz_progress").select("student_id, passed, target_count").in("student_id", ids) : Promise.resolve({ data: [] }),
       ids.length ? db.from("strikes").select("id, student_id, reason, note, issued_at").in("student_id", ids).eq("term_id", termId).order("issued_at") : Promise.resolve({ data: [] }),
       ids.length ? db.from("exam_scores").select("student_id, term_id, score").in("student_id", ids) : Promise.resolve({ data: [] }),
-      getIndividualLeaderboard(),
     ]);
 
   const key = (sid: string, t: number) => `${sid}:${t}`;

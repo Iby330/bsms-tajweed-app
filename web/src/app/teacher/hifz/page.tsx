@@ -10,18 +10,23 @@ export const dynamic = "force-dynamic";
 
 export default async function TeacherHifz() {
   const db = await supabaseServer();
-  const { weeks } = await getTermsAndWeeks();
 
-  const label = await scopeLabel();
-  const students = await teacherRoster();
+  // The label and the roster both hang off the same cached class read, so
+  // firing them together costs one class round trip rather than two.
+  const [{ weeks }, label, students] = await Promise.all([
+    getTermsAndWeeks(),
+    scopeLabel(),
+    teacherRoster(),
+  ]);
   const ids = students.map((s) => s.id);
 
-  const { data: progress } = ids.length
-    ? await db.from("v_hifz_progress").select("student_id, passed, target_count, start_surah").in("student_id", ids)
-    : { data: [] };
+  const [{ data: progress }, surahs] = await Promise.all([
+    ids.length
+      ? db.from("v_hifz_progress").select("student_id, passed, target_count, start_surah").in("student_id", ids)
+      : Promise.resolve({ data: [] }),
+    getCachedSurahs(),
+  ]);
   const byStudent = new Map((progress ?? []).map((p) => [p.student_id!, p]));
-
-  const surahs = await getCachedSurahs();
 
   return (
     <div className="space-y-5">

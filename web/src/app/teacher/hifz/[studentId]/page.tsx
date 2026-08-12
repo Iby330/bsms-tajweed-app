@@ -16,17 +16,17 @@ export default async function StudentHifzDetail({
 }) {
   const { studentId } = await params;
   const db = await supabaseServer();
-  const { weeks } = await getTermsAndWeeks();
 
-  const { data: student } = await db
-    .from("profiles").select("full_name, class_id").eq("id", studentId).maybeSingle();
-  if (!student) notFound();
-
-  const [{ data: hp }, surahs, { data: records }] = await Promise.all([
+  // Every read here is keyed on the student id alone, the guard included — it
+  // decides whether to render, not what to fetch, so it goes out with the rest.
+  const [{ weeks }, { data: student }, { data: hp }, surahs, { data: records }] = await Promise.all([
+    getTermsAndWeeks(),
+    db.from("profiles").select("full_name, class_id").eq("id", studentId).maybeSingle(),
     db.from("hifz_profiles").select("start_surah, target_count").eq("student_id", studentId).maybeSingle(),
     getCachedSurahs(),
     db.from("hifz_records").select("surah_number, teacher_comment").eq("student_id", studentId),
   ]);
+  if (!student) notFound();
 
   const target = hp?.target_count ?? 43;
   const list = memorisationList(hp?.start_surah ?? 114, target, surahs as Surah[]);
