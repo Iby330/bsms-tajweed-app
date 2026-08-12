@@ -8,6 +8,7 @@ import { homeworkLabel } from "@/components/app/homework-row";
 import { MixedText } from "@/components/app/mixed-text";
 import { moduleTitle } from "@/lib/curriculum/tree";
 import { teacherClass, teacherRoster } from "@/lib/teacher/scope";
+import type { ClassRow } from "@/lib/teacher/class-progress";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -16,48 +17,67 @@ export const dynamic = "force-dynamic";
 export default async function TeacherHome() {
   const profile = (await currentProfile())!;
   const db = await supabaseServer();
-  const { terms, weeks } = await getTermsAndWeeks();
+
+  // Who this teacher is responsible for. `teacherRoster` chains off
+  // `teacherClass` internally, but both are React-cached, so asking for them
+  // together costs one class read and one roster read — not two of each.
+  const [myClass, roster, { terms, weeks }] = await Promise.all([
+    teacherClass(),
+    teacherRoster(),
+    getTermsAndWeeks(),
+  ]);
+
   const termId = currentTermId(terms);
-
-  const myClass = await teacherClass();
-
-  // Same rankings the students see — the views already scope to the
-  // viewer's section, and a teacher's profile carries one.
-  const leaderboards = await getHomeLeaderboards(myClass?.id ?? null);
   const cohortNoun = profile.section === "sisters" ? "sisters" : "brothers";
 
   // the queue is this teacher's own class — someone else's marking is not
   // their problem, and mixing it in buries their twenty students in a hundred
-  const roster = await teacherRoster();
   const nameOf = new Map(roster.map((s) => [s.id, s.full_name]));
   const rosterIds = roster.map((s) => s.id);
 
-  const { data: pending } = rosterIds.length
-    ? await db
-        .from("submissions")
-        .select("id, status, submitted_at, is_late, homework_id, student_id")
-        .in("status", ["submitted", "auto_marked"])
-        .in("student_id", rosterIds)
-        .order("submitted_at")
-    : { data: [] };
+  // Everything the screen shows, in one wave. A teacher with no class of
+  // their own has no class-scoped figures, so those arms resolve to nothing
+  // rather than querying for a scope that does not exist.
+  const classRowsPromise: Promise<ClassRow[]> = myClass
+    ? getClassProgress(myClass.id, termId, weeks, roster)
+    : Promise.resolve([]);
 
-  const hwIds = [...new Set((pending ?? []).map((s) => s.homework_id))];
-  const { data: hws } = hwIds.length
-    ? await db.from("homeworks").select("id, number, series, title").in("id", hwIds)
-    : { data: [] };
-  const hwOf = new Map((hws ?? []).map((h) => [h.id, h]));
+  const [leaderboards, submissions, classRows, hifz] = await Promise.all([
+    // Same rankings the students see — the views already scope to the
+    // viewer's section, and a teacher's profile carries one.
+    getHomeLeaderboards(myClass?.name ?? null),
+    // The homework each submission belongs to rides along on the same round
+    // trip. Collecting the ids and fetching them afterwards was a second hop
+    // that could only ever return rows this query already knows about.
+    rosterIds.length
+      ? db
+          .from("submissions")
+          .select(
+            "id, status, submitted_at, is_late, homework_id, student_id, homeworks(id, number, series, title)",
+          )
+          .in("status", ["submitted", "auto_marked"])
+          .in("student_id", rosterIds)
+          .order("submitted_at")
+      : Promise.resolve({ data: null }),
+    classRowsPromise,
+    // Hifz pct is computed in SQL and stays there; deriving it from
+    // passed / target here would move a verified formula into TypeScript.
+    rosterIds.length
+      ? db.from("v_hifz_progress").select("pct").in("student_id", rosterIds)
+      : Promise.resolve({ data: null }),
+  ]);
 
-  const classRows = myClass ? await getClassProgress(myClass.id, termId, weeks) : [];
-
-  // Hifz pct is computed in SQL and stays there; deriving it from
-  // passed / target here would move a verified formula into TypeScript.
-  const { data: hifzRows } = rosterIds.length
-    ? await db.from("v_hifz_progress").select("pct").in("student_id", rosterIds)
-    : { data: [] };
+  const pending = submissions.data ?? [];
+  const hifzRows = hifz.data ?? [];
+  // A homework the reader cannot see comes back null — the row still renders,
+  // exactly as it did when the follow-up query returned nothing for it.
+  const hwOf = new Map(
+    pending.flatMap((s) => (s.homeworks ? [[s.homework_id, s.homeworks] as const] : [])),
+  );
 
   const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
   const classAvg = mean(classRows.map((r) => r.hwAvg).filter((v): v is number => v !== null));
-  const hifzAvg = mean((hifzRows ?? []).map((r) => Number(r.pct)));
+  const hifzAvg = mean(hifzRows.map((r) => Number(r.pct)));
 
   return (
     <div className="space-y-8">
@@ -73,7 +93,7 @@ export default async function TeacherHome() {
           Needs my attention
         </h2>
         <div className="glass rounded-2xl p-4">
-          {pending?.length ? (
+          {pending.length ? (
             <>
               <div className="flex items-baseline gap-2">
                 <span className="font-heading text-3xl tabular-nums">{pending.length}</span>

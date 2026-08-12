@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { currentProfile } from "@/lib/supabase/server";
-import { getTermsAndWeeks, currentTermId, getFullProgress } from "@/lib/dashboard/queries";
+import { currentTermId, getFullProgress } from "@/lib/dashboard/queries";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
 import { listHomework, bucketHomework } from "@/lib/curriculum/tree";
 import { MarkedHomework } from "@/components/app/marked-homework";
@@ -20,13 +20,14 @@ export default async function Progress() {
   const profile = (await currentProfile())!;
   const now = new Date();
 
-  const [{ terms: calTerms }, full, curriculum] = await Promise.all([
-    getTermsAndWeeks(),
+  // The curriculum read already carries the calendar it was built from, so
+  // asking for terms separately would be a round trip for rows in hand.
+  const [full, curriculum] = await Promise.all([
     getFullProgress(profile.id),
     getStudentCurriculum(profile.id, now),
   ]);
 
-  const termId = currentTermId(calTerms, now);
+  const termId = currentTermId(curriculum.rows.terms, now);
   // Each row carries its own score, so re-ordering is a pure client-side view
   // over data the page already has.
   const marked = bucketHomework(listHomework(curriculum.terms)).marked.map((entry) => ({

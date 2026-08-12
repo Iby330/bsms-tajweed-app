@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { currentProfile, supabaseServer } from "@/lib/supabase/server";
+import { currentProfile } from "@/lib/supabase/server";
 import {
-  getTermsAndWeeks, currentWeek, currentTermId,
+  currentWeek, currentTermId,
   getStudentProgress, getHomeLeaderboards,
 } from "@/lib/dashboard/queries";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
-import { listHomework, bucketHomework, moduleTitle } from "@/lib/curriculum/tree";
+import { listHomework, bucketHomework, moduleTitle, weekContent } from "@/lib/curriculum/tree";
 import { expectedPassed } from "@/lib/hifz/pace";
 import { StrikeDots } from "@/components/app/strike-dots";
 import { LeaderboardPanel } from "@/components/app/leaderboard-panel";
@@ -25,18 +25,24 @@ export const dynamic = "force-dynamic";
 
 export default async function StudentHome() {
   const profile = (await currentProfile())!;
-  const db = await supabaseServer();
   const now = new Date();
 
-  const { terms, weeks } = await getTermsAndWeeks();
-  const termId = currentTermId(terms, now);
-  const week = currentWeek(weeks, now);
-
+  // Two round trips for the whole screen. Nothing below is fetched: the
+  // calendar, this week's lessons and homeworks, what has been watched and
+  // what has been handed in all come out of the curriculum read, which had
+  // already loaded every one of those rows to build the course tree. The
+  // class NAME rides in on the profile, so the leaderboards no longer wait on
+  // a lookup, and the progress figures come back keyed by term so they need
+  // not wait on the calendar either.
   const [progress, leaderboards, curriculum] = await Promise.all([
-    getStudentProgress(profile.id, termId),
-    getHomeLeaderboards(profile.class_id),
+    getStudentProgress(profile.id),
+    getHomeLeaderboards(profile.classes?.name ?? null),
     getStudentCurriculum(profile.id, now),
   ]);
+
+  const { terms, weeks } = curriculum.rows;
+  const termId = currentTermId(terms, now);
+  const week = currentWeek(weeks, now);
 
   // The cohort scope is the student's own section and only ever that — the
   // views filter on it in SQL, so this label describes what is shown rather
@@ -44,37 +50,24 @@ export default async function StudentHome() {
   const cohortNoun = profile.section === "sisters" ? "sisters" : "brothers";
   const cohortLabel = `All ${cohortNoun}`;
 
-  const { data: lessons } = week
-    ? await db.from("lessons").select("id, title, series, youtube_id").eq("week_id", week.id).order("position")
-    : { data: [] };
-  const { data: watches } = await db
-    .from("lesson_watches").select("lesson_id").eq("student_id", profile.id);
-  const watched = new Set((watches ?? []).map((w) => w.lesson_id));
-
   // A week can carry more than one course's homework — Term 3 week 1 has both
-  // Tajweed 16 and TFP 1 — so this is a list, not a single row.
-  const { data: hws } = week
-    ? await db
-        .from("homeworks")
-        .select("id, number, title, series, due_at")
-        .eq("week_id", week.id)
-        .order("number")
-    : { data: [] };
-  const { data: weekSubs } = hws?.length
-    ? await db
-        .from("submissions")
-        .select("homework_id, status")
-        .eq("student_id", profile.id)
-        .in("homework_id", hws.map((h) => h.id))
-    : { data: [] };
-  const statusByHw = new Map((weekSubs ?? []).map((s) => [s.homework_id, s.status]));
+  // Tajweed 16 and TFP 1 — so `hws` is a list, not a single row.
+  const { lessons, homeworks: hws } = week
+    ? weekContent(curriculum.rows, week.id)
+    : { lessons: [], homeworks: [] };
+  const watched = curriculum.watchedLessonIds;
+  const statusByHw = curriculum.submissionByHomeworkId;
+
+  const hwAvg = progress.hwAvgByTerm[termId] ?? null;
+  // Strikes reset each term, so only this term's count towards the three.
+  const strikes = progress.strikes.filter((s) => s.term_id === termId);
 
   const allHomework = listHomework(curriculum.terms);
 
   // Overdue work from EARLIER weeks. "This week" alone hides it — a student can
   // be four homeworks behind and see a screen that says everything is fine.
   // Renders nothing when there's nothing overdue.
-  const currentWeekHwIds = new Set((hws ?? []).map((h) => h.id));
+  const currentWeekHwIds = new Set(hws.map((h) => h.id));
   const buckets = bucketHomework(allHomework);
   const overdue = buckets.needsYou.filter(
     (e) => isLate(now, e.homework.due_at) && !currentWeekHwIds.has(e.homework.id),
@@ -161,13 +154,13 @@ export default async function StudentHome() {
 
       <section className="space-y-3">
         <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">This week</h2>
-        {lessons?.length ? (
+        {lessons.length ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {lessons.map((l) => {
               // No standalone homework cards here — the homework is linked from
               // the lesson itself. The video carries its course's deadline, since
               // watching is the first step towards handing in.
-              const hw = (hws ?? []).find((h) => h.series === l.series);
+              const hw = hws.find((h) => h.series === l.series);
               const status = hw ? statusByHw.get(hw.id) : undefined;
               const handedIn =
                 status === "submitted" || status === "auto_marked" || status === "approved";
@@ -223,9 +216,9 @@ export default async function StudentHome() {
             {/* Three readings of the same subject, given equal room: where the
                 term stands, which way it is moving, and where the year sits. */}
             <div className="mt-3 flex items-center justify-between gap-4">
-              <ProgressRing value={progress.hwAvg} tone="ok">
+              <ProgressRing value={hwAvg} tone="ok">
                 <span className="font-heading text-sm">
-                  <CountUp value={progress.hwAvg} suffix="%" />
+                  <CountUp value={hwAvg} suffix="%" />
                 </span>
               </ProgressRing>
 
@@ -239,7 +232,7 @@ export default async function StudentHome() {
                   </>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    {progress.hwAvg === null
+                    {hwAvg === null
                       ? "no marks yet"
                       : "one mark so far — the trend appears at two"}
                   </p>
@@ -305,11 +298,11 @@ export default async function StudentHome() {
           <div
             className={cn(
               "glass glass-hover anim-in rounded-2xl p-4",
-              progress.strikes.length > 0 && "glass-danger border-danger/35",
+              strikes.length > 0 && "glass-danger border-danger/35",
             )}
             style={{ animationDelay: "300ms" }}
           >
-            <StrikeDots strikes={progress.strikes} />
+            <StrikeDots strikes={strikes} />
             <p className="mt-3 text-xs text-muted-foreground">
               Strikes reset at the start of each term.
             </p>

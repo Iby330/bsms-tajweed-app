@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   buildTree, overlayProgress, findCourse, findCurrentModule, moduleTitle,
-  listHomework, bucketHomework,
+  listHomework, bucketHomework, weekContent,
   type TermRow, type WeekRow, type LessonRow, type HomeworkRow,
 } from "./tree";
 
@@ -428,6 +428,52 @@ describe("listHomework / bucketHomework — the worklist", () => {
   it("shows newest marked work first", () => {
     const b = bucketHomework(listed([], [["h1", "approved"], ["h3", "approved"]]));
     expect(b.marked.map((e) => e.homework.number)).toEqual([3, 1]);
+  });
+});
+
+/* Home asks "what is on this week?" across every course at once — a question
+ * the term/series tree is the wrong shape for. */
+
+describe("weekContent — one week, every course", () => {
+  const rows = { lessons, homeworks };
+
+  it("returns the week's lessons from every series, ordered by position", () => {
+    const w = weekContent(rows, "t1w1");
+    // two courses run that week: Tajweed at position 1, Umm al-Kitab at 2
+    expect(w.lessons.map((l) => l.id)).toEqual(["taj1", "uak1"]);
+    expect(w.lessons.map((l) => l.series)).toEqual(["tajweed", "umm_al_kitab"]);
+    expect(w.homeworks.map((h) => h.id)).toEqual(["h1"]);
+  });
+
+  /* Term 3 week 1 really does carry two homeworks — Tajweed 16 and TFP 1.
+   * Returning one row would silently hide half a student's week. */
+  it("carries every homework the week holds, not just one", () => {
+    const w = weekContent(rows, "t3w1");
+    expect(w.homeworks.map((h) => h.number)).toEqual([6, 101]);
+    expect(w.homeworks.map((h) => h.series)).toEqual(["tajweed", "tfp"]);
+    expect(w.lessons.map((l) => l.id)).toEqual(["taj6", "tfp1"]);
+  });
+
+  it("sorts rather than trusting the order it was handed", () => {
+    const w = weekContent(
+      { lessons: [...lessons].reverse(), homeworks: [...homeworks].reverse() },
+      "t3w1",
+    );
+    expect(w.lessons.map((l) => l.id)).toEqual(["taj6", "tfp1"]);
+    expect(w.homeworks.map((h) => h.number)).toEqual([6, 101]);
+  });
+
+  it("returns empty lists for a week with nothing on it", () => {
+    expect(weekContent({ lessons: [], homeworks: [] }, "t1w1"))
+      .toEqual({ lessons: [], homeworks: [] });
+    // a week id nothing points at behaves the same way, not a crash
+    expect(weekContent(rows, "t9w9")).toEqual({ lessons: [], homeworks: [] });
+  });
+
+  it("leaves the rows it was given untouched", () => {
+    const before = lessons.map((l) => l.id);
+    weekContent(rows, "t1w1");
+    expect(lessons.map((l) => l.id)).toEqual(before);
   });
 });
 

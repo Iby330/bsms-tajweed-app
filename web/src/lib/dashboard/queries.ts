@@ -39,16 +39,32 @@ export function currentTermId(
  * live on the Progress tab, in a table that has room to explain why they are
  * empty. Home answers "what do I need to do now"; Progress answers "how has
  * the year gone".
+ *
+ * Deliberately takes NO term. Every arm here is keyed on the student alone,
+ * so the call can be fired the moment the profile is known instead of waiting
+ * on the calendar to say which term today falls in. Both term-scoped figures
+ * come back keyed by term and the caller picks the one it wants — a filter in
+ * JS over three rows, in exchange for one fewer sequential round trip.
  */
-export async function getStudentProgress(studentId: string, termId: number) {
+export async function getStudentProgress(studentId: string) {
   const db = await supabaseServer();
-  const [avg, hifz, strikes] = await Promise.all([
-    db.from("v_termly_avg").select("hw_avg").eq("student_id", studentId).eq("term_id", termId).maybeSingle(),
+  const [avgs, hifz, strikes] = await Promise.all([
+    db.from("v_termly_avg").select("term_id, hw_avg").eq("student_id", studentId),
     db.from("v_hifz_progress").select("passed, target_count, start_surah, pct").eq("student_id", studentId).maybeSingle(),
-    db.from("strikes").select("reason, note, issued_at").eq("student_id", studentId).eq("term_id", termId).order("issued_at"),
+    db.from("strikes").select("term_id, reason, note, issued_at").eq("student_id", studentId).order("issued_at"),
   ]);
+
+  // The view exposes both columns as nullable; a row that lost its term can
+  // not be attributed to one. A zero average is treated as "no marks", which
+  // is what the single-row read this replaced did.
+  const hwAvgByTerm: Record<number, number> = {};
+  for (const r of avgs.data ?? []) {
+    if (r.term_id === null || !r.hw_avg) continue;
+    hwAvgByTerm[r.term_id] = Number(r.hw_avg);
+  }
+
   return {
-    hwAvg: avg.data?.hw_avg ? Number(avg.data.hw_avg) : null,
+    hwAvgByTerm,
     hifz: hifz.data
       ? {
           passed: Number(hifz.data.passed),
@@ -56,6 +72,7 @@ export async function getStudentProgress(studentId: string, termId: number) {
           startSurah: Number(hifz.data.start_surah),
         }
       : null,
+    /** Every term's strikes, each carrying its `term_id`. Callers filter. */
     strikes: strikes.data ?? [],
   };
 }
@@ -73,7 +90,9 @@ export type TermProgress = {
 export async function getFullProgress(studentId: string) {
   const db = await supabaseServer();
   const [terms, avgs, pcts, exams, eoy, hifz, strikes] = await Promise.all([
-    db.from("terms").select("id, exam_max").order("id"),
+    // The calendar is the same for everybody and already in the shared cache —
+    // reading `terms` again here would be a round trip for rows we hold.
+    getCachedTerms(),
     db.from("v_termly_avg").select("term_id, hw_avg").eq("student_id", studentId),
     db.from("v_term_pct").select("term_id, term_pct").eq("student_id", studentId),
     db.from("exam_scores").select("term_id, score").eq("student_id", studentId),
@@ -98,7 +117,7 @@ export async function getFullProgress(studentId: string) {
   const examMap = byTerm(exams.data);
 
   return {
-    terms: (terms.data ?? []).map(
+    terms: terms.map(
       (t): TermProgress => ({
         termId: t.id,
         examMax: t.exam_max,
@@ -143,19 +162,21 @@ export type LbRow = { name: string; pct: number; rank: number };
  * reads `class_rank`. Narrowing a cohort list to one class in JS would leave
  * ranks 3, 7, 12 with no 1st place, and renumbering them here would move a
  * standing calculation out of the database. Filtering is all that happens.
+ *
+ * Takes the class NAME, not its id. The views rank by name, so an id would
+ * only ever be turned back into one — and the callers already hold the name
+ * (`currentProfile` embeds `classes(name)`, `teacherClass` returns it), so
+ * looking it up here was a round trip spent on a string we were handed.
  */
-export async function getHomeLeaderboards(classId: string | null) {
+export async function getHomeLeaderboards(className: string | null) {
   const db = await supabaseServer();
-  const [hwInd, hifzInd, hifzClass, cls] = await Promise.all([
+  const [hwInd, hifzInd, hifzClass] = await Promise.all([
     db.from("v_lb_individual").select("full_name, class_name, pct, rank, class_rank").order("rank"),
     db.from("v_lb_hifz_individual").select("full_name, class_name, pct, rank, class_rank").order("rank"),
     db.from("v_lb_hifz_class").select("class_name, pct, rank").order("rank"),
-    classId
-      ? db.from("classes").select("name").eq("id", classId).maybeSingle()
-      : Promise.resolve({ data: null as { name: string } | null }),
   ]);
 
-  const myClass = cls.data?.name ?? null;
+  const myClass = className;
 
   type IndRow = { full_name: unknown; class_name: unknown; pct: unknown; rank: unknown; class_rank: unknown };
   const cohort = (rows: IndRow[] | null): LbRow[] =>
@@ -216,29 +237,31 @@ export async function getClassLeaderboards() {
  * `v_hifz_progress`, the homework mean from `v_termly_avg`, pace from the
  * teaching calendar. No grade is recomputed here.
  *
- * `weeks` and `now` are passed in, not fetched: the caller already has the
- * calendar, and taking `now` as an argument keeps the output deterministic.
+ * `weeks`, `roster` and `now` are passed in, not fetched: the caller already
+ * has the calendar and the roster, and taking `now` as an argument keeps the
+ * output deterministic. The roster in particular used to be read here, which
+ * put a whole round trip in front of everything else this function does —
+ * every caller had already loaded exactly those rows to render the list.
  *
  * Only active students. That matches the "Active students" tile rendered
- * directly above the list, so the two can never disagree.
+ * directly above the list, so the two can never disagree — which is now true
+ * by construction, because both read the same array.
+ *
+ * `classId` no longer selects anything; it stays in the signature as the
+ * declared scope of the returned list, so a call site cannot quietly hand in
+ * one class's roster while meaning another's.
  */
 export async function getClassProgress(
   classId: string,
   termId: number,
   weeks: { unlock_at: string }[],
+  roster: { id: string; full_name: string }[],
   now = new Date(),
 ): Promise<ClassRow[]> {
   const db = await supabaseServer();
 
-  const { data: students } = await db
-    .from("profiles")
-    .select("id, full_name")
-    .eq("class_id", classId)
-    .eq("role", "student")
-    .eq("is_active", true)
-    .order("full_name");
-
-  const ids = (students ?? []).map((s) => s.id);
+  const students = roster;
+  const ids = students.map((s) => s.id);
   if (!ids.length) return [];
 
   const [hifz, records, avgs, surahs] = await Promise.all([
@@ -272,7 +295,7 @@ export async function getClassProgress(
   const allSurahs = surahs as Surah[];
   const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
 
-  return (students ?? []).map((s): ClassRow => {
+  return students.map((s): ClassRow => {
     const h = hifzOf.get(s.id);
     const target = Number(h?.target_count ?? 0);
     const passed = Number(h?.passed ?? 0);
