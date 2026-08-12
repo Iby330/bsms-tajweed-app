@@ -6,6 +6,15 @@ import { ringGeometry } from "@/lib/viz/ring";
 
 export type RingTone = "ok" | "warn" | "danger" | "ink";
 
+/**
+ * Breathing room between the stroke and the edge of the SVG box.
+ *
+ * An SVG clips to its own viewport, so a stroke that reaches the boundary has
+ * its dark-mode glow sliced off in straight lines — the ring ends up sitting
+ * in a visible rectangle. This keeps the halo inside the box.
+ */
+const GLOW_PAD = 6;
+
 /** Both stroke and text colour: `currentColor` is what the dark-mode glow
  *  in globals.css draws its halo from. */
 const TONES: Record<RingTone, string> = {
@@ -23,7 +32,7 @@ const TONES: Record<RingTone, string> = {
  */
 export function ProgressRing({
   value,
-  size = 76,
+  size = 84,
   stroke = 7,
   tone = "ok",
   className,
@@ -36,7 +45,7 @@ export function ProgressRing({
   className?: string;
   children?: React.ReactNode;
 }) {
-  const radius = (size - stroke) / 2;
+  const radius = Math.max(1, (size - stroke) / 2 - GLOW_PAD);
   const { circumference, offset, pct } = ringGeometry(value, radius);
   const [drawn, setDrawn] = useState(false);
 

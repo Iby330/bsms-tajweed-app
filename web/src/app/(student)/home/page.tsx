@@ -93,13 +93,20 @@ export default async function StudentHome() {
     (e) => e.submission === "submitted" || e.submission === "auto_marked" || e.submission === "approved",
   ).length;
 
-  // The last six marks, oldest → newest, for the trend line. Marked homework
-  // comes back newest-first, so take the head and reverse it.
-  const recentMarks = buckets.marked
-    .slice(0, 6)
+  // Every approved mark this year, newest first.
+  const marks = buckets.marked
     .map((e) => curriculum.pctByHomeworkId.get(e.homework.id))
-    .filter((v): v is number => typeof v === "number")
-    .reverse();
+    .filter((v): v is number => typeof v === "number");
+
+  // The last six, oldest → newest, for the trend line.
+  const recentMarks = marks.slice(0, 6).reverse();
+
+  // The whole year, not just this term. The ring answers "how am I doing
+  // now"; this answers "how has the year gone" — and in an early term those
+  // are very different numbers.
+  const yearAvg = marks.length
+    ? marks.reduce((total, m) => total + m, 0) / marks.length
+    : null;
 
   // One capsule segment per homework released so far.
   const segments: Segment[] = releasedHomework.map((e) => {
@@ -213,16 +220,19 @@ export default async function StudentHome() {
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
               Homework avg · T{termId}
             </div>
-            <div className="mt-3 flex items-center gap-4">
-              <ProgressRing value={progress.hwAvg} tone="ok" size={76}>
+            {/* Three readings of the same subject, given equal room: where the
+                term stands, which way it is moving, and where the year sits. */}
+            <div className="mt-3 flex items-center justify-between gap-4">
+              <ProgressRing value={progress.hwAvg} tone="ok">
                 <span className="font-heading text-sm">
                   <CountUp value={progress.hwAvg} suffix="%" />
                 </span>
               </ProgressRing>
-              <div className="min-w-0">
+
+              <div className="min-w-0 flex-1 text-center">
                 {recentMarks.length >= 2 ? (
                   <>
-                    <Sparkline values={recentMarks} />
+                    <Sparkline values={recentMarks} className="mx-auto" />
                     <p className="mt-1 text-xs text-muted-foreground">
                       last {recentMarks.length} marked
                     </p>
@@ -234,6 +244,15 @@ export default async function StudentHome() {
                       : "one mark so far — the trend appears at two"}
                   </p>
                 )}
+              </div>
+
+              <div className="shrink-0 border-l border-line pl-4 text-right">
+                <div className="font-heading text-xl">
+                  <CountUp value={yearAvg} decimals={1} suffix="%" />
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  year to date
+                </p>
               </div>
             </div>
           </div>
