@@ -42,7 +42,10 @@ export async function supabaseServer() {
  * `classes(name)` rides along on the same round trip because Home needs the
  * class *name* for the leaderboards helper, not just `class_id` — fetching it
  * separately would be a second query for one string. Classes are readable by
- * any signed-in user, so the embed widens no visibility.
+ * any signed-in user, so the embed widens no visibility. The FK hint is not
+ * optional: profiles and classes are joined by two FKs (class_id, and
+ * classes.teacher_id back at profiles), and without it PostgREST refuses the
+ * ambiguous embed at runtime — an error tsc cannot see.
  */
 export const currentProfile = cache(async () => {
   const supabase = await supabaseServer();
@@ -51,7 +54,7 @@ export const currentProfile = cache(async () => {
   if (!userId) return null;
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name, role, section, class_id, is_active, classes(name)")
+    .select("id, full_name, role, section, class_id, is_active, classes!profiles_class_id_fkey(name)")
     .eq("id", userId)
     .single();
   return data;
