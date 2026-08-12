@@ -17,37 +17,48 @@ export default async function SubmissionReview({
   const { submissionId } = await params;
   const db = await supabaseServer();
 
+  // Student, class, homework, questions, answers and voice notes all hang off
+  // this submission by a foreign key, so PostgREST returns the lot in one round
+  // trip. `classes` needs its hint because a class points back at a teacher
+  // profile as well; `profiles` needs one because a submission names both a
+  // student and its approver.
   const { data: sub } = await db
     .from("submissions")
-    .select("id, status, is_late, submitted_at, homework_id, student_id")
+    .select(`
+      id, status, is_late, submitted_at, homework_id, student_id,
+      profiles!submissions_student_id_fkey(
+        full_name, class_id, classes!profiles_class_id_fkey(name)
+      ),
+      homeworks(
+        number, title, series, total_marks,
+        questions(id, position, prompt, points, qtype, is_bonus, is_task, options)
+      ),
+      answers(id, question_id, response, auto_marks, auto_rubric, final_marks),
+      voice_notes(question_id, storage_path, duration_s)
+    `)
     .eq("id", submissionId)
+    .order("position", { referencedTable: "homeworks.questions" })
     .maybeSingle();
   if (!sub) notFound();
 
+  const hw = sub.homeworks;
+  const student = sub.profiles;
+  const cls = student?.classes;
+  const questions = hw?.questions;
+  const voiceNotes = sub.voice_notes;
+  let answers: typeof sub.answers | null = sub.answers;
+
   // opening an unmarked submission marks it — objective instantly, written
-  // answers via the model — so the teacher always lands on a marked page
+  // answers via the model — so the teacher always lands on a marked page.
+  // Marking touches nothing but the answers, so only they are read back.
   if (sub.status === "submitted") {
-    await markSubmission(sub.id);
+    await markSubmission(sub.id, { homeworkId: sub.homework_id });
+    const { data: marked } = await db
+      .from("answers")
+      .select("id, question_id, response, auto_marks, auto_rubric, final_marks")
+      .eq("submission_id", sub.id);
+    answers = marked;
   }
-
-  const [{ data: hw }, { data: student }, { data: questions }, { data: answers }, { data: voiceNotes }] =
-    await Promise.all([
-      db.from("homeworks").select("number, title, series, total_marks").eq("id", sub.homework_id).single(),
-      db.from("profiles").select("full_name, class_id").eq("id", sub.student_id).single(),
-      db.from("questions")
-        .select("id, position, prompt, points, qtype, is_bonus, is_task, options")
-        .eq("homework_id", sub.homework_id).order("position"),
-      db.from("answers")
-        .select("id, question_id, response, auto_marks, auto_rubric, final_marks")
-        .eq("submission_id", sub.id),
-      db.from("voice_notes")
-        .select("question_id, storage_path, duration_s")
-        .eq("submission_id", sub.id),
-    ]);
-
-  const { data: cls } = student?.class_id
-    ? await db.from("classes").select("name").eq("id", student.class_id).maybeSingle()
-    : { data: null };
 
   const backHref = `/teacher/homework/${hw?.number ?? ""}`;
 

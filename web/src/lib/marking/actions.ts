@@ -3,10 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { currentProfile } from "@/lib/supabase/server";
+import { parseRubric } from "./objective";
 import {
-  scoreObjective, parseOptions, parseRubric,
-  type MarkableQuestion, type AutoRubricResult,
-} from "./objective";
+  mapWithConcurrency, planAnswerUpdates, planFinalMarks, planLlmJobs,
+  type LlmMark, type MarkingAnswer, type MarkingQuestion,
+} from "./plan";
 import { markFreeText } from "./llm";
 
 /**
@@ -18,19 +19,19 @@ import { markFreeText } from "./llm";
  * Uses the service-role client because it writes marks across students;
  * every entry point checks the caller is a teacher first (except
  * markSubmission, which a student's own submit may trigger).
+ *
+ * This file is `use server`, so only the actions may be exported from it —
+ * the marking rules themselves live, pure and tested, in ./plan and
+ * ./objective.
  */
 
-type QuestionRow = {
-  id: string;
-  qtype: MarkableQuestion["qtype"];
-  scoring: MarkableQuestion["scoring"];
-  points: number;
-  prompt: string;
-  is_bonus: boolean;
-  is_task: boolean;
-  options: unknown;
-  rubric: unknown;
-};
+/**
+ * Free-text answers sent to the model at once. The count of requests per
+ * submission is unchanged — only their spacing — so the free tier's 30/min
+ * budget is spent no faster than the old one-at-a-time loop spent it, and
+ * markFreeText still backs off on a 429.
+ */
+const LLM_CONCURRENCY = 5;
 
 async function requireTeacher() {
   const profile = await currentProfile();
@@ -44,70 +45,72 @@ async function requireTeacher() {
 /**
  * Score every answer on a submission. Idempotent: safe to call again.
  * Objective questions are scored instantly in code; free-text answers with a
- * rubric go to the LLM one at a time (sequential — the free tier is 30/min).
+ * rubric go to the LLM, a few at a time, and the whole submission is then
+ * saved in one write.
+ *
+ * `hint` is the caller saying it already knows which homework this is — the
+ * review page has just read the submission row — which lets all three reads
+ * leave together instead of two of them waiting on the first.
  */
-export async function markSubmission(submissionId: string): Promise<void> {
+export async function markSubmission(
+  submissionId: string,
+  hint?: { homeworkId: string },
+): Promise<void> {
   const db = supabaseAdmin();
 
-  const { data: submission } = await db
+  const submissionRead = db
     .from("submissions")
     .select("id, status, homework_id")
     .eq("id", submissionId)
     .single();
+  const answerRead = db
+    .from("answers")
+    .select("id, submission_id, question_id, response")
+    .eq("submission_id", submissionId);
+  const questionRead = (homeworkId: string) =>
+    db
+      .from("questions")
+      .select("id, qtype, scoring, points, prompt, is_bonus, is_task, options, rubric")
+      .eq("homework_id", homeworkId);
+
+  let submission: { status: string } | null;
+  let answers: MarkingAnswer[] | null;
+  let questions: MarkingQuestion[] | null;
+
+  if (hint) {
+    const [s, a, q] = await Promise.all([
+      submissionRead,
+      answerRead,
+      questionRead(hint.homeworkId),
+    ]);
+    submission = s.data;
+    answers = a.data;
+    questions = q.data;
+  } else {
+    // no hint: the submission row has to come back first, it names the homework
+    const s = await submissionRead;
+    if (!s.data) throw new Error("Submission not found.");
+    const [a, q] = await Promise.all([answerRead, questionRead(s.data.homework_id)]);
+    submission = s.data;
+    answers = a.data;
+    questions = q.data;
+  }
+
   if (!submission) throw new Error("Submission not found.");
   if (submission.status === "approved") return; // already finalised
-
-  const { data: answers } = await db
-    .from("answers")
-    .select("id, question_id, response")
-    .eq("submission_id", submissionId);
   if (!answers?.length) return;
 
-  const { data: questions } = await db
-    .from("questions")
-    .select("id, qtype, scoring, points, prompt, is_bonus, is_task, options, rubric")
-    .eq("homework_id", submission.homework_id);
-  const byId = new Map((questions ?? []).map((q) => [q.id, q as QuestionRow]));
+  const jobs = planLlmJobs(answers, questions ?? []);
+  const marked = await mapWithConcurrency(jobs, LLM_CONCURRENCY, (job) =>
+    markFreeText({ prompt: job.prompt, rubric: job.rubric, answer: job.answer }),
+  );
+  const llmMarks = new Map<string, LlmMark | null>(
+    jobs.map((job, i) => [job.answerId, marked[i]]),
+  );
 
-  for (const answer of answers) {
-    const q = byId.get(answer.question_id);
-    if (!q) continue;
-
-    const question: MarkableQuestion = {
-      qtype: q.qtype,
-      scoring: q.scoring,
-      points: Number(q.points),
-      is_bonus: q.is_bonus,
-      is_task: q.is_task,
-      options: parseOptions(q.options),
-      rubric: parseRubric(q.rubric),
-    };
-
-    let autoMarks = scoreObjective(question, answer.response);
-    let autoRubric: AutoRubricResult[] | null = null;
-
-    // free-text with a rubric → the model; without one → manual queue
-    if (autoMarks === null && question.rubric?.length) {
-      const text =
-        typeof answer.response === "object" && answer.response !== null
-          ? String((answer.response as { text?: unknown }).text ?? "")
-          : "";
-      const result = await markFreeText({
-        prompt: q.prompt,
-        rubric: question.rubric,
-        answer: text,
-      });
-      if (result) {
-        autoMarks = result.marks;
-        autoRubric = result.concepts;
-      }
-    }
-
-    await db
-      .from("answers")
-      .update({ auto_marks: autoMarks, auto_rubric: autoRubric as never })
-      .eq("id", answer.id);
-  }
+  // one write for the submission: every answer row, marks and all
+  const rows = planAnswerUpdates(answers, questions ?? [], llmMarks);
+  if (rows.length) await db.from("answers").upsert(rows, { onConflict: "id" });
 
   await db
     .from("submissions")
@@ -131,18 +134,13 @@ export async function approveSubmission(
 
   const { data: answers } = await db
     .from("answers")
-    .select("id, auto_marks")
+    .select("id, submission_id, question_id, response, auto_marks")
     .eq("submission_id", submissionId);
   if (!answers) throw new Error("Submission not found.");
 
-  for (const a of answers) {
-    const edited = edits[a.id];
-    const final =
-      typeof edited === "number" && Number.isFinite(edited)
-        ? edited
-        : (a.auto_marks ?? 0);
-    await db.from("answers").update({ final_marks: final }).eq("id", a.id);
-  }
+  // every final mark worked out in JS, then written in one go
+  const rows = planFinalMarks(answers, edits);
+  if (rows.length) await db.from("answers").upsert(rows, { onConflict: "id" });
 
   await db
     .from("submissions")
