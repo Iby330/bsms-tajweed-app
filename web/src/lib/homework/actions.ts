@@ -15,6 +15,35 @@ async function requireStudent() {
   return profile;
 }
 
+/**
+ * Open a draft submission for this homework, for a caller that has already
+ * established there is no submission yet.
+ *
+ * The homework page reads the student's submission to decide whether the form
+ * is read-only, so `ensureSubmission`'s own lookup would repeat a query that
+ * was answered a moment ago. This skips straight to the write. It is still
+ * race-safe: `submissions` carries `unique (homework_id, student_id)`, so two
+ * simultaneous first loads resolve to the same row instead of one of them
+ * failing on the constraint.
+ *
+ * Callers that don't already know the answer want `ensureSubmission`.
+ */
+export async function createDraftSubmission(homeworkId: string): Promise<string> {
+  const profile = await requireStudent();
+  const db = await supabaseServer();
+
+  const { data, error } = await db
+    .from("submissions")
+    .upsert(
+      { homework_id: homeworkId, student_id: profile.id, status: "draft" },
+      { onConflict: "homework_id,student_id" },
+    )
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  return data.id;
+}
+
 /** Get-or-create the draft submission for this homework. */
 export async function ensureSubmission(homeworkId: string): Promise<string> {
   const profile = await requireStudent();

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
-import { currentWeek } from "@/lib/dashboard/queries";
+import { currentWeek, getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { scopeLabel, teacherRoster } from "@/lib/teacher/scope";
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
@@ -39,31 +39,36 @@ const PENDING = ["submitted", "auto_marked"];
  */
 export default async function TeacherHomework() {
   const db = await supabaseServer();
-  const label = await scopeLabel();
+
+  // Only the submissions read needs the roster, so everything else goes first
+  // and in parallel: the calendar is served from the reference cache, and the
+  // homework list is fetched while the teacher's class is still being looked
+  // up. That leaves three waves — class, roster, submissions — where the
+  // roster genuinely cannot start before the class is known.
+  const [label, { terms, weeks }, { data: homeworks }] = await Promise.all([
+    scopeLabel(),
+    getTermsAndWeeks(),
+    db.from("homeworks").select("id, week_id, number, title, series, is_graded").order("number"),
+  ]);
+
   const roster = await teacherRoster();
   const rosterIds = roster.map((s) => s.id);
   const nameOf = new Map(roster.map((s) => [s.id, s.full_name]));
 
-  const [{ data: terms }, { data: weeks }, { data: homeworks }, { data: subs }] =
-    await Promise.all([
-      db.from("terms").select("id, starts_on, ends_on").order("id"),
-      db.from("weeks").select("id, term_id, number, unlock_at").order("term_id").order("number"),
-      db.from("homeworks").select("id, week_id, number, title, series, is_graded").order("number"),
-      rosterIds.length
-        ? db.from("submissions")
-            .select("id, status, is_late, homework_id, student_id")
-            .in("student_id", rosterIds)
-            .order("submitted_at")
-        : Promise.resolve({ data: [] as Sub[] }),
-    ]);
+  const { data: subs } = rosterIds.length
+    ? await db.from("submissions")
+        .select("id, status, is_late, homework_id, student_id")
+        .in("student_id", rosterIds)
+        .order("submitted_at")
+    : { data: [] as Sub[] };
 
-  const weekById = new Map((weeks ?? []).map((w) => [w.id, w]));
-  const week = currentWeek(weeks ?? []);
+  const weekById = new Map(weeks.map((w) => [w.id, w]));
+  const week = currentWeek(weeks);
 
   // Weeks arrive in teaching order and unlock in that order, so everything up
   // to and including the current one is released. Derived from the ordering
   // rather than a clock read, which a render is not allowed to do.
-  const orderedWeekIds = (weeks ?? []).map((w) => w.id);
+  const orderedWeekIds = weeks.map((w) => w.id);
   const currentIndex = week ? orderedWeekIds.indexOf(week.id) : -1;
   const releasedWeekIds = new Set(orderedWeekIds.slice(0, currentIndex + 1));
 
@@ -246,7 +251,7 @@ export default async function TeacherHomework() {
         {/* Folders, not pages. Only the current term starts open, and a term
             running a single course skips the middle folder — clicking through
             "Tajweed" to reach the only thing inside it is a step for nothing. */}
-        {(terms ?? []).map((term) => {
+        {terms.map((term) => {
           const bySeries = byTerm.get(term.id);
           if (!bySeries) return null;
           const seriesKeys = [...bySeries.keys()].sort((a, b) => seriesRank(a) - seriesRank(b));

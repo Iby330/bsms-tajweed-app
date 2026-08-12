@@ -17,51 +17,44 @@ export default async function Lesson({
   const profile = (await currentProfile())!;
   const db = await supabaseServer();
 
-  const { data: lesson } = await db
-    .from("lessons")
-    .select("id, title, series, youtube_id, week_id, position")
-    .eq("id", lessonId)
-    .maybeSingle();
-  if (!lesson) notFound();
-
-  const { data: week } = await db
-    .from("weeks")
-    .select("id, number, term_id, unlock_at")
-    .eq("id", lesson.week_id)
-    .maybeSingle();
-
-  // A locked week's lesson is simply not there yet, as far as a student is
-  // concerned — no teasing them with a title they can't open.
-  if (!week || Date.parse(week.unlock_at) > Date.now()) notFound();
-
-  // Both queries are scoped to this lesson's SERIES, not just its week. A week
-  // can carry two courses at once — Term 3 week 1 has Tajweed 16 and TFP 1 —
-  // so a week-only match would pair a lesson with another course's homework
-  // (and `.maybeSingle()` would return nothing at all).
-  const [{ data: siblings }, { data: watch }, { data: homework }] = await Promise.all([
+  // Everything but the watch flag hangs off this lesson's week, so one embed
+  // brings back the week, its sibling lessons and its homework together; the
+  // watch flag is keyed on the student instead, so it rides alongside.
+  const [{ data: lesson }, { data: watch }] = await Promise.all([
     db
       .from("lessons")
-      .select("id, title, position")
-      .eq("week_id", week.id)
-      .eq("series", lesson.series)
-      .order("position"),
+      .select(`
+        id, title, series, youtube_id, week_id, position,
+        weeks(number, term_id, unlock_at, lessons(id, position, series), homeworks(number, series))
+      `)
+      .eq("id", lessonId)
+      .maybeSingle(),
     db
       .from("lesson_watches")
       .select("lesson_id")
       .eq("student_id", profile.id)
-      .eq("lesson_id", lesson.id)
-      .maybeSingle(),
-    db
-      .from("homeworks")
-      .select("number, title")
-      .eq("week_id", week.id)
-      .eq("series", lesson.series)
+      .eq("lesson_id", lessonId)
       .maybeSingle(),
   ]);
+  if (!lesson) notFound();
 
-  const ordered = siblings ?? [];
+  const week = lesson.weeks;
+  // A locked week's lesson is simply not there yet, as far as a student is
+  // concerned — no teasing them with a title they can't open.
+  if (!week || Date.parse(week.unlock_at) > Date.now()) notFound();
+
+  // Both lists are narrowed to this lesson's SERIES, not just its week. A week
+  // can carry two courses at once — Term 3 week 1 has Tajweed 16 and TFP 1 —
+  // so a week-only match would pair a lesson with another course's homework.
+  const ordered = week.lessons.filter((l) => l.series === lesson.series)
+    .sort((a, b) => a.position - b.position);
   const index = ordered.findIndex((l) => l.id === lesson.id);
   const next = index >= 0 ? ordered[index + 1] : undefined;
+
+  // One homework per week per course; anything else is a data error, and the
+  // old `.maybeSingle()` showed no link at all rather than guess between them.
+  const forSeries = week.homeworks.filter((h) => h.series === lesson.series);
+  const homework = forSeries.length === 1 ? forSeries[0] : null;
 
   return (
     <div className="space-y-6">

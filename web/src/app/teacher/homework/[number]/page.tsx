@@ -25,19 +25,25 @@ export default async function TeacherHomeworkDetail({
   if (!Number.isInteger(n)) notFound();
 
   const db = await supabaseServer();
-  const { data: hw } = await db
-    .from("homeworks")
-    .select("id, week_id, number, title, series, total_marks, is_graded")
-    .eq("number", n)
-    .maybeSingle();
+
+  // The week rides along on the homework's own foreign key, and the teacher's
+  // class is an independent lookup — so both start together. Only the roster
+  // has to wait on the class, and only the submission reads on the roster.
+  const [{ data: hw }, label] = await Promise.all([
+    db
+      .from("homeworks")
+      .select("id, week_id, number, title, series, total_marks, is_graded, weeks(term_id, number)")
+      .eq("number", n)
+      .maybeSingle(),
+    scopeLabel(),
+  ]);
   if (!hw) notFound();
 
-  const label = await scopeLabel();
+  const week = hw.weeks;
   const students = await teacherRoster();
   const studentIds = students.map((s) => s.id);
 
-  const [{ data: week }, { data: subs }, { data: pcts }] = await Promise.all([
-    db.from("weeks").select("term_id, number").eq("id", hw.week_id).maybeSingle(),
+  const [{ data: subs }, { data: pcts }] = await Promise.all([
     // drafts are the student's own business — a teacher can't review one
     studentIds.length
       ? db.from("submissions")
@@ -46,6 +52,7 @@ export default async function TeacherHomeworkDetail({
           .in("student_id", studentIds)
           .in("status", ["submitted", "auto_marked", "approved"])
       : Promise.resolve({ data: [] as { id: string; status: string; is_late: boolean; student_id: string }[] }),
+    // v_hw_pct is a view, so it cannot be embedded — it stays its own read
     studentIds.length
       ? db.from("v_hw_pct").select("student_id, pct").eq("homework_id", hw.id).in("student_id", studentIds)
       : Promise.resolve({ data: [] as { student_id: string; pct: number }[] }),

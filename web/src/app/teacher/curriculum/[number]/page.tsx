@@ -38,24 +38,27 @@ export default async function CurriculumDetail({
   if (!Number.isFinite(n)) notFound();
 
   const db = await supabaseServer();
+  // The week, the questions and the submission statuses all hang off this
+  // homework by a foreign key, so PostgREST returns the lot in one round trip
+  // rather than a fetch followed by three more that only needed its id.
   const { data: hw } = await db
     .from("homeworks")
-    .select("id, number, title, series, total_marks, due_at, is_graded, week_id")
+    .select(`
+      id, number, title, series, total_marks, due_at, is_graded, week_id,
+      weeks(term_id, number),
+      questions(id, position, qtype, scoring, prompt, points, is_bonus, is_task, options, rubric, needs_key),
+      submissions(status)
+    `)
     .eq("number", n)
+    .order("position", { referencedTable: "questions" })
     .maybeSingle();
   if (!hw) notFound();
 
-  const [{ data: questions }, { data: week }, { data: subs }] = await Promise.all([
-    db.from("questions")
-      .select("id, position, qtype, scoring, prompt, points, is_bonus, is_task, options, rubric, needs_key")
-      .eq("homework_id", hw.id).order("position"),
-    db.from("weeks").select("term_id, number, unlock_at").eq("id", hw.week_id).maybeSingle(),
-    db.from("submissions").select("status").eq("homework_id", hw.id),
-  ]);
-
-  const qs = questions ?? [];
-  const marked = (subs ?? []).filter((s) => s.status === "approved").length;
-  const waiting = (subs ?? []).length - marked;
+  const week = hw.weeks;
+  const subs = hw.submissions;
+  const qs = hw.questions;
+  const marked = subs.filter((s) => s.status === "approved").length;
+  const waiting = subs.length - marked;
   const autoMarkable = qs.filter((q) => parseOptions(q.options)?.some((o) => o.correct)).length;
   const llmMarkable = qs.filter((q) => parseRubric(q.rubric)?.length).length;
   const byHand = qs.filter(

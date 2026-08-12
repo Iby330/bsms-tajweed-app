@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
-import { ensureSubmission } from "@/lib/homework/actions";
+import { createDraftSubmission } from "@/lib/homework/actions";
 import { parseStudentHomework } from "@/lib/homework/logic";
 import { HomeworkForm } from "@/components/app/homework-form";
 import { CountdownChip } from "@/components/app/countdown-chip";
@@ -28,37 +28,39 @@ export default async function HomeworkPage({
   const profile = (await currentProfile())!;
   const db = await supabaseServer();
 
+  // The week and its lessons come back on the homework's own foreign keys, so
+  // the crumbs and the "watch the video" link cost no extra round trip.
   const { data: row } = await db
-    .from("homeworks").select("id, number, title, is_graded, week_id, series").eq("number", number).maybeSingle();
+    .from("homeworks")
+    .select("id, number, title, is_graded, week_id, series, weeks(term_id, lessons(id, series, position))")
+    .eq("number", number)
+    .maybeSingle();
   if (!row) notFound();
 
-  // The lesson lookup is scoped to this homework's SERIES, not just its week.
-  // A week can carry two courses at once — Term 3 week 1 has Tajweed 16 and
-  // TFP 1 — so a week-only match would send the student back to the other
-  // course's video.
-  const [{ data: week }, { data: lesson }] = await Promise.all([
-    db.from("weeks").select("id, term_id, number").eq("id", row.week_id).maybeSingle(),
-    db
-      .from("lessons")
-      .select("id")
-      .eq("week_id", row.week_id)
-      .eq("series", row.series)
-      .order("position")
-      .limit(1)
-      .maybeSingle(),
-  ]);
+  const week = row.weeks;
+  // The lesson is picked by this homework's SERIES, not just its week. A week
+  // can carry two courses at once — Term 3 week 1 has Tajweed 16 and TFP 1 —
+  // so a week-only match would send the student back to the other course's
+  // video. First by position, as before.
+  const lesson = (week?.lessons ?? [])
+    .filter((l) => l.series === row.series)
+    .sort((a, b) => a.position - b.position)[0];
 
-  // answer keys are stripped server-side — students never receive them
-  const { data: payload } = await db.rpc("get_homework_for_student", { hw_id: row.id });
+  // answer keys are stripped server-side — students never receive them.
+  // Neither read depends on the other, so they share one wave.
+  const [{ data: payload }, { data: sub }] = await Promise.all([
+    db.rpc("get_homework_for_student", { hw_id: row.id }),
+    db
+      .from("submissions").select("id, status")
+      .eq("homework_id", row.id).eq("student_id", profile.id).maybeSingle(),
+  ]);
   const parsed = parseStudentHomework(payload);
   if (!parsed) notFound();
 
-  const { data: sub } = await db
-    .from("submissions").select("id, status")
-    .eq("homework_id", row.id).eq("student_id", profile.id).maybeSingle();
-
   const readOnly = !!sub && sub.status !== "draft";
-  const submissionId = readOnly ? sub!.id : await ensureSubmission(row.id);
+  // A submission of any status already answers the question — only a student
+  // opening the homework for the first time pays for a write.
+  const submissionId = sub ? sub.id : await createDraftSubmission(row.id);
 
   const [{ data: answers }, { data: voiceNotes }] = await Promise.all([
     db
