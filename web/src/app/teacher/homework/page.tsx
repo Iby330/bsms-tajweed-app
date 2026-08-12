@@ -189,28 +189,62 @@ export default async function TeacherHomework() {
         </section>
       )}
 
-      <section className="space-y-4">
+      <section className="space-y-3">
         <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">All homework</h2>
+        {/* Folders, not pages: term ▸ course ▸ homeworks, all native <details>.
+            Only the current term starts open — the rest of the year is one
+            click away without burying the screen in every homework at once. */}
         {(terms ?? []).map((term) => {
           const bySeries = byTerm.get(term.id);
           if (!bySeries) return null;
           const seriesKeys = [...bySeries.keys()].sort((a, b) => seriesRank(a) - seriesRank(b));
+          const termHws = seriesKeys.flatMap((s) => bySeries.get(s) ?? []);
+          const termWaiting = termHws.reduce((n, h) => n + (pendingByHw.get(h.id)?.length ?? 0), 0);
           return (
-            <section key={term.id} className="space-y-3">
-              <h3 className="text-sm font-medium">Term {term.id}</h3>
-              <div className="grid gap-3 lg:grid-cols-2">
+            <details
+              key={term.id}
+              open={week?.term_id === term.id}
+              className="group/term overflow-hidden rounded-lg border border-line bg-card"
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted/60 [&::-webkit-details-marker]:hidden">
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <span aria-hidden className="text-xs text-muted-foreground transition-transform group-open/term:rotate-90">
+                    ▸
+                  </span>
+                  Term {term.id}
+                </span>
+                <span className="flex shrink-0 items-center gap-2 text-xs tabular-nums text-muted-foreground">
+                  {termWaiting > 0 && (
+                    <span className="rounded bg-warn/12 px-1.5 py-0.5 text-warn">{termWaiting} waiting</span>
+                  )}
+                  <span>{termHws.length} homework{termHws.length === 1 ? "" : "s"}</span>
+                </span>
+              </summary>
+              <div className="space-y-2 border-t border-line p-3">
                 {seriesKeys.map((series) => {
                   const list = [...(bySeries.get(series) ?? [])].sort((a, b) => {
                     const wa = weekById.get(a.week_id)?.number ?? 0;
                     const wb = weekById.get(b.week_id)?.number ?? 0;
                     return wa - wb || a.number - b.number;
                   });
+                  const seriesWaiting = list.reduce((n, h) => n + (pendingByHw.get(h.id)?.length ?? 0), 0);
                   return (
-                    <div key={series} className="overflow-hidden rounded-lg border border-line bg-card">
-                      <h4 className="border-b border-line px-4 py-2.5 text-[11px] uppercase tracking-wider text-muted-foreground">
-                        {SERIES_LABELS[series] ?? series}
-                      </h4>
-                      <ul className="divide-y divide-line">
+                    <details key={series} className="group/series overflow-hidden rounded-md border border-line bg-page">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 transition-colors hover:bg-muted/60 [&::-webkit-details-marker]:hidden">
+                        <span className="flex items-center gap-2 text-sm">
+                          <span aria-hidden className="text-xs text-muted-foreground transition-transform group-open/series:rotate-90">
+                            ▸
+                          </span>
+                          {SERIES_LABELS[series] ?? series}
+                        </span>
+                        <span className="flex shrink-0 items-center gap-2 text-xs tabular-nums text-muted-foreground">
+                          {seriesWaiting > 0 && (
+                            <span className="rounded bg-warn/12 px-1.5 py-0.5 text-warn">{seriesWaiting} waiting</span>
+                          )}
+                          <span>{list.length} homework{list.length === 1 ? "" : "s"}</span>
+                        </span>
+                      </summary>
+                      <ul className="divide-y divide-line border-t border-line">
                         {list.map((h) => {
                           const waiting = pendingByHw.get(h.id)?.length ?? 0;
                           const done = approvedByHw.get(h.id) ?? 0;
@@ -221,7 +255,7 @@ export default async function TeacherHomework() {
                               <Link
                                 href={`/teacher/homework/${h.number}`}
                                 className={cn(
-                                  "flex items-center justify-between gap-3 px-4 py-2.5 transition-colors hover:bg-muted/60",
+                                  "flex items-center justify-between gap-3 px-3 py-2.5 pl-8 transition-colors hover:bg-muted/60",
                                   !unlocked && "opacity-60",
                                 )}
                               >
@@ -241,11 +275,11 @@ export default async function TeacherHomework() {
                           );
                         })}
                       </ul>
-                    </div>
+                    </details>
                   );
                 })}
               </div>
-            </section>
+            </details>
           );
         })}
       </section>
