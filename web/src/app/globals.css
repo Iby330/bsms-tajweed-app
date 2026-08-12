@@ -235,31 +235,48 @@ body::after {
   --viz-hw: #a3b4f7;
 }
 
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-}
-
-/* Safari/Firefox without backdrop-filter would render unreadable washes —
-   fall back to the solid card colour rather than transparency. */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+/* These live in the components layer on purpose. As plain CSS they landed
+   after Tailwind's utilities and won every tie, so `glass bg-danger/10`
+   silently dropped the tint and `border-danger/30` came out neutral — the
+   overdue banner lost its red entirely. In this layer a utility always wins,
+   which is what a caller reaching for one expects.
+   Border and shadow are set longhand for the same reason: the `border`
+   shorthand also resets the colour a utility just set. */
+@layer components {
   .glass {
-    background: var(--card);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--glass-border);
+    box-shadow: var(--glass-shadow);
   }
-}
 
-.glass-hover {
-  transition:
-    transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
-}
-.glass-hover:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--glass-border) 100%, var(--foreground) 12%);
+  /* Safari/Firefox without backdrop-filter would render unreadable washes —
+     fall back to the solid card colour rather than transparency. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass {
+      background: var(--card);
+    }
+  }
+
+  .glass-hover {
+    transition:
+      transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      border-color 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+  .glass-hover:hover {
+    transform: translateY(-2px);
+  }
+
+  /* A panel carrying bad news keeps the glass shadow and adds a red bloom.
+     Written out because an arbitrary shadow utility holding a var() colour
+     compiles to a transparent shadow — visible as nothing at all. */
+  .glass-danger {
+    box-shadow: var(--glass-shadow), 0 0 30px -10px var(--danger);
+  }
 }
 
 /* Ambient glows — the only thing the glass has to refract. Fixed, behind

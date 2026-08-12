@@ -286,7 +286,7 @@ export default async function StudentHome() {
           <div
             className={cn(
               "glass glass-hover anim-in rounded-2xl p-4",
-              progress.strikes.length > 0 && "border-danger/35 shadow-[0_0_28px_-8px_var(--danger)]",
+              progress.strikes.length > 0 && "glass-danger border-danger/35",
             )}
             style={{ animationDelay: "300ms" }}
           >
