@@ -28,7 +28,7 @@ export default async function Classes() {
       {(["brothers", "sisters"] as const).map((section) => (
         <section key={section} className="space-y-2">
           <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">{section}</h2>
-          <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-card">
+          <ul className="divide-y divide-line overflow-hidden glass rounded-2xl">
             {(classes ?? []).filter((c) => c.section === section).map((c) => (
               <li key={c.id}>
                 <Link href={`/teacher/roster?class=${c.id}`}

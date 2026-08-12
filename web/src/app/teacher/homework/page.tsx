@@ -133,7 +133,7 @@ export default async function TeacherHomework() {
           This week{week ? ` · Week ${week.number}` : ""}
         </h2>
         {thisWeekHws.length === 0 ? (
-          <p className="rounded-lg border border-line bg-card p-5 text-sm text-muted-foreground">
+          <p className="glass rounded-2xl p-5 text-sm text-muted-foreground">
             No homework is set for this week.
           </p>
         ) : (
@@ -141,7 +141,7 @@ export default async function TeacherHomework() {
             const queue = pendingByHw.get(h.id) ?? [];
             const done = approvedByHw.get(h.id) ?? 0;
             return (
-              <div key={h.id} className="overflow-hidden rounded-lg border border-line bg-card">
+              <div key={h.id} className="overflow-hidden glass rounded-2xl">
                 <Link
                   href={`/teacher/homework/${h.number}`}
                   className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-4 py-3 transition-colors hover:bg-muted/60"
@@ -172,7 +172,7 @@ export default async function TeacherHomework() {
           {backlogHws.map((h) => {
             const queue = pendingByHw.get(h.id) ?? [];
             return (
-              <div key={h.id} className="overflow-hidden rounded-lg border border-line bg-card">
+              <div key={h.id} className="overflow-hidden glass rounded-2xl">
                 <Link
                   href={`/teacher/homework/${h.number}`}
                   className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-4 py-3 transition-colors hover:bg-muted/60"
@@ -204,7 +204,7 @@ export default async function TeacherHomework() {
             <details
               key={term.id}
               open={week?.term_id === term.id}
-              className="group/term overflow-hidden rounded-lg border border-line bg-card"
+              className="group/term glass overflow-hidden rounded-2xl"
             >
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted/60 [&::-webkit-details-marker]:hidden">
                 <span className="flex items-center gap-2 text-sm font-medium">

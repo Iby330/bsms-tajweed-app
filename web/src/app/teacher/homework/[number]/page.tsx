@@ -91,7 +91,7 @@ export default async function TeacherHomeworkDetail({
         return (
           <section key={c.id} className="space-y-2">
             <h2 className="text-sm font-medium">{c.name}</h2>
-            <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-card">
+            <ul className="divide-y divide-line overflow-hidden glass rounded-2xl">
               {roster.map((s) => {
                 const sub = subByStudent.get(s.id);
                 const pct = pctByStudent.get(s.id);

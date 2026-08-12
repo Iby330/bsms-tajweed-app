@@ -104,7 +104,7 @@ export function AttendanceRegister({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 glass rounded-2xl p-4">
         <div className="flex flex-wrap gap-4 text-sm">
           <span className="tabular-nums">
             <span className="text-ok">{counts.present}</span>{" "}
@@ -144,7 +144,7 @@ export function AttendanceRegister({
         )}
       </div>
 
-      <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-card">
+      <ul className="divide-y divide-line overflow-hidden glass rounded-2xl">
         {students.map((s) => {
           const row = rows[s.id];
           return (

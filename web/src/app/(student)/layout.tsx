@@ -26,7 +26,6 @@ export default async function StudentLayout({
           mobileNav={studentMobileNav}
           userName={profile.full_name}
           roleLabel="Student"
-          glass
         >
           {children}
         </AppShell>

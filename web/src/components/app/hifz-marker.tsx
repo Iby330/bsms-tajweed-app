@@ -24,7 +24,7 @@ export function HifzMarker({
   const [pending, startTransition] = useTransition();
 
   return (
-    <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-card">
+    <ul className="divide-y divide-line overflow-hidden glass rounded-2xl">
       {rows.map((s) => (
         <li key={s.number} className="px-4 py-2.5">
           <div className="flex items-center justify-between gap-3">

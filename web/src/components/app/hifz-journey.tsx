@@ -56,7 +56,7 @@ export function HifzJourney({
   };
 
   return (
-    <section aria-label="Memorisation journey" className="rounded-lg border border-line bg-card p-5">
+    <section aria-label="Memorisation journey" className="glass rounded-2xl p-5">
       {groups.map((g, gi) => {
         const state = groupState(g);
         const next = groups[gi + 1];

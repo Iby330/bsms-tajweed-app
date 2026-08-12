@@ -42,7 +42,7 @@ export default async function StudentHifzDetail({
         <h1 className="text-2xl">{student.full_name}</h1>
       </header>
 
-      <div className="rounded-lg border border-line bg-card p-4">
+      <div className="glass rounded-2xl p-4">
         <PaceMarker passed={passed} expected={expected} target={target} />
       </div>
 

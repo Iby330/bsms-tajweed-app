@@ -303,7 +303,6 @@ export default async function StudentHome() {
         <div className="grid gap-3 lg:grid-cols-2">
           <LeaderboardPanel
             title="Homework"
-            glass
             scopes={[
               {
                 key: "class",
@@ -323,7 +322,6 @@ export default async function StudentHome() {
           />
           <LeaderboardPanel
             title="Hifz"
-            glass
             scopes={[
               {
                 key: "class",

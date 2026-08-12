@@ -27,7 +27,7 @@ export default async function Courses() {
       </header>
 
       {terms.length === 0 ? (
-        <p className="rounded-lg border border-line bg-card p-6 text-sm text-muted-foreground">
+        <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
           The year hasn&apos;t been set up yet.
         </p>
       ) : (

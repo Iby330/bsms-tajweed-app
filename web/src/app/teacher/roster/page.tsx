@@ -78,7 +78,7 @@ export default async function Roster({
         </nav>
       </header>
 
-      <div className="overflow-x-auto rounded-lg border border-line bg-card">
+      <div className="overflow-x-auto glass rounded-2xl">
         <table className="w-full min-w-[860px] text-sm">
           <thead>
             <tr className="border-b border-line text-left text-[11px] uppercase tracking-wider text-muted-foreground">

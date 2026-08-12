@@ -167,17 +167,9 @@ describe("LeaderboardPanel", () => {
     expect(text(container)).toContain("84.0%");
   });
 
-  it("keeps the solid card unless glass is asked for", () => {
-    // The teacher dashboard renders this too, on a ground with no glow behind
-    // it — glass there would be a wash, so it stays opt-in.
+  it("floats on glass, the one surface both dashboards now share", () => {
     const { container } = render(<LeaderboardPanel title="Homework" scopes={[classScope]} />);
-    expect(container.firstElementChild!.className).toContain("bg-card");
-    expect(container.firstElementChild!.className).not.toContain("glass");
-
-    const { container: onGlass } = render(
-      <LeaderboardPanel title="Homework" scopes={[classScope]} glass />,
-    );
-    expect(onGlass.firstElementChild!.className).toContain("glass");
+    expect(container.firstElementChild!.className).toContain("glass");
   });
 
   it("still ranks cleanly when nobody is the reader (teacher view)", () => {

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { render, waitFor } from "@testing-library/react";
+import { render, waitFor, cleanup } from "@testing-library/react";
 import { useCountUp } from "./use-count-up";
 
 /** jsdom's matchMedia always reports false — stub it to claim the opposite. */
@@ -24,7 +24,12 @@ function Probe({ target }: { target: number | null }) {
 
 // This suite has no global testing-library cleanup, so every query is scoped
 // to its own container — the pattern the rest of the component tests follow.
-afterEach(() => vi.unstubAllGlobals());
+// The hook also schedules animation frames, so unmounting between tests keeps
+// React from flushing them into a torn-down jsdom.
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 describe("useCountUp", () => {
   it("lands on the target", async () => {

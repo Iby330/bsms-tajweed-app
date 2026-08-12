@@ -70,7 +70,7 @@ export default async function TeacherHome() {
         <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">
           Needs my attention
         </h2>
-        <div className="rounded-lg border border-line bg-card p-4">
+        <div className="glass rounded-2xl p-4">
           {pending?.length ? (
             <>
               <div className="flex items-baseline gap-2">

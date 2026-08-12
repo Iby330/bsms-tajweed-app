@@ -12,7 +12,7 @@ export function CourseCard({ course }: { course: Course }) {
   return (
     <Link
       href={`/courses/${course.termId}/${course.series}`}
-      className="group flex flex-col rounded-xl border border-line bg-card p-5 transition-colors hover:border-ink/30"
+      className="glass glass-hover group flex flex-col rounded-2xl p-5"
     >
       <h2 className="font-heading text-lg tracking-tight transition-colors group-hover:text-ink-2">
         {course.label}

@@ -12,13 +12,23 @@ export default async function TeacherLayout({
   if (!profile) redirect("/login");
   if (profile.role !== "teacher") redirect("/home");
   return (
-    <AppShell
-      nav={teacherNav}
-      mobileNav={teacherMobileNav}
-      userName={profile.full_name}
-      roleLabel="Teacher"
-    >
-      {children}
-    </AppShell>
+    <>
+      {/* Ambient light the glass refracts. Fixed, inert, behind everything. */}
+      <div className="glow-layer" aria-hidden>
+        <div className="glow glow-a" />
+        <div className="glow glow-b" />
+        <div className="glow glow-c" />
+      </div>
+      <div className="relative z-10">
+        <AppShell
+          nav={teacherNav}
+          mobileNav={teacherMobileNav}
+          userName={profile.full_name}
+          roleLabel="Teacher"
+        >
+          {children}
+        </AppShell>
+      </div>
+    </>
   );
 }

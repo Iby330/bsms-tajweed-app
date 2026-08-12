@@ -104,7 +104,7 @@ export default async function CurriculumDetail({
           const gap = points > 0 && !q.is_task && !options?.some((o) => o.correct) && !rubric?.length;
 
           return (
-            <section key={q.id} className="rounded-lg border border-line bg-card p-4 sm:p-5">
+            <section key={q.id} className="glass rounded-2xl p-4 sm:p-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">

@@ -81,7 +81,7 @@ export function ReviewPanel({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 glass rounded-2xl p-4">
         <div>
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Running total</div>
           <div className="font-heading text-2xl tabular-nums">
@@ -137,7 +137,7 @@ export function ReviewPanel({
         const text = textOf(a.response);
 
         return (
-          <section key={q.id} className="rounded-lg border border-line bg-card p-4 sm:p-5">
+          <section key={q.id} className="glass rounded-2xl p-4 sm:p-5">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">

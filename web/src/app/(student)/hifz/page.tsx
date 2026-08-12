@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="mx-auto max-w-2xl rounded-lg border border-line bg-card p-8 text-center">
+    <div className="mx-auto max-w-2xl glass rounded-2xl p-8 text-center">
       <h1 className="text-xl">Hifz</h1>
       <p className="mt-2 text-sm text-muted-foreground">{message}</p>
     </div>

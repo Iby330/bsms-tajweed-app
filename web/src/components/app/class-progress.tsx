@@ -30,7 +30,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
 
   if (!rows.length) {
     return (
-      <p className="rounded-lg border border-line bg-card p-6 text-sm text-muted-foreground">
+      <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
         No students in this class yet.
       </p>
     );
@@ -52,7 +52,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
         Class list sorted {announce}.
       </p>
 
-      <ul id={uid} className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-card">
+      <ul id={uid} className="divide-y divide-line overflow-hidden glass rounded-2xl">
         {sorted.map((r) => (
           <li key={r.studentId}>
             <Link

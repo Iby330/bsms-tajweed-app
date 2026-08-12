@@ -1,7 +1,13 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
-import { render } from "@testing-library/react";
+import { describe, it, expect, afterEach } from "vitest";
+import { render, cleanup } from "@testing-library/react";
 import { ProgressRing } from "./progress-ring";
+
+// vitest.config.ts sets neither `globals` nor a setup file, so
+// @testing-library's automatic cleanup never registers. The ring schedules an
+// animation frame on mount; left mounted past the end of the file, React
+// flushes it into a torn-down jsdom: "window is not defined".
+afterEach(cleanup);
 
 describe("ProgressRing", () => {
   it("draws a track and an arc when there is a value", () => {

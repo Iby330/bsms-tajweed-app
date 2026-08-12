@@ -46,7 +46,7 @@ export default async function TermPage({
       </div>
 
       {term.courses.length === 0 ? (
-        <p className="rounded-lg border border-line bg-card p-6 text-sm text-muted-foreground">
+        <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
           No courses have been added to this term yet.
         </p>
       ) : (

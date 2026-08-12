@@ -26,7 +26,7 @@ export function HifzHero({
 }) {
   const pct = juz && juz.total > 0 ? Math.round((juz.passed / juz.total) * 100) : 0;
   return (
-    <section className="rounded-lg border border-line bg-card p-5" aria-label="Hifz overview">
+    <section className="glass rounded-2xl p-5" aria-label="Hifz overview">
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-wider text-muted-foreground">

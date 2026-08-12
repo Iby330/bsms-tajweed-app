@@ -10,7 +10,7 @@ export function StatTile({
 }) {
   const empty = value === null || value === undefined || value === "";
   return (
-    <div className={cn("rounded-lg border border-line bg-card px-4 py-3.5", className)}>
+    <div className={cn("glass rounded-2xl px-4 py-3.5", className)}>
       <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className={cn(
         "mt-1 font-heading text-2xl tabular-nums",

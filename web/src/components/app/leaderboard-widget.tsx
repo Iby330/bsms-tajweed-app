@@ -15,7 +15,7 @@ export function LeaderboardWidget({
 }: { rows: LbRow[]; selfName: string; title: string }) {
   const window = neighbours(rows, selfName);
   return (
-    <div className="rounded-lg border border-line bg-card p-4">
+    <div className="glass rounded-2xl p-4">
       <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground">{title}</h3>
       {window.length === 0 ? (
         <p className="mt-3 text-sm text-muted-foreground">No rankings yet.</p>
