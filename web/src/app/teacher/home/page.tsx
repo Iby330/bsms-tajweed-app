@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
-import { getTermsAndWeeks, currentTermId } from "@/lib/dashboard/queries";
+import { getTermsAndWeeks, currentTermId, getHomeLeaderboards, getClassProgress } from "@/lib/dashboard/queries";
 import { StatTile } from "@/components/app/stat-tile";
+import { ClassProgress } from "@/components/app/class-progress";
+import { LeaderboardPanel } from "@/components/app/leaderboard-panel";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { MixedText } from "@/components/app/mixed-text";
 import { moduleTitle } from "@/lib/curriculum/tree";
@@ -13,11 +15,16 @@ export const dynamic = "force-dynamic";
 export default async function TeacherHome() {
   const profile = (await currentProfile())!;
   const db = await supabaseServer();
-  const { terms } = await getTermsAndWeeks();
+  const { terms, weeks } = await getTermsAndWeeks();
   const termId = currentTermId(terms);
 
   const { data: myClass } = await db
     .from("classes").select("id, name").eq("teacher_id", profile.id).maybeSingle();
+
+  // Same rankings the students see — the views already scope to the
+  // viewer's section, and a teacher's profile carries one.
+  const leaderboards = await getHomeLeaderboards(myClass?.id ?? null);
+  const cohortNoun = profile.section === "sisters" ? "sisters" : "brothers";
 
   const { data: pending } = await db
     .from("submissions")
@@ -37,20 +44,17 @@ export default async function TeacherHome() {
     : { data: [] };
   const hwOf = new Map((hws ?? []).map((h) => [h.id, h]));
 
-  const { data: roster } = myClass
-    ? await db.from("profiles").select("id").eq("class_id", myClass.id).eq("role", "student").eq("is_active", true)
-    : { data: [] };
+  const classRows = myClass ? await getClassProgress(myClass.id, termId, weeks) : [];
+  const rosterIds = classRows.map((r) => r.studentId);
 
-  const rosterIds = (roster ?? []).map((r) => r.id);
-  const { data: avgRows } = rosterIds.length
-    ? await db.from("v_termly_avg").select("hw_avg").in("student_id", rosterIds).eq("term_id", termId)
-    : { data: [] };
+  // Hifz pct is computed in SQL and stays there; deriving it from
+  // passed / target here would move a verified formula into TypeScript.
   const { data: hifzRows } = rosterIds.length
     ? await db.from("v_hifz_progress").select("pct").in("student_id", rosterIds)
     : { data: [] };
 
   const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
-  const classAvg = mean((avgRows ?? []).map((r) => Number(r.hw_avg)));
+  const classAvg = mean(classRows.map((r) => r.hwAvg).filter((v): v is number => v !== null));
   const hifzAvg = mean((hifzRows ?? []).map((r) => Number(r.pct)));
 
   return (
@@ -124,6 +128,9 @@ export default async function TeacherHome() {
           <StatTile label={`Homework avg · T${termId}`} value={classAvg === null ? null : `${classAvg.toFixed(1)}%`} />
           <StatTile label="Hifz avg" value={hifzAvg === null ? null : `${hifzAvg.toFixed(1)}%`} sub="of each student's target" />
         </div>
+
+        <ClassProgress rows={classRows} termId={termId} />
+
         <div className="flex flex-wrap gap-2">
           <Link href="/teacher/roster" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
             Open roster
@@ -131,6 +138,57 @@ export default async function TeacherHome() {
           <Link href="/teacher/hifz" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
             Hifz register
           </Link>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">Leaderboards</h2>
+        <div className="grid gap-3 lg:grid-cols-2">
+          <LeaderboardPanel
+            title="Homework"
+            scopes={[
+              // No selfName to highlight — the teacher isn't in the ranking,
+              // so the collapsed view shows the top three instead.
+              ...(myClass
+                ? [{
+                    key: "class",
+                    label: "My class",
+                    rows: leaderboards.homework.mine,
+                    selfName: "",
+                    noun: "in my class",
+                  }]
+                : []),
+              {
+                key: "cohort",
+                label: `All ${cohortNoun}`,
+                rows: leaderboards.homework.cohort,
+                selfName: "",
+                noun: cohortNoun,
+              },
+            ]}
+          />
+          <LeaderboardPanel
+            title="Hifz"
+            scopes={[
+              ...(myClass
+                ? [{
+                    key: "class",
+                    label: "My class",
+                    rows: leaderboards.hifz.mine,
+                    selfName: "",
+                    noun: "in my class",
+                  }]
+                : []),
+              {
+                key: "classes",
+                label: "All classes",
+                rows: leaderboards.hifz.classes,
+                // Rows are classes here — highlight the teacher's own.
+                selfName: myClass?.name ?? "",
+                noun: "classes",
+              },
+            ]}
+          />
         </div>
       </section>
     </div>
