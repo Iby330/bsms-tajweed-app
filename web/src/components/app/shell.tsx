@@ -133,6 +133,7 @@ export function AppShell({
   mobileNav,
   userName,
   roleLabel,
+  glass = false,
   children,
 }: {
   nav: NavItem[];
@@ -140,6 +141,8 @@ export function AppShell({
   mobileNav: NavItem[];
   userName: string;
   roleLabel: string;
+  /** Student chrome floats on glass; teacher chrome stays solid. */
+  glass?: boolean;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -149,7 +152,12 @@ export function AppShell({
   return (
     <div className="flex min-h-dvh w-full">
       {/* desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col bg-sidebar text-sidebar-foreground lg:flex">
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 hidden w-60 flex-col text-sidebar-foreground lg:flex",
+          glass ? "glass border-y-0 border-l-0 bg-sidebar/70 backdrop-blur-2xl" : "bg-sidebar",
+        )}
+      >
         <div className="flex items-center gap-3 px-5 pt-6 pb-4">
           <Image
             src="/brand/logo.png"
@@ -186,7 +194,12 @@ export function AppShell({
       </aside>
 
       {/* mobile top bar */}
-      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-card px-4 lg:hidden">
+      <header
+        className={cn(
+          "fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between px-4 lg:hidden",
+          glass ? "glass rounded-none border-x-0 border-t-0" : "border-b border-line bg-card",
+        )}
+      >
         <div className="flex items-center gap-2.5">
           <Image
             src="/brand/logo.png"
@@ -214,7 +227,12 @@ export function AppShell({
       </main>
 
       {/* mobile bottom tabs */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-line bg-card pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <nav
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-40 flex pb-[env(safe-area-inset-bottom)] lg:hidden",
+          glass ? "glass rounded-none border-x-0 border-b-0" : "border-t border-line bg-card",
+        )}
+      >
         {mobileNav.map((item) => (
           <NavLink
             key={item.href}

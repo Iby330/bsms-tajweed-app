@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ringGeometry } from "@/lib/viz/ring";
-import { prefersReducedMotion } from "./use-count-up";
 
 export type RingTone = "ok" | "warn" | "danger" | "ink";
 
@@ -42,11 +41,9 @@ export function ProgressRing({
   const [drawn, setDrawn] = useState(false);
 
   useEffect(() => {
-    if (prefersReducedMotion()) {
-      setDrawn(true);
-      return;
-    }
     // One frame of empty ring first, so the transition has somewhere to start.
+    // Readers who asked for reduced motion get the same jump to the final
+    // offset, minus the sweep — globals.css flattens the transition for them.
     const id = requestAnimationFrame(() => setDrawn(true));
     return () => cancelAnimationFrame(id);
   }, []);

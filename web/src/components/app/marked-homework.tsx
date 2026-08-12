@@ -49,7 +49,7 @@ export function MarkedHomework({ rows }: { rows: ScoredHomework[] }) {
               Term {term.termId}{" "}
               <span className="tabular-nums text-muted-foreground/60">· {term.rows.length}</span>
             </h3>
-            <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-card">
+            <ul className="glass divide-y divide-line overflow-hidden rounded-2xl">
               {term.rows.map((r) => (
                 <HomeworkRow
                   key={r.entry.homework.id}

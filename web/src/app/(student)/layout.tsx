@@ -13,13 +13,24 @@ export default async function StudentLayout({
   if (profile.role === "teacher") redirect("/teacher/home");
   if (!profile.is_active) redirect("/locked");
   return (
-    <AppShell
-      nav={studentNav}
-      mobileNav={studentMobileNav}
-      userName={profile.full_name}
-      roleLabel="Student"
-    >
-      {children}
-    </AppShell>
+    <>
+      {/* Ambient light the glass refracts. Fixed, inert, behind everything. */}
+      <div className="glow-layer" aria-hidden>
+        <div className="glow glow-a" />
+        <div className="glow glow-b" />
+        <div className="glow glow-c" />
+      </div>
+      <div className="relative z-10">
+        <AppShell
+          nav={studentNav}
+          mobileNav={studentMobileNav}
+          userName={profile.full_name}
+          roleLabel="Student"
+          glass
+        >
+          {children}
+        </AppShell>
+      </div>
+    </>
   );
 }

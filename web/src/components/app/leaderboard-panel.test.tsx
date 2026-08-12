@@ -163,4 +163,27 @@ describe("LeaderboardPanel", () => {
     const { container } = render(<LeaderboardPanel title="Homework" scopes={[classScope]} />);
     expect(text(container)).toContain("84.0%");
   });
+
+  it("keeps the solid card unless glass is asked for", () => {
+    // The teacher dashboard renders this too, on a ground with no glow behind
+    // it — glass there would be a wash, so it stays opt-in.
+    const { container } = render(<LeaderboardPanel title="Homework" scopes={[classScope]} />);
+    expect(container.firstElementChild!.className).toContain("bg-card");
+    expect(container.firstElementChild!.className).not.toContain("glass");
+
+    const { container: onGlass } = render(
+      <LeaderboardPanel title="Homework" scopes={[classScope]} glass />,
+    );
+    expect(onGlass.firstElementChild!.className).toContain("glass");
+  });
+
+  it("still ranks cleanly when nobody is the reader (teacher view)", () => {
+    // Teachers aren't rows in the ranking, so no row matches selfName.
+    const { container } = render(
+      <LeaderboardPanel title="Homework" scopes={[{ ...classScope, selfName: "" }]} />,
+    );
+    expect(container.querySelectorAll("[data-bar]")).toHaveLength(3);
+    expect(container.querySelectorAll("[data-bar][data-self='true']")).toHaveLength(0);
+    expect(text(container)).toContain("Bilal Ahmed");
+  });
 });

@@ -7,19 +7,21 @@ import {
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
 import { listHomework, bucketHomework, moduleTitle } from "@/lib/curriculum/tree";
 import { expectedPassed } from "@/lib/hifz/pace";
-import { StatTile } from "@/components/app/stat-tile";
-import { PaceMarker } from "@/components/app/pace-marker";
 import { StrikeDots } from "@/components/app/strike-dots";
 import { LeaderboardPanel } from "@/components/app/leaderboard-panel";
 import { CountdownChip } from "@/components/app/countdown-chip";
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
+import { ProgressRing } from "@/components/app/progress-ring";
+import { Sparkline } from "@/components/app/sparkline";
+import { SegmentedCapsule, type Segment } from "@/components/app/segmented-capsule";
+import { HifzArc } from "@/components/app/hifz-arc";
+import { CountUp } from "@/components/app/count-up";
 import { SERIES_LABELS, seriesShort } from "@/lib/lessons/series";
 import { isLate } from "@/lib/homework/logic";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-
-const pct = (n: number | null) => (n === null ? null : `${n.toFixed(1)}%`);
 
 export default async function StudentHome() {
   const profile = (await currentProfile())!;
@@ -73,7 +75,8 @@ export default async function StudentHome() {
   // be four homeworks behind and see a screen that says everything is fine.
   // Renders nothing when there's nothing overdue.
   const currentWeekHwIds = new Set((hws ?? []).map((h) => h.id));
-  const overdue = bucketHomework(allHomework).needsYou.filter(
+  const buckets = bucketHomework(allHomework);
+  const overdue = buckets.needsYou.filter(
     (e) => isLate(now, e.homework.due_at) && !currentWeekHwIds.has(e.homework.id),
   );
 
@@ -90,6 +93,24 @@ export default async function StudentHome() {
     (e) => e.submission === "submitted" || e.submission === "auto_marked" || e.submission === "approved",
   ).length;
 
+  // The last six marks, oldest → newest, for the trend line. Marked homework
+  // comes back newest-first, so take the head and reverse it.
+  const recentMarks = buckets.marked
+    .slice(0, 6)
+    .map((e) => curriculum.pctByHomeworkId.get(e.homework.id))
+    .filter((v): v is number => typeof v === "number")
+    .reverse();
+
+  // One capsule segment per homework released so far.
+  const segments: Segment[] = releasedHomework.map((e) => {
+    const isIn =
+      e.submission === "submitted" ||
+      e.submission === "auto_marked" ||
+      e.submission === "approved";
+    if (isIn) return "done";
+    return isLate(now, e.homework.due_at) ? "overdue" : "pending";
+  });
+
   const expected = progress.hifz
     ? expectedPassed(now, weeks, progress.hifz.target)
     : 0;
@@ -104,7 +125,7 @@ export default async function StudentHome() {
       </header>
 
       {overdue.length > 0 && (
-        <section className="rounded-lg border border-danger/25 bg-danger/5 p-4">
+        <section className="glass anim-in rounded-2xl border-danger/30 bg-danger/10 p-4">
           <h2 className="text-[11px] uppercase tracking-wider text-danger">
             Overdue <span className="tabular-nums">({overdue.length})</span>
           </h2>
@@ -145,7 +166,7 @@ export default async function StudentHome() {
                 status === "submitted" || status === "auto_marked" || status === "approved";
               return (
                 <Link key={l.id} href={`/lessons/${l.id}`}
-                  className="group rounded-lg border border-line bg-card p-4 transition-colors hover:border-ink/30">
+                  className="glass glass-hover group anim-in rounded-2xl p-4">
                   <div className="flex items-start justify-between gap-3">
                     {/* cleaned title — the series label below already says the course;
                         TFP titles clean to "" so fall back to the raw one */}
@@ -169,7 +190,7 @@ export default async function StudentHome() {
             })}
           </div>
         ) : (
-          <p className="rounded-lg border border-line bg-card p-4 text-sm text-muted-foreground">
+          <p className="glass rounded-2xl p-4 text-sm text-muted-foreground">
             No lessons released yet.
           </p>
         )}
@@ -188,22 +209,66 @@ export default async function StudentHome() {
           </Link>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <StatTile label={`Homework avg · T${termId}`} value={pct(progress.hwAvg)} sub="marked homework only" />
-          <StatTile
-            label="Submitted"
-            value={`${handedIn} of ${releasedHomework.length}`}
-            sub="handed in so far"
-          />
+          <div className="glass glass-hover anim-in rounded-2xl p-4" style={{ animationDelay: "60ms" }}>
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Homework avg · T{termId}
+            </div>
+            <div className="mt-3 flex items-center gap-4">
+              <ProgressRing value={progress.hwAvg} tone="ok" size={76}>
+                <span className="font-heading text-sm">
+                  <CountUp value={progress.hwAvg} suffix="%" />
+                </span>
+              </ProgressRing>
+              <div className="min-w-0">
+                {recentMarks.length >= 2 ? (
+                  <>
+                    <Sparkline values={recentMarks} />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      last {recentMarks.length} marked
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    {progress.hwAvg === null
+                      ? "no marks yet"
+                      : "one mark so far — the trend appears at two"}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="glass glass-hover anim-in rounded-2xl p-4" style={{ animationDelay: "140ms" }}>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                Submitted
+              </span>
+              <span className="font-heading text-lg tabular-nums">
+                {handedIn}
+                <span className="text-sm text-muted-foreground"> of {releasedHomework.length}</span>
+              </span>
+            </div>
+            <div className="mt-3">
+              <SegmentedCapsule segments={segments} />
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              one block per homework released so far
+            </p>
+          </div>
         </div>
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="space-y-3">
           <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">My hifz</h2>
-          <div className="rounded-lg border border-line bg-card p-4">
+          <div className="glass glass-hover anim-in rounded-2xl p-4" style={{ animationDelay: "220ms" }}>
             {progress.hifz ? (
               <>
-                <PaceMarker passed={progress.hifz.passed} expected={expected} target={progress.hifz.target} />
+                <HifzArc
+                  passed={progress.hifz.passed}
+                  expected={expected}
+                  target={progress.hifz.target}
+                />
                 <Link href="/hifz" className="mt-3 inline-block text-xs text-ink-2 underline underline-offset-4">
                   See every surah and teacher feedback →
                 </Link>
@@ -216,7 +281,15 @@ export default async function StudentHome() {
 
         <section className="space-y-3">
           <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">Strikes</h2>
-          <div className="rounded-lg border border-line bg-card p-4">
+          {/* The panel itself carries the warning: a clear term looks like every
+              other panel, a struck term glows red before a word is read. */}
+          <div
+            className={cn(
+              "glass glass-hover anim-in rounded-2xl p-4",
+              progress.strikes.length > 0 && "border-danger/35 shadow-[0_0_28px_-8px_var(--danger)]",
+            )}
+            style={{ animationDelay: "300ms" }}
+          >
             <StrikeDots strikes={progress.strikes} />
             <p className="mt-3 text-xs text-muted-foreground">
               Strikes reset at the start of each term.
@@ -230,6 +303,7 @@ export default async function StudentHome() {
         <div className="grid gap-3 lg:grid-cols-2">
           <LeaderboardPanel
             title="Homework"
+            glass
             scopes={[
               {
                 key: "class",
@@ -249,6 +323,7 @@ export default async function StudentHome() {
           />
           <LeaderboardPanel
             title="Hifz"
+            glass
             scopes={[
               {
                 key: "class",

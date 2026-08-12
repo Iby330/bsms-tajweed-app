@@ -32,9 +32,16 @@ export type LbScope = {
 export function LeaderboardPanel({
   title,
   scopes,
+  glass = false,
 }: {
   title: string;
   scopes: LbScope[];
+  /**
+   * Student Home floats this on glass; the teacher dashboard keeps the solid
+   * card it has always had. Shared component, two grounds — opt in rather than
+   * restyle every caller.
+   */
+  glass?: boolean;
 }) {
   const [activeKey, setActiveKey] = useState(scopes[0]?.key);
   const [expanded, setExpanded] = useState(false);
@@ -48,7 +55,12 @@ export function LeaderboardPanel({
   const canExpand = sorted.length > shown.length || expanded;
 
   return (
-    <div className="glass glass-hover flex flex-col rounded-2xl p-4">
+    <div
+      className={cn(
+        "flex flex-col p-4",
+        glass ? "glass glass-hover rounded-2xl" : "rounded-lg border border-line bg-card",
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground">{title}</h3>
 
