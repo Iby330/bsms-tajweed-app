@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
-import { render, fireEvent } from "@testing-library/react";
+import { describe, it, expect, afterEach } from "vitest";
+import { render, fireEvent, cleanup } from "@testing-library/react";
 import { ClassProgress } from "./class-progress";
 import type { ClassRow } from "@/lib/teacher/class-progress";
 import type { PaceStatus } from "@/lib/hifz/pace";
@@ -34,6 +34,12 @@ const rowTexts = (c: HTMLElement) =>
   [...c.querySelectorAll("li")].map((li) => li.textContent ?? "");
 const chooseSort = (c: HTMLElement, value: string) =>
   fireEvent.change(c.querySelector("select")!, { target: { value } });
+
+// vitest.config.ts sets neither `globals` nor a setup file, so
+// @testing-library's automatic cleanup never registers. Without this, the
+// components stay mounted past the end of the file and React flushes
+// scheduled work into a torn-down jsdom: "window is not defined".
+afterEach(cleanup);
 
 describe("ClassProgress", () => {
   it("defaults to needs-attention, so the student behind is first", () => {
