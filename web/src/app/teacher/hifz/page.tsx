@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
-import { expectedPassed, paceStatus } from "@/lib/hifz/pace";
+import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +32,8 @@ export default async function TeacherHifz({
     : { data: [] };
   const byStudent = new Map((progress ?? []).map((p) => [p.student_id!, p]));
 
-  const { data: surahs } = await db.from("surahs").select("number, name_en, order_index").order("order_index");
+  const { data: surahs } = await db
+    .from("surahs").select("number, order_index, name_ar, name_en").order("order_index");
 
   return (
     <div className="space-y-5">
@@ -63,7 +64,13 @@ export default async function TeacherHifz({
           const passed = p ? Number(p.passed) : 0;
           const expected = expectedPassed(new Date(), weeks, target);
           const status = paceStatus(passed, expected);
-          const next = (surahs ?? [])[passed];
+          // The student's OWN run — a returning student's start_surah is not
+          // 114, so indexing the global list here would name the wrong surah.
+          const next = memorisationList(
+            Number(p?.start_surah ?? 114),
+            target,
+            (surahs ?? []) as Surah[],
+          )[passed];
           return (
             <li key={s.id}>
               <Link href={`/teacher/hifz/${s.id}`}
