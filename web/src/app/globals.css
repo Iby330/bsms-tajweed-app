@@ -207,9 +207,12 @@ body::after {
    Every value is a token so light and dark stay one design, lit twice.
    ──────────────────────────────────────────────────────────────────── */
 :root {
-  --glass-bg: rgba(255, 255, 255, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.72);
-  --glass-shadow: 0 8px 24px rgba(29, 35, 57, 0.08);
+  /* Daylight needs more opacity and an ink hairline than the mockup carried:
+     white-on-white panels over a slate page read as one flat sheet, and a
+     white border only makes the edge disappear faster. */
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(29, 35, 57, 0.10);
+  --glass-shadow: 0 6px 20px rgba(29, 35, 57, 0.10);
   --glass-blur: 20px;
   --glow-1: #3b5bdb;
   --glow-2: #2e5e4e;

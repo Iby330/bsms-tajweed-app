@@ -155,7 +155,12 @@ export function AppShell({
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-40 hidden w-60 flex-col text-sidebar-foreground lg:flex",
-          glass ? "glass border-y-0 border-l-0 bg-sidebar/70 backdrop-blur-2xl" : "bg-sidebar",
+          // NOT .glass — that paints a white pane in light mode, and the
+          // sidebar's text is the light-on-ink pair in both themes, so it
+          // vanished. The rail stays ink and only gains translucency.
+          glass
+            ? "border-r border-sidebar-border bg-sidebar/85 backdrop-blur-2xl backdrop-saturate-150"
+            : "bg-sidebar",
         )}
       >
         <div className="flex items-center gap-3 px-5 pt-6 pb-4">
