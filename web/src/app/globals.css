@@ -217,7 +217,7 @@ body::after {
   --glow-1: #3b5bdb;
   --glow-2: #2e5e4e;
   --glow-3: #8a6a2f;
-  --glow-opacity: 0.13;
+  --glow-opacity: 0.09;
   --viz-exam: #3b5bdb;
   --viz-hw: #93a6ee;
   /* The rail sits on a pale page in daylight, so translucency reads as a
@@ -235,7 +235,7 @@ body::after {
   --glow-1: #3b5bdb;
   --glow-2: #5fa98c;
   --glow-3: #c9a45c;
-  --glow-opacity: 0.30;
+  --glow-opacity: 0.20;
   --viz-exam: #5f7ae8;
   --viz-hw: #a3b4f7;
   --sidebar-glass: rgba(16, 20, 31, 0.82);
