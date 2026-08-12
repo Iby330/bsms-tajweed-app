@@ -6,9 +6,18 @@ import { NextResponse, type NextRequest } from "next/server";
  *
  *  1. REFRESH THE SESSION. Supabase access tokens are short-lived. Without a
  *     refresh here, a signed-in user silently expires and gets bounced to the
- *     login screen mid-session. Calling `getUser()` rotates the refresh token
- *     and writes the new pair back as cookies, so people stay signed in across
- *     days and browser restarts — they open the app and they're just in.
+ *     login screen mid-session. `getClaims()` verifies the JWT locally against
+ *     the project's asymmetric signing keys — the JWKS is fetched once per
+ *     process and cached from then on, so there is no Auth-server round trip
+ *     on the request path — and when the access token has actually expired it
+ *     still refreshes it and writes the new pair back as cookies. People stay
+ *     signed in across days and browser restarts; they open the app and
+ *     they're just in.
+ *
+ *     The tradeoff, accepted knowingly: a local verify never asks the Auth
+ *     server whether the session is still good, so a session revoked
+ *     elsewhere keeps working here until its access token runs out — one
+ *     token TTL, no longer.
  *
  *  2. Optimistic route gating. This is a fast redirect only, NOT the security
  *     boundary — the real check is `currentProfile()` in each role layout, and
@@ -48,15 +57,14 @@ export async function proxy(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims ?? null;
 
   const isPublic = PUBLIC_PATHS.includes(pathname);
 
   // Signed out on a protected page — send to login, remembering where they were
   // headed so the deep link survives the detour.
-  if (!user && !isPublic) {
+  if (!claims && !isPublic) {
     const login = request.nextUrl.clone();
     login.pathname = "/login";
     login.search = pathname === "/home" ? "" : `?next=${encodeURIComponent(pathname)}`;
@@ -65,7 +73,7 @@ export async function proxy(request: NextRequest) {
 
   // Already signed in — skip the landing and login screens entirely. This is
   // what makes returning to the app feel like it just opens.
-  if (user && (pathname === "/" || pathname === "/login")) {
+  if (claims && (pathname === "/" || pathname === "/login")) {
     const home = request.nextUrl.clone();
     home.pathname = "/home";
     home.search = "";
