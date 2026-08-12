@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
+import { getCachedSurahs } from "@/lib/reference/cached";
 import { scopeLabel, teacherRoster } from "@/lib/teacher/scope";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { cn } from "@/lib/utils";
@@ -20,8 +21,7 @@ export default async function TeacherHifz() {
     : { data: [] };
   const byStudent = new Map((progress ?? []).map((p) => [p.student_id!, p]));
 
-  const { data: surahs } = await db
-    .from("surahs").select("number, order_index, name_ar, name_en").order("order_index");
+  const surahs = await getCachedSurahs();
 
   return (
     <div className="space-y-5">
@@ -44,7 +44,7 @@ export default async function TeacherHifz() {
           const next = memorisationList(
             Number(p?.start_surah ?? 114),
             target,
-            (surahs ?? []) as Surah[],
+            surahs as Surah[],
           )[passed];
           return (
             <li key={s.id}>

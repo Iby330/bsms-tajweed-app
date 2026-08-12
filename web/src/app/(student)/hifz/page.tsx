@@ -1,5 +1,6 @@
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
+import { getCachedSurahs } from "@/lib/reference/cached";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { assumedPassed, checkStatus, hizbBlocks, juzProgress } from "@/lib/hifz/hizb";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
@@ -23,9 +24,9 @@ export default async function StudentHifz() {
   const db = await supabaseServer();
   const { weeks } = await getTermsAndWeeks();
 
-  const [{ data: hp }, { data: surahs }, { data: records }] = await Promise.all([
+  const [{ data: hp }, surahs, { data: records }] = await Promise.all([
     db.from("hifz_profiles").select("start_surah, target_count").eq("student_id", profile.id).maybeSingle(),
-    db.from("surahs").select("number, order_index, name_ar, name_en").order("order_index"),
+    getCachedSurahs(),
     db.from("hifz_records").select("surah_number, passed_at, teacher_comment").eq("student_id", profile.id),
   ]);
 
@@ -33,7 +34,7 @@ export default async function StudentHifz() {
     return <EmptyState message="Your teacher hasn't set your memorisation target yet." />;
   }
 
-  const all = (surahs ?? []) as Surah[];
+  const all = surahs as Surah[];
   if (all.length === 0) {
     return <EmptyState message="The surah list couldn't be loaded — please try again shortly." />;
   }

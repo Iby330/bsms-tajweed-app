@@ -5,6 +5,7 @@
  */
 
 import { supabaseServer } from "@/lib/supabase/server";
+import { getCachedTerms, getCachedWeeks } from "@/lib/reference/cached";
 import {
   buildTree, overlayProgress,
   type Term, type SubStatus,
@@ -24,8 +25,8 @@ export async function getStudentCurriculum(
   const db = await supabaseServer();
 
   const [terms, weeks, lessons, homeworks, watches, subs, pcts] = await Promise.all([
-    db.from("terms").select("id, starts_on, ends_on, exam_max").order("id"),
-    db.from("weeks").select("id, term_id, number, unlock_at").order("term_id").order("number"),
+    getCachedTerms(),
+    getCachedWeeks(),
     db.from("lessons").select("id, week_id, series, title, youtube_id, position").order("position"),
     db.from("homeworks").select("id, week_id, number, series, title, total_marks, due_at, is_graded").order("number"),
     db.from("lesson_watches").select("lesson_id").eq("student_id", studentId),
@@ -35,8 +36,8 @@ export async function getStudentCurriculum(
 
   const tree = buildTree(
     {
-      terms: (terms.data ?? []) as TermRow[],
-      weeks: (weeks.data ?? []) as WeekRow[],
+      terms: terms as TermRow[],
+      weeks: weeks as WeekRow[],
       lessons: (lessons.data ?? []) as LessonRow[],
       homeworks: (homeworks.data ?? []) as HomeworkRow[],
     },

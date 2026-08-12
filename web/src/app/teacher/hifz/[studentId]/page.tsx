@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
+import { getCachedSurahs } from "@/lib/reference/cached";
 import { expectedPassed, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { PaceMarker } from "@/components/app/pace-marker";
 import { HifzMarker } from "@/components/app/hifz-marker";
@@ -21,14 +22,14 @@ export default async function StudentHifzDetail({
     .from("profiles").select("full_name, class_id").eq("id", studentId).maybeSingle();
   if (!student) notFound();
 
-  const [{ data: hp }, { data: surahs }, { data: records }] = await Promise.all([
+  const [{ data: hp }, surahs, { data: records }] = await Promise.all([
     db.from("hifz_profiles").select("start_surah, target_count").eq("student_id", studentId).maybeSingle(),
-    db.from("surahs").select("number, order_index, name_ar, name_en").order("order_index"),
+    getCachedSurahs(),
     db.from("hifz_records").select("surah_number, teacher_comment").eq("student_id", studentId),
   ]);
 
   const target = hp?.target_count ?? 43;
-  const list = memorisationList(hp?.start_surah ?? 114, target, (surahs ?? []) as Surah[]);
+  const list = memorisationList(hp?.start_surah ?? 114, target, surahs as Surah[]);
   const recMap = new Map((records ?? []).map((r) => [r.surah_number, r]));
   const passed = recMap.size;
   const expected = expectedPassed(new Date(), weeks, target);

@@ -1,4 +1,5 @@
 import { supabaseServer } from "@/lib/supabase/server";
+import { getCachedTerms, getCachedWeeks, getCachedSurahs } from "@/lib/reference/cached";
 import { expectedPassed, paceStatus, type Surah } from "@/lib/hifz/pace";
 import { lastPassedSurah, type ClassRow } from "@/lib/teacher/class-progress";
 
@@ -6,12 +7,8 @@ import { lastPassedSurah, type ClassRow } from "@/lib/teacher/class-progress";
  *  verified formulas live in SQL and are never recomputed in JS. */
 
 export async function getTermsAndWeeks() {
-  const db = await supabaseServer();
-  const [{ data: terms }, { data: weeks }] = await Promise.all([
-    db.from("terms").select("id, starts_on, ends_on, exam_max").order("id"),
-    db.from("weeks").select("id, term_id, number, unlock_at").order("term_id").order("number"),
-  ]);
-  return { terms: terms ?? [], weeks: weeks ?? [] };
+  const [terms, weeks] = await Promise.all([getCachedTerms(), getCachedWeeks()]);
+  return { terms, weeks };
 }
 
 /** The week currently in progress: latest unlocked week. */
@@ -250,7 +247,7 @@ export async function getClassProgress(
     db.from("hifz_records").select("student_id, surah_number").in("student_id", ids),
     db.from("v_termly_avg")
       .select("student_id, hw_avg").in("student_id", ids).eq("term_id", termId),
-    db.from("surahs").select("number, order_index, name_ar, name_en").order("order_index"),
+    getCachedSurahs(),
   ]);
 
   // Views expose every column as nullable — drop any row that lost its key.
@@ -272,7 +269,7 @@ export async function getClassProgress(
     passedOf.set(r.student_id, set);
   }
 
-  const allSurahs = (surahs.data ?? []) as Surah[];
+  const allSurahs = surahs as Surah[];
   const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
 
   return (students ?? []).map((s): ClassRow => {
