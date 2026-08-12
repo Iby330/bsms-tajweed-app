@@ -109,7 +109,7 @@ export default async function TeacherHome() {
                   );
                 })}
               </ul>
-              <Link href="/teacher/review" className={cn(buttonVariants({ size: "sm" }), "mt-4")}>
+              <Link href="/teacher/homework" className={cn(buttonVariants({ size: "sm" }), "mt-4")}>
                 Review submissions
               </Link>
             </>

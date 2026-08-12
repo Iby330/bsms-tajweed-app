@@ -38,7 +38,9 @@ export type ReviewVoiceNote = {
 
 /**
  * Accept-or-edit review. Every mark is pre-filled with the automatic one;
- * the teacher changes what they disagree with and approves once.
+ * the teacher changes what they disagree with and approves once. An approved
+ * submission opens locked, but "Edit marks" reopens it — re-approving simply
+ * overwrites the final marks, so old homework stays correctable.
  */
 export function ReviewPanel({
   submissionId,
@@ -46,15 +48,19 @@ export function ReviewPanel({
   answers,
   voiceNotes = [],
   approved,
+  backHref = "/teacher/homework",
 }: {
   submissionId: string;
   questions: ReviewQuestion[];
   answers: ReviewAnswer[];
   voiceNotes?: ReviewVoiceNote[];
   approved: boolean;
+  backHref?: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [editing, setEditing] = useState(false);
+  const locked = approved && !editing;
   const byQ = new Map(answers.map((a) => [a.question_id, a]));
   const voiceByQ = new Map(voiceNotes.map((v) => [v.question_id, v]));
 
@@ -82,12 +88,12 @@ export function ReviewPanel({
             {fmtMarks(total)}<span className="text-muted-foreground"> / {fmtMarks(outOf)}</span>
           </div>
         </div>
-        {needsAttention > 0 && !approved && (
+        {needsAttention > 0 && !locked && (
           <p className="text-xs text-warn">
             {needsAttention} answer{needsAttention === 1 ? "" : "s"} could not be marked automatically — enter a mark below.
           </p>
         )}
-        {!approved && (
+        {!locked && (
           <Button
             disabled={pending}
             onClick={() =>
@@ -98,17 +104,28 @@ export function ReviewPanel({
                   if (Number.isFinite(n)) parsed[id] = n;
                 }
                 await approveSubmission(submissionId, parsed);
-                router.push("/teacher/review");
-                router.refresh();
+                if (approved) {
+                  // an edit of released marks: stay put, show the new state
+                  setEditing(false);
+                  router.refresh();
+                } else {
+                  router.push(backHref);
+                  router.refresh();
+                }
               })
             }
           >
-            {pending ? "Approving…" : "Approve and release"}
+            {pending ? "Saving…" : approved ? "Save changes" : "Approve and release"}
           </Button>
         )}
-        {approved && (
-          <span className="rounded-md bg-ok/12 px-2.5 py-1 text-xs font-medium text-ok">
-            Approved — the student can see this
+        {locked && (
+          <span className="flex items-center gap-2">
+            <span className="rounded-md bg-ok/12 px-2.5 py-1 text-xs font-medium text-ok">
+              Approved — the student can see this
+            </span>
+            <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+              Edit marks
+            </Button>
           </span>
         )}
       </div>
@@ -135,7 +152,7 @@ export function ReviewPanel({
                 <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Mark</label>
                 <Input
                   type="number" step="0.5" min={0} max={q.points}
-                  disabled={approved}
+                  disabled={locked}
                   value={edits[a.id] ?? ""}
                   onChange={(e) => setEdits((s) => ({ ...s, [a.id]: e.target.value }))}
                   className="mt-1 text-right tabular-nums"

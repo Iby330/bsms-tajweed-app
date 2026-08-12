@@ -114,7 +114,7 @@ export async function markSubmission(submissionId: string): Promise<void> {
     .eq("id", submissionId)
     .in("status", ["submitted", "auto_marked"]);
 
-  revalidatePath("/teacher/review");
+  revalidatePath("/teacher/homework");
 }
 
 /**
@@ -152,7 +152,7 @@ export async function approveSubmission(
     })
     .eq("id", submissionId);
 
-  revalidatePath("/teacher/review");
+  revalidatePath("/teacher/homework");
   revalidatePath("/teacher/roster");
 }
 
@@ -189,5 +189,5 @@ export async function remarkAnswer(answerId: string): Promise<void> {
     .update({ auto_marks: result.marks, auto_rubric: result.concepts as never })
     .eq("id", answerId);
 
-  revalidatePath(`/teacher/review/${answer.submission_id}`);
+  revalidatePath(`/teacher/homework/submission/${answer.submission_id}`);
 }

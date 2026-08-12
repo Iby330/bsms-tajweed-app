@@ -30,7 +30,7 @@ export const studentMobileNav: NavItem[] = studentNav.slice(0, 4);
 // a phone, in the room, and the mobile tab bar only shows five.
 export const teacherNav: NavItem[] = [
   { href: "/teacher/home", label: "Home", icon: "home" },
-  { href: "/teacher/review", label: "Review", icon: "check" },
+  { href: "/teacher/homework", label: "Homework", icon: "check" },
   { href: "/teacher/attendance", label: "Register", icon: "calendar" },
   { href: "/teacher/roster", label: "Roster", icon: "users" },
   { href: "/teacher/hifz", label: "Hifz", icon: "book" },
