@@ -40,6 +40,7 @@ async function requireTeacher() {
   return profile;
 }
 
+
 /**
  * Score every answer on a submission. Idempotent: safe to call again.
  * Objective questions are scored instantly in code; free-text answers with a

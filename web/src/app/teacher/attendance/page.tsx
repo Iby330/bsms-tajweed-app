@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { currentProfile, supabaseServer } from "@/lib/supabase/server";
+import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks, currentTermId } from "@/lib/dashboard/queries";
+import { teacherClass, teacherRoster } from "@/lib/teacher/scope";
 import {
   defaultSessionFor,
   isoDate,
@@ -17,8 +18,7 @@ export default async function Attendance({
 }: {
   searchParams: Promise<{ class?: string; date?: string; session?: string }>;
 }) {
-  const { class: classParam, date: dateParam, session: sessionParam } = await searchParams;
-  const profile = (await currentProfile())!;
+  const { date: dateParam, session: sessionParam } = await searchParams;
   const db = await supabaseServer();
 
   const today = isoDate(new Date());
@@ -31,35 +31,29 @@ export default async function Attendance({
   const { terms } = await getTermsAndWeeks();
   const termId = currentTermId(terms, new Date(`${sessionDate}T12:00:00`));
 
-  const { data: classes } = await db
-    .from("classes").select("id, name, section").order("section").order("name");
-  const mine =
-    (classes ?? []).find((c) => c.id === classParam) ??
-    (await db.from("classes").select("id, name, section").eq("teacher_id", profile.id).maybeSingle()).data ??
-    classes?.[0];
-
+  const mine = await teacherClass();
   if (!mine) {
-    return <p className="text-sm text-muted-foreground">No classes yet.</p>;
+    return (
+      <p className="rounded-lg border border-line bg-card p-6 text-sm text-muted-foreground">
+        You have no class assigned yet.
+      </p>
+    );
   }
 
-  const { data: students } = await db
-    .from("profiles")
-    .select("id, full_name")
-    .eq("class_id", mine.id)
-    .eq("role", "student")
-    .eq("is_active", true)
-    .order("full_name");
+  const students = await teacherRoster();
+  const ids = students.map((s) => s.id);
 
-  const { data: records } = await db
-    .from("attendance")
-    .select("student_id, present, absence_reason, strike_id")
-    .eq("session_date", sessionDate)
-    .eq("session_type", sessionType)
-    .in("student_id", (students ?? []).map((s) => s.id).length ? (students ?? []).map((s) => s.id) : ["00000000-0000-0000-0000-000000000000"]);
+  const { data: records } = ids.length
+    ? await db
+        .from("attendance")
+        .select("student_id, present, absence_reason, strike_id")
+        .eq("session_date", sessionDate)
+        .eq("session_type", sessionType)
+        .in("student_id", ids)
+    : { data: [] };
 
-  const href = (next: { class?: string; date?: string; session?: string }) => {
+  const href = (next: { date?: string; session?: string }) => {
     const p = new URLSearchParams({
-      class: next.class ?? mine.id,
       date: next.date ?? sessionDate,
       session: next.session ?? sessionType,
     });
@@ -72,7 +66,7 @@ export default async function Attendance({
         <div>
           <h1 className="text-2xl">Attendance</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {sessionLabel(sessionType)} session ·{" "}
+            {mine.name} · {sessionLabel(sessionType)} session ·{" "}
             {new Date(`${sessionDate}T12:00:00`).toLocaleDateString("en-GB", {
               weekday: "long",
               day: "numeric",
@@ -82,24 +76,8 @@ export default async function Attendance({
           </p>
         </div>
 
-        <nav className="flex flex-wrap gap-1.5">
-          {(classes ?? []).map((c) => (
-            <Link
-              key={c.id}
-              href={href({ class: c.id })}
-              className={cn(
-                "rounded-md border px-2.5 py-1 text-xs transition-colors",
-                c.id === mine.id ? "border-ink bg-ink text-primary-foreground" : "border-line hover:bg-muted",
-              )}
-            >
-              {c.name}
-            </Link>
-          ))}
-        </nav>
-
         <div className="flex flex-wrap items-center gap-2">
           <form action="/teacher/attendance" className="flex items-center gap-2">
-            <input type="hidden" name="class" value={mine.id} />
             <input type="hidden" name="session" value={sessionType} />
             <input
               type="date"
@@ -138,7 +116,7 @@ export default async function Attendance({
         termId={termId}
         sessionDate={sessionDate}
         sessionType={sessionType}
-        students={students ?? []}
+        students={students}
         records={records ?? []}
       />
 

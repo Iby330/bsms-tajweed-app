@@ -1,31 +1,19 @@
 import Link from "next/link";
-import { currentProfile, supabaseServer } from "@/lib/supabase/server";
+import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
+import { scopeLabel, teacherRoster } from "@/lib/teacher/scope";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default async function TeacherHifz({
-  searchParams,
-}: {
-  searchParams: Promise<{ class?: string }>;
-}) {
-  const { class: classParam } = await searchParams;
-  const profile = (await currentProfile())!;
+export default async function TeacherHifz() {
   const db = await supabaseServer();
   const { weeks } = await getTermsAndWeeks();
 
-  const { data: classes } = await db.from("classes").select("id, name, section").order("section").order("name");
-  const mine = (classes ?? []).find((c) => c.id === classParam)
-    ?? (await db.from("classes").select("id, name, section").eq("teacher_id", profile.id).maybeSingle()).data
-    ?? classes?.[0];
-  if (!mine) return <p className="text-sm text-muted-foreground">No classes yet.</p>;
-
-  const { data: students } = await db
-    .from("profiles").select("id, full_name")
-    .eq("class_id", mine.id).eq("role", "student").eq("is_active", true).order("full_name");
-  const ids = (students ?? []).map((s) => s.id);
+  const label = await scopeLabel();
+  const students = await teacherRoster();
+  const ids = students.map((s) => s.id);
 
   const { data: progress } = ids.length
     ? await db.from("v_hifz_progress").select("student_id, passed, target_count, start_surah").in("student_id", ids)
@@ -37,28 +25,15 @@ export default async function TeacherHifz({
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl">Hifz register</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Thursday recitation. Colour shows each student against the calendar.
-          </p>
-        </div>
-        <nav className="flex flex-wrap gap-1.5">
-          {(classes ?? []).map((c) => (
-            <Link key={c.id} href={`/teacher/hifz?class=${c.id}`}
-              className={cn(
-                "rounded-md border px-2.5 py-1 text-xs transition-colors",
-                c.id === mine.id ? "border-ink bg-ink text-primary-foreground" : "border-line hover:bg-muted",
-              )}>
-              {c.name}
-            </Link>
-          ))}
-        </nav>
+      <header>
+        <h1 className="text-2xl">Hifz register</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {label} · Thursday recitation. Colour shows each student against the calendar.
+        </p>
       </header>
 
       <ul className="divide-y divide-line overflow-hidden glass rounded-2xl">
-        {(students ?? []).map((s) => {
+        {students.map((s) => {
           const p = byStudent.get(s.id);
           const target = p ? Number(p.target_count) : 0;
           const passed = p ? Number(p.passed) : 0;
@@ -100,9 +75,9 @@ export default async function TeacherHifz({
           );
         })}
       </ul>
-      {!students?.length && (
+      {students.length === 0 && (
         <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
-          No students in this class yet.
+          No active students yet.
         </p>
       )}
     </div>

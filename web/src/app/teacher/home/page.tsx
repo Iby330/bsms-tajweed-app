@@ -7,6 +7,7 @@ import { LeaderboardPanel } from "@/components/app/leaderboard-panel";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { MixedText } from "@/components/app/mixed-text";
 import { moduleTitle } from "@/lib/curriculum/tree";
+import { teacherClass, teacherRoster } from "@/lib/teacher/scope";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -18,25 +19,27 @@ export default async function TeacherHome() {
   const { terms, weeks } = await getTermsAndWeeks();
   const termId = currentTermId(terms);
 
-  const { data: myClass } = await db
-    .from("classes").select("id, name").eq("teacher_id", profile.id).maybeSingle();
+  const myClass = await teacherClass();
 
   // Same rankings the students see — the views already scope to the
   // viewer's section, and a teacher's profile carries one.
   const leaderboards = await getHomeLeaderboards(myClass?.id ?? null);
   const cohortNoun = profile.section === "sisters" ? "sisters" : "brothers";
 
-  const { data: pending } = await db
-    .from("submissions")
-    .select("id, status, submitted_at, is_late, homework_id, student_id")
-    .in("status", ["submitted", "auto_marked"])
-    .order("submitted_at");
+  // the queue is this teacher's own class — someone else's marking is not
+  // their problem, and mixing it in buries their twenty students in a hundred
+  const roster = await teacherRoster();
+  const nameOf = new Map(roster.map((s) => [s.id, s.full_name]));
+  const rosterIds = roster.map((s) => s.id);
 
-  const studentIds = [...new Set((pending ?? []).map((s) => s.student_id))];
-  const { data: people } = studentIds.length
-    ? await db.from("profiles").select("id, full_name, class_id").in("id", studentIds)
+  const { data: pending } = rosterIds.length
+    ? await db
+        .from("submissions")
+        .select("id, status, submitted_at, is_late, homework_id, student_id")
+        .in("status", ["submitted", "auto_marked"])
+        .in("student_id", rosterIds)
+        .order("submitted_at")
     : { data: [] };
-  const nameOf = new Map((people ?? []).map((p) => [p.id, p.full_name]));
 
   const hwIds = [...new Set((pending ?? []).map((s) => s.homework_id))];
   const { data: hws } = hwIds.length
@@ -45,7 +48,6 @@ export default async function TeacherHome() {
   const hwOf = new Map((hws ?? []).map((h) => [h.id, h]));
 
   const classRows = myClass ? await getClassProgress(myClass.id, termId, weeks) : [];
-  const rosterIds = classRows.map((r) => r.studentId);
 
   // Hifz pct is computed in SQL and stays there; deriving it from
   // passed / target here would move a verified formula into TypeScript.
@@ -124,7 +126,7 @@ export default async function TeacherHome() {
       <section className="space-y-3">
         <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">My class</h2>
         <div className="grid gap-3 sm:grid-cols-3">
-          <StatTile label="Active students" value={rosterIds.length || null} />
+          <StatTile label="Active students" value={roster.length || null} />
           <StatTile label={`Homework avg · T${termId}`} value={classAvg === null ? null : `${classAvg.toFixed(1)}%`} />
           <StatTile label="Hifz avg" value={hifzAvg === null ? null : `${hifzAvg.toFixed(1)}%`} sub="of each student's target" />
         </div>

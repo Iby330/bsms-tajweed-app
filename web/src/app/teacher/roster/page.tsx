@@ -1,32 +1,25 @@
-import { currentProfile, supabaseServer } from "@/lib/supabase/server";
+import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks, currentTermId, getIndividualLeaderboard } from "@/lib/dashboard/queries";
+import { scopeLabel, teacherClass } from "@/lib/teacher/scope";
 import { ExamInput } from "@/components/app/exam-input";
 import { StrikeManager, type StudentStrike } from "@/components/app/strike-manager";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default async function Roster({
-  searchParams,
-}: {
-  searchParams: Promise<{ class?: string }>;
-}) {
-  const { class: classParam } = await searchParams;
-  const profile = (await currentProfile())!;
+export default async function Roster() {
   const db = await supabaseServer();
   const { terms } = await getTermsAndWeeks();
   const termId = currentTermId(terms);
 
-  const { data: classes } = await db.from("classes").select("id, name, section").order("section").order("name");
-  const mine = (classes ?? []).find((c) => c.id === classParam)
-    ?? (await db.from("classes").select("id, name, section").eq("teacher_id", profile.id).maybeSingle()).data
-    ?? classes?.[0];
-  if (!mine) return <p className="text-sm text-muted-foreground">No classes yet.</p>;
+  const mine = await teacherClass();
+  const label = await scopeLabel();
 
-  const { data: students } = await db
-    .from("profiles").select("id, full_name, is_active")
-    .eq("class_id", mine.id).eq("role", "student").order("full_name");
+  // inactive students stay listed here — the roster is the record of the
+  // year, and a student who left still has marks worth reading
+  let q = db.from("profiles").select("id, full_name, is_active").eq("role", "student");
+  if (mine) q = q.eq("class_id", mine.id);
+  const { data: students } = await q.order("full_name");
   const ids = (students ?? []).map((s) => s.id);
 
   const [{ data: avgs }, { data: termPcts }, { data: eoys }, { data: hifz }, { data: strikes }, { data: exams }, lb] =
@@ -58,24 +51,11 @@ export default async function Roster({
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl">Roster</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Everything that used to live in the spreadsheet.
-          </p>
-        </div>
-        <nav className="flex flex-wrap gap-1.5">
-          {(classes ?? []).map((c) => (
-            <Link key={c.id} href={`/teacher/roster?class=${c.id}`}
-              className={cn(
-                "rounded-md border px-2.5 py-1 text-xs transition-colors",
-                c.id === mine.id ? "border-ink bg-ink text-primary-foreground" : "border-line hover:bg-muted",
-              )}>
-              {c.name}
-            </Link>
-          ))}
-        </nav>
+      <header>
+        <h1 className="text-2xl">Roster</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {label} · everything that used to live in the spreadsheet.
+        </p>
       </header>
 
       <div className="overflow-x-auto glass rounded-2xl">

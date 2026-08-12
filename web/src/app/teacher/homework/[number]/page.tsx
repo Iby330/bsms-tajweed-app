@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { scopeLabel, teacherRoster } from "@/lib/teacher/scope";
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { moduleTitle } from "@/lib/curriculum/tree";
@@ -31,38 +32,32 @@ export default async function TeacherHomeworkDetail({
     .maybeSingle();
   if (!hw) notFound();
 
-  const [{ data: week }, { data: subs }, { data: students }, { data: classes }, { data: pcts }] =
-    await Promise.all([
-      db.from("weeks").select("term_id, number").eq("id", hw.week_id).maybeSingle(),
-      // drafts are the student's own business — a teacher can't review one
-      db.from("submissions")
-        .select("id, status, is_late, student_id")
-        .eq("homework_id", hw.id)
-        .in("status", ["submitted", "auto_marked", "approved"]),
-      db.from("profiles")
-        .select("id, full_name, class_id, is_active")
-        .eq("role", "student")
-        .eq("is_active", true)
-        .order("full_name"),
-      db.from("classes").select("id, name, section").order("section").order("name"),
-      db.from("v_hw_pct").select("student_id, pct").eq("homework_id", hw.id),
-    ]);
+  const label = await scopeLabel();
+  const students = await teacherRoster();
+  const studentIds = students.map((s) => s.id);
+
+  const [{ data: week }, { data: subs }, { data: pcts }] = await Promise.all([
+    db.from("weeks").select("term_id, number").eq("id", hw.week_id).maybeSingle(),
+    // drafts are the student's own business — a teacher can't review one
+    studentIds.length
+      ? db.from("submissions")
+          .select("id, status, is_late, student_id")
+          .eq("homework_id", hw.id)
+          .in("student_id", studentIds)
+          .in("status", ["submitted", "auto_marked", "approved"])
+      : Promise.resolve({ data: [] as { id: string; status: string; is_late: boolean; student_id: string }[] }),
+    studentIds.length
+      ? db.from("v_hw_pct").select("student_id, pct").eq("homework_id", hw.id).in("student_id", studentIds)
+      : Promise.resolve({ data: [] as { student_id: string; pct: number }[] }),
+  ]);
 
   const subByStudent = new Map((subs ?? []).map((s) => [s.student_id, s]));
   const pctByStudent = new Map((pcts ?? []).map((p) => [p.student_id as string, Number(p.pct)]));
 
-  const byClass = new Map<string, typeof students>();
-  for (const s of students ?? []) {
-    if (!s.class_id) continue;
-    const list = byClass.get(s.class_id) ?? [];
-    list.push(s);
-    byClass.set(s.class_id, list);
-  }
-
   const title = moduleTitle(hw.title);
   const approved = (subs ?? []).filter((s) => s.status === "approved").length;
   const waiting = (subs ?? []).filter((s) => s.status === "submitted" || s.status === "auto_marked").length;
-  const missing = (students ?? []).filter((s) => !subByStudent.has(s.id)).length;
+  const missing = students.filter((s) => !subByStudent.has(s.id)).length;
 
   return (
     <div className="space-y-6">
@@ -85,14 +80,15 @@ export default async function TeacherHomeworkDetail({
         </p>
       </header>
 
-      {(classes ?? []).map((c) => {
-        const roster = byClass.get(c.id);
-        if (!roster?.length) return null;
-        return (
-          <section key={c.id} className="space-y-2">
-            <h2 className="text-sm font-medium">{c.name}</h2>
+      {students.length === 0 ? (
+        <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
+          No active students yet.
+        </p>
+      ) : (
+          <section className="space-y-2">
+            <h2 className="text-sm font-medium">{label}</h2>
             <ul className="divide-y divide-line overflow-hidden glass rounded-2xl">
-              {roster.map((s) => {
+              {students.map((s) => {
                 const sub = subByStudent.get(s.id);
                 const pct = pctByStudent.get(s.id);
                 const row = (
@@ -147,8 +143,7 @@ export default async function TeacherHomeworkDetail({
               })}
             </ul>
           </section>
-        );
-      })}
+      )}
     </div>
   );
 }
