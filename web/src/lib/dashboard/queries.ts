@@ -1,4 +1,6 @@
 import { supabaseServer } from "@/lib/supabase/server";
+import { expectedPassed, paceStatus, type Surah } from "@/lib/hifz/pace";
+import { lastPassedSurah, type ClassRow } from "@/lib/teacher/class-progress";
 
 /** Shared server-side reads. Every grade number comes from a view — the
  *  verified formulas live in SQL and are never recomputed in JS. */
@@ -208,4 +210,95 @@ export async function getClassLeaderboards() {
       rank: Number(r.rank),
     }));
   return { homework: map(hw.data), hifz: map(hifz.data) };
+}
+
+/**
+ * The dashboard's per-student view of one class.
+ *
+ * Composes what already exists rather than adding anything: hifz counts from
+ * `v_hifz_progress`, the homework mean from `v_termly_avg`, pace from the
+ * teaching calendar. No grade is recomputed here.
+ *
+ * `weeks` and `now` are passed in, not fetched: the caller already has the
+ * calendar, and taking `now` as an argument keeps the output deterministic.
+ *
+ * Only active students. That matches the "Active students" tile rendered
+ * directly above the list, so the two can never disagree.
+ */
+export async function getClassProgress(
+  classId: string,
+  termId: number,
+  weeks: { unlock_at: string }[],
+  now = new Date(),
+): Promise<ClassRow[]> {
+  const db = await supabaseServer();
+
+  const { data: students } = await db
+    .from("profiles")
+    .select("id, full_name")
+    .eq("class_id", classId)
+    .eq("role", "student")
+    .eq("is_active", true)
+    .order("full_name");
+
+  const ids = (students ?? []).map((s) => s.id);
+  if (!ids.length) return [];
+
+  const [hifz, records, avgs, surahs] = await Promise.all([
+    db.from("v_hifz_progress")
+      .select("student_id, passed, target_count, start_surah").in("student_id", ids),
+    db.from("hifz_records").select("student_id, surah_number").in("student_id", ids),
+    db.from("v_termly_avg")
+      .select("student_id, hw_avg").in("student_id", ids).eq("term_id", termId),
+    db.from("surahs").select("number, order_index, name_ar, name_en").order("order_index"),
+  ]);
+
+  // Views expose every column as nullable — drop any row that lost its key.
+  const hifzOf = new Map(
+    (hifz.data ?? [])
+      .filter((r) => r.student_id !== null)
+      .map((r) => [r.student_id as string, r] as const),
+  );
+  const avgOf = new Map(
+    (avgs.data ?? [])
+      .filter((r) => r.student_id !== null)
+      .map((r) => [r.student_id as string, r.hw_avg] as const),
+  );
+
+  const passedOf = new Map<string, Set<number>>();
+  for (const r of records.data ?? []) {
+    const set = passedOf.get(r.student_id) ?? new Set<number>();
+    set.add(r.surah_number);
+    passedOf.set(r.student_id, set);
+  }
+
+  const allSurahs = (surahs.data ?? []) as Surah[];
+  const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
+
+  return (students ?? []).map((s): ClassRow => {
+    const h = hifzOf.get(s.id);
+    const target = Number(h?.target_count ?? 0);
+    const passed = Number(h?.passed ?? 0);
+    const expected = expectedPassed(now, weeks, target);
+    const last = h
+      ? lastPassedSurah(
+          Number(h.start_surah),
+          target,
+          allSurahs,
+          passedOf.get(s.id) ?? new Set<number>(),
+        )
+      : null;
+
+    return {
+      studentId: s.id,
+      name: s.full_name,
+      lastPassed: last?.name_en ?? null,
+      passed,
+      target,
+      expected,
+      // No hifz profile → no target → nothing to judge them against.
+      pace: h ? paceStatus(passed, expected) : null,
+      hwAvg: num(avgOf.get(s.id)),
+    };
+  });
 }
