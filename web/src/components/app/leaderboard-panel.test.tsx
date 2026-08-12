@@ -149,4 +149,18 @@ describe("LeaderboardPanel", () => {
     const { container } = render(<LeaderboardPanel title="Homework" scopes={[scope]} />);
     expect(text(container)).not.toContain("See all");
   });
+
+  it("draws a bar per row, scaled to the percentage", () => {
+    const { container } = render(<LeaderboardPanel title="Homework" scopes={[classScope]} />);
+    const bars = [...container.querySelectorAll("[data-bar]")];
+    expect(bars).toHaveLength(3);
+    // Adam is 84% — the bar is the mark, not the rank.
+    const mine = container.querySelector("li [data-bar][data-self='true']") as HTMLElement;
+    expect(mine.style.width).toBe("84%");
+  });
+
+  it("keeps the figure readable as text beside the bar", () => {
+    const { container } = render(<LeaderboardPanel title="Homework" scopes={[classScope]} />);
+    expect(text(container)).toContain("84.0%");
+  });
 });

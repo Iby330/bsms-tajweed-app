@@ -48,7 +48,7 @@ export function LeaderboardPanel({
   const canExpand = sorted.length > shown.length || expanded;
 
   return (
-    <div className="flex flex-col rounded-lg border border-line bg-card p-4">
+    <div className="glass glass-hover flex flex-col rounded-2xl p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground">{title}</h3>
 
@@ -87,15 +87,37 @@ export function LeaderboardPanel({
                 <li
                   key={`${r.rank}-${r.name}`}
                   className={cn(
-                    "flex items-center justify-between rounded-md px-2.5 py-1.5 text-sm",
+                    "rounded-md px-2.5 py-1.5 text-sm",
                     isSelf ? "bg-ink font-medium text-primary-foreground" : "text-foreground",
                   )}
                 >
-                  <span className="flex min-w-0 items-center gap-2.5">
-                    <span className="w-5 shrink-0 text-right tabular-nums opacity-60">{r.rank}</span>
-                    <span className="truncate">{r.name}</span>
-                  </span>
-                  <span className="shrink-0 tabular-nums">{r.pct.toFixed(1)}%</span>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="flex min-w-0 items-center gap-2.5">
+                      <span className="w-5 shrink-0 text-right tabular-nums opacity-60">
+                        {r.rank}
+                      </span>
+                      <span className="truncate">{r.name}</span>
+                    </span>
+                    <span className="shrink-0 tabular-nums">{r.pct.toFixed(1)}%</span>
+                  </div>
+                  {/* The bar makes the gaps visible: three names within a point
+                      of each other is a different race from three ten apart. */}
+                  <div
+                    className={cn(
+                      "mt-1 h-1.5 overflow-hidden rounded-full",
+                      isSelf ? "bg-primary-foreground/20" : "bg-foreground/10",
+                    )}
+                  >
+                    <div
+                      data-bar
+                      data-self={isSelf}
+                      style={{ width: `${Math.max(0, Math.min(100, r.pct))}%` }}
+                      className={cn(
+                        "h-full rounded-full transition-[width] duration-700 ease-out",
+                        isSelf ? "bg-primary-foreground data-glow" : "bg-chart-3",
+                      )}
+                    />
+                  </div>
                 </li>
               );
             })}
