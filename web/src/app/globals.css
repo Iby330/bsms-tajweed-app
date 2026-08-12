@@ -34,6 +34,10 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  /* data viz — the chart-* ramp is a greyscale that inverts per theme, so it
+     cannot carry a two-part bar. These two stay indigo in both themes. */
+  --color-viz-exam: var(--viz-exam);
+  --color-viz-hw: var(--viz-hw);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -211,6 +215,8 @@ body::after {
   --glow-2: #2e5e4e;
   --glow-3: #8a6a2f;
   --glow-opacity: 0.13;
+  --viz-exam: #3b5bdb;
+  --viz-hw: #93a6ee;
 }
 
 .dark {
@@ -222,6 +228,8 @@ body::after {
   --glow-2: #5fa98c;
   --glow-3: #c9a45c;
   --glow-opacity: 0.30;
+  --viz-exam: #5f7ae8;
+  --viz-hw: #a3b4f7;
 }
 
 .glass {

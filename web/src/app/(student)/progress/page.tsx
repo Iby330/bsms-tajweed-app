@@ -60,10 +60,10 @@ export default async function Progress() {
             </div>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-chart-1" /> exam (80%)
+                <span className="size-2.5 rounded-sm bg-viz-exam" /> exam (80%)
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-chart-3" /> homework (20%)
+                <span className="size-2.5 rounded-sm bg-viz-hw" /> homework (20%)
               </span>
             </div>
           </div>

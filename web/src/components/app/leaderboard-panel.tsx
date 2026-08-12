@@ -98,9 +98,15 @@ export function LeaderboardPanel({
               return (
                 <li
                   key={`${r.rank}-${r.name}`}
+                  data-self={isSelf || undefined}
                   className={cn(
                     "rounded-md px-2.5 py-1.5 text-sm",
-                    isSelf ? "bg-ink font-medium text-primary-foreground" : "text-foreground",
+                    // A tint plus a ring rather than a filled block: --ink
+                    // inverts to near-white in dark mode, which on glass reads
+                    // as a hole punched in the panel.
+                    isSelf
+                      ? "bg-foreground/10 font-medium text-foreground ring-1 ring-foreground/25"
+                      : "text-foreground",
                   )}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -117,7 +123,7 @@ export function LeaderboardPanel({
                   <div
                     className={cn(
                       "mt-1 h-1.5 overflow-hidden rounded-full",
-                      isSelf ? "bg-primary-foreground/20" : "bg-foreground/10",
+                      isSelf ? "bg-foreground/15" : "bg-foreground/10",
                     )}
                   >
                     <div
@@ -126,7 +132,7 @@ export function LeaderboardPanel({
                       style={{ width: `${Math.max(0, Math.min(100, r.pct))}%` }}
                       className={cn(
                         "h-full rounded-full transition-[width] duration-700 ease-out",
-                        isSelf ? "bg-primary-foreground data-glow" : "bg-chart-3",
+                        isSelf ? "bg-ok data-glow" : "bg-viz-hw",
                       )}
                     />
                   </div>

@@ -130,7 +130,10 @@ describe("LeaderboardPanel", () => {
     const self = [...container.querySelectorAll("li")].find((li) =>
       (li.textContent ?? "").includes("Year 9B"),
     )!;
-    expect(self.className).toContain("bg-ink");
+    // Asserts the row is marked as the reader's, not how it happens to be
+    // painted — the highlight styling changed with the glass redesign.
+    expect(self.getAttribute("data-self")).toBe("true");
+    expect(container.querySelectorAll("li[data-self]")).toHaveLength(1);
   });
 
   it("says so when there is nothing ranked yet", () => {

@@ -46,14 +46,14 @@ export function TermBars({
                   {bar.examPart !== null && (
                     <span
                       data-part="exam"
-                      className="w-full bg-chart-1"
+                      className="w-full bg-viz-exam"
                       style={{ height: share(bar.examPart) }}
                     />
                   )}
                   {bar.hwPart !== null && (
                     <span
                       data-part="homework"
-                      className="w-full bg-chart-3"
+                      className="w-full bg-viz-hw"
                       style={{ height: share(bar.hwPart) }}
                     />
                   )}
