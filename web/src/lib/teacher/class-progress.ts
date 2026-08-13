@@ -5,46 +5,64 @@
  * with no database and no React, so they can be tested without either.
  */
 
-import { memorisationList, type PaceStatus, type Surah } from "@/lib/hifz/pace";
+import { type PaceStatus, type Surah } from "@/lib/hifz/pace";
 
 /**
- * The surah a student is on: the FURTHEST-ALONG surah in their own run that
- * carries a record.
+ * The surah a student is ON: the first one in their own run that has NOT been
+ * signed off.
  *
- * Not the most recently dated one. Sign-offs can land out of order, and
- * furthest-along is the definition that stays consistent with the
- * `passed/target` count rendered beside it — a row reading "Al-Fajr" next to a
- * count of 12 would be a contradiction the teacher cannot resolve.
+ * Not the furthest one already passed. Sign-offs land out of order, so a
+ * student credited with An-Nas and Al-Masad is still working on Al-Falaq in
+ * between — naming the deepest record would tell the teacher a surah nobody
+ * is reciting on Thursday. Same definition the hifz register uses for "next".
  *
- * Scoped to `memorisationList`, so a returning student whose `start_surah`
- * isn't 114 is never credited with (or judged against) last year's surahs.
+ * Takes the student's OWN run (see `memorisationList`), so a returning
+ * student whose `start_surah` isn't 114 is never credited with, or judged
+ * against, last year's surahs. Null once the whole target is passed — there
+ * is nothing left to be on.
  */
-export function lastPassedSurah(
-  startSurah: number,
-  target: number,
-  surahs: Surah[],
-  passedNumbers: Set<number>,
-): Surah | null {
-  const list = memorisationList(startSurah, target, surahs);
-  for (let i = list.length - 1; i >= 0; i--) {
-    if (passedNumbers.has(list[i].number)) return list[i];
-  }
-  return null;
+export function currentSurah(run: Surah[], passedNumbers: Set<number>): Surah | null {
+  return run.find((s) => !passedNumbers.has(s.number)) ?? null;
 }
+
+/**
+ * The surah the calendar says a student should be on today, given how many it
+ * expects them to have PASSED by now.
+ *
+ * `expected` surahs finished means the next one — index `expected`, since the
+ * run is zero-based — is the one in hand. That is the same thing
+ * `currentSurah` reports, so the two positions sit side by side on a row and
+ * the gap between them is the whole story.
+ */
+export function expectedSurah(run: Surah[], expected: number): Surah | null {
+  if (!run.length) return null;
+  return run[Math.min(expected, run.length - 1)];
+}
+
+/** Where a student stands in the 43, as one readable unit. */
+export type SurahMark = {
+  nameEn: string;
+  nameAr: string;
+  /** Place in the programme: 1 = An-Nas … 43 = Al-Jinn. */
+  index: number;
+};
 
 /** One student's line on the dashboard. Every number here came from a view. */
 export type ClassRow = {
   studentId: string;
   name: string;
-  /** English name of the last surah passed; null when nothing is passed. */
-  lastPassed: string | null;
-  passed: number;
-  target: number;
-  expected: number;
+  /** The surah being memorised now. Null with no target, or once it's done. */
+  surah: SurahMark | null;
+  /** Where the calendar puts them today, on the same 1..43 scale. */
+  expectedIndex: number | null;
+  /** Length of the programme — the "43" both positions are out of. */
+  outOf: number;
   /** null when the student has no hifz profile — no target to judge against. */
   pace: PaceStatus | null;
   /** null when no homework has been marked this term. */
   hwAvg: number | null;
+  /** Share of the year's hifz target signed off. Straight from the view. */
+  hifzAvg: number | null;
 };
 
 export const CLASS_SORTS = ["attention", "name", "lowest-hw"] as const;

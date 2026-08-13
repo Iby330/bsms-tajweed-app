@@ -159,16 +159,10 @@ export default async function TeacherHome() {
           />
         </div>
 
+        {/* No roster / register buttons here: both are permanent items in the
+            nav rail, so the pair only repeated navigation the teacher already
+            has, directly under the list that links to every student anyway. */}
         <ClassProgress rows={classRows} termId={termId} />
-
-        <div className="flex flex-wrap gap-2">
-          <Link href="/teacher/roster" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-            Open roster
-          </Link>
-          <Link href="/teacher/hifz" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-            Hifz register
-          </Link>
-        </div>
       </section>
 
       <section className="space-y-3">

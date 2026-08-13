@@ -9,17 +9,19 @@ const row = (
   name: string,
   pace: PaceStatus | null,
   hwAvg: number | null,
-  lastPassed: string | null = "Al-Balad",
+  hifz: { hifzAvg: number | null; surah: ClassRow["surah"]; expectedIndex: number | null } = {
+    hifzAvg: 30.2,
+    surah: { nameEn: "Al-Balad", nameAr: "البلد", index: 13 },
+    expectedIndex: 16,
+  },
 ): ClassRow => ({
   // No spaces: this lands in a URL, and the assertion below reads it back raw.
   studentId: name.split(" ")[0].toLowerCase(),
   name,
-  lastPassed,
-  passed: 12,
-  target: 43,
-  expected: 10,
+  outOf: 43,
   pace,
   hwAvg,
+  ...hifz,
 });
 
 const rows: ClassRow[] = [
@@ -53,18 +55,41 @@ describe("ClassProgress", () => {
     expect(rowTexts(container)[0]).toContain("Aisha Khan");
   });
 
-  it("shows the last-passed surah and the homework average", () => {
+  it("shows both averages, the surah in hand, and where it sits in the 43", () => {
     const { container } = render(<ClassProgress rows={rows} termId={2} />);
-    expect(container.textContent).toContain("Al-Balad");
     expect(container.textContent).toContain("87.4%");
+    expect(container.textContent).toContain("30.2%");
+    expect(container.textContent).toContain("Al-Balad");
+    expect(container.textContent).toContain("13 of 43");
+  });
+
+  it("says where the calendar expects the student to be", () => {
+    const { container } = render(<ClassProgress rows={rows} termId={2} />);
+    expect(rowTexts(container)[0]).toContain("should be on 16");
   });
 
   it("renders a dash rather than a zero for missing data", () => {
     const { container } = render(
-      <ClassProgress rows={[row("Musa Ali", null, null, null)]} termId={2} />,
+      <ClassProgress
+        rows={[row("Musa Ali", null, null, { hifzAvg: null, surah: null, expectedIndex: null })]}
+        termId={2}
+      />,
     );
     expect(container.textContent).toContain("no target");
     expect(container.textContent).not.toContain("0.0%");
+    // No target means no calendar position to miss — the row must not claim one.
+    // Scoped to the row: the footnote below the table explains the phrase.
+    expect(rowTexts(container)[0]).not.toContain("should be on");
+  });
+
+  it("calls a finished run complete rather than showing it as missing data", () => {
+    const { container } = render(
+      <ClassProgress
+        rows={[row("Musa Ali", "ok", 80, { hifzAvg: 100, surah: null, expectedIndex: 43 })]}
+        termId={2}
+      />,
+    );
+    expect(container.textContent).toContain("Target complete");
   });
 
   it("labels each pace status the same way the hifz register does", () => {

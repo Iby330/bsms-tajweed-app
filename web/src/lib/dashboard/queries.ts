@@ -1,7 +1,7 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import { getCachedTerms, getCachedWeeks, getCachedSurahs } from "@/lib/reference/cached";
-import { expectedPassed, paceStatus, type Surah } from "@/lib/hifz/pace";
-import { lastPassedSurah, type ClassRow } from "@/lib/teacher/class-progress";
+import { expectedPassed, memorisationList, paceStatus, type Surah } from "@/lib/hifz/pace";
+import { currentSurah, expectedSurah, type ClassRow } from "@/lib/teacher/class-progress";
 
 /** Shared server-side reads. Every grade number comes from a view — the
  *  verified formulas live in SQL and are never recomputed in JS. */
@@ -265,8 +265,11 @@ export async function getClassProgress(
   if (!ids.length) return [];
 
   const [hifz, records, avgs, surahs] = await Promise.all([
+    // `pct` rides along rather than being derived from passed / target_count
+    // here — the share of target is a graded figure, and those are computed in
+    // SQL and only ever read back.
     db.from("v_hifz_progress")
-      .select("student_id, passed, target_count, start_surah").in("student_id", ids),
+      .select("student_id, passed, target_count, start_surah, pct").in("student_id", ids),
     db.from("hifz_records").select("student_id, surah_number").in("student_id", ids),
     db.from("v_termly_avg")
       .select("student_id, hw_avg").in("student_id", ids).eq("term_id", termId),
@@ -300,25 +303,22 @@ export async function getClassProgress(
     const target = Number(h?.target_count ?? 0);
     const passed = Number(h?.passed ?? 0);
     const expected = expectedPassed(now, weeks, target);
-    const last = h
-      ? lastPassedSurah(
-          Number(h.start_surah),
-          target,
-          allSurahs,
-          passedOf.get(s.id) ?? new Set<number>(),
-        )
-      : null;
+    // The student's own run, built once: both the surah they are on and the
+    // one they are due to be on are positions in this same list.
+    const run = h ? memorisationList(Number(h.start_surah), target, allSurahs) : [];
+    const on = currentSurah(run, passedOf.get(s.id) ?? new Set<number>());
+    const due = expectedSurah(run, expected);
 
     return {
       studentId: s.id,
       name: s.full_name,
-      lastPassed: last?.name_en ?? null,
-      passed,
-      target,
-      expected,
+      surah: on ? { nameEn: on.name_en, nameAr: on.name_ar, index: on.order_index } : null,
+      expectedIndex: due?.order_index ?? null,
+      outOf: allSurahs.length,
       // No hifz profile → no target → nothing to judge them against.
       pace: h ? paceStatus(passed, expected) : null,
       hwAvg: num(avgOf.get(s.id)),
+      hifzAvg: h ? num(h.pct) : null,
     };
   });
 }

@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest";
 import type { PaceStatus, Surah } from "@/lib/hifz/pace";
-import { lastPassedSurah, sortClassRows, CLASS_SORTS, type ClassRow } from "./class-progress";
+import { memorisationList } from "@/lib/hifz/pace";
+import {
+  currentSurah,
+  expectedSurah,
+  sortClassRows,
+  CLASS_SORTS,
+  type ClassRow,
+} from "./class-progress";
 
 /** The real run: order_index 1 = An-Nas (114) … 43 = Al-Jinn (72). */
 const surahs: Surah[] = Array.from({ length: 43 }, (_, i) => ({
@@ -10,38 +17,63 @@ const surahs: Surah[] = Array.from({ length: 43 }, (_, i) => ({
   name_en: `S${i + 1}`,
 }));
 
-describe("lastPassedSurah", () => {
-  it("returns null when nothing is passed", () => {
-    expect(lastPassedSurah(114, 43, surahs, new Set())).toBeNull();
+const run = (startSurah: number, target: number) =>
+  memorisationList(startSurah, target, surahs);
+
+describe("currentSurah", () => {
+  it("is the very first surah when nothing is passed", () => {
+    expect(currentSurah(run(114, 43), new Set())!.number).toBe(114);
   });
 
-  it("returns the furthest-along record, not the first one found", () => {
+  it("is the next one along once the run's opening surahs are signed off", () => {
     // Passed An-Nas (114), Al-Falaq (113), Al-Ikhlas (112) — three in.
     const passed = new Set([114, 113, 112]);
-    expect(lastPassedSurah(114, 43, surahs, passed)!.number).toBe(112);
+    expect(currentSurah(run(114, 43), passed)!.number).toBe(111);
   });
 
-  it("is furthest-along even when sign-offs land out of order", () => {
-    // 111 was signed off before 113 ever was; 111 is still deeper into the run.
+  it("is the surah still owed when sign-offs land out of order", () => {
+    // 111 was signed off before 113 ever was — 113 is what they are still on.
     const passed = new Set([114, 111]);
-    expect(lastPassedSurah(114, 43, surahs, passed)!.number).toBe(111);
+    expect(currentSurah(run(114, 43), passed)!.number).toBe(113);
   });
 
   it("is correct for a returning student who does not start at An-Nas", () => {
     // start_surah 100, target 10 → their run is 100, 99, 98 … 91.
     const passed = new Set([100, 99, 98]);
-    expect(lastPassedSurah(100, 10, surahs, passed)!.number).toBe(98);
+    expect(currentSurah(run(100, 10), passed)!.number).toBe(97);
   });
 
   it("ignores records outside the student's own run", () => {
-    // 114 is above a returning student's start point — last year's work.
-    const passed = new Set([114, 113, 100]);
-    expect(lastPassedSurah(100, 10, surahs, passed)!.number).toBe(100);
+    // 114 is above a returning student's start point — last year's work, and
+    // no reason to move them off the surah their run opens on.
+    const passed = new Set([114, 113]);
+    expect(currentSurah(run(100, 10), passed)!.number).toBe(100);
   });
 
-  it("returns the final surah once the whole target is passed", () => {
+  it("is null once the whole target is passed", () => {
     const passed = new Set([114, 113, 112]);
-    expect(lastPassedSurah(114, 3, surahs, passed)!.number).toBe(112);
+    expect(currentSurah(run(114, 3), passed)).toBeNull();
+  });
+});
+
+describe("expectedSurah", () => {
+  it("is the opening surah before any week has elapsed", () => {
+    expect(expectedSurah(run(114, 43), 0)!.number).toBe(114);
+  });
+
+  it("is the one AFTER the surahs the calendar expects finished", () => {
+    // 12 done means they should have the 13th in hand.
+    const s = expectedSurah(run(114, 43), 12)!;
+    expect(s.number).toBe(102);
+    expect(s.order_index).toBe(13);
+  });
+
+  it("stops at the last surah rather than running off the end of the run", () => {
+    expect(expectedSurah(run(114, 3), 3)!.number).toBe(112);
+  });
+
+  it("is null for a student with no run at all", () => {
+    expect(expectedSurah([], 4)).toBeNull();
   });
 });
 
@@ -52,12 +84,12 @@ const row = (
 ): ClassRow => ({
   studentId: name.toLowerCase(),
   name,
-  lastPassed: "S3",
-  passed: 3,
-  target: 43,
-  expected: 4,
+  surah: { nameEn: "S4", nameAr: "س4", index: 4 },
+  expectedIndex: 5,
+  outOf: 43,
   pace,
   hwAvg,
+  hifzAvg: 7,
 });
 
 const names = (rows: ClassRow[]) => rows.map((r) => r.name);
