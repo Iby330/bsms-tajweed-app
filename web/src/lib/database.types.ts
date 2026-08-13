@@ -23,6 +23,7 @@ export type Database = {
           question_id: string
           response: Json
           submission_id: string
+          teacher_comment: string | null
         }
         Insert: {
           auto_marks?: number | null
@@ -32,6 +33,7 @@ export type Database = {
           question_id: string
           response: Json
           submission_id: string
+          teacher_comment?: string | null
         }
         Update: {
           auto_marks?: number | null
@@ -41,6 +43,7 @@ export type Database = {
           question_id?: string
           response?: Json
           submission_id?: string
+          teacher_comment?: string | null
         }
         Relationships: [
           {

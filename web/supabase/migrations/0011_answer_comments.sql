@@ -1,0 +1,19 @@
+-- A teacher's own words on a marked answer.
+--
+-- Until now an `answers` row could carry a mark (`final_marks`) and the
+-- model's rubric bullets (`auto_rubric`) and nothing else. A student opening
+-- their marked homework saw a number and, at best, a machine's reasoning.
+-- Practical tasks are worse off still: a recitation has no rubric at all, so
+-- the student received a bare mark with no explanation of it whatsoever.
+--
+-- This is the same column, and the same intent, as `hifz_records.teacher_comment`
+-- — student-facing feedback in the teacher's voice, released with the mark.
+-- Nullable because most answers won't have one, and because clearing the box
+-- on the marking screen has to be able to remove a comment that was there.
+--
+-- No RLS change accompanies this. `s_ans_read` (0001_core.sql) already lets a
+-- student select their own answer rows, and this column is written only inside
+-- approveSubmission — in the same upsert as `final_marks` — so there is no
+-- window in which a comment exists on an unapproved submission for a student
+-- to read early.
+alter table answers add column if not exists teacher_comment text;

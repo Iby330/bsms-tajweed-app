@@ -65,7 +65,7 @@ export default async function HomeworkPage({
   const [{ data: answers }, { data: voiceNotes }] = await Promise.all([
     db
       .from("answers")
-      .select("question_id, response, final_marks, auto_rubric")
+      .select("question_id, response, final_marks, auto_rubric, teacher_comment")
       .eq("submission_id", submissionId),
     db
       .from("voice_notes")

@@ -69,7 +69,10 @@ export type AnswerAutoMarkRow = MarkingAnswer & {
   auto_rubric: Json;
 };
 
-export type AnswerFinalMarkRow = MarkingAnswer & { final_marks: number };
+export type AnswerFinalMarkRow = MarkingAnswer & {
+  final_marks: number;
+  teacher_comment: string | null;
+};
 
 /* ── planning ────────────────────────────────────────────────────────── */
 
@@ -186,10 +189,18 @@ export function planAnswerUpdates(
  * Approval: `edits` overrides individual marks, anything not edited takes the
  * automatic mark (or 0 where there wasn't one). Every answer on the submission
  * gets a final mark, question row or not.
+ *
+ * `comments` is the teacher's own feedback, keyed by answer id like `edits`.
+ * It is written on EVERY row rather than only the ones carrying text — an
+ * approved submission can be reopened and re-approved, and emptying the box has
+ * to be able to take a released comment back down. A comment that is only
+ * whitespace is stored as null, so nothing renders an empty grey box at the
+ * student.
  */
 export function planFinalMarks(
   answers: readonly MarkedAnswer[],
   edits: Record<string, number>,
+  comments: Record<string, string> = {},
 ): AnswerFinalMarkRow[] {
   return answers.map((a) => {
     const edited = edits[a.id];
@@ -197,12 +208,14 @@ export function planFinalMarks(
       typeof edited === "number" && Number.isFinite(edited)
         ? edited
         : (a.auto_marks ?? 0);
+    const comment = comments[a.id]?.trim();
     return {
       id: a.id,
       submission_id: a.submission_id,
       question_id: a.question_id,
       response: a.response,
       final_marks: final,
+      teacher_comment: comment ? comment : null,
     };
   });
 }

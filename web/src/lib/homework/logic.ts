@@ -193,3 +193,34 @@ export function markTone(marks: number, points: number): MarkTone {
 export function fmtMarks(n: number): string {
   return String(Number(n.toFixed(2)));
 }
+
+/* ── Typed marks (teacher's marking screen) ───────────────────────────── */
+
+export type ParsedMark = { value: number | null; valid: boolean };
+
+/** Digits with at most one point: "3", "2.5", ".5", and "2." mid-keystroke. */
+const MARK_PATTERN = /^\d*\.?\d*$/;
+
+/**
+ * A mark as the teacher typed it. The field is plain text — deliberately, so it
+ * has no spinner arrows — which means `min`/`max`/`step` no longer police it and
+ * this does instead.
+ *
+ * Blank is `{ value: null, valid: true }`: an unmarked answer is a normal state
+ * on the way to approving, not an error, and approval already falls back to the
+ * automatic mark for anything the teacher left alone.
+ *
+ * Too high keeps the number and fails: the teacher sees the 50 they typed,
+ * flagged, rather than a silent 5. Unparseable text — including anything
+ * carrying a sign, since the pattern admits no "-" — reports no value at all.
+ * Nothing that parses can be negative, so only the upper bound is checked.
+ */
+export function parseMarkInput(raw: string, max: number): ParsedMark {
+  const trimmed = raw.trim();
+  if (trimmed === "") return { value: null, valid: true };
+  if (!MARK_PATTERN.test(trimmed)) return { value: null, valid: false };
+  const n = Number(trimmed);
+  // "." alone matches the pattern but parses to NaN
+  if (!Number.isFinite(n)) return { value: null, valid: false };
+  return { value: n, valid: n <= max };
+}

@@ -255,6 +255,7 @@ describe("planFinalMarks", () => {
     for (const row of rows) {
       expect(Object.keys(row).sort()).toEqual([
         "final_marks", "id", "question_id", "response", "submission_id",
+        "teacher_comment",
       ]);
       expect(row.submission_id).toBe(SUB);
     }
@@ -263,6 +264,37 @@ describe("planFinalMarks", () => {
   it("marks every answer, including ones with no question row", () => {
     expect(planFinalMarks(marked, {})).toHaveLength(3);
     expect(planFinalMarks([], { a1: 3 })).toEqual([]);
+  });
+
+  it("writes the teacher's comment against its answer", () => {
+    const rows = byId(planFinalMarks(marked, {}, { a2: "Watch the madd here." }));
+    expect(rows.get("a2")?.teacher_comment).toBe("Watch the madd here.");
+  });
+
+  it("trims a comment", () => {
+    const rows = byId(planFinalMarks(marked, {}, { a2: "  good work  " }));
+    expect(rows.get("a2")?.teacher_comment).toBe("good work");
+  });
+
+  it("stores a blank or whitespace-only comment as null", () => {
+    const rows = byId(planFinalMarks(marked, {}, { a1: "", a2: "   " }));
+    expect(rows.get("a1")?.teacher_comment).toBeNull();
+    expect(rows.get("a2")?.teacher_comment).toBeNull();
+  });
+
+  it("nulls the comment on every answer the teacher left alone", () => {
+    // re-approving with an emptied box has to take a released comment down,
+    // which only works because the column is written on every row
+    const rows = byId(planFinalMarks(marked, {}, { a1: "kept" }));
+    expect(rows.get("a1")?.teacher_comment).toBe("kept");
+    expect(rows.get("a2")?.teacher_comment).toBeNull();
+    expect(rows.get("a3")?.teacher_comment).toBeNull();
+  });
+
+  it("defaults to no comments at all when none are passed", () => {
+    for (const row of planFinalMarks(marked, { a1: 1 })) {
+      expect(row.teacher_comment).toBeNull();
+    }
   });
 });
 

@@ -6,8 +6,9 @@ import { MixedText } from "@/components/app/mixed-text";
 import { VoicePlayback } from "@/components/app/voice-playback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { approveSubmission } from "@/lib/marking/actions";
-import { selectedOf, textOf, fmtMarks } from "@/lib/homework/logic";
+import { selectedOf, textOf, fmtMarks, parseMarkInput } from "@/lib/homework/logic";
 import { cn } from "@/lib/utils";
 
 export type ReviewQuestion = {
@@ -28,6 +29,7 @@ export type ReviewAnswer = {
   auto_marks: number | null;
   auto_rubric: { id: string; present: boolean; why?: string }[] | null;
   final_marks: number | null;
+  teacher_comment: string | null;
 };
 
 export type ReviewVoiceNote = {
@@ -40,7 +42,12 @@ export type ReviewVoiceNote = {
  * Accept-or-edit review. Every mark is pre-filled with the automatic one;
  * the teacher changes what they disagree with and approves once. An approved
  * submission opens locked, but "Edit marks" reopens it — re-approving simply
- * overwrites the final marks, so old homework stays correctable.
+ * overwrites the final marks and comments, so old homework stays correctable.
+ *
+ * Marks are typed into a plain text field rather than a number input: the
+ * spinner arrows were never the way anyone enters a mark, and they crowd out
+ * the denominator, which is the number a teacher actually needs to see. The
+ * validation `type="number"` used to provide lives in `parseMarkInput` instead.
  */
 export function ReviewPanel({
   submissionId,
@@ -69,15 +76,48 @@ export function ReviewPanel({
       answers.map((a) => [a.id, String(a.final_marks ?? a.auto_marks ?? "")]),
     ),
   );
+  const [comments, setComments] = useState<Record<string, string>>(() =>
+    Object.fromEntries(answers.map((a) => [a.id, a.teacher_comment ?? ""])),
+  );
 
+  // Every typed mark read once, against its own question's points: the running
+  // total, the per-field flag and the approve button all follow from this. Keyed
+  // by ANSWER, so a row whose question has since been deleted still carries its
+  // mark through approval — it has no field on screen and nothing to bound it.
+  const pointsOf = new Map(questions.map((q) => [q.id, q.points]));
+  const marks = new Map(
+    answers.map((a) => [
+      a.id,
+      parseMarkInput(edits[a.id] ?? "", pointsOf.get(a.question_id) ?? Infinity),
+    ]),
+  );
+
+  // What approval will write, and what the running total adds up — one map, so
+  // the number on screen and the number saved can never drift apart. A field
+  // left blank reads as zero, which is what the total above it already showed.
+  const finalMarks = new Map<string, number>();
+  for (const q of questions) {
+    const a = byQ.get(q.id);
+    if (a) finalMarks.set(a.id, marks.get(a.id)!.value ?? 0);
+  }
+  for (const a of answers) {
+    // an answer with no question on screen: nothing to type into, so it only
+    // passes through the mark it already had
+    const m = marks.get(a.id)!;
+    if (!finalMarks.has(a.id) && m.value !== null) finalMarks.set(a.id, m.value);
+  }
+
+  // only the questions on screen count towards the total, as before
   const total = questions.reduce((sum, q) => {
     const a = byQ.get(q.id);
-    if (!a) return sum;
-    const n = Number(edits[a.id]);
-    return sum + (Number.isFinite(n) ? n : 0);
+    return sum + (a ? finalMarks.get(a.id)! : 0);
   }, 0);
   const outOf = questions.filter((q) => !q.is_bonus).reduce((s, q) => s + q.points, 0);
   const needsAttention = answers.filter((a) => a.auto_marks === null).length;
+  // kept with their position so the warning can name the question
+  const invalid = questions
+    .map((q, i) => ({ q, n: i + 1, a: byQ.get(q.id) }))
+    .filter(({ a }) => a && !marks.get(a.id)!.valid);
 
   return (
     <div className="space-y-4">
@@ -88,22 +128,29 @@ export function ReviewPanel({
             {fmtMarks(total)}<span className="text-muted-foreground"> / {fmtMarks(outOf)}</span>
           </div>
         </div>
-        {needsAttention > 0 && !locked && (
-          <p className="text-xs text-warn">
-            {needsAttention} answer{needsAttention === 1 ? "" : "s"} could not be marked automatically — enter a mark below.
+        {invalid.length > 0 && !locked ? (
+          <p className="text-xs text-danger">
+            Q{invalid[0].n}: a mark has to be a number from 0 to{" "}
+            {fmtMarks(invalid[0].q.points)}.
+            {invalid.length > 1 && ` (${invalid.length - 1} more like it.)`}
           </p>
+        ) : (
+          needsAttention > 0 && !locked && (
+            <p className="text-xs text-warn">
+              {needsAttention} answer{needsAttention === 1 ? "" : "s"} could not be marked automatically — enter a mark below.
+            </p>
+          )
         )}
         {!locked && (
           <Button
-            disabled={pending}
+            disabled={pending || invalid.length > 0}
             onClick={() =>
               startTransition(async () => {
-                const parsed: Record<string, number> = {};
-                for (const [id, v] of Object.entries(edits)) {
-                  const n = Number(v);
-                  if (Number.isFinite(n)) parsed[id] = n;
-                }
-                await approveSubmission(submissionId, parsed);
+                await approveSubmission(
+                  submissionId,
+                  Object.fromEntries(finalMarks),
+                  comments,
+                );
                 if (approved) {
                   // an edit of released marks: stay put, show the new state
                   setEditing(false);
@@ -144,21 +191,36 @@ export function ReviewPanel({
                   <span>Q{i + 1}</span>
                   {q.is_bonus && <span className="rounded bg-muted px-1.5 py-0.5 normal-case">bonus</span>}
                   {q.is_task && <span className="rounded bg-muted px-1.5 py-0.5 normal-case">task</span>}
-                  <span className="tabular-nums">out of {fmtMarks(q.points)}</span>
                 </div>
                 <MixedText text={q.prompt} variant="quran" className="mt-2 block text-[15px] leading-relaxed" />
               </div>
-              <div className="w-24 shrink-0">
-                <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Mark</label>
-                <Input
-                  type="number" step="0.5" min={0} max={q.points}
-                  disabled={locked}
-                  value={edits[a.id] ?? ""}
-                  onChange={(e) => setEdits((s) => ({ ...s, [a.id]: e.target.value }))}
-                  className="mt-1 text-right tabular-nums"
-                />
+              <div className="shrink-0">
+                <label
+                  htmlFor={`mark-${a.id}`}
+                  className="text-[11px] uppercase tracking-wider text-muted-foreground"
+                >
+                  Mark
+                </label>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <Input
+                    id={`mark-${a.id}`}
+                    inputMode="decimal"
+                    autoComplete="off"
+                    aria-invalid={!marks.get(a.id)!.valid}
+                    aria-describedby={`out-of-${a.id}`}
+                    disabled={locked}
+                    value={edits[a.id] ?? ""}
+                    onChange={(e) => setEdits((s) => ({ ...s, [a.id]: e.target.value }))}
+                    className="w-16 text-right tabular-nums"
+                  />
+                  {/* the denominator belongs next to the field, not in the grey
+                      meta line above the prompt where it used to live */}
+                  <span id={`out-of-${a.id}`} className="text-sm tabular-nums text-muted-foreground">
+                    / {fmtMarks(q.points)}
+                  </span>
+                </div>
                 {a.auto_marks !== null && (
-                  <p className="mt-1 text-right text-[11px] text-muted-foreground tabular-nums">
+                  <p className="mt-1 text-[11px] text-muted-foreground tabular-nums">
                     auto: {fmtMarks(a.auto_marks)}
                   </p>
                 )}
@@ -229,6 +291,37 @@ export function ReviewPanel({
                 <p className="text-xs text-warn">
                   Needs your judgement — no answer key or rubric for this one.
                 </p>
+              )}
+
+              {/* Written answers and recitation tasks get a comment; multiple
+                  choice doesn't, since the option list already says everything
+                  there is to say. Only these carry no options.
+                  Saved on approval with the marks — not as you type — so the
+                  student never sees feedback on an unreleased submission.
+                  Hidden once locked unless there is something to read. */}
+              {!q.options && (!locked || comments[a.id]) && (
+                <div>
+                  <label
+                    htmlFor={`comment-${a.id}`}
+                    className="text-[11px] uppercase tracking-wider text-muted-foreground"
+                  >
+                    Comment for the student
+                    {!locked && <span className="normal-case"> (optional)</span>}
+                  </label>
+                  <Textarea
+                    id={`comment-${a.id}`}
+                    rows={2}
+                    disabled={locked}
+                    value={comments[a.id] ?? ""}
+                    onChange={(e) => setComments((s) => ({ ...s, [a.id]: e.target.value }))}
+                    placeholder={
+                      q.is_task
+                        ? "What to work on in their recitation."
+                        : "They'll see this with their mark."
+                    }
+                    className="mt-1"
+                  />
+                </div>
               )}
             </div>
           </section>

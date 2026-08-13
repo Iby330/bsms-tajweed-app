@@ -123,11 +123,14 @@ export async function markSubmission(
 
 /**
  * Teacher approval. `edits` overrides individual marks; anything not edited
- * takes the automatic mark (or 0 where there wasn't one).
+ * takes the automatic mark (or 0 where there wasn't one). `comments` carries
+ * the teacher's written feedback, which is released to the student by this same
+ * write — so a comment never exists on a submission the student can't yet see.
  */
 export async function approveSubmission(
   submissionId: string,
   edits: Record<string, number> = {},
+  comments: Record<string, string> = {},
 ): Promise<void> {
   const teacher = await requireTeacher();
   const db = supabaseAdmin();
@@ -138,8 +141,8 @@ export async function approveSubmission(
     .eq("submission_id", submissionId);
   if (!answers) throw new Error("Submission not found.");
 
-  // every final mark worked out in JS, then written in one go
-  const rows = planFinalMarks(answers, edits);
+  // every final mark and comment worked out in JS, then written in one go
+  const rows = planFinalMarks(answers, edits, comments);
   if (rows.length) await db.from("answers").upsert(rows, { onConflict: "id" });
 
   await db

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
-import { render, fireEvent } from "@testing-library/react";
+import { describe, it, expect, afterEach } from "vitest";
+import { render, fireEvent, cleanup } from "@testing-library/react";
 import type { HomeworkEntry } from "@/lib/curriculum/tree";
 import { MarkedHomework } from "./marked-homework";
 import type { ScoredHomework } from "@/lib/homework/sort";
@@ -42,6 +42,13 @@ const pcts = (c: HTMLElement) =>
   [...c.querySelectorAll("li")]
     .map((li) => [...li.querySelectorAll("span")].find((s) => /^\d+%$/.test(s.textContent ?? ""))?.textContent)
     .filter(Boolean);
+
+// No `globals` in this config, so testing-library registers no afterEach of its
+// own and these roots stay mounted for the rest of the run. React then wakes a
+// scheduler callback after the jsdom environment has gone — "window is not
+// defined", reported against this file, intermittently and unrelated to what it
+// asserts.
+afterEach(cleanup);
 
 describe("MarkedHomework", () => {
   it("offers the four orderings, latest first", () => {

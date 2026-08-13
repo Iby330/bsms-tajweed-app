@@ -33,7 +33,7 @@ export default async function SubmissionReview({
         number, title, series, total_marks,
         questions(id, position, prompt, points, qtype, is_bonus, is_task, options)
       ),
-      answers(id, question_id, response, auto_marks, auto_rubric, final_marks),
+      answers(id, question_id, response, auto_marks, auto_rubric, final_marks, teacher_comment),
       voice_notes(question_id, storage_path, duration_s)
     `)
     .eq("id", submissionId)
@@ -55,7 +55,7 @@ export default async function SubmissionReview({
     await markSubmission(sub.id, { homeworkId: sub.homework_id });
     const { data: marked } = await db
       .from("answers")
-      .select("id, question_id, response, auto_marks, auto_rubric, final_marks")
+      .select("id, question_id, response, auto_marks, auto_rubric, final_marks, teacher_comment")
       .eq("submission_id", sub.id);
     answers = marked;
   }

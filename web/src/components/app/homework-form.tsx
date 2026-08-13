@@ -20,6 +20,7 @@ export type ExistingAnswer = {
   response: unknown;
   final_marks: number | null;
   auto_rubric: unknown;
+  teacher_comment: string | null;
 };
 
 export type ExistingVoiceNote = {
@@ -199,6 +200,22 @@ export function HomeworkForm({
                   </li>
                 ))}
               </ul>
+            )}
+
+            {/* The teacher's own words, released with the mark. Set alongside
+                the rubric chips because those are the model's reading of the
+                answer and this is a person's — same place, different voice.
+                Through MixedText: comments carry Arabic. */}
+            {approved && a?.teacher_comment && (
+              <div className="mt-3">
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  From your teacher
+                </div>
+                <MixedText
+                  text={a.teacher_comment}
+                  className="mt-1 block break-words rounded-md bg-muted px-2.5 py-1.5 text-xs text-ink-2"
+                />
+              </div>
             )}
           </section>
         );
