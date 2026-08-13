@@ -4,7 +4,17 @@ import { render, fireEvent, cleanup } from "@testing-library/react";
 import { ReviewPanel, type ReviewQuestion, type ReviewAnswer } from "./review-panel";
 
 // The panel is what's under test, not the server action or the router.
-const approve = vi.hoisted(() => vi.fn(async () => {}));
+// The mock carries approveSubmission's parameter shape so assertions on
+// mock.calls[0][1] / [2] typecheck — an argless vi.fn() types calls as [].
+const approve = vi.hoisted(() =>
+  vi.fn(
+    async (
+      _submissionId: string,
+      _edits?: Record<string, number>,
+      _comments?: Record<string, string>,
+    ) => {},
+  ),
+);
 vi.mock("@/lib/marking/actions", () => ({ approveSubmission: approve }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
