@@ -147,8 +147,16 @@ export default async function TeacherHome() {
         <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">My class</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           <StatTile label="Active students" value={roster.length || null} />
-          <StatTile label={`Homework avg · T${termId}`} value={classAvg === null ? null : `${classAvg.toFixed(1)}%`} />
-          <StatTile label="Hifz avg" value={hifzAvg === null ? null : `${hifzAvg.toFixed(1)}%`} sub="of each student's target" />
+          <StatTile
+            label={`Class homework avg · T${termId}`}
+            value={classAvg === null ? null : `${classAvg.toFixed(1)}%`}
+            sub="mean of each student's term average"
+          />
+          <StatTile
+            label="Class hifz avg"
+            value={hifzAvg === null ? null : `${hifzAvg.toFixed(1)}%`}
+            sub="mean of each student's % of target"
+          />
         </div>
 
         <ClassProgress rows={classRows} termId={termId} />
