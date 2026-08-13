@@ -2,8 +2,10 @@ import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { getCachedSurahs } from "@/lib/reference/cached";
-import { scopeLabel, teacherRoster } from "@/lib/teacher/scope";
+import { scopeLabel, teacherClass, teacherRoster } from "@/lib/teacher/scope";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
+import { targetPresets } from "@/lib/hifz/targets";
+import { ClassTargetForm } from "@/components/app/class-target-form";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -13,20 +15,28 @@ export default async function TeacherHifz() {
 
   // The label and the roster both hang off the same cached class read, so
   // firing them together costs one class round trip rather than two.
-  const [{ weeks }, label, students] = await Promise.all([
+  const [{ weeks }, label, myClass, students] = await Promise.all([
     getTermsAndWeeks(),
     scopeLabel(),
+    teacherClass(),
     teacherRoster(),
   ]);
   const ids = students.map((s) => s.id);
 
-  const [{ data: progress }, surahs] = await Promise.all([
+  const [{ data: progress }, { data: profiles }, surahs] = await Promise.all([
     ids.length
       ? db.from("v_hifz_progress").select("student_id, passed, target_count, start_surah").in("student_id", ids)
+      : Promise.resolve({ data: [] }),
+    // is_custom lives on the table, not the view — the form needs to say how
+    // many students an apply will touch before the teacher commits to it.
+    ids.length
+      ? db.from("hifz_profiles").select("student_id, is_custom").in("student_id", ids)
       : Promise.resolve({ data: [] }),
     getCachedSurahs(),
   ]);
   const byStudent = new Map((progress ?? []).map((p) => [p.student_id!, p]));
+  const customCount = (profiles ?? []).filter((p) => p.is_custom).length;
+  const run = memorisationList(114, (surahs as Surah[]).length, surahs as Surah[]);
 
   return (
     <div className="space-y-5">
@@ -36,6 +46,17 @@ export default async function TeacherHifz() {
           {label} · Thursday recitation. Colour shows each student against the calendar.
         </p>
       </header>
+
+      {/* A class-less programme lead sees every student — "apply to class"
+          would mean the whole school, so the card only renders with a class. */}
+      {myClass && (
+        <ClassTargetForm
+          presets={targetPresets(114, run)}
+          surahs={run}
+          defaultCount={students.length - customCount}
+          customCount={customCount}
+        />
+      )}
 
       <ul className="divide-y divide-line overflow-hidden glass rounded-2xl">
         {students.map((s) => {

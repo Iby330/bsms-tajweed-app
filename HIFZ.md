@@ -41,35 +41,28 @@ their target is.
 
 ## Known gaps
 
-### 1. No teacher UI sets targets at all
+### 1. ~~No teacher UI sets targets at all~~ — FIXED 2026-08-14
 
-`setStudentHifzProfile` and `setClassTarget` exist in `lib/hifz/actions.ts` and are
-**called from nowhere**. There is no screen on which a teacher can set a class target or
-give a returning student a different starting point. Targets only exist if they were
-seeded directly into the database.
+Target-setting shipped (spec: `docs/superpowers/specs/2026-08-14-hifz-target-setting-design.md`):
+a class-default card on `/teacher/hifz` and a start+target form on the student detail
+page, both resolving hizb presets or a custom end surah to `target_count` via
+`lib/hifz/targets.ts`.
 
-This is the load-bearing gap — most of what follows is downstream of it.
+### 2. ~~`setClassTarget` would clobber returning students~~ — FIXED 2026-08-14
 
-### 2. `setClassTarget` would clobber returning students
+`hifz_profiles.is_custom` (migration 0012) marks individually-set profiles; the class
+default only writes non-custom rows and no longer takes a caller-supplied classId. A
+teacher with no class of their own is refused — their roster fallback is the whole
+school.
 
-It upserts `start_surah: 114` for every student in the class. The moment a teacher sets
-a class-wide target, any returning student's custom starting point is silently reset to
-An-Nas, and their pace/percentage along with it. It needs to leave `start_surah` alone
-for students who already have a profile, or the per-student override has to be applied
-after and never before.
+### 3. Targets are a surah count, but teachers think in hizbs — input side done
 
-### 3. Targets are a surah count, but teachers think in hizbs
-
-`target_count` is a number of surahs. A teacher setting a returning student's year says
-"four hizbs" or "five hizbs" — a *portion*, not a count, and one that starts partway
-through the run. Converting by hand is error-prone and the number that results is
-meaningless to read back ("target: 19").
-
-The hizb boundaries needed for that conversion already exist as `HIZB_BOUNDS` in
-`lib/hifz/hizb.ts` (hizb 60 = surahs 87–114, 59 = 78–86, 58 = 72–77), so the run is
-exactly hizbs 60 + 59 + 58 and ends on a boundary. A target expressed as "from hizb X,
-N hizbs" is convertible to a surah range with what's already there. Worth deciding
-whether the stored unit changes or only the input.
+Teachers now *pick* targets as hizb presets or an end surah and never see a raw count
+(`targetPresets` / `countTo` in `lib/hifz/targets.ts`, derived from `HIZB_BOUNDS`).
+Still open for the rework: whether the **stored** unit stays a surah count
+(`target_count`), and what a target beyond the seeded run (surahs 72–114 — "four or
+five hizbs" for a strong returning student) even means; the schema cannot express one
+today.
 
 ### 4. `v_hifz_progress` counts records outside the student's run
 

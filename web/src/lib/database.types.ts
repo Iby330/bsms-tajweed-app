@@ -204,16 +204,19 @@ export type Database = {
       }
       hifz_profiles: {
         Row: {
+          is_custom: boolean
           start_surah: number
           student_id: string
           target_count: number
         }
         Insert: {
+          is_custom?: boolean
           start_surah?: number
           student_id: string
           target_count: number
         }
         Update: {
+          is_custom?: boolean
           start_surah?: number
           student_id?: string
           target_count?: number
