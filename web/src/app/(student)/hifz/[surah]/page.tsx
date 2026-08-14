@@ -29,7 +29,17 @@ export default async function SurahPage({
 }) {
   const { surah: raw } = await params;
   const number = Number(raw);
-  if (!Number.isInteger(number)) notFound();
+  // Checked against static data before touching the database — SURAH_META
+  // covers 72–114, exactly the seeded range, so an unknown surah costs no
+  // query.
+  //
+  // This still answers 200, not 404, and that is expected rather than broken:
+  // the student layout awaits the profile before this page runs, so the stream
+  // is already committed by the time notFound() fires. Per the streaming guide
+  // in node_modules/next/dist/docs, Next cannot rewind the status and injects
+  // <meta name="robots" content="noindex"> instead — verified present. Every
+  // route here sits behind auth, so nothing was going to index it anyway.
+  if (!Number.isInteger(number) || !SURAH_META[number]) notFound();
 
   const profile = (await currentProfile())!;
   const db = await supabaseServer();
