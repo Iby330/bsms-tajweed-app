@@ -1,32 +1,28 @@
-import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks, currentTermId } from "@/lib/dashboard/queries";
 import { teacherClass, teacherRoster } from "@/lib/teacher/scope";
-import {
-  defaultSessionFor,
-  isoDate,
-  sessionLabel,
-  type SessionType,
-} from "@/lib/attendance/session";
+import { isoDate } from "@/lib/attendance/session";
+import { nearestSessionDate, sessionTypeFor } from "@/lib/attendance/calendar";
 import { AttendanceRegister } from "@/components/app/attendance-register";
-import { cn } from "@/lib/utils";
+import { SessionCalendar } from "@/components/app/session-calendar";
 
 export const dynamic = "force-dynamic";
 
 export default async function Attendance({
   searchParams,
 }: {
-  searchParams: Promise<{ class?: string; date?: string; session?: string }>;
+  searchParams: Promise<{ class?: string; date?: string }>;
 }) {
-  const { date: dateParam, session: sessionParam } = await searchParams;
+  const { date: dateParam } = await searchParams;
   const db = await supabaseServer();
 
+  // A hand-typed ?date= is snapped to a real lesson day rather than refused —
+  // the register has to open on something, and the nearest session is what the
+  // teacher was reaching for. The session is then read off the date: only
+  // Mondays and Thursdays get this far, so it is never ambiguous.
   const today = isoDate(new Date());
-  const sessionDate = /^\d{4}-\d{2}-\d{2}$/.test(dateParam ?? "") ? dateParam! : today;
-  const sessionType: SessionType =
-    sessionParam === "monday" || sessionParam === "thursday"
-      ? sessionParam
-      : defaultSessionFor(sessionDate);
+  const sessionDate = nearestSessionDate(dateParam ?? today);
+  const sessionType = sessionTypeFor(sessionDate)!;
 
   const [{ terms }, mine] = await Promise.all([getTermsAndWeeks(), teacherClass()]);
   const termId = currentTermId(terms, new Date(`${sessionDate}T12:00:00`));
@@ -52,21 +48,15 @@ export default async function Attendance({
       .eq("session_type", sessionType),
   ]);
 
-  const href = (next: { date?: string; session?: string }) => {
-    const p = new URLSearchParams({
-      date: next.date ?? sessionDate,
-      session: next.session ?? sessionType,
-    });
-    return `/teacher/attendance?${p}`;
-  };
-
   return (
     <div className="space-y-5">
       <header className="space-y-3">
         <div>
           <h1 className="text-2xl">Attendance</h1>
+          {/* The weekday names the session — there is no separate Monday /
+              Thursday choice to make once the date is a lesson date. */}
           <p className="mt-1 text-sm text-muted-foreground">
-            {mine.name} · {sessionLabel(sessionType)} session ·{" "}
+            {mine.name} ·{" "}
             {new Date(`${sessionDate}T12:00:00`).toLocaleDateString("en-GB", {
               weekday: "long",
               day: "numeric",
@@ -76,39 +66,7 @@ export default async function Attendance({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <form action="/teacher/attendance" className="flex items-center gap-2">
-            <input type="hidden" name="session" value={sessionType} />
-            <input
-              type="date"
-              name="date"
-              defaultValue={sessionDate}
-              className="h-8 rounded-md border border-line bg-card px-2 text-xs"
-            />
-            <button
-              type="submit"
-              className="h-8 rounded-md border border-line px-2.5 text-xs transition-colors hover:bg-muted"
-            >
-              Go
-            </button>
-          </form>
-
-          <div className="flex overflow-hidden rounded-md border border-line">
-            {(["monday", "thursday"] as const).map((s) => (
-              <Link
-                key={s}
-                href={href({ session: s })}
-                className={cn(
-                  "px-2.5 py-1.5 text-xs transition-colors",
-                  s !== "monday" && "border-l border-line",
-                  s === sessionType ? "bg-ink font-medium text-primary-foreground" : "hover:bg-muted",
-                )}
-              >
-                {sessionLabel(s)}
-              </Link>
-            ))}
-          </div>
-        </div>
+        <SessionCalendar value={sessionDate} today={today} basePath="/teacher/attendance" />
       </header>
 
       <AttendanceRegister

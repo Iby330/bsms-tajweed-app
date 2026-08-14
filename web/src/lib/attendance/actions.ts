@@ -2,12 +2,27 @@
 
 import { revalidatePath } from "next/cache";
 import { supabaseServer, currentProfile } from "@/lib/supabase/server";
-import type { SessionType } from "./session";
+import { sessionLabel, type SessionType } from "./session";
+import { isSessionDate, sessionTypeFor } from "./calendar";
 
 async function requireTeacher() {
   const profile = await currentProfile();
   if (!profile || profile.role !== "teacher") throw new Error("Teachers only.");
   return profile;
+}
+
+/**
+ * The picker only offers taught dates, but a server action is a public
+ * endpoint — nothing stops a crafted call writing a register for a Tuesday in
+ * August. A row like that is invisible afterwards, since no date the UI can
+ * reach would ever show it again.
+ */
+function badSession(sessionDate: string, sessionType: SessionType): string | null {
+  if (!isSessionDate(sessionDate)) return `${sessionDate} is not a lesson day.`;
+  if (sessionTypeFor(sessionDate) !== sessionType) {
+    return `${sessionDate} is not a ${sessionLabel(sessionType)} session.`;
+  }
+  return null;
 }
 
 /**
@@ -37,6 +52,8 @@ export async function setPresence({
   termId: number;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const teacher = await requireTeacher();
+  const invalid = badSession(sessionDate, sessionType);
+  if (invalid) return { ok: false, error: invalid };
   const db = await supabaseServer();
 
   const { data: existing } = await db
@@ -64,7 +81,7 @@ export async function setPresence({
         student_id: studentId,
         term_id: termId,
         reason: "absence",
-        note: absenceReason?.trim() || `Absent — ${sessionType} session, ${sessionDate}`,
+        note: absenceReason?.trim() || `Absent — ${sessionLabel(sessionType)} session, ${sessionDate}`,
         issued_by: teacher.id,
       })
       .select("id")
@@ -109,6 +126,8 @@ export async function markAllPresent({
   sessionType: SessionType;
 }): Promise<{ ok: true; count: number } | { ok: false; error: string }> {
   const teacher = await requireTeacher();
+  const invalid = badSession(sessionDate, sessionType);
+  if (invalid) return { ok: false, error: invalid };
   const db = await supabaseServer();
   if (studentIds.length === 0) return { ok: true, count: 0 };
 

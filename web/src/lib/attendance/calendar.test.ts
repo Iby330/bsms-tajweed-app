@@ -1,0 +1,116 @@
+import { describe, expect, it } from "vitest";
+import {
+  HOLIDAYS,
+  YEAR_END,
+  YEAR_START,
+  holidayReason,
+  isSessionDate,
+  nearestSessionDate,
+  sessionDates,
+  sessionTypeFor,
+} from "./calendar";
+
+describe("sessionDates", () => {
+  const dates = sessionDates();
+
+  it("runs from the first Monday to the last Thursday of the year", () => {
+    expect(dates[0]).toBe(YEAR_START);
+    // 28 May 2027 is a Friday, so the year's last class is the Thursday before.
+    expect(dates[dates.length - 1]).toBe("2027-05-27");
+  });
+
+  it("never runs past the end of the year", () => {
+    expect(dates[dates.length - 1] <= YEAR_END).toBe(true);
+  });
+
+  it("is 68 sessions — 34 Mondays and 34 Thursdays", () => {
+    const days = dates.map((d) => new Date(`${d}T12:00:00`).getDay());
+    expect(days.filter((d) => d === 1)).toHaveLength(34);
+    expect(days.filter((d) => d === 4)).toHaveLength(34);
+    expect(dates).toHaveLength(68);
+  });
+
+  it("contains nothing but Mondays and Thursdays", () => {
+    const other = dates.filter((d) => ![1, 4].includes(new Date(`${d}T12:00:00`).getDay()));
+    expect(other).toEqual([]);
+  });
+
+  it("is ascending and free of duplicates", () => {
+    expect([...dates].sort()).toEqual([...dates]);
+    expect(new Set(dates).size).toBe(dates.length);
+  });
+
+  it("skips every date listed as a holiday", () => {
+    for (const iso of Object.keys(HOLIDAYS)) expect(dates).not.toContain(iso);
+  });
+
+  it("returns the same array on repeat calls rather than rebuilding it", () => {
+    expect(sessionDates()).toBe(dates);
+  });
+});
+
+describe("isSessionDate", () => {
+  it.each([
+    ["a term-time Monday", "2026-10-05"],
+    ["a term-time Thursday", "2026-10-08"],
+  ])("accepts %s", (_what, iso) => {
+    expect(isSessionDate(iso)).toBe(true);
+  });
+
+  it.each([
+    ["a Tuesday", "2026-10-06"],
+    ["a Wednesday", "2026-10-07"],
+    ["a weekend", "2026-10-10"],
+    ["a Monday before the year opens", "2026-09-28"],
+    ["a Monday after the year closes", "2027-05-31"],
+    ["a date that isn't a date", "not-a-date"],
+    ["an impossible day", "2027-02-31"],
+  ])("rejects %s", (_what, iso) => {
+    expect(isSessionDate(iso)).toBe(false);
+  });
+});
+
+describe("sessionTypeFor", () => {
+  it("reads the session straight off the date", () => {
+    expect(sessionTypeFor("2026-10-05")).toBe("monday");
+    expect(sessionTypeFor("2026-10-08")).toBe("thursday");
+  });
+
+  it("is null for a day no class is taught on", () => {
+    expect(sessionTypeFor("2026-10-06")).toBeNull();
+    expect(sessionTypeFor("2026-08-13")).toBeNull();
+  });
+});
+
+describe("nearestSessionDate", () => {
+  it("leaves a session date alone", () => {
+    expect(nearestSessionDate("2026-10-08")).toBe("2026-10-08");
+  });
+
+  it("falls back to the most recent session, not the next one", () => {
+    // Wednesday 7 Oct belongs to Monday's register, still being caught up.
+    expect(nearestSessionDate("2026-10-07")).toBe("2026-10-05");
+  });
+
+  it("opens on the first session when the year hasn't started", () => {
+    expect(nearestSessionDate("2026-08-13")).toBe(YEAR_START);
+  });
+
+  it("stays on the last session once the year is over", () => {
+    expect(nearestSessionDate("2027-07-01")).toBe("2027-05-27");
+  });
+
+  it("falls back to the first session for an unparseable date", () => {
+    expect(nearestSessionDate("garbage")).toBe(YEAR_START);
+  });
+});
+
+describe("holidayReason", () => {
+  it("is null for a day that is taught", () => {
+    expect(holidayReason("2026-10-05")).toBeNull();
+  });
+
+  it("is null for a day outside the year", () => {
+    expect(holidayReason("2026-08-13")).toBeNull();
+  });
+});
