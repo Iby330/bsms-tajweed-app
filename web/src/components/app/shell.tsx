@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -9,7 +8,7 @@ import { useRouter } from "next/navigation";
 import {
   Moon, Sun, Home, PlaySquare, ClipboardList, BookOpenCheck, User, Library,
   Landmark, Bell, CheckSquare, Users, GraduationCap, Settings2, CalendarDays,
-  LogOut, type LucideIcon,
+  LogOut, PanelLeftClose, type LucideIcon,
 } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -25,30 +24,30 @@ const ICONS: Record<IconName, LucideIcon> = {
 };
 
 /**
- * AppShell — the two deliberate layouts (plan: Q14, not just reflow):
- *  · desktop ≥1024px: fixed ink sidebar (240px), content on --page
- *  · mobile: top app bar + bottom tab bar (5 tabs)
- * Nav config is passed in by the (student)/(teacher) group layouts.
+ * AppShell — 2026 identity.
+ *
+ *  · desktop ≥1024px: a near-black rail, collapsible to icons
+ *  · mobile: black top bar + bottom tab bar
+ *
+ * The rail is near-black in BOTH themes on purpose: the mark is cream, and
+ * this keeps it in the environment the logo was drawn for rather than
+ * inverting it on light pages.
  */
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  if (!mounted) return <div className={cn("size-9", className)} />;
+  if (!mounted) return <div className={cn("railbtn opacity-0", className)} />;
   const dark = resolvedTheme === "dark";
   return (
     <button
       type="button"
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       onClick={() => setTheme(dark ? "light" : "dark")}
-      className={cn(
-        "inline-flex size-9 items-center justify-center rounded-md transition-colors",
-        "hover:bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground",
-        className,
-      )}
+      className={cn("railbtn", className)}
     >
-      {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      {dark ? <Sun className="size-[15px]" /> : <Moon className="size-[15px]" />}
     </button>
   );
 }
@@ -70,62 +69,20 @@ function SignOutIcon({ className }: { className?: string }) {
         router.push("/login");
         router.refresh();
       }}
-      className={cn(
-        "inline-flex size-9 items-center justify-center rounded-md transition-colors disabled:opacity-50",
-        "hover:bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground",
-        className,
-      )}
+      className={cn("railbtn disabled:opacity-50", className)}
     >
-      <LogOut className="size-4" />
+      <LogOut className="size-[15px]" />
     </button>
   );
 }
 
-function NavLink({
-  item,
-  active,
-  variant,
-}: {
-  item: NavItem;
-  active: boolean;
-  variant: "sidebar" | "tab";
-}) {
-  const Icon = ICONS[item.icon];
-  if (variant === "sidebar") {
-    return (
-      <Link
-        href={item.href}
-        aria-current={active ? "page" : undefined}
-        className={cn(
-          "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-          active
-            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
-        )}
-      >
-        <Icon className="size-4 shrink-0" />
-        <span className="truncate">{item.label}</span>
-        {item.comingSoon && (
-          <span className="ml-auto rounded-sm bg-sidebar-border px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-sidebar-foreground/60">
-            soon
-          </span>
-        )}
-      </Link>
-    );
-  }
-  return (
-    <Link
-      href={item.href}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] transition-colors",
-        active ? "text-foreground font-medium" : "text-muted-foreground",
-      )}
-    >
-      <Icon className="size-5" />
-      <span>{item.label}</span>
-    </Link>
-  );
+function initialsOf(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 export function AppShell({
@@ -133,97 +90,122 @@ export function AppShell({
   mobileNav,
   userName,
   roleLabel,
+  backdrop,
   children,
 }: {
   nav: NavItem[];
-  /** exactly 5 items for the bottom tab bar */
+  /** the first items only — the bottom tab bar has room for five */
   mobileNav: NavItem[];
   userName: string;
   roleLabel: string;
+  /** the class's place, painted behind the content area */
+  backdrop?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
 
+  // Collapsed state is read after mount, not during render: reading
+  // localStorage on the server would desync the first paint.
+  const [railOff, setRailOff] = useState(false);
+  useEffect(() => {
+    try {
+      setRailOff(localStorage.getItem("bsms-rail") === "off");
+    } catch {}
+  }, []);
+  const toggleRail = () => {
+    setRailOff((v) => {
+      try {
+        localStorage.setItem("bsms-rail", v ? "on" : "off");
+      } catch {}
+      return !v;
+    });
+  };
+
+  // "Coming soon" entries are grouped under their own heading rather than
+  // left to look like broken links among the live ones.
+  const live = nav.filter((n) => !n.comingSoon);
+  const soon = nav.filter((n) => n.comingSoon);
+
+  const railLink = (item: NavItem) => {
+    const Icon = ICONS[item.icon];
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        title={item.label}
+        aria-current={isActive(item.href) ? "page" : undefined}
+        className={item.comingSoon ? "soon" : undefined}
+      >
+        <Icon className="size-[17px] shrink-0" />
+        <span className="lb">{item.label}</span>
+      </Link>
+    );
+  };
+
   return (
-    <div className="flex min-h-dvh w-full">
-      {/* desktop sidebar */}
-      <aside className="sidebar-glass fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-sidebar-border text-sidebar-foreground lg:flex">
-        <div className="flex items-center gap-3 px-5 pt-6 pb-4">
-          <Image
-            src="/brand/logo.png"
-            alt="BSMS Tajweed"
-            width={36}
-            height={36}
-            className="rounded-md"
-            priority
-          />
-          <div className="leading-tight">
-            <div className="font-heading text-sm font-bold tracking-tight">
-              BSMS TAJWEED
-            </div>
-            <div className="text-[11px] text-sidebar-foreground/60">{roleLabel}</div>
-          </div>
+    <div className="appshell" data-rail={railOff ? "off" : "on"}>
+      <aside className="rail">
+        <div className="head">
+          <span className="mark" role="img" aria-label="BSMS Tajweed" />
+          <button
+            type="button"
+            onClick={toggleRail}
+            aria-expanded={!railOff}
+            aria-label={railOff ? "Expand sidebar" : "Collapse sidebar"}
+            className="railbtn toggle"
+          >
+            <PanelLeftClose className="size-[15px]" />
+          </button>
         </div>
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
-          {nav.map((item) => (
-            <NavLink
-              key={item.href}
-              item={item}
-              active={isActive(item.href)}
-              variant="sidebar"
-            />
-          ))}
+
+        <nav>
+          {live.map(railLink)}
+          {soon.length > 0 && <div className="grp">Coming soon</div>}
+          {soon.map(railLink)}
         </nav>
-        <div className="flex items-center justify-between gap-2 border-t border-sidebar-border px-4 py-3">
-          <span className="min-w-0 truncate text-xs text-sidebar-foreground/70">{userName}</span>
-          <div className="flex shrink-0 items-center">
+
+        <div className="foot">
+          <span className="me">
+            <i aria-hidden>{initialsOf(userName)}</i>
+            <span title={`${userName} · ${roleLabel}`}>{userName}</span>
+          </span>
+          <span className="flex shrink-0 items-center gap-1.5">
             <ThemeToggle />
             <SignOutIcon />
-          </div>
+          </span>
         </div>
       </aside>
 
-      {/* mobile top bar */}
-      <header className="glass fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between rounded-none border-x-0 border-t-0 px-4 lg:hidden">
-        <div className="flex items-center gap-2.5">
-          <Image
-            src="/brand/logo.png"
-            alt="BSMS Tajweed"
-            width={28}
-            height={28}
-            className="rounded"
-            priority
-          />
-          <span className="font-heading text-sm font-bold tracking-tight">
-            BSMS TAJWEED
+      <div className="shellmain">
+        {backdrop}
+        <header className="topbar">
+          <span className="mark" role="img" aria-label="BSMS Tajweed" />
+          <span className="flex items-center gap-1.5">
+            <ThemeToggle />
+            <SignOutIcon />
           </span>
-        </div>
-        <div className="flex items-center">
-          <ThemeToggle className="text-foreground/70 hover:bg-muted hover:text-foreground" />
-          <SignOutIcon className="text-foreground/70 hover:bg-muted hover:text-foreground" />
-        </div>
-      </header>
+        </header>
 
-      {/* content */}
-      <main className="flex-1 pt-14 pb-20 lg:ml-60 lg:pt-0 lg:pb-0">
-        <div className="mx-auto w-full max-w-[1120px] px-4 py-6 lg:px-8 lg:py-10">
-          {children}
-        </div>
-      </main>
+        <main className="shellview">{children}</main>
 
-      {/* mobile bottom tabs */}
-      <nav className="glass fixed inset-x-0 bottom-0 z-40 flex rounded-none border-x-0 border-b-0 pb-[env(safe-area-inset-bottom)] lg:hidden">
-        {mobileNav.map((item) => (
-          <NavLink
-            key={item.href}
-            item={item}
-            active={isActive(item.href)}
-            variant="tab"
-          />
-        ))}
-      </nav>
+        <nav className="tabs">
+          {mobileNav.map((item) => {
+            const Icon = ICONS[item.icon];
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActive(item.href) ? "page" : undefined}
+              >
+                <Icon className="size-[19px]" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
     </div>
   );
 }
