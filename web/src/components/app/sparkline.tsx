@@ -13,8 +13,8 @@ const TREND_TONE = {
  */
 export function Sparkline({
   values,
-  width = 300,
-  height = 70,
+  width = 112,
+  height = 26,
   className,
 }: {
   values: number[];
@@ -30,6 +30,8 @@ export function Sparkline({
 
   return (
     <svg
+      width={width}
+      height={height}
       viewBox={`0 0 ${width} ${height}`}
       // overflow-visible matters: the glow is a drop-shadow, and an SVG clips
       // to its viewBox by default — which sliced the halo off in a rectangle
@@ -42,16 +44,12 @@ export function Sparkline({
         points={points}
         fill="none"
         stroke="currentColor"
-        strokeWidth={2.2}
+        strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
-        vectorEffect="non-scaling-stroke"
         className="data-glow"
       />
-      {/* The endpoint is where the eye lands, so it gets a soft halo and a
-          solid dot rather than the bare 2.5px mark it had. */}
-      <circle cx={lastX} cy={lastY} r={9} fill="currentColor" opacity={0.18} />
-      <circle cx={lastX} cy={lastY} r={4} fill="currentColor" />
+      <circle cx={lastX} cy={lastY} r={2.5} fill="currentColor" />
     </svg>
   );
 }

@@ -778,7 +778,10 @@ body::after {
 @layer components {
   /* An SVG clips to its viewBox, so the glow filter was being cut square.
      The stroke keeps its width under scaling via vector-effect. */
-  .spark { display: block; width: 100%; height: auto; overflow: visible; }
+  /* The only job here is to stop the glow being clipped: an SVG clips to
+     its viewBox, which sliced the drop-shadow off square. Size stays as
+     the element asks for it. */
+  .spark { display: block; overflow: visible; }
 
   /* Overdue sits over the class photograph rather than hiding it. Enough
      opacity to keep the type at full contrast, enough transparency that the
