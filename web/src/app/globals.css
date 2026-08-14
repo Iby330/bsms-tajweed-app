@@ -759,19 +759,21 @@ body::after {
 /* — one tooltip for the page; the tiny marks carry their detail on hover — */
 @layer components {
   #hovertip {
-    position: fixed; z-index: 99; pointer-events: none; opacity: 0; max-width: 250px;
-    background: var(--foreground); color: var(--background); padding: 10px 13px;
+    position: fixed; z-index: 99; pointer-events: none; opacity: 0; max-width: 230px;
+    background: var(--foreground); color: var(--background); padding: 7px 10px;
     box-shadow: 0 6px 24px -8px rgb(0 0 0 / 0.55);
     transform: translate(-50%, -100%) translateY(-8px); transition: opacity 0.12s;
   }
+  /* Flipped below the mark when there is no room above it. */
+  #hovertip.below { transform: translate(-50%, 0) translateY(8px); }
   #hovertip.on { opacity: 1; }
   #hovertip .ar { font-family: var(--font-quran); font-size: 1.35rem; line-height: 1.7; direction: rtl; }
-  #hovertip .h { font-size: 0.83rem; font-weight: 600; line-height: 1.3; }
+  #hovertip .h { font-size: 0.76rem; font-weight: 600; line-height: 1.25; }
   #hovertip .m {
-    font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em;
-    text-transform: uppercase; margin-top: 4px; opacity: 0.7;
+    font-family: var(--font-mono); font-size: 0.58rem; letter-spacing: 0.1em;
+    text-transform: uppercase; margin-top: 3px; opacity: 0.7;
   }
-  #hovertip .v { font-family: var(--font-mono); font-size: 0.74rem; margin-top: 5px; }
+  #hovertip .v { font-family: var(--font-mono); font-size: 0.68rem; margin-top: 3px; }
   .caps i, .beads b, [data-part] { cursor: pointer; }
 }
 

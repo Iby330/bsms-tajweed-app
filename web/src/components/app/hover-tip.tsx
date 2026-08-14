@@ -46,8 +46,12 @@ export function HoverTip() {
       el.classList.add("on");
       const r = target.getBoundingClientRect();
       const w = el.offsetWidth;
+      // Sits above the mark, unless that would push it off the top of the
+      // window or over the heading — then it flips underneath.
+      const below = r.top < el.offsetHeight + 16;
+      el.classList.toggle("below", below);
       el.style.left = `${Math.min(Math.max(r.left + r.width / 2, w / 2 + 8), window.innerWidth - w / 2 - 8)}px`;
-      el.style.top = `${r.top}px`;
+      el.style.top = `${below ? r.bottom : r.top}px`;
     };
     const hide = () => el.classList.remove("on");
 

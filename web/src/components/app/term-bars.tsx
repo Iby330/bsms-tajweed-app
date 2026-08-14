@@ -24,9 +24,9 @@ export function TermBars({
         const share = (part: number | null) =>
           bar.total > 0 && part !== null ? `${(part / bar.total) * 100}%` : "0%";
 
-        // The legend names the colours; hovering a segment says what that
-        // particular one is worth. The raw mark AND the percentage, because
-        // "64 / 89" and "71.9%" answer different questions.
+        // Hovering a segment names it and gives the figure. Deliberately
+        // terse: the bar is already labelled with its term, and the panel is
+        // small enough that a tall tooltip covers the heading above it.
         const examPct =
           t.examScore !== null && t.examMax ? (t.examScore / t.examMax) * 100 : null;
 
@@ -54,12 +54,10 @@ export function TermBars({
                       data-part="exam"
                       className="w-full bg-viz-exam"
                       style={{ height: share(bar.examPart) }}
-                      data-tip={`Term ${t.termId} exam`}
-                      data-tip-meta="80% of the term mark"
+                      data-tip="Exam · 80%"
                       data-tip-value={
                         `${t.examScore}/${t.examMax}` +
-                        (examPct !== null ? ` · ${examPct.toFixed(1)}%` : "") +
-                        ` · ${bar.examPart.toFixed(1)} of 80`
+                        (examPct !== null ? ` · ${examPct.toFixed(1)}%` : "")
                       }
                     />
                   )}
@@ -68,11 +66,8 @@ export function TermBars({
                       data-part="homework"
                       className="w-full bg-viz-hw"
                       style={{ height: share(bar.hwPart) }}
-                      data-tip={`Term ${t.termId} homework`}
-                      data-tip-meta="20% of the term mark"
-                      data-tip-value={
-                        `${t.hwAvg!.toFixed(1)}% average · ${bar.hwPart.toFixed(1)} of 20`
-                      }
+                      data-tip="Homework · 20%"
+                      data-tip-value={`${t.hwAvg!.toFixed(1)}%`}
                     />
                   )}
                 </div>
