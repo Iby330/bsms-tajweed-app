@@ -41,10 +41,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full" suppressHydrationWarning>
-      <body
-        className={`${archivo.variable} ${plexArabic.variable} ${amiriQuran.variable} ${geistMono.variable} min-h-full flex flex-col antialiased`}
-      >
+    // The font variables go on <html>, not <body>. `--font-sans` and
+    // `--font-heading` are declared in @theme, which lands on :root — if the
+    // faces are only defined from <body> down, every one of those references
+    // is invalid at :root and font-family falls back to the browser default.
+    // That is the whole app silently rendering in Times.
+    <html
+      lang="en"
+      className={`${archivo.variable} ${plexArabic.variable} ${amiriQuran.variable} ${geistMono.variable} h-full`}
+      suppressHydrationWarning
+    >
+      <body className="min-h-full flex flex-col antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
         </ThemeProvider>
