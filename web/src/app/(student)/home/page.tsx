@@ -154,7 +154,7 @@ export default async function StudentHome() {
       </header>
 
       {overdue.length > 0 && (
-        <div className="field">
+        <div className="field see-through">
           <section className="box c12 needs">
             <div className="flex items-baseline justify-between gap-4">
               <span className="label" style={{ color: "var(--danger)" }}>Overdue</span>
@@ -364,12 +364,9 @@ export default async function StudentHome() {
       </div>
 
       <div className="signoff">
+        <span className="lines">{profile.classes?.name ?? "BSMS"}</span>
         <span className="wm" role="img" aria-label="BSMS Tajweed" />
-        <span className="lines">
-          {profile.classes?.name ?? "BSMS"}
-          <br />
-          Term {termId}
-        </span>
+        <span className="lines right">Term {termId}</span>
       </div>
     </>
   );

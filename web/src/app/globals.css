@@ -773,3 +773,39 @@ body::after {
   #hovertip .v { font-family: var(--font-mono); font-size: 0.74rem; margin-top: 5px; }
   .caps i, .beads b { cursor: pointer; }
 }
+
+/* — the trend line, and the panels that let the class show through — */
+@layer components {
+  /* An SVG clips to its viewBox, so the glow filter was being cut square.
+     The stroke keeps its width under scaling via vector-effect. */
+  .spark { display: block; width: 100%; height: auto; overflow: visible; }
+
+  /* Overdue sits over the class photograph rather than hiding it. Enough
+     opacity to keep the type at full contrast, enough transparency that the
+     place behind it still reads. The blur stops the photograph's detail
+     fighting the words. */
+  .field.see-through { background: transparent; }
+  .box.needs {
+    box-shadow: inset 0 2px 0 var(--danger);
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--danger) 10%, transparent), transparent 62%),
+      color-mix(in oklab, var(--card) 76%, transparent);
+    backdrop-filter: blur(6px) saturate(1.1);
+    -webkit-backdrop-filter: blur(6px) saturate(1.1);
+  }
+  .box.needs:hover {
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--danger) 10%, transparent), transparent 62%),
+      color-mix(in oklab, var(--card) 84%, transparent);
+  }
+
+  /* Sign-off: place on the left, mark in the middle, term on the right. */
+  .signoff { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 20px; }
+  .signoff .wm { margin: 0 auto; }
+  .signoff .lines { text-align: left; }
+  .signoff .lines.right { text-align: right; }
+  @media (max-width: 640px) {
+    .signoff { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+    .signoff .lines, .signoff .lines.right { text-align: center; }
+  }
+}
