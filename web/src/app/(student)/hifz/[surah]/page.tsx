@@ -150,7 +150,9 @@ export default async function SurahPage({
 
           <div className="field">
             <article className="box c12 reading">
-              <p>{summary.summary}</p>
+              {summary.paragraphs.map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
               {summary.dispute && <p className="dispute">{summary.dispute}</p>}
               {!REVIEWED && (
                 <p className="draftnote">
