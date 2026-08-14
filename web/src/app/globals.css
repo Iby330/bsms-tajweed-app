@@ -836,3 +836,78 @@ body::after {
   table.marks td.dim { color: var(--ink-3); }
   table.marks tr.now td { background: color-mix(in oklab, var(--ok) 10%, transparent); }
 }
+
+/* — hifz: the year as a mushaf index — */
+@layer components {
+  .band { display: flex; align-items: center; gap: 12px; margin: 26px 0 10px; }
+  .band:first-of-type { margin-top: 0; }
+  .band .t { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.15em;
+             text-transform: uppercase; color: var(--muted-foreground); }
+  .band .r { flex: 1; height: 1px; background: var(--hair); }
+  .band .st { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em;
+              text-transform: uppercase; color: var(--ok); }
+  .band .st.wait { color: var(--ink-3); }
+
+  .index { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+           gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .cell { background: var(--card); padding: 13px 12px 11px; display: flex; flex-direction: column;
+          gap: 5px; min-height: 106px; cursor: pointer; position: relative; text-align: left;
+          border: none; font: inherit; color: inherit; width: 100%; transition: background 0.16s; }
+  .cell:hover { background: color-mix(in oklab, var(--foreground) 3%, var(--card)); }
+  .cell .n { font-family: var(--font-mono); font-size: 0.6rem; color: var(--ink-3); letter-spacing: 0.1em; }
+  .cell .ar-quran { font-size: 1.45rem; line-height: 1.7; color: var(--ink-3); margin-top: auto; }
+  .cell .en { font-size: 0.75rem; color: var(--ink-3); overflow: hidden;
+              text-overflow: ellipsis; white-space: nowrap; }
+  .cell.done { background: color-mix(in oklab, var(--ok) 12%, var(--card)); }
+  .cell.done .ar-quran { color: var(--ok); }
+  .cell.done .en, .cell.done .n { color: var(--muted-foreground); }
+  .cell.next { box-shadow: inset 0 0 0 2px var(--ok); }
+  .cell .tag { position: absolute; top: 9px; right: 10px; font-family: var(--font-mono);
+               font-size: 0.52rem; letter-spacing: 0.14em; color: var(--ok); }
+  .cell .cmt { position: absolute; top: 9px; right: 10px; width: 13px; height: 13px; color: var(--ok); }
+  .cell.next .cmt { right: 44px; }
+  .cell .cmt svg { width: 100%; height: 100%; fill: currentColor; }
+  .cell.sel { background: var(--foreground); }
+  .cell.sel .ar-quran { color: var(--background); }
+  .cell.sel .en, .cell.sel .n, .cell.sel .cmt { color: var(--background); opacity: 0.75; }
+
+  /* The pace rule, in words. It was an unlabelled hairline before. */
+  .paceline { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  .paceline .r { flex: 1; height: 1px; background: var(--foreground); }
+  .paceline .t { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.13em;
+                 text-transform: uppercase; color: var(--foreground); }
+
+  .detail { border-top: 1px solid var(--hair); margin-top: 26px; padding-top: 22px;
+            display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: start; }
+  .detail .ar-quran.big { font-size: 3rem; line-height: 1.5; color: var(--ok); }
+  .detail .en { font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; }
+  .detail .facts { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px; }
+  .detail .facts span { font-family: var(--font-mono); font-size: 0.63rem; letter-spacing: 0.11em;
+                        text-transform: uppercase; color: var(--ink-3); }
+  .detail .desc { margin: 6px 0 0; font-size: 0.95rem; color: var(--muted-foreground); max-width: 62ch; }
+  .detail .src { margin-top: 10px; font-size: 0.72rem; color: var(--ink-3); font-style: italic; }
+  .seclab { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.13em;
+            text-transform: uppercase; color: var(--ink-3); margin-top: 16px; }
+  .shared { margin-top: 12px; font-size: 0.83rem; color: var(--muted-foreground);
+            font-style: italic; border-left: 2px solid var(--hair); padding-left: 12px; }
+
+  /* The teacher's words are set apart: they are not part of the scholarship. */
+  .saywrap { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .say { margin: 8px 0 0; border-left: 2px solid var(--ok); padding: 10px 12px 10px 14px;
+         background: color-mix(in oklab, var(--ok) 10%, transparent); }
+  .say p { margin: 0; font-size: 0.98rem; font-style: italic; color: var(--muted-foreground); }
+  .say .by { margin-top: 6px; font-family: var(--font-mono); font-size: 0.62rem;
+             letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+  .readon { display: inline-block; margin-top: 18px; font-family: var(--font-mono);
+            font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase;
+            color: var(--ok); text-decoration: none; border-bottom: 1px solid currentColor;
+            padding-bottom: 2px; }
+  @media (max-width: 760px) { .detail { grid-template-columns: 1fr; } }
+}
+
+/* — the surah being memorised now, in context — */
+@layer components {
+  .herodesc { border-top: 1px solid var(--border); margin-top: 18px; padding-top: 16px; }
+  .herodesc p { margin: 8px 0 0; font-size: 0.93rem; color: var(--muted-foreground); max-width: 70ch; }
+  .herodesc .src { margin-top: 10px; font-size: 0.72rem; color: var(--ink-3); font-style: italic; }
+}

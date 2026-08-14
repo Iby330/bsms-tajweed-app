@@ -16,12 +16,13 @@ const recs = (idxs: number[]) =>
 describe("HifzJourney", () => {
   it("omits the marker when it would sit on the current node (expected = passed + 1)", () => {
     const { container } = render(<HifzJourney list={RUN} records={recs([0,1,2,3,4,5,6,7])} expected={9} />);
-    expect(container.textContent).not.toContain("class pace is here");
-    expect(container.textContent).toContain("you are here");
+    // The pace rule is suppressed; the current surah is still marked as next.
+    expect(container.textContent).not.toContain("Expected here by now");
+    expect(container.querySelector(".cell.next")).not.toBeNull();
   });
   it("renders the marker on the expected surah when genuinely behind", () => {
     const { container } = render(<HifzJourney list={RUN} records={recs([0,1])} expected={8} />);
-    expect(container.textContent).toContain(`class pace is`);
+    expect(container.textContent).toContain("Expected here by now");
     expect(container.textContent).toContain(RUN[7].name_en);
   });
   it("keeps a partially-passed later group expanded with its dates visible", () => {
@@ -29,14 +30,17 @@ describe("HifzJourney", () => {
       <HifzJourney list={RUN} records={recs([0,1,2,28,29,30])} expected={0} />,
     );
     // collapsed label form must NOT appear for hizb 59, and its pass dates must
+    // The index shows every surah rather than collapsing runs, so nothing is
+    // summarised as "· 9 surahs"; dates now live in each surah's detail.
     expect(container.textContent).not.toContain("· 9 surahs");
-    expect(container.textContent).toContain("19 Sept");
+    expect(container.querySelectorAll(".cell.done").length).toBeGreaterThan(0);
   });
   it("suppresses the marker once the list is complete", () => {
     const all = recs(Array.from({ length: 43 }, (_, i) => i));
     const { container } = render(<HifzJourney list={RUN} records={all} expected={30} />);
-    expect(container.textContent).not.toContain("class pace is");
-    expect(container.textContent).toContain("Target complete");
+    expect(container.textContent).not.toContain("Expected here by now");
+    // Nothing is "next" once every surah on the list is passed.
+    expect(container.querySelector(".cell.next")).toBeNull();
   });
   it("renders nothing for an empty list", () => {
     const { container } = render(<HifzJourney list={[]} records={new Map()} expected={0} />);

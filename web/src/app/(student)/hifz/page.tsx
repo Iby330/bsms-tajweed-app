@@ -6,7 +6,6 @@ import { assumedPassed, checkStatus, hizbBlocks, juzProgress } from "@/lib/hifz/
 import { SURAH_META } from "@/lib/hifz/surah-meta";
 import { HifzHero } from "@/components/app/hifz-hero";
 import { HifzJourney } from "@/components/app/hifz-journey";
-import { HifzRecord, type RecordEntry } from "@/components/app/hifz-record";
 
 export const dynamic = "force-dynamic";
 
@@ -74,28 +73,9 @@ export default async function StudentHifz() {
   // adds surahs strictly before list[0].
   const current = list.find((s) => !passedSet.has(s.number)) ?? list[list.length - 1];
 
-  const byNumber = new Map(all.map((s) => [s.number, s]));
-  const entries: RecordEntry[] = (records ?? [])
-    .map((r) => {
-      const s = byNumber.get(r.surah_number);
-      return s && listNumbers.has(s.number)
-        ? {
-            number: s.number,
-            name_en: s.name_en,
-            name_ar: s.name_ar,
-            passed_at: r.passed_at,
-            teacher_comment: r.teacher_comment,
-            order_index: s.order_index,
-          }
-        : null;
-    })
-    .filter((e): e is RecordEntry & { order_index: number } => e !== null)
-    .sort((a, b) =>
-      a.passed_at === b.passed_at
-        ? b.order_index - a.order_index // same Thursday: further along = later
-        : b.passed_at.localeCompare(a.passed_at),
-    );
-
+  // No separate record list any more: every passed surah carries its own
+  // date and comment inside the index, so building a second, sorted copy of
+  // the same rows was two places to read the same thing.
   return (
     <>
       <header className="masthead">
@@ -125,6 +105,7 @@ export default async function StudentHifz() {
 
       <div className="field">
         <HifzHero
+          number={current?.number ?? null}
           nameEn={current?.name_en ?? ""}
           nameAr={current?.name_ar ?? ""}
           meta={current ? SURAH_META[current.number] : undefined}
@@ -144,16 +125,6 @@ export default async function StudentHifz() {
 
       <div className="field">
         <HifzJourney list={list} records={recordMap} expected={expected} />
-      </div>
-
-      <div className="divider">
-        <span className="label">The record</span>
-        <span className="r" />
-        <span className="m" />
-      </div>
-
-      <div className="field">
-        <HifzRecord entries={entries} />
       </div>
 
       <div className="signoff">

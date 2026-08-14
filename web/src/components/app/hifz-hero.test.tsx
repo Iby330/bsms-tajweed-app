@@ -13,6 +13,7 @@ const block = (hizb: number, count: number, passed: number, state: HizbBlock["st
   state,
 });
 const base = {
+  number: 103,
   nameEn: "Al-Ikhlas", nameAr: "الإخلاص",
   meta: { ayahs: 4, meaning: "The Sincerity" },
   juz: { juz: 30, name_en: "Juz 'Amma", name_ar: "عمّ", passed: 12, total: 37 },

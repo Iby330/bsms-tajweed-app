@@ -1,19 +1,32 @@
+"use client";
+
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { fmtDay } from "@/lib/format";
-import { hizbOf, rowPlan } from "@/lib/hifz/hizb";
+import { hizbOf, HIZB_BOUNDS } from "@/lib/hifz/hizb";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
+import { SURAH_INFO } from "@/lib/hifz/surah-info";
 import type { Surah } from "@/lib/hifz/pace";
 
 type Rec = { passed_at: string; teacher_comment: string | null };
 
-/** Gentle winding: node indent cycles per row. CSS only, no animation. */
-const OFFSETS = [0, 16, 32, 16];
-
 /**
- * The path itself. Shows the student's own list, grouped by hizb, with a
- * "you are here" node, a dashed marker where class pace sits, collapsed
- * upcoming stretches, and hizb-check milestone cards between groups.
- * Comments live in <HifzRecord>; nodes only get a hint glyph.
+ * The year as a mushaf index.
+ *
+ * Thirty-odd surahs read faster as a grid than as a path: the whole run is
+ * one shape, and the Arabic does the naming. Cells are grouped into their
+ * hizb bands — the standard division, from HIZB_BOUNDS — so the structure a
+ * student is actually assessed on is visible rather than implied.
+ *
+ * Two things the earlier path got wrong and this fixes:
+ *  · the pace marker was an unlabelled rule. Nobody could know what it meant,
+ *    so it now says "expected here by now" in words.
+ *  · comments lived in a separate record below, which meant the grid could
+ *    not tell you where feedback existed. A speech mark on the cell does.
+ *
+ * Selecting a surah opens its detail: what it means, when it was revealed,
+ * its theme, and the teacher's comment — kept visually apart from the
+ * scholarship above it so the two are never confused.
  */
 export function HifzJourney({
   list,
@@ -24,209 +37,163 @@ export function HifzJourney({
   records: Map<number, Rec>;
   expected: number;
 }) {
+  const [selected, setSelected] = useState<number | null>(null);
   if (list.length === 0) return null;
 
   const passedCount = list.filter((s) => records.has(s.number)).length;
   const currentIdx = list.findIndex((s) => !records.has(s.number)); // -1 → all passed
-  // Omit the marker when: no expectation yet, dead-on pace (chip already says it),
-  // the list is complete, or it would sit on the "you are here" node — which is
-  // most of any normal week, since expectedPassed rounds up.
+  // Omitted when there is no expectation yet, when it lands on the surah the
+  // student is already on, or when they are exactly on pace — the chip in the
+  // overview says that better than a rule does.
   const rawMarker = expected > 0 ? Math.min(expected, list.length) - 1 : null;
   const markerIdx =
     rawMarker !== null && currentIdx !== -1 && rawMarker !== currentIdx && expected !== passedCount
       ? rawMarker
       : null;
 
-  // Contiguous hizb groups over the list, keeping each surah's global index.
-  const groups: { hizb: number | null; start: number; surahs: Surah[] }[] = [];
+  // Contiguous hizb groups over the list, each keeping its global index.
+  const groups: { hizb: number; items: { s: Surah; i: number }[] }[] = [];
   list.forEach((s, i) => {
     const h = hizbOf(s.number);
+    if (h === null) return;
     const last = groups[groups.length - 1];
-    if (last && last.hizb === h) last.surahs.push(s);
-    else groups.push({ hizb: h, start: i, surahs: [s] });
+    if (last && last.hizb === h) last.items.push({ s, i });
+    else groups.push({ hizb: h, items: [{ s, i }] });
   });
 
-  const groupState = (g: (typeof groups)[number]) => {
-    const passed = g.surahs.filter((s) => records.has(s.number)).length;
-    if (passed === g.surahs.length) return "complete";
-    // any real pass expands the group — out-of-order marks/undo must stay visible
-    if ((currentIdx >= g.start && currentIdx < g.start + g.surahs.length) || passed > 0)
-      return "current";
-    return "future";
-  };
+  const sel = selected === null ? null : list.find((s) => s.number === selected) ?? null;
 
   return (
-    <section aria-label="Memorisation journey" className="box c12">
-      {groups.map((g, gi) => {
-        const state = groupState(g);
-        const next = groups[gi + 1];
-        const nextStarted = next ? next.surahs.some((s) => records.has(s.number)) : false;
-        const first = g.surahs[0];
-        const last = g.surahs[g.surahs.length - 1];
-        const markerInGroup =
-          markerIdx !== null && markerIdx >= g.start && markerIdx < g.start + g.surahs.length;
-
-        // Future groups collapse to a label row — but never swallow the pace marker.
-        if (state === "future") {
-          return (
-            <div key={gi} className="mt-3 border-t border-line pt-3 first:mt-0 first:border-t-0 first:pt-0">
-              <p className="text-xs text-muted-foreground">
-                Hizb {g.hizb} — {first.name_en} to {last.name_en} · {g.surahs.length} surahs
-              </p>
-              {markerInGroup && (
-                <div className="mt-2 flex items-center gap-2.5">
-                  <span className="size-7 shrink-0 rounded-full border-2 border-dashed border-warn" />
-                  <span className="text-xs text-warn">
-                    class pace is ahead — {list[markerIdx!].name_en}
-                  </span>
-                </div>
-              )}
-            </div>
-          );
-        }
-
-        // Which rows stay visible: everything except upcoming nodes, but keep
-        // the first upcoming, the group's last node, and the pace-marker node.
-        const keep = new Set<number>();
-        g.surahs.forEach((s, li) => {
-          const i = g.start + li;
-          const upcoming = !records.has(s.number) && i !== currentIdx;
-          if (!upcoming || i === currentIdx + 1 || li === g.surahs.length - 1 || i === markerIdx)
-            keep.add(li);
-        });
-
+    <section className="box c12" aria-label="Your surahs">
+      {groups.map((g) => {
+        const bound = HIZB_BOUNDS.find((b) => b.hizb === g.hizb);
+        const inHizb = bound ? bound.to - bound.from + 1 : g.items.length;
+        const done = g.items.filter((x) => records.has(x.s.number)).length;
+        // "Ready" only when the WHOLE hizb is on the student's list and passed —
+        // a partial hizb can never be checked, so it must not claim to be.
+        const ready = done === g.items.length && g.items.length === inHizb;
         return (
-          <div key={gi} className={cn(gi > 0 && "mt-4")}>
-            <p className="mb-3 label">
-              Hizb {g.hizb} — {first.name_en} to {last.name_en}
-            </p>
+          <div key={g.hizb}>
+            <div className="band">
+              <span className="t">Hizb {g.hizb}</span>
+              <span className="r" />
+              <span className={cn("st", !ready && "wait")}>
+                {done} of {g.items.length}
+                {ready && " · ready for your check"}
+              </span>
+            </div>
 
-            {rowPlan(g.surahs.length, keep).map((row, ri) => {
-              if (row.kind === "gap") {
+            <div className="index">
+              {g.items.map(({ s, i }) => {
+                const rec = records.get(s.number);
+                const meta = SURAH_META[s.number];
                 return (
-                  <div key={`gap-${ri}`} className="my-1 ml-9 text-xs text-muted-foreground">
-                    … {row.count} more surahs
-                  </div>
+                  <button
+                    key={s.number}
+                    type="button"
+                    onClick={() => setSelected(selected === s.number ? null : s.number)}
+                    aria-pressed={selected === s.number}
+                    className={cn(
+                      "cell",
+                      rec && "done",
+                      i === currentIdx && "next",
+                      selected === s.number && "sel",
+                    )}
+                  >
+                    <span className="n">{String(i + 1).padStart(2, "0")}</span>
+                    {i === currentIdx && <span className="tag">NEXT</span>}
+                    {rec?.teacher_comment && (
+                      <span className="cmt" title="Your teacher left a comment" aria-hidden>
+                        <svg viewBox="0 0 24 24">
+                          <path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9l-5 4V5a1 1 0 0 1 1-1z" />
+                        </svg>
+                      </span>
+                    )}
+                    <span dir="rtl" lang="ar" className="ar-quran">{s.name_ar}</span>
+                    <span className="en">
+                      {s.name_en}
+                      {meta && <span className="sr-only"> — {meta.meaning}</span>}
+                    </span>
+                  </button>
                 );
-              }
-              const li = row.index;
-              const i = g.start + li;
-              const s = g.surahs[li];
-              const rec = records.get(s.number);
-              const offset = OFFSETS[li % OFFSETS.length];
-              const isCurrent = i === currentIdx;
-              const nodeMeta = SURAH_META[s.number];
+              })}
+            </div>
 
-              return (
-                <div key={s.number}>
-                  {li > 0 && (
-                    <div
-                      className={cn("h-3 w-0.5", rec ? "bg-ok" : "bg-line")}
-                      style={{ marginLeft: offset + (isCurrent ? 23 : 13) }}
-                    />
-                  )}
-                  {isCurrent ? (
-                    <div className="flex items-center gap-3" style={{ marginLeft: offset }}>
-                      <div className="grid size-12 shrink-0 place-items-center rounded-full border-[3px] border-ok bg-card shadow-sm">
-                        <span dir="rtl" lang="ar" className="ar-quran text-xs text-ok">
-                          {s.name_ar}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">{s.name_en} — you are here</p>
-                        {nodeMeta && (
-                          <p className="text-xs text-muted-foreground">
-                            {nodeMeta.ayahs} ayahs · &ldquo;{nodeMeta.meaning}&rdquo;
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div
-                      className={cn("flex items-center gap-2.5", !rec && "opacity-75")}
-                      style={{ marginLeft: offset }}
-                    >
-                      <span
-                        className={cn(
-                          "grid size-7 shrink-0 place-items-center rounded-full text-[11px]",
-                          rec ? "bg-ok text-card" : "border border-line text-muted-foreground",
-                        )}
-                        aria-hidden
-                      >
-                        {rec ? "✓" : ""}
-                      </span>
-                      <span className="min-w-0 truncate text-sm text-muted-foreground">
-                        {s.name_en}{" "}
-                        <span dir="rtl" lang="ar" className="ar-quran">
-                          {s.name_ar}
-                        </span>
-                      </span>
-                      {rec?.teacher_comment && (
-                        <span className="shrink-0 text-xs">
-                          <span aria-hidden>💬</span>
-                          <span className="sr-only">has teacher comment</span>
-                        </span>
-                      )}
-                      {rec && (
-                        <span className="ml-auto shrink-0 text-xs tabular-nums text-muted-foreground">
-                          <span className="sr-only">passed </span>
-                          {fmtDay(rec.passed_at)}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  {i === markerIdx && (
-                    <>
-                      <div className="h-3 w-0.5 bg-line" style={{ marginLeft: offset + 13 }} />
-                      <div className="flex items-center gap-2.5" style={{ marginLeft: offset }}>
-                        <span className="size-7 shrink-0 rounded-full border-2 border-dashed border-warn" />
-                        <span className="text-xs text-warn">class pace is here — {s.name_en}</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-
-            {/* Hizb-check milestone after this group (not after the final group). */}
-            {next && g.hizb !== null && (
-              <div
-                className={cn(
-                  "mt-3 flex items-center gap-3 rounded-lg border px-4 py-3",
-                  state === "complete" && !nextStarted && "border-warn bg-warn/10",
-                  state === "complete" && nextStarted && "border-line bg-muted/50",
-                  state === "current" && "border-dashed border-warn/50 bg-warn/5",
-                )}
-              >
-                <span
-                  aria-hidden
-                  className={cn("text-base", state === "complete" && nextStarted ? "text-ok" : "text-warn")}
-                >
-                  {state === "complete" && nextStarted ? "✓" : "◆"}
-                </span>
-                <div>
-                  <p className={cn("text-xs font-medium", state === "current" ? "text-warn" : "text-foreground")}>
-                    {state === "complete" && !nextStarted
-                      ? `Ready for your Hizb ${g.hizb} check`
-                      : `Hizb ${g.hizb} check`}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Present the whole hizb to your teacher in one sitting
-                    {next.hizb !== null && ` — then Hizb ${next.hizb} begins`}.
-                  </p>
-                </div>
+            {markerIdx !== null && g.items.some((x) => x.i === markerIdx) && (
+              <div className="paceline">
+                <span className="t">Expected here by now</span>
+                <span className="r" />
               </div>
             )}
           </div>
         );
       })}
 
-      {/* Completion milestone at the end of the student's own list. */}
-      {currentIdx === -1 && list.length > 0 && (
-        <div className="mt-3 rounded-lg border border-ok bg-ok/10 px-4 py-3 text-center">
-          <p className="text-sm font-medium text-ok">Target complete — masha&rsquo;Allah.</p>
-        </div>
-      )}
+      {sel && <SurahDetail surah={sel} rec={records.get(sel.number)} />}
     </section>
+  );
+}
+
+function SurahDetail({ surah, rec }: { surah: Surah; rec?: Rec }) {
+  const meta = SURAH_META[surah.number];
+  const info = SURAH_INFO[surah.number];
+  return (
+    <div className="detail">
+      <span dir="rtl" lang="ar" className="ar-quran big">{surah.name_ar}</span>
+      <div>
+        <div className="en">
+          {surah.name_en}
+          {meta && ` — “${meta.meaning}”`}
+        </div>
+        <div className="facts">
+          {meta && <span>{meta.ayahs} āyāt</span>}
+          {info && <span>{info.revealedIn === "makkah" ? "Makkan" : "Madinan"}</span>}
+          {info && <span>Revealed {info.revelationOrder}th</span>}
+          <span>Hizb {hizbOf(surah.number)}</span>
+          <span>{rec ? `Passed ${fmtDay(rec.passed_at)}` : "Not yet passed"}</span>
+        </div>
+
+        {/* The source itself flags where two surahs share one introduction.
+            Saying so is the difference between context and a non sequitur. */}
+        {info?.sharedWith && (
+          <div className="shared">
+            {info.sharedWith} They are the Mu&rsquo;awwidhatayn — the two surahs of refuge,
+            revealed together.
+          </div>
+        )}
+        {info?.revealed && (
+          <>
+            <div className="seclab">When it was revealed</div>
+            <p className="desc">{info.revealed}</p>
+          </>
+        )}
+        {info?.theme && (
+          <>
+            <div className="seclab">Theme</div>
+            <p className="desc">{info.theme}</p>
+          </>
+        )}
+        {info?.source && <div className="src">{info.source}</div>}
+
+        {rec?.teacher_comment && (
+          <div className="saywrap">
+            <div className="seclab">Your teacher said</div>
+            <blockquote className="say">
+              <p>&ldquo;{rec.teacher_comment}&rdquo;</p>
+              <div className="by">{fmtDay(rec.passed_at)}</div>
+            </blockquote>
+          </div>
+        )}
+
+        <a
+          className="readon"
+          href={`https://quran.com/${surah.number}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Read it on Quran.com →
+        </a>
+      </div>
+    </div>
   );
 }

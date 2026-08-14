@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { SURAH_INFO } from "@/lib/hifz/surah-info";
 import type { PaceStatus } from "@/lib/hifz/pace";
 import type { CheckStatus, HizbBlock, JuzProgress } from "@/lib/hifz/hizb";
 
@@ -6,6 +7,7 @@ import type { CheckStatus, HizbBlock, JuzProgress } from "@/lib/hifz/hizb";
  *  the distance to the next hizb check. Everything is precomputed by the
  *  page; this only renders. */
 export function HifzHero({
+  number,
   nameEn,
   nameAr,
   meta,
@@ -15,6 +17,8 @@ export function HifzHero({
   complete,
   check,
 }: {
+  /** the surah being memorised now, for its introduction */
+  number: number | null;
   nameEn: string;
   nameAr: string;
   meta?: { ayahs: number; meaning: string };
@@ -140,6 +144,17 @@ export function HifzHero({
           until your <span className="font-medium">Hizb {check.hizb} check</span> — presenting
           the whole hizb to your teacher.
         </p>
+      )}
+
+      {/* What the student is on now, in context — revealed when, and about
+          what. Static data, so this costs nothing at request time. */}
+      {number !== null && SURAH_INFO[number]?.revealed && (
+        <div className="herodesc">
+          <span className="label">About this surah</span>
+          <p>{SURAH_INFO[number].revealed}</p>
+          {SURAH_INFO[number].theme && <p>{SURAH_INFO[number].theme}</p>}
+          <div className="src">{SURAH_INFO[number].source}</div>
+        </div>
       )}
     </section>
   );
