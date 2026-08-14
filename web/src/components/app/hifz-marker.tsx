@@ -35,7 +35,7 @@ export function HifzMarker({
               )}>{s.passed ? "✓" : ""}</span>
               <span className="truncate text-sm">
                 {s.name_en}{" "}
-                <span dir="rtl" lang="ar" className="ar-ui text-muted-foreground">{s.name_ar}</span>
+                <span dir="rtl" lang="ar" className="ar-quran text-muted-foreground">{s.name_ar}</span>
               </span>
             </span>
             <span className="flex shrink-0 gap-1.5">

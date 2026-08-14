@@ -128,7 +128,7 @@ export function HifzJourney({
                   {isCurrent ? (
                     <div className="flex items-center gap-3" style={{ marginLeft: offset }}>
                       <div className="grid size-12 shrink-0 place-items-center rounded-full border-[3px] border-ok bg-card shadow-sm">
-                        <span dir="rtl" lang="ar" className="ar-ui text-xs text-ok">
+                        <span dir="rtl" lang="ar" className="ar-quran text-xs text-ok">
                           {s.name_ar}
                         </span>
                       </div>
@@ -157,7 +157,7 @@ export function HifzJourney({
                       </span>
                       <span className="min-w-0 truncate text-sm text-muted-foreground">
                         {s.name_en}{" "}
-                        <span dir="rtl" lang="ar" className="ar-ui">
+                        <span dir="rtl" lang="ar" className="ar-quran">
                           {s.name_ar}
                         </span>
                       </span>

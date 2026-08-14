@@ -48,7 +48,7 @@ function RecordRow({ e }: { e: RecordEntry }) {
     <li className="border-l-2 border-line pl-3">
       <p className="text-sm">
         <span className="font-medium">{e.name_en}</span>{" "}
-        <span dir="rtl" lang="ar" className="ar-ui text-muted-foreground">
+        <span dir="rtl" lang="ar" className="ar-quran text-muted-foreground">
           {e.name_ar}
         </span>
         <span className="ml-2 text-xs tabular-nums text-muted-foreground">

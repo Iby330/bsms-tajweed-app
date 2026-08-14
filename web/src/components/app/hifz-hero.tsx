@@ -33,7 +33,7 @@ export function HifzHero({
             {complete ? "Memorisation target complete" : "Now memorising"}
           </p>
           <p className="mt-1 text-3xl">
-            <span dir="rtl" lang="ar" className="ar-ui">{nameAr}</span>
+            <span dir="rtl" lang="ar" className="ar-quran">{nameAr}</span>
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             {nameEn}
@@ -68,7 +68,7 @@ export function HifzHero({
             <div className="space-y-1">
               <p className="label">
                 {juz.name_en}{" "}
-                <span dir="rtl" lang="ar" className="ar-ui normal-case tracking-normal">
+                <span dir="rtl" lang="ar" className="ar-quran normal-case tracking-normal">
                   {juz.name_ar}
                 </span>
               </p>
