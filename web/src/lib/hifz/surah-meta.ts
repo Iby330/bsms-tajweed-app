@@ -1,6 +1,11 @@
-/** Static mushaf facts for the surahs in the memorisation run (72–114).
+/** Static mushaf facts for the surahs in the memorisation run (67–114).
  *  Not in the DB on purpose — this never changes. */
 export const SURAH_META: Record<number, { ayahs: number; meaning: string }> = {
+  67: { ayahs: 30, meaning: "The Sovereignty" },
+  68: { ayahs: 52, meaning: "The Pen" },
+  69: { ayahs: 52, meaning: "The Reality" },
+  70: { ayahs: 44, meaning: "The Ascending Stairways" },
+  71: { ayahs: 28, meaning: "Noah" },
   72: { ayahs: 28, meaning: "The Jinn" },
   73: { ayahs: 20, meaning: "The Enshrouded One" },
   74: { ayahs: 56, meaning: "The Cloaked One" },

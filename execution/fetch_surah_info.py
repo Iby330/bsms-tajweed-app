@@ -43,8 +43,9 @@ UA = {
     "Accept": "application/json",
 }
 
-# The memorisation run, matching surah-meta.ts.
-FIRST, LAST = 72, 114
+# The memorisation run, matching surah-meta.ts. Extended down to Al-Mulk (67)
+# so a student who passes the year's target has somewhere to go next.
+FIRST, LAST = 67, 114
 OUT = "web/src/lib/hifz/surah-info.ts"
 OUT_FULL = "web/src/lib/hifz/surah-detail.json"
 

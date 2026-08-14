@@ -1,5 +1,5 @@
 /**
- * Short summaries of each surah in the memorisation run.
+ * Short summaries of each surah in the memorisation run (67 to 114).
  *
  * WHO THEY ARE FOR. Students with little or no background. That drives every
  * choice here:
@@ -23,7 +23,7 @@
  *
  * REVIEW STATUS. `REVIEWED` is false and the page says so on every surah.
  * Drafted by an assistant, not a scholar. Someone qualified at BSMS should
- * read all 43, paying particular attention to the narrations and to the
+ * read all 48, paying particular attention to the narrations and to the
  * historical background, which is summarised here at second hand.
  *
  * `revealedIn` comes from surah-info.ts and is not restated. `dispute` is a
@@ -40,6 +40,36 @@ export type SurahSummary = {
 };
 
 export const SURAH_SUMMARY: Record<number, SurahSummary> = {
+  67: {
+    paragraphs: [
+      "One of the earliest surahs revealed in Makkah. There is no reliable report of exactly when it came down, but its style places it early, in the period when the whole of Islam was being put to people in short, striking surahs rather than explained at length.",
+      "It opens by saying that all control rests with Allah, who created death and life in order to test which of us acts best. Then it asks the reader to look up at the sky and find a single flaw in it, and to look again, because the eye will come back tired having found nothing. Near the end it asks a question that is genuinely difficult to answer: if the water you drink sank away into the ground, who exactly would bring it back to you? The Prophet صلى الله عليه وسلم said this surah pleads on behalf of whoever recites it until they are forgiven.",
+    ],
+  },
+  68: {
+    paragraphs: [
+      "Among the very earliest surahs revealed, but from a point where opposition in Makkah had turned harsh. The leaders of the city were telling people that the Prophet صلى الله عليه وسلم had lost his mind, which was an effective way of stopping anyone taking him seriously.",
+      "It swears by the pen and by what is written, then answers that accusation directly: you are not mad, and you are upon a great standard of character. In the middle is a story about the owners of an orchard who agreed to harvest it at first light, deliberately early so that the poor would not see them and could not ask for anything. They arrived to find it stripped bare. The surah ends by telling the Prophet صلى الله عليه وسلم to wait patiently for his Lord's judgement.",
+    ],
+  },
+  69: {
+    paragraphs: [
+      "One of the earliest surahs, from the stage when opposition had begun but had not yet turned violent. Umar ibn al-Khattab, who later became the second caliph but at that time was still hostile to Islam, said that he once came upon the Prophet صلى الله عليه وسلم reciting this surah, and hearing it was part of what eventually changed his mind.",
+      "Its name means the reality, and the surah names it three times at the start to make the listener stop. It recalls earlier peoples who denied what they were told and what became of them, then describes the Day itself and the moment each person is handed their record, either in the right hand or the left, along with what each of them says at that moment. The second half insists that the Qur'an is not the work of a poet or a fortune teller, but revelation from the Lord of all the worlds.",
+    ],
+  },
+  70: {
+    paragraphs: [
+      "Revealed in Makkah in conditions much like those of Surah Al-Haqqah. People there had begun mocking the warnings about the Day of Judgement, and one of them demanded sarcastically that if this punishment were real it should simply arrive now.",
+      "The surah opens with that very demand and then answers it. It describes a day on which the angels ascend, whose measure is fifty thousand years, and tells the Prophet صلى الله عليه وسلم to be patient with a beautiful patience. It then describes the human being as anxious by nature, panicking when something bad touches him and clutching tight when good comes his way, and makes an exception for those who pray and who set aside a known share of their wealth for the one who asks and the one who is too proud to ask.",
+    ],
+  },
+  71: {
+    paragraphs: [
+      "Revealed in Makkah once opposition to the Prophet صلى الله عليه وسلم had become strong and organised. It tells the story of Nuh, a prophet sent long before, who called his people for a very long time and was answered by almost none of them.",
+      "He describes how he called them by night and by day, in public and in private, and how they put their fingers in their ears and pulled their clothes over their heads rather than listen. He points them upwards at the moon and the sun, and reminds them that they themselves were grown out of the earth. The story is not told for its own sake. The people of Makkah are being shown that they are behaving exactly as Nuh's people behaved, and warned that the ending need not be different.",
+    ],
+  },
   72: {
     paragraphs: [
       "Revealed in Makkah. The Prophet صلى الله عليه وسلم was travelling with some companions and stopped at a place called Nakhlah to lead the dawn prayer. A group of jinn passing by heard the Qur'an being recited and stopped to listen. Jinn are a creation made from smokeless fire, who live alongside us but are not normally seen. No prophet had been sent to them, and they had no warning that any of this was coming.",
