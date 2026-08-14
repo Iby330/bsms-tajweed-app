@@ -141,7 +141,7 @@ export function HifzHero({
           <span className="font-medium tabular-nums">
             {check.remaining} surah{check.remaining === 1 ? "" : "s"}
           </span>{" "}
-          until your <span className="font-medium">Hizb {check.hizb} check</span> — presenting
+          until your <span className="font-medium">Hizb {check.hizb} check</span>. Presenting
           the whole hizb to your teacher.
         </p>
       )}

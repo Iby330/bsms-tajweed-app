@@ -98,7 +98,7 @@ export function HifzJourney({
                     <span dir="rtl" lang="ar" className="ar-quran">{s.name_ar}</span>
                     <span className="en">
                       {s.name_en}
-                      {meta && <span className="sr-only"> — {meta.meaning}</span>}
+                      {meta && <span className="sr-only">, {meta.meaning}</span>}
                     </span>
                   </Link>
                 );

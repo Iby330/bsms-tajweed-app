@@ -206,7 +206,7 @@ export default async function StudentHome() {
             </>
           ) : (
             <div className="note">
-              {hwAvg === null ? "No marks yet." : "One mark so far — the trend appears at two."}
+              {hwAvg === null ? "No marks yet." : "One mark so far. The trend appears at two."}
             </div>
           )}
         </section>

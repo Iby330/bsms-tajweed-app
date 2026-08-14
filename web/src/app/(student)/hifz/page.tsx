@@ -35,7 +35,7 @@ export default async function StudentHifz() {
 
   const all = surahs as Surah[];
   if (all.length === 0) {
-    return <EmptyState message="The surah list couldn't be loaded — please try again shortly." />;
+    return <EmptyState message="The surah list couldn't be loaded. Please try again shortly." />;
   }
 
   const list = memorisationList(hp.start_surah, hp.target_count, all);

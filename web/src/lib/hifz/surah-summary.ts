@@ -4,23 +4,27 @@
  *
  * WHERE THE CONTENT COMES FROM. The substance is drawn from Sayyid Abul A'la
  * Maududi's Tafhim al-Qur'an (via the Quran.com API, kept in
- * surah-detail.json) — the occasion of revelation, the period, and the theme.
- * The wording is not his. Tafhim is a scholarly commentary written for readers
- * with grounding, and quoting it directly produced paragraphs of dispute
- * between commentators that this programme's students have no use for.
+ * surah-detail.json): the occasion of revelation, the period, the theme, and
+ * the narrations Tafhim cites. The wording is not his. Tafhim is a scholarly
+ * commentary written for readers with grounding, and quoting it directly
+ * produced paragraphs of dispute between commentators that this programme's
+ * students have no use for.
  *
  * WHAT THEY ARE FOR. A student memorising a surah should know what they are
- * memorising: roughly when it came, what prompted it, and what it is saying.
- * Two paragraphs. No verse-by-verse tafsir. Where the Qur'an warns, the
- * summary says so plainly rather than dwelling on it — the aim is a student
- * who understands the surah, not one who is frightened of it.
+ * memorising: when it came, what prompted it, and what it is saying. Where a
+ * narration records the actual question that was asked, it is quoted, because
+ * "someone asked about God's ancestry and this was the answer" teaches more
+ * than "it is about God's oneness".
+ *
+ * HOUSE STYLE. No em dashes. Commas, semicolons and full stops instead.
  *
  * REVIEW STATUS. `REVIEWED` is false. These were drafted by an assistant
  * working from Tafhim, not written by a scholar, and the page marks every one
  * of them as a draft until that changes. Someone qualified at BSMS should read
- * all 43 and then flip the flag.
+ * all 43 and then flip the flag. Pay particular attention to the narrations:
+ * they are reported here at second hand.
  *
- * `revealedIn` is NOT restated here — it comes from surah-info.ts, so the two
+ * `revealedIn` is NOT restated here; it comes from surah-info.ts, so the two
  * cannot disagree. `dispute` carries a one-line note only where scholars are
  * commonly reported to differ, including the few places where Tafhim's view
  * and the API's field do not match.
@@ -38,272 +42,274 @@ export type SurahSummary = {
 export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   72: {
     paragraphs: [
-      "Revealed in Makkah. The Prophet ﷺ was travelling with some of his companions and stopped to lead the dawn prayer at a place called Nakhlah. A group of jinn passing by heard the Qur'an being recited, stayed to listen, and went back to their own people to tell them what they had found.",
-      "Most of the surah is their own words, quoted back to us. They describe a recitation unlike anything they had heard, and they correct beliefs their people had held for generations. The striking thing is that they were convinced by hearing it alone — no messenger had been sent to them, and nobody argued them into it.",
+      "Revealed in Makkah. Bukhari and Muslim record, on the authority of Ibn Abbas, that the Prophet صلى الله عليه وسلم was travelling with some companions towards the fair of Ukaz and stopped at a place called Nakhlah to lead the dawn prayer. A group of jinn passing by heard the Qur'an being recited, stayed to listen, and went back to their people to tell them what they had heard.",
+      "Most of the surah is their own words, quoted back to us. They say they heard a wonderful recitation guiding to right conduct, that they believed in it, and that they will never associate anyone with their Lord. They also correct beliefs their own people had held for generations. Nobody argued them into it and no messenger had been sent to them; hearing it was enough.",
     ],
   },
   73: {
     paragraphs: [
-      "Revealed in Makkah near the very beginning of the Prophet's ﷺ mission. He is addressed by how he was at that moment — wrapped in his cloak — and told to rise and pray through part of the night. The last verse came much later, in Madinah, easing the length of that night prayer.",
-      "The opening verses set out what the night was for: preparing to carry something heavy. Standing in prayer, reciting unhurriedly, and being patient with what people said are given as the way to build the strength the work would need. It is a surah about getting ready more than about the task itself.",
+      "The first nineteen verses were revealed at Makkah, very early. The Prophet صلى الله عليه وسلم is addressed by how he was at that moment, wrapped in his cloak, and told to stand in prayer for about half the night. The closing verse came years later in Madinah and eased that requirement, since Allah knew the community could not sustain it.",
+      "The opening verses explain why the night was needed: a weighty word was about to be placed on him, and the night is when impressions are strongest and speech is most upright. Alongside prayer he is told to recite unhurriedly, to be patient with what people say, and to leave those who deny him to Allah. It is a surah about preparation rather than about the mission itself.",
     ],
   },
   74: {
     paragraphs: [
-      "Among the earliest revelations in Makkah. After the first five verses of Al-'Alaq, revelation paused for a time. When it returned, these verses came — again finding the Prophet ﷺ wrapped in a cloak, and this time telling him to get up and warn.",
-      "This is where the public call begins, and the instructions are practical: rise, warn, keep yourself clean, be patient, and do not give in order to receive more back. The later part describes a man who heard the Qur'an, privately recognised its power, and rejected it anyway rather than lose face.",
+      "Among the earliest revelations at Makkah. Bukhari, Muslim and others record from Jabir ibn Abdullah that after the first five verses of Al-Alaq revelation paused. When it resumed, the Prophet صلى الله عليه وسلم saw the angel who had come to him at Hira, returned home shaken and asked to be covered, and these verses came.",
+      "This is where the public call begins, and the instructions are short and practical: rise, warn, magnify your Lord, keep your clothes clean, and do not give in order to receive more back. The later part describes a man who listened to the Qur'an, thought about it, and then called it magic passed down, because admitting the truth would have cost him his standing.",
     ],
   },
   75: {
     paragraphs: [
-      "One of the earliest surahs revealed in Makkah, when the idea of being raised again after death was being openly mocked. People asked how scattered bones could ever be gathered.",
-      "It answers directly: the One who shaped a person from a drop can restore them down to their fingertips. Along the way the Prophet ﷺ is told not to hurry his tongue over the revelation — it would be preserved for him without effort. The surah is honest about the moment of death, but its subject is really that nothing anyone does is lost or forgotten.",
+      "One of the earliest surahs revealed at Makkah, when the idea of being raised after death was being openly mocked. The objection people raised was practical: how could scattered bones ever be gathered again?",
+      "The surah answers it directly. Allah is able not only to reassemble the bones but to restore even the fingertips, which are different in every person. In the middle the Prophet صلى الله عليه وسلم is told not to move his tongue in haste trying to hold on to the revelation, because gathering it and making it clear was Allah's responsibility, not his. It ends with the moment the soul reaches the collarbone.",
     ],
   },
   76: {
     paragraphs: [
-      "Describes the human being from the very start: a time when he was not something worth mentioning, then a drop, then given hearing and sight and shown the way. What he does with that is left to him.",
-      "Most of the surah then describes what is prepared for those who kept their word and fed the poor, the orphan and the captive — saying plainly that they wanted no thanks and no reward in return. The descriptions of the Garden are unhurried and gentle, and they are the point of the surah rather than a note at the end of it.",
+      "The surah opens with the human being before he was anything at all: a period when he was not a thing worth mentioning, then a mixed drop, then given hearing and sight. Having been shown the way, he is either grateful or ungrateful, and the choice is genuinely his.",
+      "Most of what follows describes those who fulfil their vows and fear a day whose evil is widespread, and who feed the poor, the orphan and the captive despite loving the food themselves, saying: we feed you only for the sake of Allah, we want no reward from you and no thanks. The descriptions of the Garden that follow are long and unhurried, and they are the substance of the surah rather than an appendix to it.",
     ],
-    dispute: "Scholars differ on where it was revealed; both Makkah and Madinah are reported.",
+    dispute: "Scholars differ on where it was revealed. Most commentators cited in Tafhim hold it Makkan; it is also reported as Madinan.",
   },
   77: {
     paragraphs: [
-      "Revealed in the earliest period at Makkah, alongside the surahs around it that deal with the same subject. It belongs to a run of revelations that came quickly, one after another.",
-      "It opens with an oath by the winds sent forth, and argues from them: the One who set this system running in the world is not going to be unable to bring about another. One line returns through the surah after each sign — woe that Day to those who denied it — which makes it memorable, and which is part of why it reads as a warning rather than a lecture.",
+      "Revealed in the earliest period at Makkah, in the same run as Al-Qiyamah, Ad-Dahr, An-Naba and An-Naziat, all of which press the same subject.",
+      "It opens with an oath by the winds sent forth and argues from them: the One who arranged this system in the world is not unable to bring about another. A single line returns after each stage of the argument, woe that day to those who denied, ten times in all. That refrain is what makes the surah memorable, and it is why it reads as a series of warnings rather than a lecture.",
     ],
   },
   78: {
     paragraphs: [
-      "Revealed early in Makkah. People were arguing among themselves about what the Prophet ﷺ had brought, and the surah opens by asking what all the questioning is actually about.",
-      "The answer is the great news of the Day people were refusing to accept. It then points at ordinary things — the earth spread out, mountains set as pegs, sleep given as rest, night as a covering — and lets them make the case: whoever arranged all this can certainly raise the dead. It ends with the Day itself, and with a person wishing they had prepared.",
+      "Revealed early at Makkah, in the period when the Prophet's صلى الله عليه وسلم message rested on three claims: that nobody shares in Allah's divinity, that he had been sent as a messenger, and that this world will end and another will follow. People were arguing about the third.",
+      "The surah opens by asking what they are questioning one another about, then answers with a list of ordinary things: the earth spread out as a bed, mountains set as pegs, night as a covering, sleep as rest, and the sun as a blazing lamp. The case it makes is simple. Whoever arranged all this can certainly raise you again. It ends with a person on that day wishing he had sent something ahead.",
     ],
   },
   79: {
     paragraphs: [
-      "Revealed in Makkah shortly after An-Naba, on the same subject. Both belong to the period when the Resurrection was the main point of dispute between the Prophet ﷺ and the people of Makkah.",
-      "It opens with oaths by the angels who take souls at death, and makes a quiet argument from them: those who can draw a soul out today can return it tomorrow. The middle of the surah tells the story of Musa and Pharaoh — a man who was given a clear sign, and who chose to think himself above it. The end asks about the Hour and answers that its knowledge belongs to God alone.",
+      "Ibn Abbas reported that this surah came down after An-Naba. It belongs to the same early Makkan period and continues the same argument.",
+      "It swears by the angels who pull out souls at death and who carry out Allah's commands, and the argument sits inside the oath: those who can draw a soul out today can return it tomorrow. The middle of the surah tells of Musa being sent to Pharaoh, who was shown the greatest sign and answered by gathering his people and claiming to be their highest lord. The end says the knowledge of when the Hour comes belongs to Allah alone.",
     ],
   },
   80: {
     paragraphs: [
-      "Revealed in Makkah on a known occasion. The Prophet ﷺ was in the middle of speaking to some of the leading men of Quraysh, hoping they would accept Islam, when a blind man came and interrupted him with a question. He turned away from him.",
-      "The surah opens by correcting that. Read as a whole, though, the displeasure falls on the chiefs rather than on the Prophet ﷺ — men who were treated as important, and who were rejecting the truth out of arrogance, while the one genuinely seeking it was the one waved aside. It is a surah about who is actually worth attending to.",
+      "The commentators are unanimous about the occasion. Some of the chiefs of Makkah were sitting with the Prophet صلى الله عليه وسلم while he was earnestly trying to persuade them to accept Islam. A blind man named Ibn Umm Maktum, an early convert, came and interrupted with a question about Islam, and the Prophet صلى الله عليه وسلم disliked the interruption and ignored him.",
+      "The surah opens by correcting that, then widens out. Read whole, the displeasure falls on the chiefs: men who were being given time and attention while rejecting the truth out of arrogance, when the one genuinely seeking it was the one waved aside. Ibn Umm Maktum went on to be honoured by the Prophet صلى الله عليه وسلم, who is reported to have greeted him afterwards by saying: welcome to the one on whose account my Lord admonished me.",
     ],
   },
   81: {
     paragraphs: [
-      "One of the earliest surahs revealed at Makkah. It was said that whoever wants to see the Day of Judgement as though with their own eyes should read this surah and the two that follow it.",
-      "The first verses undo the world piece by piece: the sun folded up, the stars falling, the mountains moved, the seas boiling over. Then the second half turns to where the Qur'an came from — brought by a noble messenger, not something invented, and not the words of a madman as they were claiming. It ends by asking simply: where are you going?",
+      "One of the earliest surahs revealed at Makkah. Ibn Umar reported that the Prophet صلى الله عليه وسلم said that whoever wishes to see the Day of Resurrection as though with his own eyes should read At-Takwir, Al-Infitar and Al-Inshiqaq.",
+      "The first verses take the world apart: the sun folded up, the stars falling, the mountains moved, the pregnant camels left untended, the seas set boiling. Among them is a question the Arabs of the time understood immediately, about the infant girl buried alive being asked for what sin she was killed. The second half turns to the source of the revelation, describing the one who brought it and stating that the Prophet صلى الله عليه وسلم is not mad, as they were saying.",
     ],
   },
   82: {
     paragraphs: [
-      "Revealed in Makkah in the same period as At-Takwir, which it closely resembles. The two were sent down at about the same time and cover the same ground.",
-      "It describes the sky splitting, the seas overflowing and the graves overturned, and then makes it personal: on that Day every soul will know exactly what it sent ahead and what it left behind. It also mentions the honourable ones who write down what we do — a reminder that nothing goes unrecorded, and that the record is not written by someone careless.",
+      "Revealed at Makkah in the same period as At-Takwir, which it closely resembles in subject and style.",
+      "It describes the sky splitting, the stars scattering, the seas bursting forth and the graves overturned, then makes it personal: on that day every soul will know what it sent ahead and what it held back. It asks what deceived a person about his generous Lord, who created him, proportioned him and balanced him. It also names the honourable scribes who record what we do, so that nothing is left to memory.",
     ],
   },
   83: {
     paragraphs: [
-      "Revealed early in Makkah, at a time when the surahs coming down were pressing the reality of the Hereafter on people who were dismissing it.",
-      "It begins with one everyday dishonesty: traders who demand full measure when receiving, and give short when they hand over. The surah treats that as a symptom rather than the disease — people cheat in small ways because they do not really believe they will be asked about it. From there it sets the record of the wicked beside the record of the righteous, and what each will find.",
+      "Revealed early at Makkah, in the period when surah after surah was pressing the reality of the Hereafter on people who dismissed it.",
+      "It opens with one everyday dishonesty: those who take full measure when receiving from others, and give less when they measure or weigh for them. The surah treats that as a symptom. People cheat in small ways because they do not really expect to be asked about it. From there it sets out two records, one for the wicked and one for the righteous, and describes the believers who were laughed at in this world watching from couches on that day.",
     ],
   },
   84: {
     paragraphs: [
-      "Another of the earliest Makkan surahs. At this point the Muslims were not yet being persecuted, but the message was being openly rejected in Makkah.",
-      "It describes the sky splitting and the earth flattening out and emptying itself, and gives a reason for it: because their Lord commanded them, and they obeyed, as is only right. Then it turns to us — every person is working towards their Lord and will meet Him — and describes the two ways a record may be handed over. It closes by asking why, when the signs are this plain, people still do not believe.",
+      "Among the earliest Makkan surahs. Persecution of the Muslims had not yet begun, but the Qur'an was being openly rejected in Makkah.",
+      "It describes the sky splitting and the earth being stretched out and emptying what is inside it, and gives the reason twice: because it listened to its Lord, and it was right to do so. Then it turns to the reader. You are labouring towards your Lord and will meet Him, and your record will be given either in your right hand or from behind your back. It asks why, when the signs are this plain, people still do not believe.",
     ],
   },
   85: {
     paragraphs: [
-      "Revealed in Makkah when persecution of the Muslims was at its worst, and the disbelievers were using force to turn new converts away from Islam.",
-      "It tells of an earlier people who dug a trench, lit a fire in it, and threw believers into it for no reason except that they believed. The surah is addressed to both sides at once: a warning to those doing the persecuting, and a consolation to those enduring it — that this has happened before, that God saw it, and that He is the Forgiving, the Loving, whose grip is not weak.",
+      "Revealed at Makkah when persecution of the Muslims was at its height, and the Quraysh were using force to turn new converts back from Islam.",
+      "It recalls the people of the ditch, who dug a trench, filled it with fire, and sat watching while believers were thrown in, guilty of nothing except believing in Allah. The surah speaks to both sides at once. It warns those doing the persecuting that they will face the punishment of burning, and it reassures those enduring it that Allah is watching, that He is the Forgiving and the Loving, and that His grip is severe. It closes by pointing out that the Qur'an itself is preserved on a guarded tablet.",
     ],
   },
   86: {
     paragraphs: [
-      "Revealed at Makkah when the Quraysh were trying every plan they could think of to stop the Qur'an spreading.",
-      "It swears by the night-comer, the piercing star, and points out that nothing exists without a guardian over it. Then it asks a person to look at what they were made from, and draws the obvious conclusion: the One who brought you from that can certainly bring you back. It ends by saying the Qur'an is a decisive word, and that whatever plans are made against it, God has a plan too.",
+      "Revealed at Makkah in the period when the Quraysh were trying every plan they could devise to stop the Qur'an spreading.",
+      "It swears by the night visitor, the piercing star, and observes that there is no soul without a guardian over it. Then it asks a person to consider what he was created from, a fluid ejected, and draws the conclusion: the One who made him from that is able to return him. The surah closes by saying the Qur'an is a decisive word and not amusement, and that while they are making their plans, Allah is planning too.",
     ],
   },
   87: {
     paragraphs: [
-      "One of the earliest surahs revealed. Verse 6 — that the Prophet ﷺ would be enabled to recite and would not forget — suggests it came at a stage when he was still anxious about holding on to what was being revealed.",
-      "It has three strands: glorifying God's name and keeping it free of anything unworthy; instructions to the Prophet ﷺ to remind, because the reminder benefits whoever is willing to hear it; and a plain comparison at the end — people prefer this life, while the Hereafter is better and lasting. It closes by noting this was in the earlier scriptures too, of Ibrahim and Musa.",
+      "One of the earliest surahs revealed. The words in verse six, that he would be made to recite and would not forget, indicate that it came while the Prophet صلى الله عليه وسلم was still anxious about retaining what was revealed to him.",
+      "It carries three strands. Glorify the name of your Lord, the Most High, and keep it clear of anything that suggests deficiency or resemblance to created things. Then instructions to the Prophet صلى الله عليه وسلم, that he should remind, since the reminder benefits whoever is willing to hear it. Then a plain comparison: people prefer this life, while the next is better and lasting. It notes that this was in the earlier scriptures too, of Ibrahim and Musa.",
     ],
   },
   88: {
     paragraphs: [
-      "Revealed early at Makkah, once the Prophet ﷺ had begun preaching publicly and people were hearing the message for the first time.",
-      "It opens by asking whether news of the overwhelming event has reached you, then shows two faces side by side: one worn out and weary, and one content with its striving. Having pictured both ends, it turns to things anyone can look at — the camel, the sky, the mountains, the earth — and asks how they were made. The point is not to threaten but to invite a person to look, and think.",
+      "Revealed early at Makkah, once the Prophet صلى الله عليه وسلم had begun preaching publicly and people were hearing the message for the first time. At that stage his preaching centred on two things the Quraysh rejected: Allah's oneness, and the Hereafter.",
+      "It opens by asking whether news of the overwhelming event has reached you, then shows two faces: one humbled and exhausted, and one pleased with its effort. Having pictured both, it turns to things anyone can look at without instruction, the camel and how it was made, the sky and how it was raised, the mountains and how they were fixed, the earth and how it was spread. The instruction that follows is only to remind, since the Prophet صلى الله عليه وسلم was not sent to control people.",
     ],
   },
   89: {
     paragraphs: [
-      "Revealed at Makkah when persecution of new Muslims had begun. The peoples named in it were held up to Quraysh deliberately.",
-      "After swearing by the dawn and the ten nights, it recalls 'Ad, Thamud and Pharaoh — three peoples who had strength and were confident in it, and who are gone. Then it turns to how people behave with money: pleased when given plenty, resentful when given less, while neglecting the orphan and not urging one another to feed the poor. It ends beautifully, with the soul at peace being called home.",
+      "Revealed at Makkah when persecution of new Muslims had begun. The three peoples it names were held up to the Quraysh deliberately, since all of them had strength and were confident in it.",
+      "After oaths by the dawn, the ten nights, the even and the odd, it recalls Ad of the lofty pillars, Thamud who carved the rocks in the valley, and Pharaoh of the stakes, and says plainly that your Lord is ever watchful. It then turns to how people behave with money: pleased when given plenty, resentful when restricted, while not honouring the orphan or urging one another to feed the poor. It ends with the soul at rest being called back, well pleased and pleasing.",
     ],
   },
   90: {
     paragraphs: [
-      "Revealed at Makkah in the period when the Quraysh had decided to oppose the Prophet ﷺ openly.",
-      "It swears by the city itself, then says something honest: the human being was created into hardship, and life is not meant to be easy. It asks whether he thinks nobody has power over him, and whether he thinks nobody sees. Then it names the steep path most people do not attempt — freeing a slave, feeding the hungry on a day of famine, an orphan or someone in the dust — and adds that it also means being among those who urge one another to patience and mercy.",
+      "Revealed at Makkah in the period when the Quraysh had resolved to oppose the Prophet صلى الله عليه وسلم openly.",
+      "It swears by the city, then states something honest: the human being was created into hardship, and life was never designed to be comfortable. It asks whether he thinks nobody has power over him, and whether he thinks nobody saw him. Then it names the steep path that most people do not attempt: freeing a slave, or feeding on a day of severe hunger an orphan near of kin or a poor person in the dust. It adds that this also means being among those who believe and urge one another to patience and to compassion.",
     ],
   },
   91: {
     paragraphs: [
-      "Revealed in the earliest period at Makkah, when opposition to the Prophet ﷺ had become strong.",
-      "It swears eleven times — by the sun, the moon, the day, the night, the sky, the earth, and finally the soul itself and how it was shaped — and every oath leads to one point: whoever purifies their soul has succeeded, and whoever buries it has failed. The story of Thamud follows, as an example of a people who were shown clearly what to do and chose otherwise.",
+      "Revealed in the earliest period at Makkah, at a stage when opposition to the Prophet صلى الله عليه وسلم had grown strong.",
+      "Eleven oaths run one after another, by the sun and its brightness, the moon that follows it, the day, the night, the sky, the earth, and finally the soul and the One who proportioned it and showed it what is wrong and what is right. Every one of them leads to a single sentence: whoever purifies the soul has succeeded, and whoever corrupts it has failed. The story of Thamud follows, a people who were shown exactly what to do and did the opposite.",
     ],
   },
   92: {
     paragraphs: [
-      "Revealed in Makkah around the same time as Ash-Shams, which it closely resembles. Each surah reads like an explanation of the other.",
-      "Its subject is that people's efforts genuinely differ — as different as night from day. One person gives, is mindful of God, and believes in the best reward; another withholds, and thinks he needs nothing from anyone. Both are made easy towards where they are heading. It ends with the one who gives his wealth to purify himself, seeking nothing but the face of his Lord, and who will certainly be pleased.",
+      "Revealed at Makkah around the same time as Ash-Shams, which it closely resembles. Each surah reads as an explanation of the other.",
+      "Its subject is that what people are striving for genuinely differs, as different as night from day. One gives, is conscious of Allah, and believes in the best reward, and his way is made easy towards ease. Another withholds, considers himself self-sufficient, and denies the best, and his way is made easy towards hardship. It ends with the one who gives his wealth to purify himself, seeking nothing in return and no favour owed, seeking only the face of his Lord, and who will be satisfied.",
     ],
   },
   93: {
     paragraphs: [
-      "Revealed at Makkah after revelation had stopped coming for a period. The Prophet ﷺ was distressed by the silence, and people had begun to say that his Lord had abandoned him.",
-      "The answer is gentle and personal: by the morning light and the stillness of night, your Lord has not left you and is not displeased with you. It reminds him of his own life — an orphan who was sheltered, lost who was guided, in need who was enriched — and then turns those three into instructions: so do not be harsh with the orphan, do not turn away the one who asks, and speak about the favour of your Lord.",
+      "Revealed at Makkah after revelation had stopped for a period. The Prophet صلى الله عليه وسلم was deeply distressed by the silence, and people had begun saying that his Lord had left him and was displeased with him.",
+      "The answer is personal and gentle. By the morning brightness and by the night when it is still, your Lord has not forsaken you, nor is He displeased. What comes after is better than what came before, and He will give until you are satisfied. It then reminds him of his own life, an orphan given shelter, one lost given guidance, one in need given enough, and turns each into an instruction: so do not oppress the orphan, do not repel the one who asks, and speak of the favour of your Lord.",
     ],
   },
   94: {
     paragraphs: [
-      "Revealed in Makkah in the same period and the same circumstances as Ad-Duha, and it reads as a continuation of it. Before his call the Prophet ﷺ had been widely respected; afterwards the same society turned against him.",
-      "It reminds him of what had already been done for him — his chest expanded, the burden that weighed on his back lifted, his name raised — and then gives the promise it is best known for, said twice rather than once: with hardship comes ease. It ends practically: when you are free, work on, and turn to your Lord.",
+      "Revealed at Makkah in the same period and circumstances as Ad-Duha, and it continues directly from it. Before his call the Prophet صلى الله عليه وسلم had been honoured in Makkah; afterwards the same society turned hostile, and this was a shock without precedent in his life.",
+      "It reminds him of what had already been done: his chest expanded, the burden that weighed on his back removed, his mention raised high. Then comes the line the surah is known for, and it is said twice rather than once, that with hardship comes ease. It ends with instructions rather than comfort: when you have finished, work on, and turn to your Lord with longing.",
     ],
   },
   95: {
     paragraphs: [
-      "Held by most scholars to be Makkan. It swears by the fig and the olive, by Mount Sinai, and by the secure city — places associated with earlier prophets and with Makkah itself.",
-      "Its point is about the human being: created in the best form, and then brought down to the lowest of the low — except those who believe and do good, for whom there is a reward without end. It closes by asking what, after all this, could make someone still deny the Judgement, and whether God is not the most just of judges.",
+      "Held by most scholars to be Makkan. It swears by the fig and the olive, by Mount Sinai, and by this secure city, places associated with earlier prophets and with Makkah itself.",
+      "Its statement about the human being is short and heavy: created in the best of forms, then reduced to the lowest of the low, except those who believe and do righteous deeds, for whom there is a reward uninterrupted. It closes by asking what then makes you deny the Judgement, and whether Allah is not the most just of judges.",
     ],
-    dispute: "Most scholars hold it to be Makkan; some report it as Madinan.",
+    dispute: "Most scholars hold it Makkan. Qatadah is reported as saying it is Madinan, and both views are reported from Ibn Abbas.",
   },
   96: {
     paragraphs: [
-      "The first five verses are the very first revelation the Prophet ﷺ received, in the cave of Hira. The rest of the surah came later, in Makkah.",
-      "It begins with a command to read in the name of the Lord who created, and who taught by the pen what a person did not know — the first word of the Qur'an being about knowledge. The later verses describe a man who saw someone praying and tried to stop him, and warn him that God sees. It ends with an instruction to prostrate and draw near, which is why a sajdah is made here.",
+      "The first five verses are the very first revelation, received in the cave of Hira. A great majority of scholars agree on this. The rest of the surah came later at Makkah, when opposition had begun.",
+      "It opens with a command to read in the name of the Lord who created, who created the human being from a clinging clot, and who taught by the pen what he did not know. The first word of the Qur'an is about reading, and the first thing mentioned after creation is knowledge. The later verses describe a man who saw someone praying and tried to prevent him, and warn him that Allah sees. The surah ends with an instruction to prostrate and draw near, which is why a sajdah is made at this point.",
     ],
   },
   97: {
     paragraphs: [
-      "Placed straight after Al-'Alaq, which is meaningful: that surah carries the first revelation, and this one tells us the night it came down on.",
-      "It says the Qur'an was sent down on the Night of Decree, and that this night is better than a thousand months. The angels and the Spirit descend on it with every matter, and it is peace until the break of dawn. Read while memorising, its point is about the worth of what you are memorising — this is not an ordinary book, and it did not arrive on an ordinary night.",
+      "Its placement directly after Al-Alaq is meaningful. That surah carries the first revelation; this one names the night on which it came down.",
+      "It says the Qur'an was sent down on the Night of Decree, and that this night is better than a thousand months. The angels and the Spirit descend on it by their Lord's permission with every decreed matter, and it is peace until the emergence of dawn. For a student memorising, the point is about the worth of what is being memorised. This is not an ordinary book, and it did not arrive on an ordinary night.",
     ],
-    dispute: "Scholars differ on where it was revealed; both Makkah and Madinah are reported.",
+    dispute: "Whether it is Makkan or Madinan is disputed. Abu Hayyan reports that most scholars regard it as Madinan.",
   },
   98: {
     paragraphs: [
-      "Its placement after Al-'Alaq and Al-Qadr is deliberate: those explain what was revealed and when, and this one explains why a messenger had to be sent with it at all.",
-      "It says people — those with earlier scriptures and those without — were not going to be left as they were until clear evidence reached them: a messenger reciting purified pages. It then states what religion actually asks for, in one plain sentence: sincerity in worship, upright prayer, and giving charity. It ends with the best of creation and their reward.",
+      "Its position after Al-Alaq and Al-Qadr is deliberate. Those tell what was revealed and when; this one explains why a messenger had to be sent alongside it.",
+      "It says that the People of the Book and the idolaters were not going to be left as they were until clear evidence came to them, a messenger from Allah reciting purified pages. It then states what was actually asked of them, in one sentence: to worship Allah sincerely, to establish prayer, and to give zakat, and says this is the upright religion. It ends with the best of creation and their reward with their Lord, gardens beneath which rivers flow.",
     ],
-    dispute: "Scholars differ on where it was revealed; both Makkah and Madinah are reported.",
+    dispute: "Where it was revealed is disputed. Commentators are reported on both sides, some saying most hold it Makkan and others that most hold it Madinan.",
   },
   99: {
     paragraphs: [
-      "A short surah about the second life and the record of what a person did. Scholars report it as both Makkan and Madinan.",
-      "The earth is shaken with its final shaking and throws out its burdens, and a person asks what is happening to it. Then the surah does something remarkable: it says the earth will report its news, because your Lord inspired it to. The ground you walked on becomes a witness. It ends with the line most people know — whoever does an atom's weight of good will see it, and whoever does an atom's weight of evil will see it.",
+      "A short surah about the second life and the record of what a person did. Ibn Masud, Ata, Jabir and Mujahid are reported as holding it Makkan; Qatadah and others as Madinan.",
+      "The earth is shaken with its final shaking, throws out its burdens, and the human being asks what is wrong with it. Then the surah does something remarkable. It says the earth will report its news, because your Lord inspired it to. The ground people walked on becomes the witness. It ends with the line almost everyone knows, that whoever does an atom's weight of good will see it, and whoever does an atom's weight of evil will see it.",
     ],
-    dispute: "Scholars differ on where it was revealed; both Makkah and Madinah are reported.",
+    dispute: "Whether it is Makkan or Madinan is disputed, with early authorities reported on both sides.",
   },
   100: {
     paragraphs: [
-      "Revealed against the background of Arabia at the time, where raiding between tribes was constant and bloodshed was ordinary. The opening oaths — galloping horses, striking sparks, raising dust at dawn — would have been an everyday sight.",
-      "From that it turns to the human being: ungrateful to his Lord, and himself a witness to that; and fierce in his love of wealth. The closing verses ask whether he knows what happens when the graves are emptied and what is in the hearts is brought out — not only what people did, but what they kept hidden inside.",
+      "Revealed against the background of Arabia at the time, where raiding between tribes was constant and bloodshed was ordinary. The opening oaths, of galloping horses striking sparks with their hooves and raising dust at dawn, described something everyone had seen.",
+      "From that it turns on the human being: he is ungrateful to his Lord, and he is himself a witness to that, and he is intense in his love of wealth. The closing verses ask whether he knows what happens when what is in the graves is scattered and what is in the breasts is brought out. Not only what people did, but what they kept hidden inside them, is included in the reckoning.",
     ],
-    dispute: "Scholars differ on where it was revealed; both Makkah and Madinah are reported.",
+    dispute: "Whether it is Makkan or Madinan is disputed. Ibn Masud, Jabir, Hasan al-Basri, Ikrimah and Ata are reported as saying Makkan; Anas ibn Malik and Qatadah as saying Madinan.",
   },
   101: {
     paragraphs: [
-      "Undisputedly Makkan, and among the earliest revealed. Its subject is the Day of Judgement.",
-      "It opens by naming the event three times over, so that the listener stops and pays attention, then gives two images: people scattered like moths around a light, and mountains like carded wool. After that it becomes very simple — deeds are weighed, and whoever's scales are heavy is in a life that pleases them. The surah is short, and its brevity is part of how it lands.",
+      "There is no dispute that this is Makkan, and its contents place it among the earliest revealed.",
+      "It names the striking calamity three times over at the start, so that the listener stops and pays attention, then gives two pictures: people like scattered moths, and mountains like carded wool. After that it becomes very plain. Deeds are weighed, and whoever's scales are heavy will be in a pleasant life, while whoever's are light will have an abyss for a home. The surah is short, and the shortness is part of how it lands.",
     ],
   },
   102: {
     paragraphs: [
-      "Makkan, according to the commentators. It names a very ordinary problem: competing over who has more.",
-      "Piling up wealth and status, and comparing yourself with others, keeps people occupied until they reach the graves — and the phrase used means it distracts them from what actually matters, not that having things is itself the sin. The surah then repeats a warning twice for emphasis, and ends by saying you will be asked, on that Day, about the blessings you enjoyed.",
+      "Makkan according to the commentators. It names a very ordinary human problem: competing over who has more.",
+      "Piling up wealth and status and comparing yourself with others distracts people until they visit the graves. The word used means being kept busy with something small while something larger goes unattended, so what is being criticised is the distraction rather than owning things. It then repeats a warning twice for emphasis, saying you will come to know, and ends by saying that on that day you will be asked about the pleasures you enjoyed.",
     ],
   },
   103: {
     paragraphs: [
-      "Held by most commentators to be Makkan, and among the earliest. It is three verses long.",
-      "Swearing by time itself, it states that the human being is in loss — and then makes four exceptions: those who believe, do good, urge one another to truth, and urge one another to patience. Imam ash-Shafi'i said that if people considered only this surah, it would be enough to guide them. The last two conditions are worth noticing: they are not things you can do alone.",
+      "Held by a great majority of commentators to be Makkan, and among the earliest revealed. It is three verses long.",
+      "Swearing by time, it states that the human being is in loss, then makes four exceptions: those who believe, who do righteous deeds, who counsel one another to truth, and who counsel one another to patience. Imam ash-Shafi'i said that if people considered only this surah it would be enough for their guidance. The last two conditions are worth noticing when memorising it, because neither of them is something a person can do alone.",
     ],
-    dispute: "Most commentators hold it to be Makkan; Mujahid, Qatadah and Muqatil are reported to have held it Madinan.",
+    dispute: "Mujahid, Qatadah and Muqatil are reported as holding it Madinan; a great majority of commentators hold it Makkan.",
   },
   104: {
     paragraphs: [
-      "Agreed to be Makkan, and one of the earliest. It describes faults that everyone in that society recognised as faults — nobody was defending them.",
-      "It warns the one who slanders and mocks people behind their backs, and who counts his wealth over and over as if it will make him last forever. The surah's answer is direct: it will not. What is being condemned is a particular character — using money and words to make yourself big by making others small.",
+      "All commentators agree it is Makkan, and its subject and style place it among the earliest. The faults it names were recognised as faults by the Arabs themselves; nobody was defending them.",
+      "It warns the one who slanders and belittles people, and who gathers wealth and counts it over, as though his wealth would make him live forever. The surah answers that directly: it will not. What is being condemned is a whole character, someone who uses money and words to make himself large by making other people small.",
     ],
   },
   105: {
     paragraphs: [
-      "Unanimously Makkan, and revealed very early. It recalls the army that came with an elephant to destroy the Ka'bah in the year the Prophet ﷺ was born.",
-      "The event is described in five short verses because it needed no explanation: everyone in Makkah knew it had happened, and the Quraysh themselves believed the Ka'bah had been protected by God rather than by any idol. The surah simply asks: did you not see what your Lord did with them? Their plan was made useless, and the ones who thought themselves unstoppable were undone.",
+      "Unanimously Makkan and revealed very early. It recalls the expedition of Abraha, the Abyssinian governor of Yemen, who marched on Makkah with an elephant intending to destroy the Kabah. This happened in the year the Prophet صلى الله عليه وسلم was born.",
+      "Five short verses were enough because everyone in Makkah knew the story, and the Quraysh themselves believed the Kabah had been protected by Allah rather than by any idol. The surah simply asks whether you have not considered how your Lord dealt with the companions of the elephant, and answers that He made their plan go astray and sent birds against them, leaving them like eaten straw. The ones who thought themselves unstoppable were undone without a battle.",
     ],
   },
   106: {
     paragraphs: [
-      "Makkan, according to a large majority of commentators — the words 'Lord of this House' point to Makkah plainly. It follows directly from Al-Fil, and reads as its conclusion.",
-      "It reminds the Quraysh of what they already enjoyed: the safety and standing that let their trading caravans travel in winter and summer without being touched. The argument is quiet and hard to refuse — you already agree this House belongs to God rather than to idols, and you know who fed you against hunger and made you safe from fear, so worship Him.",
+      "Makkan according to a great majority of commentators, and the phrase Lord of this House points plainly to Makkah. It follows directly from Al-Fil and reads as its conclusion.",
+      "It reminds the Quraysh of the security and standing they already enjoyed, which allowed their trading caravans to travel in winter to Yemen and in summer to Syria without being touched. Then it makes an argument they could not easily refuse: you already accept that this House belongs to Allah and not to the idols, and you know who fed you against hunger and made you safe from fear, so worship Him.",
     ],
+    dispute: "Dahhak and Kalbi are reported as holding it Madinan; a great majority hold it Makkan.",
   },
   107: {
     paragraphs: [
       "Revealed at Makkah. Its subject is what a person becomes when the Hereafter means nothing to them.",
-      "It asks who really denies the Judgement, and the answer is not someone who argues about it but someone who pushes an orphan aside and does not encourage feeding the poor. The last verses turn to people who do pray, but who are heedless of it, who are only seen to be praying, and who withhold even small everyday kindnesses. The surah measures belief by how someone treats other people.",
+      "It asks who it is that denies the Judgement, and the answer is not someone who argues about it but someone who drives away the orphan and does not encourage feeding the poor. The last four verses turn to people who do pray but are heedless of their prayer, who are only seen to be praying, and who withhold small everyday kindnesses. The two halves describe open deniers and outward believers, and the surah measures both by how they treat other people.",
     ],
-    dispute: "Scholars differ on where it was revealed; both Makkah and Madinah are reported.",
+    dispute: "Reported as both Makkan and Madinan by early authorities.",
   },
   108: {
     paragraphs: [
-      "Makkan, according to the majority. It is the shortest surah in the Qur'an — three verses.",
-      "It was revealed when the Prophet ﷺ was being mocked for having no surviving son, with people saying his name would end with him. The reply is that he has been given al-Kawthar, abundance, and that it is the one taunting him who will be cut off. In between comes an instruction: so pray to your Lord, and sacrifice. The answer to being belittled is to turn back to worship.",
+      "The shortest surah in the Qur'an, three verses. Anas ibn Malik related that the Prophet صلى الله عليه وسلم was among them when he dozed briefly, then raised his head smiling. He told them a surah had just been revealed, recited it, and then asked whether they knew what al-Kawthar was. When they said Allah and His Messenger know best, he said: it is a river my Lord has granted me in Paradise.",
+      "It was revealed when the Prophet صلى الله عليه وسلم was being taunted as abtar, cut off, meaning a man with no son to carry his name, so that he would be forgotten after his death. The reply is that he has been given abundance, and that it is the one taunting him who is cut off. Between the two comes an instruction: so pray to your Lord, and sacrifice.",
     ],
+    dispute: "The majority hold it Makkan. Hasan al-Basri, Ikrimah, Mujahid and Qatadah are reported as holding it Madinan, on the basis of the narration from Anas.",
   },
   109: {
     paragraphs: [
-      "Revealed at Makkah, when the Quraysh proposed a compromise: that each side take turns practising the other's religion for a year.",
-      "The surah refuses that, clearly and without hostility. It separates the two things completely — what you worship and what I worship are not the same, and there is no way of blending them — and then ends without argument or insult: for you your religion, and for me mine. It draws a line rather than picking a fight.",
+      "Revealed at Makkah when the Quraysh proposed a compromise, that each side worship the other's gods for a period, so the dispute could be settled without either giving way.",
+      "The surah refuses it, clearly and without insult. It separates the two things completely, saying that what you worship and what I worship are not the same and never will be, and ends without argument: for you your religion, and for me mine. Tafhim notes that this is not a statement about tolerating other religions but about not mixing them, since belief and disbelief cannot be combined into one thing.",
     ],
-    dispute: "Most report it as Makkan; some reports say Madinan.",
+    dispute: "Most commentators hold it Makkan. Abdullah ibn az-Zubayr is reported as saying Madinan, and both views are reported from Ibn Abbas and Qatadah.",
   },
   110: {
     paragraphs: [
-      "Reported by Ibn 'Abbas to be the last complete surah revealed, near the end of the Prophet's ﷺ life, when Makkah had been opened and people were entering Islam in large numbers.",
-      "It tells him that when the help of God and the victory come, and he sees people entering the religion in crowds, the mission he was sent for has been completed. And then, at the very moment of success, it commands something unexpected: praise your Lord, and ask His forgiveness. Not celebration — gratitude, and turning back to God.",
+      "Ibn Abbas stated that this is the last complete surah of the Qur'an to be revealed. It came near the end of the Prophet's صلى الله عليه وسلم life, after Makkah had been opened and people were entering Islam in large numbers.",
+      "It tells him that when the help of Allah and the victory come, and he sees people entering the religion in crowds, the work he was sent for has been completed. Then, at the moment of success, it commands something unexpected. Not celebration, but glorifying your Lord with praise and asking His forgiveness, and a reminder that He is ever accepting of repentance. Ibn Abbas understood it as an announcement of the Prophet's صلى الله عليه وسلم approaching death.",
     ],
   },
   111: {
     paragraphs: [
-      "Makkan. It concerns Abu Lahab, the Prophet's ﷺ own uncle, who opposed him openly and persistently, and his wife, who is described as carrying firewood.",
-      "It is unusual in naming a living opponent and stating his end while he was still alive and able to disprove it — and he never did. Read alongside the surahs around it, it makes a point about closeness: being related to the Prophet ﷺ was worth nothing without belief, and neither wealth nor what he earned was going to help him.",
+      "Makkan. It concerns Abu Lahab, the Prophet's صلى الله عليه وسلم own uncle, whose hostility had become an obstruction to the message. Tafhim suggests it may belong to the period of the boycott, when the Quraysh besieged the Prophet صلى الله عليه وسلم and his clan in the valley of Abu Talib, and Abu Lahab was the only member of the family to side with the enemies against his own relatives.",
+      "The surah is unusual in naming a living opponent and stating his end while he was alive and able to disprove it, which he never did. His wife is mentioned as the carrier of firewood, a description understood both literally, of thorns placed in the Prophet's صلى الله عليه وسلم path, and as an image of carrying slander. Read beside the surahs around it, the point is that closeness of blood was worth nothing without belief, and neither his wealth nor what he earned would help him.",
     ],
   },
   112: {
     paragraphs: [
-      "Revealed in answer to a question about who exactly this God being preached about was — people at the time worshipped gods with bodies, families, parents and children, who needed food and drink.",
-      "The reply is four verses that rule all of that out: He is One; He is the One everything turns to and depends on; He did not father and was not fathered; and there is nothing at all comparable to Him. The Prophet ﷺ described this surah as equal to a third of the Qur'an — one of the reasons it is among the first surahs almost every Muslim learns.",
+      "Several narrations give the occasion. Ibn Masud reported that the Quraysh said to the Prophet صلى الله عليه وسلم: tell us the ancestry of your Lord. Ubayy ibn Kab reported the same request from the polytheists, and Jabir ibn Abdullah reported a bedouin asking it. The question made sense in a world where gods were made of wood, stone, gold and silver, had bodies, were descended from one another, and had wives and children.",
+      "The four verses answer it by ruling all of that out. He is Allah, One. He is as-Samad, the One everything depends on and who depends on nothing. He did not father anyone and was not fathered. And there is nothing at all equal to Him. The Prophet صلى الله عليه وسلم described this surah as equal to a third of the Qur'an, and it is among the first surahs almost every Muslim learns.",
     ],
-    dispute: "Scholars differ on where it was revealed; both Makkah and Madinah are reported.",
+    dispute: "Whether it is Makkan or Madinan is disputed, because the narrations about its occasion place it in both settings.",
   },
   113: {
     paragraphs: [
-      "Revealed at Makkah, in the period when opposition to the Prophet ﷺ had grown intense and hostility towards him was coming from several directions at once.",
-      "It is a prayer for refuge with the Lord of the daybreak — from the harm of everything He made, from the night when it grows dark, and from envy when the envier envies. With An-Nas after it, the two are known as the Mu'awwidhatayn, the two surahs of seeking refuge, and they were revealed as a pair.",
+      "Revealed at Makkah, in the period when opposition to the Prophet صلى الله عليه وسلم had become intense and hostility was coming at him from several directions at once. Hasan al-Basri, Ikrimah, Ata and Jabir ibn Zayd held both this surah and the next to be Makkan.",
+      "It is a prayer for refuge with the Lord of the daybreak: from the evil of what He created, from the evil of darkness when it settles, from those who blow on knots, and from the evil of an envier when he envies. With An-Nas it forms the pair known as al-Muawwidhatayn, the two surahs of seeking refuge, and they were revealed together and are recited together.",
     ],
-    dispute: "Most report the pair as Makkan; some reports say Madinan.",
+    dispute: "Most report the pair as Makkan; a narration from Ibn Abbas reports them as Madinan.",
   },
   114: {
     paragraphs: [
-      "Revealed at Makkah alongside Al-Falaq, under the same conditions. The two were sent down together and are almost always recited together.",
-      "Where Al-Falaq seeks refuge from harm that comes from outside, this one seeks refuge from harm that comes from within — the whisperer who withdraws, who whispers into people's chests. It calls on God by three names in turn: Lord of mankind, King of mankind, God of mankind, so that the one asking knows exactly who they are asking.",
+      "Revealed at Makkah alongside Al-Falaq, under the same conditions and as part of the same pair. The two are almost always recited one after the other.",
+      "Where Al-Falaq seeks refuge from harm arriving from outside, this seeks refuge from harm that starts inside, from the whisperer who withdraws when Allah is remembered and returns when He is forgotten, and who whispers into the chests of people. It calls on Allah by three titles in sequence, Lord of mankind, King of mankind, God of mankind, so that whoever is asking knows exactly who they are asking and by what right.",
     ],
-    dispute: "Most report the pair as Makkan; some reports say Madinan.",
+    dispute: "Most report the pair as Makkan; a narration from Ibn Abbas reports them as Madinan.",
   },
 };

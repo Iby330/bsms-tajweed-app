@@ -86,7 +86,7 @@ export default async function SurahPage({
         </h1>
         <p>
           {surah.name_en}
-          {meta && ` — “${meta.meaning}”`}
+          {meta && `, “${meta.meaning}”`}
         </p>
         <div className="facts" style={{ marginTop: 16 }}>
           {meta && <span>{meta.ayahs} āyāt</span>}
@@ -156,7 +156,7 @@ export default async function SurahPage({
               {summary.dispute && <p className="dispute">{summary.dispute}</p>}
               {!REVIEWED && (
                 <p className="draftnote">
-                  Draft summary — not yet checked by a teacher.
+                  Draft summary. Not yet checked by a teacher.
                 </p>
               )}
               <a
