@@ -870,7 +870,13 @@ body::after {
   .cell .cmt { position: absolute; top: 9px; right: 10px; width: 13px; height: 13px; color: var(--ok); }
   .cell.next .cmt { right: 44px; }
   .cell .cmt svg { width: 100%; height: 100%; fill: currentColor; }
-  .cell.sel { background: var(--foreground); }
+  /* Selected beats hover, and has to say so: .cell.done:hover outweighs a
+     bare .cell.sel, so hovering a selected cell repainted the background
+     while the text kept its selected colour — dark on dark. */
+  .cell.sel,
+  .cell.sel:hover,
+  .cell.done.sel,
+  .cell.done.sel:hover { background: var(--foreground); }
   .cell.sel .ar-quran { color: var(--background); }
   .cell.sel .en, .cell.sel .n, .cell.sel .cmt { color: var(--background); opacity: 0.75; }
 
