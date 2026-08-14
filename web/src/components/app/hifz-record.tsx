@@ -19,7 +19,7 @@ export function HifzRecord({ entries }: { entries: RecordEntry[] }) {
   const preview = entries.slice(0, 2);
   const rest = entries.slice(2);
   return (
-    <section aria-labelledby="hifz-record-heading" className="glass rounded-2xl p-5">
+    <section aria-labelledby="hifz-record-heading" className="box c12">
       <h2 id="hifz-record-heading" className="text-sm font-medium">Your record</h2>
       <ul className="mt-3 space-y-3">
         {preview.map((e) => (

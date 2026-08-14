@@ -26,10 +26,10 @@ export function HifzHero({
 }) {
   const pct = juz && juz.total > 0 ? Math.round((juz.passed / juz.total) * 100) : 0;
   return (
-    <section className="glass rounded-2xl p-5" aria-label="Hifz overview">
+    <section className="box c12" aria-label="Hifz overview">
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          <p className="label">
             {complete ? "Memorisation target complete" : "Now memorising"}
           </p>
           <p className="mt-1 text-3xl">
@@ -66,7 +66,7 @@ export function HifzHero({
               </div>
             </div>
             <div className="space-y-1">
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              <p className="label">
                 {juz.name_en}{" "}
                 <span dir="rtl" lang="ar" className="ar-ui normal-case tracking-normal">
                   {juz.name_ar}

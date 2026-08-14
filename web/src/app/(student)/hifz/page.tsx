@@ -97,26 +97,70 @@ export default async function StudentHifz() {
     );
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5">
-      <header>
-        <h1 className="text-2xl">Hifz</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Your memorisation journey.</p>
+    <>
+      <header className="masthead">
+        <h1><span>Hifz</span></h1>
+        <p>Your memorisation journey.</p>
+        <div className="meta">
+          <span className="label">
+            {passedCount} of {list.length} surahs
+          </span>
+          {!complete && expected > 0 && (
+            <span className="label hi">
+              {passedCount > expected
+                ? `${passedCount - expected} ahead of pace`
+                : passedCount < expected
+                  ? `${expected - passedCount} behind pace`
+                  : "on pace"}
+            </span>
+          )}
+        </div>
       </header>
 
-      <HifzHero
-        nameEn={current?.name_en ?? ""}
-        nameAr={current?.name_ar ?? ""}
-        meta={current ? SURAH_META[current.number] : undefined}
-        juz={juz}
-        blocks={blocks}
-        pace={pace}
-        complete={complete}
-        check={check}
-      />
+      <div className="divider">
+        <span className="label">Where you are</span>
+        <span className="r" />
+        <span className="m" />
+      </div>
 
-      <HifzJourney list={list} records={recordMap} expected={expected} />
+      <div className="field">
+        <HifzHero
+          nameEn={current?.name_en ?? ""}
+          nameAr={current?.name_ar ?? ""}
+          meta={current ? SURAH_META[current.number] : undefined}
+          juz={juz}
+          blocks={blocks}
+          pace={pace}
+          complete={complete}
+          check={check}
+        />
+      </div>
 
-      <HifzRecord entries={entries} />
-    </div>
+      <div className="divider">
+        <span className="label">The journey</span>
+        <span className="r" />
+        <span className="m" />
+      </div>
+
+      <div className="field">
+        <HifzJourney list={list} records={recordMap} expected={expected} />
+      </div>
+
+      <div className="divider">
+        <span className="label">The record</span>
+        <span className="r" />
+        <span className="m" />
+      </div>
+
+      <div className="field">
+        <HifzRecord entries={entries} />
+      </div>
+
+      <div className="signoff">
+        <span className="lines">{profile.classes?.name ?? "BSMS"}</span>
+        <span className="wm" role="img" aria-label="BSMS Tajweed" />
+        <span className="lines right">{passedCount} of {list.length}</span>
+      </div>
+    </>
   );
 }

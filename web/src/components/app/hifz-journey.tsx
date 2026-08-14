@@ -56,7 +56,7 @@ export function HifzJourney({
   };
 
   return (
-    <section aria-label="Memorisation journey" className="glass rounded-2xl p-5">
+    <section aria-label="Memorisation journey" className="box c12">
       {groups.map((g, gi) => {
         const state = groupState(g);
         const next = groups[gi + 1];
@@ -97,7 +97,7 @@ export function HifzJourney({
 
         return (
           <div key={gi} className={cn(gi > 0 && "mt-4")}>
-            <p className="mb-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+            <p className="mb-3 label">
               Hizb {g.hizb} — {first.name_en} to {last.name_en}
             </p>
 
