@@ -46,6 +46,7 @@ UA = {
 # The memorisation run, matching surah-meta.ts.
 FIRST, LAST = 72, 114
 OUT = "web/src/lib/hifz/surah-info.ts"
+OUT_FULL = "web/src/lib/hifz/surah-detail.json"
 
 
 def get(url: str):
@@ -74,7 +75,7 @@ def trim(text: str, limit: int = 520) -> str:
 
 
 def main() -> int:
-    rows = {}
+    rows, full = {}, {}
     for n in range(FIRST, LAST + 1):
         try:
             ch = get(f"{API}/chapters/{n}?language=en")["chapter"]
@@ -83,6 +84,11 @@ def main() -> int:
             pick = lambda *keys: next(
                 (v for k, v in sec.items() if any(w in k.lower() for w in keys)), ""
             )
+            full[n] = {
+                "sections": [{"heading": k, "text": v} for k, v in sec.items()],
+                "lead": lead,
+                "source": info.get("source", ""),
+            }
             rows[n] = {
                 "revealedIn": ch["revelation_place"],
                 "revelationOrder": ch["revelation_order"],
@@ -129,7 +135,14 @@ def main() -> int:
             f"{body[:-1]}\n"
             "};\n"
         )
+    # The full prose is ~1 MB and is imported ONLY by the server-rendered
+    # surah page. JSON rather than TS so it never tempts a client component:
+    # the accessor beside it carries `import "server-only"`.
+    with open(OUT_FULL, "w", encoding="utf-8") as f:
+        json.dump(full, f, ensure_ascii=False)
+
     print(f"\nWrote {OUT} — {len(rows)} surahs")
+    print(f"Wrote {OUT_FULL} — full text, {sum(len(json.dumps(v)) for v in full.values()) // 1024} KB")
     return 0
 
 

@@ -1,11 +1,7 @@
-"use client";
-
-import { useState } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { fmtDay } from "@/lib/format";
 import { hizbOf, HIZB_BOUNDS } from "@/lib/hifz/hizb";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
-import { SURAH_INFO } from "@/lib/hifz/surah-info";
 import type { Surah } from "@/lib/hifz/pace";
 
 type Rec = { passed_at: string; teacher_comment: string | null };
@@ -24,9 +20,9 @@ type Rec = { passed_at: string; teacher_comment: string | null };
  *  · comments lived in a separate record below, which meant the grid could
  *    not tell you where feedback existed. A speech mark on the cell does.
  *
- * Selecting a surah opens its detail: what it means, when it was revealed,
- * its theme, and the teacher's comment — kept visually apart from the
- * scholarship above it so the two are never confused.
+ * A cell links to that surah's own page. The introductions run to thousands
+ * of words, so they get somewhere to live rather than an expanding panel that
+ * pushes the grid around and cannot be linked to.
  */
 export function HifzJourney({
   list,
@@ -37,7 +33,6 @@ export function HifzJourney({
   records: Map<number, Rec>;
   expected: number;
 }) {
-  const [selected, setSelected] = useState<number | null>(null);
   if (list.length === 0) return null;
 
   const passedCount = list.filter((s) => records.has(s.number)).length;
@@ -60,8 +55,6 @@ export function HifzJourney({
     if (last && last.hizb === h) last.items.push({ s, i });
     else groups.push({ hizb: h, items: [{ s, i }] });
   });
-
-  const sel = selected === null ? null : list.find((s) => s.number === selected) ?? null;
 
   return (
     <section className="box c12" aria-label="Your surahs">
@@ -88,17 +81,10 @@ export function HifzJourney({
                 const rec = records.get(s.number);
                 const meta = SURAH_META[s.number];
                 return (
-                  <button
+                  <Link
                     key={s.number}
-                    type="button"
-                    onClick={() => setSelected(selected === s.number ? null : s.number)}
-                    aria-pressed={selected === s.number}
-                    className={cn(
-                      "cell",
-                      rec && "done",
-                      i === currentIdx && "next",
-                      selected === s.number && "sel",
-                    )}
+                    href={`/hifz/${s.number}`}
+                    className={cn("cell", rec && "done", i === currentIdx && "next")}
                   >
                     <span className="n">{String(i + 1).padStart(2, "0")}</span>
                     {i === currentIdx && <span className="tag">NEXT</span>}
@@ -114,7 +100,7 @@ export function HifzJourney({
                       {s.name_en}
                       {meta && <span className="sr-only"> — {meta.meaning}</span>}
                     </span>
-                  </button>
+                  </Link>
                 );
               })}
             </div>
@@ -129,71 +115,6 @@ export function HifzJourney({
         );
       })}
 
-      {sel && <SurahDetail surah={sel} rec={records.get(sel.number)} />}
     </section>
-  );
-}
-
-function SurahDetail({ surah, rec }: { surah: Surah; rec?: Rec }) {
-  const meta = SURAH_META[surah.number];
-  const info = SURAH_INFO[surah.number];
-  return (
-    <div className="detail">
-      <span dir="rtl" lang="ar" className="ar-quran big">{surah.name_ar}</span>
-      <div>
-        <div className="en">
-          {surah.name_en}
-          {meta && ` — “${meta.meaning}”`}
-        </div>
-        <div className="facts">
-          {meta && <span>{meta.ayahs} āyāt</span>}
-          {info && <span>{info.revealedIn === "makkah" ? "Makkan" : "Madinan"}</span>}
-          {info && <span>Revealed {info.revelationOrder}th</span>}
-          <span>Hizb {hizbOf(surah.number)}</span>
-          <span>{rec ? `Passed ${fmtDay(rec.passed_at)}` : "Not yet passed"}</span>
-        </div>
-
-        {/* The source itself flags where two surahs share one introduction.
-            Saying so is the difference between context and a non sequitur. */}
-        {info?.sharedWith && (
-          <div className="shared">
-            {info.sharedWith} They are the Mu&rsquo;awwidhatayn — the two surahs of refuge,
-            revealed together.
-          </div>
-        )}
-        {info?.revealed && (
-          <>
-            <div className="seclab">When it was revealed</div>
-            <p className="desc">{info.revealed}</p>
-          </>
-        )}
-        {info?.theme && (
-          <>
-            <div className="seclab">Theme</div>
-            <p className="desc">{info.theme}</p>
-          </>
-        )}
-        {info?.source && <div className="src">{info.source}</div>}
-
-        {rec?.teacher_comment && (
-          <div className="saywrap">
-            <div className="seclab">Your teacher said</div>
-            <blockquote className="say">
-              <p>&ldquo;{rec.teacher_comment}&rdquo;</p>
-              <div className="by">{fmtDay(rec.passed_at)}</div>
-            </blockquote>
-          </div>
-        )}
-
-        <a
-          className="readon"
-          href={`https://quran.com/${surah.number}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Read it on Quran.com →
-        </a>
-      </div>
-    </div>
   );
 }
