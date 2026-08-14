@@ -4,6 +4,22 @@ Approved 2026-08-14. Lets teachers set memorisation targets from the hifz sectio
 a class-wide default on the register, a per-student override (start + target) on the
 student detail page. Closes items 1 and 2 of HIFZ.md.
 
+> **Revised same day — selection-based targeting (approved).** Goals are
+> student-specific, so the register becomes the one place targets are set:
+> each row gets a checkbox, with select-all / clear controls, and one target
+> panel applies to whoever is selected. Multi-select applies a shared **end
+> surah** — each student's `target_count` derives from their own start, so a
+> returning student gets a shorter run to the same goal; a student already
+> past the chosen end is skipped and named, never reset backwards. Selecting
+> exactly one student additionally exposes the starts-at picker (the
+> returning-student case). The detail-page Target form is removed, and
+> `setClassTarget` with it; `is_custom` stops being consulted — an explicit
+> selection is the authority on who gets written. New pure helper
+> `planTargets(students, endSurah, surahs)` returns per-student counts plus
+> the skipped list; the action `setTargetForStudents(ids, endSurah)` applies
+> the plan in one batch upsert and reports what it did. The sections below
+> describe the superseded first cut and stand as background.
+
 ## Decisions (user-confirmed)
 
 - **Class default + per-student override.** The register applies a default to every

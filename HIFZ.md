@@ -41,19 +41,24 @@ their target is.
 
 ## Known gaps
 
-### 1. ~~No teacher UI sets targets at all~~ — FIXED 2026-08-14
+### 1. ~~No teacher UI sets targets at all~~ — FIXED 2026-08-14 (revised same day)
 
-Target-setting shipped (spec: `docs/superpowers/specs/2026-08-14-hifz-target-setting-design.md`):
-a class-default card on `/teacher/hifz` and a start+target form on the student detail
-page, both resolving hizb presets or a custom end surah to `target_count` via
-`lib/hifz/targets.ts`.
+Target-setting shipped, then reworked to selection-based the same day (spec:
+`docs/superpowers/specs/2026-08-14-hifz-target-setting-design.md`): the register at
+`/teacher/hifz` has a checkbox per student plus select-all, and one panel applies an
+**end surah** to the selection — each student's `target_count` derives from their own
+start via `planTargets` in `lib/hifz/targets.ts`, and anyone already past the chosen
+end is skipped and named, never reset backwards. Selecting exactly one student also
+exposes the starts-at picker (the returning-student case). There is no detail-page
+form and no ambient class default.
 
-### 2. ~~`setClassTarget` would clobber returning students~~ — FIXED 2026-08-14
+### 2. ~~`setClassTarget` would clobber returning students~~ — GONE 2026-08-14
 
-`hifz_profiles.is_custom` (migration 0012) marks individually-set profiles; the class
-default only writes non-custom rows and no longer takes a caller-supplied classId. A
-teacher with no class of their own is refused — their roster fallback is the whole
-school.
+`setClassTarget` no longer exists; an explicit selection is the authority on who gets
+written, and per-student derivation means applying to everyone cannot reset anyone.
+`hifz_profiles.is_custom` (migration 0012) shipped in the first cut to protect
+overrides from the class default and is now **vestigial — nothing reads or writes
+it**; fold its removal into the schema work of the hizb rework.
 
 ### 3. Targets are a surah count, but teachers think in hizbs — input side done
 

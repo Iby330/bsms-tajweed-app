@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { supabaseServer, currentProfile } from "@/lib/supabase/server";
 import { getCachedSurahs } from "@/lib/reference/cached";
-import { teacherClass, teacherRoster } from "@/lib/teacher/scope";
+import { teacherRoster } from "@/lib/teacher/scope";
 import { memorisationList, type Surah } from "@/lib/hifz/pace";
+import { planTargets } from "@/lib/hifz/targets";
 
 async function requireTeacher() {
   const profile = await currentProfile();
@@ -56,10 +57,8 @@ async function requireValidTarget(startSurah: number, targetCount: number): Prom
     throw new Error("Target must fit between the start surah and the end of the run.");
 }
 
-/** Per-student override — a returning student who passed a hifz check
- *  resumes from where they finished rather than restarting at An-Nas.
- *  Marks the profile custom, which exempts it from setClassTarget forever
- *  after (until the teacher sets it again). */
+/** Per-student start + target — a returning student who passed a hifz check
+ *  resumes from where they finished rather than restarting at An-Nas. */
 export async function setStudentHifzProfile(
   studentId: string,
   startSurah: number,
@@ -71,46 +70,56 @@ export async function setStudentHifzProfile(
   await requireValidTarget(startSurah, targetCount);
 
   const db = await supabaseServer();
-  await db.from("hifz_profiles").upsert({
+  const { error } = await db.from("hifz_profiles").upsert({
     student_id: studentId, start_surah: startSurah, target_count: targetCount,
-    is_custom: true,
   });
+  if (error) throw new Error(error.message);
   revalidatePath("/teacher/hifz");
   revalidatePath("/hifz");
 }
 
 /**
- * The default: one target for the teacher's own class. Only ever writes
- * non-custom profiles, so a returning student's hand-set start and target
- * survive any number of re-applies. Always starts at An-Nas — a student who
- * starts anywhere else is by definition the per-student case.
+ * One end surah for a selection of students, a count per student — each
+ * derived from that student's own start, so a returning student gets a
+ * shorter run to the same goal. Students already past the end are skipped
+ * (their names come back for the register to report), never reset backwards.
+ * The explicit selection is the authority on who gets written; there is no
+ * ambient "class default" any more.
  */
-export async function setClassTarget(targetCount: number): Promise<void> {
+export async function setTargetForStudents(
+  studentIds: string[],
+  endSurah: number,
+): Promise<{ applied: number; skipped: string[] }> {
   await requireTeacher();
-  const cls = await teacherClass();
-  // Without this, a class-less programme lead's roster is EVERY student in
-  // the school — an "apply" would set the whole programme's targets at once.
-  if (!cls) throw new Error("No class assigned.");
-  await requireValidTarget(114, targetCount);
+  if (!studentIds.length) return { applied: 0, skipped: [] };
 
   const roster = await teacherRoster();
-  if (!roster.length) return;
+  const nameOf = new Map(roster.map((s) => [s.id, s.full_name]));
+  if (!studentIds.every((id) => nameOf.has(id))) throw new Error("Not your students.");
+
+  const surahs = (await getCachedSurahs()) as Surah[];
+  if (!surahs.some((s) => s.number === endSurah)) throw new Error("Unknown end surah.");
 
   const db = await supabaseServer();
-  const { data: custom } = await db
-    .from("hifz_profiles").select("student_id")
-    .in("student_id", roster.map((s) => s.id)).eq("is_custom", true);
-  const keep = new Set((custom ?? []).map((r) => r.student_id));
+  const { data: profiles } = await db
+    .from("hifz_profiles").select("student_id, start_surah").in("student_id", studentIds);
+  const startOf = new Map((profiles ?? []).map((p) => [p.student_id, p.start_surah]));
 
-  const rows = roster
-    .filter((s) => !keep.has(s.id))
-    .map((s) => ({
-      student_id: s.id, start_surah: 114, target_count: targetCount, is_custom: false,
-    }));
-  if (rows.length) {
-    const { error } = await db.from("hifz_profiles").upsert(rows);
+  const { plans, skipped } = planTargets(
+    studentIds.map((id) => ({ studentId: id, startSurah: startOf.get(id) ?? 114 })),
+    endSurah,
+    surahs,
+  );
+
+  if (plans.length) {
+    const { error } = await db.from("hifz_profiles").upsert(
+      plans.map((p) => ({
+        student_id: p.studentId, start_surah: p.startSurah, target_count: p.count,
+      })),
+    );
     if (error) throw new Error(error.message);
   }
   revalidatePath("/teacher/hifz");
   revalidatePath("/hifz");
+  return { applied: plans.length, skipped: skipped.map((id) => nameOf.get(id) ?? id) };
 }

@@ -6,7 +6,6 @@ import { getCachedSurahs } from "@/lib/reference/cached";
 import { expectedPassed, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { PaceMarker } from "@/components/app/pace-marker";
 import { HifzMarker } from "@/components/app/hifz-marker";
-import { StudentTargetForm } from "@/components/app/student-target-form";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +22,7 @@ export default async function StudentHifzDetail({
   const [{ weeks }, { data: student }, { data: hp }, surahs, { data: records }] = await Promise.all([
     getTermsAndWeeks(),
     db.from("profiles").select("full_name, class_id").eq("id", studentId).maybeSingle(),
-    db.from("hifz_profiles").select("start_surah, target_count, is_custom").eq("student_id", studentId).maybeSingle(),
+    db.from("hifz_profiles").select("start_surah, target_count").eq("student_id", studentId).maybeSingle(),
     getCachedSurahs(),
     db.from("hifz_records").select("surah_number, teacher_comment").eq("student_id", studentId),
   ]);
@@ -47,20 +46,6 @@ export default async function StudentHifzDetail({
       <div className="glass rounded-2xl p-4">
         <PaceMarker passed={passed} expected={expected} target={target} />
       </div>
-
-      <StudentTargetForm
-        studentId={studentId}
-        surahs={memorisationList(114, (surahs as Surah[]).length, surahs as Surah[])}
-        current={
-          hp
-            ? {
-                startSurah: hp.start_surah,
-                targetCount: hp.target_count,
-                isCustom: hp.is_custom,
-              }
-            : null
-        }
-      />
 
       <HifzMarker
         studentId={studentId}

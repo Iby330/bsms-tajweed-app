@@ -37,6 +37,29 @@ export function countTo(
   return to - from + 1;
 }
 
+export type TargetPlan = { studentId: string; startSurah: number; count: number };
+
+/**
+ * One end surah across a selection, a count per student. Each student's
+ * target derives from their OWN start, so a returning student gets a shorter
+ * run to the same goal. A student whose start is already past the end (or
+ * unknown) is skipped — applying a goal must never move anyone backwards.
+ */
+export function planTargets(
+  students: { studentId: string; startSurah: number }[],
+  endSurah: number,
+  surahs: Surah[],
+): { plans: TargetPlan[]; skipped: string[] } {
+  const plans: TargetPlan[] = [];
+  const skipped: string[] = [];
+  for (const s of students) {
+    const count = countTo(s.startSurah, endSurah, surahs);
+    if (count === null) skipped.push(s.studentId);
+    else plans.push({ studentId: s.studentId, startSurah: s.startSurah, count });
+  }
+  return { plans, skipped };
+}
+
 /**
  * The preset options for a student starting at `startSurah`: one per hizb
  * boundary at or after the start, each carrying the target_count it resolves

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { targetPresets, countTo } from "./targets";
+import { targetPresets, countTo, planTargets } from "./targets";
 import type { Surah } from "./pace";
 
 /** The programme's 43 surahs: 114 down to 72, order_index 1..43. */
@@ -47,6 +47,51 @@ describe("targetPresets", () => {
 
   it("an unknown start surah yields nothing rather than a wrong count", () => {
     expect(targetPresets(999, surahs)).toEqual([]);
+  });
+});
+
+describe("planTargets", () => {
+  it("one end surah, per-student counts from each student's own start", () => {
+    const { plans, skipped } = planTargets(
+      [
+        { studentId: "fresh", startSurah: 114 },
+        { studentId: "returning", startSurah: 80 },
+      ],
+      78, // everyone memorizes up to An-Naba
+      surahs,
+    );
+    expect(plans).toEqual([
+      { studentId: "fresh", startSurah: 114, count: 37 },
+      { studentId: "returning", startSurah: 80, count: 3 },
+    ]);
+    expect(skipped).toEqual([]);
+  });
+
+  it("a student already past the end is skipped, never reset backwards", () => {
+    const { plans, skipped } = planTargets(
+      [
+        { studentId: "ahead", startSurah: 75 }, // starts beyond An-Naba
+        { studentId: "fresh", startSurah: 114 },
+      ],
+      78,
+      surahs,
+    );
+    expect(plans.map((p) => p.studentId)).toEqual(["fresh"]);
+    expect(skipped).toEqual(["ahead"]);
+  });
+
+  it("an unknown start skips that student rather than inventing a run", () => {
+    const { plans, skipped } = planTargets(
+      [{ studentId: "odd", startSurah: 999 }],
+      78,
+      surahs,
+    );
+    expect(plans).toEqual([]);
+    expect(skipped).toEqual(["odd"]);
+  });
+
+  it("nobody selected plans nothing", () => {
+    expect(planTargets([], 78, surahs)).toEqual({ plans: [], skipped: [] });
   });
 });
 
