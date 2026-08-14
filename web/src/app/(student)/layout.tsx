@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app/shell";
 import { ClassBackdrop } from "@/components/app/class-backdrop";
+import { HoverTip } from "@/components/app/hover-tip";
 import { studentNav, studentMobileNav } from "@/lib/nav";
 import { currentProfile } from "@/lib/supabase/server";
 
@@ -22,6 +23,7 @@ export default async function StudentLayout({
       backdrop={<ClassBackdrop className={profile.classes?.name ?? null} />}
     >
       {children}
+      <HoverTip />
     </AppShell>
   );
 }

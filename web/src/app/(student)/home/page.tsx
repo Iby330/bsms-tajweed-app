@@ -99,14 +99,22 @@ export default async function StudentHome() {
     ? marks.reduce((total, m) => total + m, 0) / marks.length
     : null;
 
-  // One block per homework released so far.
+  // One block per homework released so far, each carrying enough to name
+  // itself on hover: twenty marks in a strip are unreadable otherwise.
   const blocks = releasedHomework.map((e) => {
     const isIn =
       e.submission === "submitted" ||
       e.submission === "auto_marked" ||
       e.submission === "approved";
-    if (isIn) return "done" as const;
-    return isLate(now, e.homework.due_at) ? "late" as const : "pending" as const;
+    const pct = curriculum.pctByHomeworkId.get(e.homework.id) ?? null;
+    return {
+      id: e.homework.id,
+      state: isIn ? ("done" as const) : isLate(now, e.homework.due_at) ? ("late" as const) : ("pending" as const),
+      label: homeworkLabel(e.homework.number, e.series),
+      week: e.weekNumber,
+      series: seriesShort(e.series),
+      pct,
+    };
   });
 
   // The surah just passed, for the Arabic line. Reference data, so this is
@@ -138,7 +146,7 @@ export default async function StudentHome() {
             {profile.classes?.name ? ` · ${profile.classes.name}` : ""}
           </span>
           {overdue.length > 0 && (
-            <span className="label" style={{ color: "var(--danger)" }}>
+            <span className="label hi">
               {overdue.length === 1 ? "One thing needs you" : `${overdue.length} things need you`}
             </span>
           )}
@@ -211,8 +219,23 @@ export default async function StudentHome() {
           </div>
           <div className="caps" role="img"
                aria-label={`${handedIn} of ${releasedHomework.length} homeworks handed in`}>
-            {blocks.map((state, i) => (
-              <i key={i} className={state === "pending" ? undefined : state} />
+            {blocks.map((b) => (
+              <i
+                key={b.id}
+                tabIndex={0}
+                className={b.state === "pending" ? undefined : b.state}
+                data-tip={b.label}
+                data-tip-meta={`${b.series} · week ${b.week}`}
+                data-tip-value={
+                  b.pct !== null
+                    ? `Marked ${b.pct.toFixed(1)}%`
+                    : b.state === "done"
+                      ? "Handed in · not marked yet"
+                      : b.state === "late"
+                        ? "Not handed in · overdue"
+                        : "Not handed in yet"
+                }
+              />
             ))}
           </div>
           <div className="note">One block per homework released so far.</div>
@@ -230,10 +253,21 @@ export default async function StudentHome() {
               )}
               <div className="beads" role="img"
                    aria-label={`${progress.hifz.passed} of ${progress.hifz.target} surahs passed`}>
-                {Array.from({ length: progress.hifz.target }, (_, i) => (
-                  <b key={i}
-                     className={cn(i < progress.hifz!.passed && "done", i === expected - 1 && "pace")} />
-                ))}
+                {Array.from({ length: progress.hifz.target }, (_, i) => {
+                  const s = hifzList[i];
+                  const done = i < progress.hifz!.passed;
+                  return (
+                    <b
+                      key={i}
+                      tabIndex={0}
+                      className={cn(done && "done", i === expected - 1 && "pace")}
+                      data-tip={s ? `${i + 1}. Sūrah ${s.name_en}` : `Surah ${i + 1}`}
+                      data-tip-ar={s?.name_ar}
+                      data-tip-meta={done ? "Passed" : "Not yet passed"}
+                      data-tip-value={i === expected - 1 ? "Where you are expected to be" : undefined}
+                    />
+                  );
+                })}
               </div>
               <div className="note">
                 {progress.hifz.passed} of {progress.hifz.target}

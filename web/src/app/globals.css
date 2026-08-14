@@ -108,13 +108,13 @@
   --chart-5: #c9c3a4;
   --radius: 0.125rem;
   /* the rail keeps the logo's own environment in both themes */
-  --sidebar: #0a0a08;
-  --sidebar-foreground: #f0ebb4;
-  --sidebar-primary: #f0ebb4;
-  --sidebar-primary-foreground: #0a0a08;
-  --sidebar-accent: #1f1e14;
-  --sidebar-accent-foreground: #f0ebb4;
-  --sidebar-border: #232219;
+  --sidebar: #eae5cd;
+  --sidebar-foreground: #14140f;
+  --sidebar-primary: #14140f;
+  --sidebar-primary-foreground: #f4f1df;
+  --sidebar-accent: #ded9bf;
+  --sidebar-accent-foreground: #14140f;
+  --sidebar-border: #d3ccae;
   --sidebar-ring: #6e6010;
 }
 
@@ -441,7 +441,9 @@ body::after {
   .masthead h1 b { font-weight: 600; }
   .masthead h1 span { color: var(--ink-3); font-weight: 200; }
   .masthead p { margin: 14px 0 0; color: var(--muted-foreground); max-width: 52ch; }
-  .masthead .meta { display: flex; align-items: baseline; gap: 26px; margin-top: 22px; flex-wrap: wrap; }
+  .masthead .meta { display: flex; align-items: baseline; justify-content: space-between;
+                    gap: 26px; margin-top: 22px; flex-wrap: wrap; }
+  .masthead .meta .hi { color: var(--ok); }
 
   .divider { display: flex; align-items: center; gap: 14px; margin: clamp(32px, 5vw, 54px) 0 20px; }
   .divider .r { flex: 1; height: 1px; background: var(--hair); }
@@ -581,10 +583,10 @@ body::after {
   }
   .rail .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .rail .mark {
-    width: 106px; height: 58px; background: var(--sidebar-foreground); flex: none; margin-left: 12px;
-    transition: width 0.3s, height 0.3s, margin 0.3s;
-    -webkit-mask: url("/brand/logo-mask.png") left center / contain no-repeat;
-    mask: url("/brand/logo-mask.png") left center / contain no-repeat;
+    width: 106px; height: 58px; background: var(--sidebar-foreground); flex: 1; min-width: 0;
+    transition: width 0.3s, height 0.3s;
+    -webkit-mask: url("/brand/logo-mask.png") center / contain no-repeat;
+    mask: url("/brand/logo-mask.png") center / contain no-repeat;
   }
   .rail nav { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; }
   .rail nav a {
@@ -627,7 +629,7 @@ body::after {
 
   .appshell[data-rail="off"] .rail .head { flex-direction: column; gap: 14px; }
   .appshell[data-rail="off"] .rail .mark {
-    width: 42px; height: 32px; margin: 0 auto;
+    width: 42px; height: 32px; flex: none; margin: 0 auto;
     -webkit-mask-image: url("/brand/logo-mark-mask.png"); mask-image: url("/brand/logo-mark-mask.png");
     -webkit-mask-position: center; mask-position: center;
   }
@@ -751,4 +753,23 @@ body::after {
       100%    { transform: translateY(-50%) rotate(0); }
     }
   }
+}
+
+/* — one tooltip for the page; the tiny marks carry their detail on hover — */
+@layer components {
+  #hovertip {
+    position: fixed; z-index: 99; pointer-events: none; opacity: 0; max-width: 250px;
+    background: var(--foreground); color: var(--background); padding: 10px 13px;
+    box-shadow: 0 6px 24px -8px rgb(0 0 0 / 0.55);
+    transform: translate(-50%, -100%) translateY(-8px); transition: opacity 0.12s;
+  }
+  #hovertip.on { opacity: 1; }
+  #hovertip .ar { font-family: var(--font-quran); font-size: 1.35rem; line-height: 1.7; direction: rtl; }
+  #hovertip .h { font-size: 0.83rem; font-weight: 600; line-height: 1.3; }
+  #hovertip .m {
+    font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em;
+    text-transform: uppercase; margin-top: 4px; opacity: 0.7;
+  }
+  #hovertip .v { font-family: var(--font-mono); font-size: 0.74rem; margin-top: 5px; }
+  .caps i, .beads b { cursor: pointer; }
 }

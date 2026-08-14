@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
-import { Archivo, Inter, IBM_Plex_Sans_Arabic, Amiri_Quran, Geist_Mono } from "next/font/google";
+import { Archivo, IBM_Plex_Sans_Arabic, Amiri_Quran, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
+// No `weight`: that pins the download to fixed cuts, and the 2026 design
+// runs from 200 (display figures, the masthead) to 700 (emphasis). Omitting
+// it ships the variable axis, so every weight in between actually renders
+// instead of silently snapping to the nearest cut that was downloaded.
 const archivo = Archivo({
   variable: "--font-archivo",
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -45,7 +43,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
       <body
-        className={`${archivo.variable} ${inter.variable} ${plexArabic.variable} ${amiriQuran.variable} ${geistMono.variable} min-h-full flex flex-col antialiased`}
+        className={`${archivo.variable} ${plexArabic.variable} ${amiriQuran.variable} ${geistMono.variable} min-h-full flex flex-col antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
