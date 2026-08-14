@@ -6,7 +6,7 @@ import { memorisationList } from "@/lib/hifz/pace";
 import { hizbOf } from "@/lib/hifz/hizb";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
 import { SURAH_INFO } from "@/lib/hifz/surah-info";
-import { surahDetail } from "@/lib/hifz/surah-detail";
+import { SURAH_SUMMARY, REVIEWED } from "@/lib/hifz/surah-summary";
 import { fmtDay } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -70,7 +70,7 @@ export default async function SurahPage({
 
   const meta = SURAH_META[number];
   const info = SURAH_INFO[number];
-  const detail = surahDetail(number);
+  const summary = SURAH_SUMMARY[number];
   const record = rec.data;
 
   return (
@@ -139,8 +139,8 @@ export default async function SurahPage({
         </section>
       </div>
 
-      {/* ── then the surah itself ── */}
-      {detail && detail.sections.length > 0 && (
+      {/* ── then the surah itself, briefly ── */}
+      {summary && (
         <>
           <div className="divider">
             <span className="label">About this surah</span>
@@ -150,14 +150,13 @@ export default async function SurahPage({
 
           <div className="field">
             <article className="box c12 reading">
-              {detail.lead && <p className="shared">{detail.lead}</p>}
-              {detail.sections.map((sec) => (
-                <section key={sec.heading}>
-                  <h2>{sec.heading}</h2>
-                  <p>{sec.text}</p>
-                </section>
-              ))}
-              <div className="src">{detail.source}</div>
+              <p>{summary.summary}</p>
+              {summary.dispute && <p className="dispute">{summary.dispute}</p>}
+              {!REVIEWED && (
+                <p className="draftnote">
+                  Draft summary — not yet checked by a teacher.
+                </p>
+              )}
               <a
                 className="readon"
                 href={`https://quran.com/${number}`}
