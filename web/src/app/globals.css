@@ -772,7 +772,7 @@ body::after {
     text-transform: uppercase; margin-top: 4px; opacity: 0.7;
   }
   #hovertip .v { font-family: var(--font-mono); font-size: 0.74rem; margin-top: 5px; }
-  .caps i, .beads b { cursor: pointer; }
+  .caps i, .beads b, [data-part] { cursor: pointer; }
 }
 
 /* — the trend line, and the panels that let the class show through — */
