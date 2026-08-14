@@ -504,7 +504,8 @@ body::after {
 
   /* — leaderboard bars — */
   .lb { display: flex; flex-direction: column; gap: 8px; }
-  .lb .row { display: grid; grid-template-columns: 18px 1fr 36px; gap: 11px;
+  .lb { list-style: none; margin: 0; padding: 0; }
+  .lb .row { display: grid; grid-template-columns: 18px 1fr auto; gap: 11px;
              align-items: center; transition: transform 0.16s ease; }
   .lb .row:hover { transform: translateY(-2px); }
   .lb .rk { font-family: var(--font-mono); font-size: 0.66rem; color: var(--ink-3); text-align: right; }
@@ -698,4 +699,56 @@ body::after {
     color: var(--foreground); opacity: 0.13;
   }
   @media (max-width: 1023px) { .backdrop { left: 0; } }
+}
+
+/* — strikes: the panel escalates with the count, and a boot approaches — */
+@layer components {
+  .strikebox { transition: background 0.3s, box-shadow 0.3s; }
+  .strikebox[data-n="1"] { background: color-mix(in oklab, var(--warn) 7%, var(--card)); }
+  .strikebox[data-n="1"] .label { color: var(--warn); }
+  .strikebox[data-n="2"] { background: color-mix(in oklab, var(--danger) 11%, var(--card));
+                           box-shadow: inset 0 0 0 1px var(--danger); }
+  .strikebox[data-n="3"] { background: color-mix(in oklab, var(--danger) 20%, var(--card));
+                           box-shadow: inset 0 0 0 2px var(--danger); }
+  .strikebox[data-n="2"] .label, .strikebox[data-n="3"] .label { color: var(--danger); }
+  .strikebox[data-n="2"] .stat .v, .strikebox[data-n="3"] .stat .v { color: var(--danger); }
+
+  .runway { position: relative; height: 52px; display: flex; align-items: center; }
+  .slots { display: flex; gap: 11px; align-items: center; }
+  .slots span { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--hair);
+                transition: background 0.3s, border-color 0.3s; }
+  .slots span.on { background: var(--danger); border-color: var(--danger); }
+  .strikebox[data-n="1"] .slots span.on { background: var(--warn); border-color: var(--warn); }
+
+  .boot { position: absolute; top: 50%; width: 50px; height: 38px;
+          transform: translateY(-50%); transform-origin: 88% 50%;
+          transition: right 0.55s cubic-bezier(0.34, 1.4, 0.5, 1), opacity 0.4s; }
+  .boot path, .boot rect { fill: var(--ink-3); transition: fill 0.3s; }
+  .strikebox[data-n="0"] .boot { right: 2%; opacity: 0.3; }
+  .strikebox[data-n="1"] .boot { right: 24%; opacity: 0.65; }
+  .strikebox[data-n="2"] .boot { right: 46%; opacity: 1; }
+  .strikebox[data-n="3"] .boot { right: 60%; opacity: 1; }
+  .strikebox[data-n="2"] .boot path, .strikebox[data-n="2"] .boot rect,
+  .strikebox[data-n="3"] .boot path, .strikebox[data-n="3"] .boot rect { fill: var(--danger); }
+
+  .reasons { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .reasons li { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.08em;
+                text-transform: uppercase; color: var(--ink-3); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .strikebox[data-n="1"] .boot { animation: boot-sway 3.4s ease-in-out infinite; }
+    .strikebox[data-n="2"] .boot { animation: boot-kick 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+    .strikebox[data-n="3"] .boot { animation: boot-kick 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+    @keyframes boot-sway {
+      0%, 100% { transform: translateY(-50%) rotate(0); }
+      50%      { transform: translateY(-50%) rotate(-7deg); }
+    }
+    @keyframes boot-kick {
+      0%, 52% { transform: translateY(-50%) rotate(0); }
+      64%     { transform: translateY(-50%) rotate(24deg); }
+      76%     { transform: translateY(-50%) rotate(-30deg); }
+      88%     { transform: translateY(-50%) rotate(6deg); }
+      100%    { transform: translateY(-50%) rotate(0); }
+    }
+  }
 }

@@ -167,9 +167,11 @@ describe("LeaderboardPanel", () => {
     expect(text(container)).toContain("84.0%");
   });
 
-  it("floats on glass, the one surface both dashboards now share", () => {
+  it("is a panel in the hairline grid, the surface both dashboards share", () => {
     const { container } = render(<LeaderboardPanel title="Homework" scopes={[classScope]} />);
-    expect(container.firstElementChild!.className).toContain("glass");
+    // 2026 identity: panels are flat cells divided by 1px rules, not blurred
+    // glass. `.box` is what places one in the grid.
+    expect(container.firstElementChild!.className).toContain("box");
   });
 
   it("still ranks cleanly when nobody is the reader (teacher view)", () => {
