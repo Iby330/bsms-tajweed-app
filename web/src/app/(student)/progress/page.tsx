@@ -36,110 +36,104 @@ export default async function Progress() {
   }));
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-2xl">Progress</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Every mark for the year, term by term.
-        </p>
+    <>
+      <header className="masthead">
+        <h1><span>Progress</span></h1>
+        <p>Every mark for the year, term by term.</p>
+        <div className="meta">
+          <span className="label">Term {termId}</span>
+          <span className="label hi">{marked.length} marked so far</span>
+        </div>
       </header>
 
-      <section className="space-y-3">
-        <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">
-          Term by term
-        </h2>
-        <div className="glass anim-in rounded-2xl p-5">
-          <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="divider">
+        <span className="label">Term by term</span>
+        <span className="r" />
+        <span className="m" />
+      </div>
+
+      <div className="field">
+        <section className="box c12">
+          <div className="flex flex-wrap items-end justify-between gap-5">
             <div>
-              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                End of year
+              <span className="label">End of year</span>
+              <div className="stat" style={{ marginTop: 8 }}>
+                <span className="v sm">
+                  {full.eoyPct === null ? "\u2014" : <CountUp value={full.eoyPct} decimals={1} />}
+                </span>
+                {full.eoyPct !== null && <span className="u">%</span>}
               </div>
-              <div className="font-heading text-3xl">
-                <CountUp value={full.eoyPct} decimals={1} suffix="%" />
-              </div>
-              <p className="mt-0.5 text-xs text-muted-foreground">mean of the three terms</p>
+              <div className="note">mean of the three terms</div>
             </div>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-viz-exam" /> exam (80%)
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-viz-hw" /> homework (20%)
-              </span>
+            <div className="legend">
+              <span><i style={{ background: "var(--viz-exam)" }} /> exam (80%)</span>
+              <span><i style={{ background: "var(--viz-hw)" }} /> homework (20%)</span>
             </div>
           </div>
 
-          <div className="mt-6">
+          <div style={{ marginTop: 10 }}>
             <TermBars terms={full.terms} currentTermId={termId} />
           </div>
-        </div>
+        </section>
 
-        {/* The exact figures stay one tap away — the chart shows the shape of
-            the year, the table answers "what precisely did I get". */}
-        <details className="glass rounded-2xl px-4 py-3">
-          <summary className="cursor-pointer text-xs text-ink-2 underline underline-offset-4">
-            Show the exact marks
-          </summary>
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full text-sm">
+        <section className="box c12">
+          <span className="label">The exact marks</span>
+          <div className="twrap">
+            <table className="marks">
               <thead>
-                <tr className="border-b border-line text-left text-xs text-muted-foreground">
-                  <th className="px-2 py-2.5 font-normal">Term</th>
-                  <th className="px-2 py-2.5 text-right font-normal">Homework</th>
-                  <th className="px-2 py-2.5 text-right font-normal">Exam</th>
-                  <th className="px-2 py-2.5 text-right font-normal">Term %</th>
+                <tr>
+                  <th>Term</th>
+                  <th className="r">Homework</th>
+                  <th className="r">Exam</th>
+                  <th className="r">Term %</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line">
+              <tbody>
                 {full.terms.map((t) => (
-                  <tr key={t.termId} className={t.termId === termId ? "bg-foreground/4" : undefined}>
-                    <td className="px-2 py-2.5">
+                  <tr key={t.termId} className={t.termId === termId ? "now" : undefined}>
+                    <td>
                       Term {t.termId}
-                      {t.termId === termId && (
-                        <span className="ml-2 text-xs text-muted-foreground">current</span>
-                      )}
+                      {t.termId === termId && <span className="label"> · current</span>}
                     </td>
-                    <td className="px-2 py-2.5 text-right tabular-nums">
-                      {pct(t.hwAvg) ?? <span className="text-muted-foreground/50">—</span>}
+                    <td className={pct(t.hwAvg) ? "r" : "r dim"}>{pct(t.hwAvg) ?? "\u2014"}</td>
+                    <td className={t.examScore === null ? "r dim" : "r"}>
+                      {t.examScore === null ? "not sat" : `${t.examScore}/${t.examMax}`}
                     </td>
-                    <td className="px-2 py-2.5 text-right tabular-nums">
-                      {t.examScore === null ? (
-                        <span className="text-muted-foreground/50">not sat</span>
-                      ) : (
-                        `${t.examScore}/${t.examMax}`
-                      )}
-                    </td>
-                    <td className="px-2 py-2.5 text-right font-medium tabular-nums">
-                      {pct(t.termPct) ?? <span className="text-muted-foreground/50">—</span>}
-                    </td>
+                    <td className={pct(t.termPct) ? "r" : "r dim"}>{pct(t.termPct) ?? "\u2014"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </details>
-        <p className="text-xs text-muted-foreground">
-          Term % is 80% exam and 20% homework. It only appears once the exam is entered.
-        </p>
-      </section>
+          <div className="note">
+            Term % is 80% exam and 20% homework. It only appears once the exam is entered.
+          </div>
+        </section>
+      </div>
 
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Marked homework <span className="tabular-nums">({marked.length})</span>
-          </h2>
-          <Link href="/courses" className="text-xs text-ink-2 underline underline-offset-4">
-            See it in context →
-          </Link>
-        </div>
-        {marked.length === 0 ? (
-          <p className="glass rounded-2xl p-4 text-sm text-muted-foreground">
-            Nothing marked yet.
-          </p>
-        ) : (
-          <MarkedHomework rows={marked} />
-        )}
-      </section>
-    </div>
+      <div className="divider">
+        <span className="label">Marked homework · {marked.length}</span>
+        <span className="r" />
+        <span className="m" />
+      </div>
+
+      <div className="field">
+        <section className="box c12" style={{ gap: 0 }}>
+          {marked.length === 0 ? (
+            <div className="note">Nothing marked yet.</div>
+          ) : (
+            <MarkedHomework rows={marked} />
+          )}
+        </section>
+      </div>
+
+      <div className="signoff">
+        <span className="lines">{profile.classes?.name ?? "BSMS"}</span>
+        <span className="wm" role="img" aria-label="BSMS Tajweed" />
+        <Link href="/courses" className="lines right underline underline-offset-4">
+          See it in context →
+        </Link>
+      </div>
+    </>
   );
 }

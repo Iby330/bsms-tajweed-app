@@ -503,6 +503,7 @@ body::after {
   }
   .chip.due, .chip.ok { border-color: var(--ok); color: var(--ok); }
   .chip.bad { border-color: var(--danger); color: var(--danger); }
+  .chip.warn { border-color: var(--warn); color: var(--warn); }
 
   /* — leaderboard bars — */
   .lb { display: flex; flex-direction: column; gap: 8px; }
@@ -811,4 +812,25 @@ body::after {
     .signoff { grid-template-columns: 1fr; justify-items: center; text-align: center; }
     .signoff .lines, .signoff .lines.right { text-align: center; }
   }
+}
+
+/* — the report card: term bars legend and the exact-marks table — */
+@layer components {
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-family: var(--font-mono);
+            font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .legend span { display: flex; align-items: center; gap: 7px; }
+  .legend i { width: 10px; height: 10px; flex: none; }
+
+  .twrap { overflow-x: auto; }
+  table.marks { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  table.marks th {
+    font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-3); font-weight: 400;
+    text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--hair);
+  }
+  table.marks td { padding: 12px 8px; border-bottom: 1px solid var(--border); }
+  table.marks tr:last-child td { border-bottom: none; }
+  table.marks td.r, table.marks th.r { text-align: right; font-variant-numeric: tabular-nums; }
+  table.marks td.dim { color: var(--ink-3); }
+  table.marks tr.now td { background: color-mix(in oklab, var(--ok) 10%, transparent); }
 }

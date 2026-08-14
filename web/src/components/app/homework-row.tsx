@@ -36,51 +36,40 @@ export function HomeworkRow({
 
   return (
     <li>
-      <Link
-        href={`/homework/${h.number}${from ? `?from=${from}` : ""}`}
-        className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-muted/60"
-      >
-        <span className="min-w-0">
-          <span className="text-sm font-medium">{homeworkLabel(h.number, entry.series)}</span>
-          {entry.title && (
-            <MixedText text={entry.title} className="ml-2 text-xs text-muted-foreground" />
-          )}
-          <span className="mt-0.5 block text-xs text-muted-foreground">
-            {seriesShort(entry.series)} · Term {entry.termId}, week {entry.weekNumber}
-            {!h.is_graded && " · ungraded"}
-          </span>
+      <Link href={`/homework/${h.number}${from ? `?from=${from}` : ""}`} className="tw">
+        <span className="t">
+          {homeworkLabel(h.number, entry.series)}
+          {entry.title && <MixedText text={entry.title} className="ml-2 font-normal opacity-70" />}
         </span>
+        <span className="s">
+          {seriesShort(entry.series)} · Term {entry.termId}, week {entry.weekNumber}
+          {!h.is_graded && " · ungraded"}
+        </span>
+      </Link>
 
-        <span className="flex shrink-0 items-center gap-2">
+      <span className="meta">
           {marked && pct !== undefined ? (
             <span
               className={cn(
-                "rounded-md px-2 py-0.5 text-xs font-medium tabular-nums",
-                pct >= 80 && "bg-ok/12 text-ok",
-                pct >= 50 && pct < 80 && "bg-warn/12 text-warn",
-                pct < 50 && "bg-danger/12 text-danger",
+                "chip tabular-nums",
+                pct >= 80 && "ok",
+                pct >= 50 && pct < 80 && "warn",
+                pct < 50 && "bad",
               )}
             >
               {Math.round(pct)}%
             </span>
           ) : marked ? (
-            <span className="rounded-md bg-ok/12 px-2 py-0.5 text-xs font-medium text-ok">
-              Marked
-            </span>
+            <span className="chip ok">Marked</span>
           ) : entry.submission === "draft" ? (
-            <span className="rounded-md bg-warn/12 px-2 py-0.5 text-xs font-medium text-warn">
-              Draft
-            </span>
+            <span className="chip warn">Draft</span>
           ) : null}
 
           {h.due_at && !entry.submission && <CountdownChip dueAt={h.due_at} />}
           {!entry.unlocked && (
-            <span className="text-xs tabular-nums text-muted-foreground">
-              {h.due_at ? `due ${dmy(h.due_at)}` : "not released"}
-            </span>
+            <span className="s">{h.due_at ? `due ${dmy(h.due_at)}` : "not released"}</span>
           )}
-        </span>
-      </Link>
+      </span>
     </li>
   );
 }
