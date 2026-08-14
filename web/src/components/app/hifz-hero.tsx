@@ -154,6 +154,14 @@ export function HifzHero({
           <p>{SURAH_INFO[number].revealed}</p>
           {SURAH_INFO[number].theme && <p>{SURAH_INFO[number].theme}</p>}
           <div className="src">{SURAH_INFO[number].source}</div>
+          <a
+            className="readon"
+            href={`https://quran.com/${number}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Read it on Quran.com →
+          </a>
         </div>
       )}
     </section>

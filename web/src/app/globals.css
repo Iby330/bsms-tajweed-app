@@ -859,6 +859,9 @@ body::after {
   .cell .en { font-size: 0.75rem; color: var(--ink-3); overflow: hidden;
               text-overflow: ellipsis; white-space: nowrap; }
   .cell.done { background: color-mix(in oklab, var(--ok) 12%, var(--card)); }
+  /* Needed explicitly: .cell.done and .cell:hover have equal specificity, so
+     the later rule won and passed surahs simply did not respond to hover. */
+  .cell.done:hover { background: color-mix(in oklab, var(--ok) 24%, var(--card)); }
   .cell.done .ar-quran { color: var(--ok); }
   .cell.done .en, .cell.done .n { color: var(--muted-foreground); }
   .cell.next { box-shadow: inset 0 0 0 2px var(--ok); }
