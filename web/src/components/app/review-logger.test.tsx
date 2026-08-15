@@ -20,6 +20,10 @@ const pages = groupIntoPages([w({}), w({ position: 2, text: "أَعُوذُ" })]
 beforeEach(() => vi.clearAllMocks());
 afterEach(cleanup);
 
+// Dialog renders are slow under full-suite worker contention — the default
+// 5s timeout flakes even though every interaction completes.
+const SLOW = 20_000;
+
 describe("ReviewLogger", () => {
   it("logs a tapped word through the sheet and bumps the count", async () => {
     render(<ReviewLogger sessionId="s1" reciterName="Bilal" pages={pages} initialMistakes={[]} />);
@@ -29,13 +33,13 @@ describe("ReviewLogger", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(logMistake).toHaveBeenCalledWith(
       "s1", { surah: 114, ayah: 1, position: 1 }, "hifz", undefined, "");
-    expect(await screen.findByText(/1 mistake/)).toBeTruthy();
-  });
+    expect(await screen.findByText(/1 mistake/, undefined, { timeout: 10_000 })).toBeTruthy();
+  }, SLOW);
   it("submits flags and note from the wrap-up", async () => {
     render(<ReviewLogger sessionId="s1" reciterName="Bilal" pages={pages} initialMistakes={[]} />);
     fireEvent.click(screen.getByRole("button", { name: "Finish" }));
     fireEvent.click(screen.getByLabelText("Weak hifz overall"));
     fireEvent.click(screen.getByRole("button", { name: /Submit/ }));
     expect(submitSession).toHaveBeenCalledWith("s1", ["weak_hifz"], "");
-  });
+  }, SLOW);
 });

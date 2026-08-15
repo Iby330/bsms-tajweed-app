@@ -6,15 +6,19 @@ import { getCachedSurahs } from "@/lib/reference/cached";
 import { expectedPassed, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { PaceMarker } from "@/components/app/pace-marker";
 import { HifzMarker } from "@/components/app/hifz-marker";
+import { HifzTabs } from "@/components/app/hifz-tabs";
+import { ReviewFeedback } from "@/components/app/review-feedback";
 
 export const dynamic = "force-dynamic";
 
 export default async function StudentHifzDetail({
   params,
+  searchParams,
 }: {
   params: Promise<{ studentId: string }>;
+  searchParams: Promise<{ tab?: string; heat?: string }>;
 }) {
-  const { studentId } = await params;
+  const [{ studentId }, { tab, heat }] = await Promise.all([params, searchParams]);
   const db = await supabaseServer();
 
   // Every read here is keyed on the student id alone, the guard included — it
@@ -33,6 +37,7 @@ export default async function StudentHifzDetail({
   const recMap = new Map((records ?? []).map((r) => [r.surah_number, r]));
   const passed = recMap.size;
   const expected = expectedPassed(new Date(), weeks, target);
+  const review = tab === "review";
 
   return (
     <div className="space-y-6">
@@ -43,20 +48,32 @@ export default async function StudentHifzDetail({
         <h1 className="text-2xl">{student.full_name}</h1>
       </header>
 
-      <div className="glass rounded-2xl p-4">
-        <PaceMarker passed={passed} expected={expected} target={target} />
-      </div>
+      <HifzTabs basePath={`/teacher/hifz/${studentId}`} active={review ? "review" : "overview"} />
 
-      <HifzMarker
-        studentId={studentId}
-        rows={list.map((s) => ({
-          number: s.number,
-          name_en: s.name_en,
-          name_ar: s.name_ar,
-          passed: recMap.has(s.number),
-          comment: recMap.get(s.number)?.teacher_comment ?? null,
-        }))}
-      />
+      {review ? (
+        <ReviewFeedback
+          studentId={studentId}
+          heatSurah={heat ? Number(heat) : undefined}
+          basePath={`/teacher/hifz/${studentId}?tab=review`}
+        />
+      ) : (
+        <>
+          <div className="glass rounded-2xl p-4">
+            <PaceMarker passed={passed} expected={expected} target={target} />
+          </div>
+
+          <HifzMarker
+            studentId={studentId}
+            rows={list.map((s) => ({
+              number: s.number,
+              name_en: s.name_en,
+              name_ar: s.name_ar,
+              passed: recMap.has(s.number),
+              comment: recMap.get(s.number)?.teacher_comment ?? null,
+            }))}
+          />
+        </>
+      )}
     </div>
   );
 }

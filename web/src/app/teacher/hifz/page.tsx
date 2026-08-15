@@ -4,6 +4,7 @@ import { getCachedSurahs } from "@/lib/reference/cached";
 import { scopeLabel, teacherRoster } from "@/lib/teacher/scope";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { HifzRegister, type RegisterRow } from "@/components/app/hifz-register";
+import { PairingPanel, type PairRow, type UnpairedStudent } from "@/components/app/pairing-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -19,15 +20,29 @@ export default async function TeacherHifz() {
   ]);
   const ids = students.map((s) => s.id);
 
-  const [{ data: progress }, surahs] = await Promise.all([
+  const [{ data: progress }, surahs, { data: pairRows }] = await Promise.all([
     ids.length
       ? db.from("v_hifz_progress").select("student_id, passed, target_count, start_surah").in("student_id", ids)
       : Promise.resolve({ data: [] }),
     getCachedSurahs(),
+    ids.length
+      ? db.from("revision_pairs").select("id, student_a, student_b").eq("active", true)
+          .or(`student_a.in.(${ids.join(",")}),student_b.in.(${ids.join(",")})`)
+      : Promise.resolve({ data: [] as { id: string; student_a: string; student_b: string }[] }),
   ]);
   const byStudent = new Map((progress ?? []).map((p) => [p.student_id!, p]));
   const run = memorisationList(114, (surahs as Surah[]).length, surahs as Surah[]);
   const now = new Date();
+
+  const nameOf = new Map(students.map((s) => [s.id, s.full_name]));
+  const pairs: PairRow[] = (pairRows ?? []).map((p) => ({
+    id: p.id,
+    label: `${nameOf.get(p.student_a) ?? "?"} ↔ ${nameOf.get(p.student_b) ?? "?"}`,
+  }));
+  const pairedIds = new Set((pairRows ?? []).flatMap((p) => [p.student_a, p.student_b]));
+  const unpaired: UnpairedStudent[] = students
+    .filter((s) => !pairedIds.has(s.id))
+    .map((s) => ({ id: s.id, name: s.full_name }));
 
   const rows: RegisterRow[] = students.map((s) => {
     const p = byStudent.get(s.id);
@@ -58,6 +73,8 @@ export default async function TeacherHifz() {
           Select students to set their target.
         </p>
       </header>
+
+      <PairingPanel pairs={pairs} unpaired={unpaired} />
 
       {rows.length ? (
         <HifzRegister rows={rows} surahs={run} />
