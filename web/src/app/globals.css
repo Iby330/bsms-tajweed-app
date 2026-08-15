@@ -686,11 +686,22 @@ body::after {
     z-index: 0; overflow: hidden; pointer-events: none;
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
+  /* Two fades, not one. The bottom fade was always here; the top one is what
+     stops the image ending in a hard line once parallax has moved it down. */
   .backdrop::after {
     content: ""; position: absolute; inset: 0;
-    background: linear-gradient(180deg, transparent 30%, var(--background) 96%);
+    background:
+      linear-gradient(180deg, var(--background) 0%, transparent 30%),
+      linear-gradient(180deg, transparent 38%, var(--background) 97%);
   }
-  .backdrop-layer { position: absolute; inset: 0; will-change: transform; }
+  /* Headroom. The layer travels up to scrollY * 0.3 before the backdrop has
+     faded out, which is roughly a third of its height, so it is built that
+     much taller than the box it sits in. Without this the translate simply
+     runs off the top of the image and exposes the page behind it. */
+  .backdrop-layer {
+    position: absolute; left: 0; right: 0; top: -36%; height: 136%;
+    will-change: transform;
+  }
   .backdrop-photo {
     position: absolute; inset: 0; background-position: center bottom;
     background-size: cover; background-repeat: no-repeat;
