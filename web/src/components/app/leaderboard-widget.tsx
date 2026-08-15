@@ -1,6 +1,14 @@
 import { cn } from "@/lib/utils";
 
-export type LbRow = { name: string; pct: number; rank: number };
+export type LbRow = {
+  name: string;
+  pct: number;
+  rank: number;
+  /** Shown instead of the percentage where a figure is not the useful thing.
+   *  On the hifdh board that is the surah the student is actually on: "62% of
+   *  target" tells a teacher far less than "Al-Fajr". */
+  note?: string;
+};
 
 /** Exactly three rows: above, you, below — never a full table (plan Q11). */
 export function neighbours(rows: LbRow[], selfName: string): LbRow[] {

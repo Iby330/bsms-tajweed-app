@@ -6,7 +6,7 @@ export type StrikeInfo = {
   issued_at: string | null;
 };
 
-const REASON_LABELS: Record<string, string> = {
+export const REASON_LABELS: Record<string, string> = {
   absence: "Absence",
   homework: "Missed homework",
   conduct: "Conduct",

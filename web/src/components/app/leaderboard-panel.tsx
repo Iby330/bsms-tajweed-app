@@ -94,7 +94,7 @@ export function LeaderboardPanel({
                     />
                     <span className="nm">{r.name}</span>
                   </span>
-                  <span className="sc">{r.pct.toFixed(1)}%</span>
+                  <span className="sc">{r.note ?? `${r.pct.toFixed(1)}%`}</span>
                 </li>
               );
             })}

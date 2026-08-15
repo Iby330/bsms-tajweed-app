@@ -171,7 +171,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
                 href={`/teacher/hifz/${r.studentId}`}
                 className={cn(
                   COLS,
-                  "grid px-4 py-3.5 transition-colors hover:bg-muted/50 lg:px-5",
+                  "classrow grid px-4 py-3.5 lg:px-5",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                 )}
               >
@@ -200,10 +200,9 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
                       <>
                         <span className="mt-0.5 flex min-w-0 items-baseline gap-2 lg:mt-0">
                           <span className="truncate text-sm font-medium">{r.surah.nameEn}</span>
-                          <MixedText
-                            text={r.surah.nameAr}
-                            className="shrink-0 text-sm text-muted-foreground"
-                          />
+                          <span dir="rtl" lang="ar" className="ar-quran shrink-0 text-ok">
+                            {r.surah.nameAr}
+                          </span>
                         </span>
                         <span className="mt-0.5 block text-[11px] tabular-nums text-muted-foreground">
                           {r.surah.index} of {r.outOf}

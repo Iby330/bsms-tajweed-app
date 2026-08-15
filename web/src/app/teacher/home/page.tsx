@@ -75,6 +75,15 @@ export default async function TeacherHome() {
     pending.flatMap((s) => (s.homeworks ? [[s.homework_id, s.homeworks] as const] : [])),
   );
 
+  // The hifdh board reports where each student has reached rather than a
+  // percentage of their target. classRows already worked the surah out, so
+  // this is a lookup rather than another query.
+  const surahOf = new Map(
+    classRows.flatMap((r) => (r.surah ? [[r.name, r.surah.nameEn] as const] : [])),
+  );
+  const withSurah = (rows: { name: string; pct: number; rank: number }[]) =>
+    rows.map((r) => ({ ...r, note: surahOf.get(r.name) }));
+
   const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
   const classAvg = mean(classRows.map((r) => r.hwAvg).filter((v): v is number => v !== null));
   const hifzAvg = mean(hifzRows.map((r) => Number(r.pct)));
@@ -223,7 +232,7 @@ export default async function TeacherHome() {
                 ? [{
                     key: "class",
                     label: "My class",
-                    rows: leaderboards.hifz.mine,
+                    rows: withSurah(leaderboards.hifz.mine),
                     selfName: "",
                     noun: "in my class",
                   }]

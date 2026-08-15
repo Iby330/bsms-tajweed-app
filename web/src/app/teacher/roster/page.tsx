@@ -1,12 +1,57 @@
+import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks, currentTermId, getIndividualLeaderboard } from "@/lib/dashboard/queries";
 import { scopeLabel, teacherClass } from "@/lib/teacher/scope";
-import { ExamInput } from "@/components/app/exam-input";
-import { StrikeManager, type StudentStrike } from "@/components/app/strike-manager";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * The column geometry, declared once so the header and every row apply the
+ * same string. Two columns on a phone, five from `lg`.
+ */
+const COLS = cn(
+  "grid-cols-2 items-center gap-x-5 gap-y-3 px-4 lg:px-5",
+  "lg:grid-cols-[minmax(0,1.5fr)_4.5rem_7rem_6.5rem_7rem] lg:gap-x-6 lg:gap-y-0",
+);
+
+/** Two initials for the identity dot; never throws on a one-word name. */
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  return ((parts[0][0] ?? "") + (parts.length > 1 ? (parts.at(-1)![0] ?? "") : "")).toUpperCase();
+}
+
+/** One figure in a row, with its column name repeated only on small screens. */
+function Cell({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <span className={cn("min-w-0", className)}>
+      <span className="block text-[10px] uppercase tracking-wider text-muted-foreground lg:hidden">
+        {label}
+      </span>
+      <span className="mt-0.5 block lg:mt-0">{children}</span>
+    </span>
+  );
+}
+
+/**
+ * The roster — one line per student and nothing more.
+ *
+ * Five facts: who they are, where they rank, strikes taken, hifdh signed off
+ * and the mark the year currently stands at. Everything else that used to be
+ * spread across this table — term by term marks, exam entry, the strike
+ * record, comments — lives on the student's own page, which the row links to.
+ * A table wide enough to hold the year sideways was a spreadsheet with extra
+ * steps; a teacher scanning a class wants to find a name, not read a matrix.
+ */
 export default async function Roster() {
   const db = await supabaseServer();
 
@@ -27,110 +72,150 @@ export default async function Roster() {
   const { data: students } = await q.order("full_name");
   const ids = (students ?? []).map((s) => s.id);
 
-  const [{ data: avgs }, { data: termPcts }, { data: eoys }, { data: hifz }, { data: strikes }, { data: exams }] =
-    await Promise.all([
-      ids.length ? db.from("v_termly_avg").select("student_id, term_id, hw_avg").in("student_id", ids) : Promise.resolve({ data: [] }),
-      ids.length ? db.from("v_term_pct").select("student_id, term_id, term_pct").in("student_id", ids) : Promise.resolve({ data: [] }),
-      ids.length ? db.from("v_eoy").select("student_id, eoy_pct").in("student_id", ids) : Promise.resolve({ data: [] }),
-      ids.length ? db.from("v_hifz_progress").select("student_id, passed, target_count").in("student_id", ids) : Promise.resolve({ data: [] }),
-      ids.length ? db.from("strikes").select("id, student_id, reason, note, issued_at").in("student_id", ids).eq("term_id", termId).order("issued_at") : Promise.resolve({ data: [] }),
-      ids.length ? db.from("exam_scores").select("student_id, term_id, score").in("student_id", ids) : Promise.resolve({ data: [] }),
-    ]);
+  const [{ data: eoys }, { data: hifz }, { data: strikes }] = await Promise.all([
+    ids.length ? db.from("v_eoy").select("student_id, eoy_pct").in("student_id", ids) : Promise.resolve({ data: [] }),
+    ids.length ? db.from("v_hifz_progress").select("student_id, passed, target_count").in("student_id", ids) : Promise.resolve({ data: [] }),
+    ids.length ? db.from("strikes").select("student_id").in("student_id", ids).eq("term_id", termId) : Promise.resolve({ data: [] }),
+  ]);
 
-  const key = (sid: string, t: number) => `${sid}:${t}`;
-  const avgMap = new Map((avgs ?? []).map((r) => [key(r.student_id!, r.term_id!), Number(r.hw_avg)]));
-  const termMap = new Map((termPcts ?? []).map((r) => [key(r.student_id!, r.term_id!), Number(r.term_pct)]));
   const eoyMap = new Map((eoys ?? []).map((r) => [r.student_id!, Number(r.eoy_pct)]));
   const hifzMap = new Map((hifz ?? []).map((r) => [r.student_id!, r]));
-  const examMap = new Map((exams ?? []).map((r) => [key(r.student_id, r.term_id), Number(r.score)]));
   const rankMap = new Map(lb.map((r) => [r.name, r.rank]));
-  const strikesByStudent = new Map<string, StudentStrike[]>();
+  const strikeCount = new Map<string, number>();
   for (const s of strikes ?? []) {
-    const list = strikesByStudent.get(s.student_id) ?? [];
-    list.push({ id: s.id, reason: s.reason, note: s.note, issued_at: s.issued_at! });
-    strikesByStudent.set(s.student_id, list);
+    strikeCount.set(s.student_id, (strikeCount.get(s.student_id) ?? 0) + 1);
   }
-
-  const pct = (n: number | undefined) => (n === undefined ? "—" : `${n.toFixed(1)}%`);
 
   return (
     <>
       <header className="masthead">
         <h1><span>Roster</span></h1>
         <p>
-          {label} · everything that used to live in the spreadsheet.
+          {label} · {students?.length ?? 0} students. Open a name for the full record.
         </p>
       </header>
 
-      <div className="box c12 overflow-x-auto">
-        <table className="w-full min-w-[860px] text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-              <th className="px-4 py-2.5 font-medium">Student</th>
-              <th className="px-2 py-2.5 text-right font-medium">Rank</th>
-              {terms.map((t) => (
-                <th key={t.id} className="px-2 py-2.5 text-right font-medium">HW T{t.id}</th>
-              ))}
-              {terms.map((t) => (
-                <th key={t.id} className="px-2 py-2.5 text-right font-medium">Exam T{t.id}</th>
-              ))}
-              {terms.map((t) => (
-                <th key={t.id} className="px-2 py-2.5 text-right font-medium">Term {t.id}</th>
-              ))}
-              <th className="px-2 py-2.5 text-right font-medium">EOY</th>
-              <th className="px-2 py-2.5 text-right font-medium">Hifdh</th>
-              <th className="px-4 py-2.5 text-right font-medium">Strikes</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
+      <div className="field">
+        <div className="box c12" style={{ padding: 0 }}>
+          <div
+            className={cn(
+              COLS,
+              "hidden border-b border-line py-2.5 lg:grid",
+              "text-[10px] uppercase tracking-wider text-muted-foreground",
+            )}
+          >
+            <span>Student</span>
+            <span>Rank</span>
+            <span>Strikes · T{termId}</span>
+            <span>Hifdh</span>
+            <span>Overall</span>
+          </div>
+
+          <ul className="divide-y divide-line">
             {(students ?? []).map((s) => {
               const h = hifzMap.get(s.id);
-              const studentStrikes = strikesByStudent.get(s.id) ?? [];
+              const taken = strikeCount.get(s.id) ?? 0;
+              const eoy = eoyMap.get(s.id);
+              const rank = rankMap.get(s.full_name);
               return (
-                <tr key={s.id} className={cn(!s.is_active && "opacity-50")}>
-                  <td className="px-4 py-2 font-medium">
-                    {s.full_name}
-                    {!s.is_active && <span className="ml-2 text-xs text-muted-foreground">(inactive)</span>}
-                  </td>
-                  <td className="px-2 py-2 text-right tabular-nums text-muted-foreground">
-                    {rankMap.get(s.full_name) ?? "—"}
-                  </td>
-                  {terms.map((t) => (
-                    <td key={t.id} className="px-2 py-2 text-right tabular-nums">
-                      {pct(avgMap.get(key(s.id, t.id)))}
-                    </td>
-                  ))}
-                  {terms.map((t) => (
-                    <td key={t.id} className="px-2 py-2 text-right">
-                      <ExamInput studentId={s.id} termId={t.id} max={t.exam_max}
-                        initial={examMap.get(key(s.id, t.id)) ?? null} />
-                    </td>
-                  ))}
-                  {terms.map((t) => (
-                    <td key={t.id} className="px-2 py-2 text-right font-medium tabular-nums">
-                      {pct(termMap.get(key(s.id, t.id)))}
-                    </td>
-                  ))}
-                  <td className="px-2 py-2 text-right font-medium tabular-nums">{pct(eoyMap.get(s.id))}</td>
-                  <td className="px-2 py-2 text-right tabular-nums">
-                    {h ? `${h.passed}/${h.target_count}` : "—"}
-                  </td>
-                  <td className="px-4 py-2 text-right">
-                    <StrikeManager
-                      studentId={s.id}
-                      studentName={s.full_name}
-                      termId={termId}
-                      strikes={studentStrikes}
-                    />
-                  </td>
-                </tr>
+                <li key={s.id}>
+                  <Link
+                    href={`/teacher/roster/${s.id}`}
+                    className={cn(
+                      COLS,
+                      "classrow grid py-3.5",
+                      !s.is_active && "opacity-50",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                    )}
+                  >
+                    <span className="col-span-2 flex min-w-0 items-center gap-3 lg:col-span-1">
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "grid size-9 shrink-0 place-items-center rounded-full",
+                          "bg-foreground/10 text-[11px] font-semibold tracking-wide text-ink-2",
+                        )}
+                      >
+                        {initials(s.full_name)}
+                      </span>
+                      <span className="min-w-0 truncate text-sm font-medium">
+                        {s.full_name}
+                        {!s.is_active && (
+                          <span className="ml-2 text-xs text-muted-foreground">(inactive)</span>
+                        )}
+                      </span>
+                    </span>
+
+                    <Cell label="Rank">
+                      <span className="font-heading text-lg leading-none tabular-nums">
+                        {rank ?? <span className="text-muted-foreground/50">—</span>}
+                      </span>
+                    </Cell>
+
+                    <Cell label="Strikes">
+                      <span className="flex items-center gap-2">
+                        <span aria-hidden className="flex gap-1">
+                          {[0, 1, 2].map((i) => (
+                            <span
+                              key={i}
+                              className={cn(
+                                "size-2",
+                                i < taken
+                                  ? taken >= 2
+                                    ? "bg-danger"
+                                    : "bg-warn"
+                                  : "bg-foreground/15",
+                              )}
+                            />
+                          ))}
+                        </span>
+                        <span
+                          className={cn(
+                            "text-xs tabular-nums",
+                            taken >= 2 ? "text-danger" : "text-muted-foreground",
+                          )}
+                        >
+                          {taken} of 3
+                        </span>
+                      </span>
+                    </Cell>
+
+                    <Cell label="Hifdh">
+                      <span className="text-sm tabular-nums">
+                        {h ? (
+                          <>
+                            {h.passed}
+                            <span className="text-muted-foreground"> / {h.target_count}</span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground/50">—</span>
+                        )}
+                      </span>
+                    </Cell>
+
+                    <Cell label="Overall" className="text-left lg:text-right">
+                      <span
+                        className={cn(
+                          "font-heading text-lg leading-none tabular-nums",
+                          eoy === undefined && "text-muted-foreground/50",
+                        )}
+                      >
+                        {eoy === undefined ? "—" : `${eoy.toFixed(1)}%`}
+                      </span>
+                    </Cell>
+                  </Link>
+                </li>
               );
             })}
-          </tbody>
-        </table>
+          </ul>
+
+          {!students?.length && <p className="empty">No students in this class yet.</p>}
+        </div>
       </div>
+
       <p className="text-xs text-muted-foreground">
-        Term % is 80% exam and 20% homework. Unsubmitted homework is excluded from the average, not counted as zero.
+        Overall is the year to date: each term is 80% exam and 20% homework. Strikes are for
+        Term {termId} only and reset with the term.
       </p>
     </>
   );
