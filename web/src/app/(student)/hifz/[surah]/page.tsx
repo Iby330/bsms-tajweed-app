@@ -154,6 +154,13 @@ export default async function SurahPage({
                 <p key={i}>{para}</p>
               ))}
               {summary.dispute && <p className="dispute">{summary.dispute}</p>}
+
+              {/* The reflection is set apart: the paragraphs above describe the
+                  surah, this one asks something of the reader. */}
+              <div className="reflect">
+                <div className="seclab">Something to take from it</div>
+                <p>{summary.reflection}</p>
+              </div>
               {!REVIEWED && (
                 <p className="draftnote">
                   Draft summary. Not yet checked by a teacher.
