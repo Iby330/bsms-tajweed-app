@@ -164,16 +164,18 @@ export default async function StudentHome() {
             </div>
             <ul className="rowlist">
               {overdue.map((e) => (
-                <li key={e.homework.id}>
-                  <Link href={`/homework/${e.homework.number}?from=home`} className="t">
-                    {homeworkLabel(e.homework.number, e.series)}
-                  </Link>
-                  <span className="meta">
-                    <span className="s bad">
-                      {seriesShort(e.series)} · week {e.weekNumber}
+                <li key={e.homework.id} className="linked">
+                  {/* The whole row is the link. An "Open" chip alongside it
+                      was a second control for the one thing the row already
+                      does, and it made the rest of the row look inert. */}
+                  <Link href={`/homework/${e.homework.number}?from=home`} className="rowlink">
+                    <span className="t">{homeworkLabel(e.homework.number, e.series)}</span>
+                    <span className="meta">
+                      <span className="s bad">
+                        {seriesShort(e.series)} · week {e.weekNumber}
+                      </span>
                     </span>
-                    <span className="chip bad">Open</span>
-                  </span>
+                  </Link>
                 </li>
               ))}
             </ul>
