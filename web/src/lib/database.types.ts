@@ -498,6 +498,182 @@ export type Database = {
           },
         ]
       }
+      quran_words: {
+        Row: {
+          ayah_number: number
+          is_end: boolean
+          line_number: number
+          page_number: number
+          surah_number: number
+          text_uthmani: string
+          word_position: number
+        }
+        Insert: {
+          ayah_number: number
+          is_end?: boolean
+          line_number: number
+          page_number: number
+          surah_number: number
+          text_uthmani: string
+          word_position: number
+        }
+        Update: {
+          ayah_number?: number
+          is_end?: boolean
+          line_number?: number
+          page_number?: number
+          surah_number?: number
+          text_uthmani?: string
+          word_position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quran_words_surah_number_fkey"
+            columns: ["surah_number"]
+            isOneToOne: false
+            referencedRelation: "surahs"
+            referencedColumns: ["number"]
+          },
+        ]
+      }
+      revision_mistakes: {
+        Row: {
+          ayah_number: number
+          category: string
+          created_at: string
+          detail: string | null
+          id: string
+          note: string | null
+          session_id: string
+          surah_number: number
+          word_position: number
+        }
+        Insert: {
+          ayah_number: number
+          category: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          note?: string | null
+          session_id: string
+          surah_number: number
+          word_position: number
+        }
+        Update: {
+          ayah_number?: number
+          category?: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          note?: string | null
+          session_id?: string
+          surah_number?: number
+          word_position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revision_mistakes_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "revision_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revision_pairs: {
+        Row: {
+          active: boolean
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          student_a: string
+          student_b: string
+        }
+        Insert: {
+          active?: boolean
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          student_a: string
+          student_b: string
+        }
+        Update: {
+          active?: boolean
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          student_a?: string
+          student_b?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revision_pairs_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revision_pairs_student_a_fkey"
+            columns: ["student_a"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revision_pairs_student_b_fkey"
+            columns: ["student_b"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revision_sessions: {
+        Row: {
+          flags: string[]
+          id: string
+          overall_note: string | null
+          reciter_id: string
+          reviewer_id: string
+          started_at: string
+          submitted_at: string | null
+        }
+        Insert: {
+          flags?: string[]
+          id?: string
+          overall_note?: string | null
+          reciter_id: string
+          reviewer_id: string
+          started_at?: string
+          submitted_at?: string | null
+        }
+        Update: {
+          flags?: string[]
+          id?: string
+          overall_note?: string | null
+          reciter_id?: string
+          reviewer_id?: string
+          started_at?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revision_sessions_reciter_id_fkey"
+            columns: ["reciter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revision_sessions_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schema_migrations: {
         Row: {
           applied_at: string
@@ -1088,3 +1264,4 @@ export const Constants = {
     },
   },
 } as const
+
