@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getCachedSurahs } from "@/lib/reference/cached";
@@ -76,8 +77,11 @@ export default async function SurahPage({
   return (
     <>
       <header className="masthead">
-        <Link href="/hifz" className="label backlink">
-          ← Your hifdh
+        {/* Same step-up affordance as the course pages, so going back looks
+            the same wherever you are. */}
+        <Link href="/hifz" className="backstep">
+          <ArrowLeft className="size-[13px]" aria-hidden />
+          Back to your hifdh
         </Link>
         <h1 style={{ marginTop: 18 }}>
           <span dir="rtl" lang="ar" className="ar-quran surahtitle">

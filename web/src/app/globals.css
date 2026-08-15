@@ -1004,3 +1004,19 @@ body::after {
   .crumbs a { text-decoration: none; }
   .crumbs a:hover { color: var(--foreground); }
 }
+
+/* — going back: one step up, above the trail — */
+@layer components {
+  .trail { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .backstep {
+    display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+    font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--muted-foreground);
+    border: 1px solid var(--hair); padding: 7px 12px 7px 10px;
+    transition: color 0.16s, border-color 0.16s, background 0.16s;
+  }
+  .backstep:hover {
+    color: var(--foreground); border-color: var(--foreground);
+    background: color-mix(in oklab, var(--foreground) 4%, transparent);
+  }
+}
