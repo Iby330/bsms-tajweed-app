@@ -9,6 +9,7 @@ import { MixedText } from "@/components/app/mixed-text";
 import { Crumbs } from "@/components/app/crumbs";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { seriesShort } from "@/lib/lessons/series";
+import { moduleTitle } from "@/lib/curriculum/tree";
 import { parseOrigin, homeworkNav } from "@/lib/homework/back-link";
 
 export const dynamic = "force-dynamic";
@@ -121,12 +122,15 @@ export default async function HomeworkPage({
             )}
           </div>
         )}
+        {/* The subject is the heading; "Homework 2" belongs on the label line
+            with everything else that locates it. */}
         <h1 style={{ marginTop: 16 }}>
-          <b>{label}</b>
+          <MixedText text={moduleTitle(parsed.homework.title) || label} />
         </h1>
-        <MixedText text={parsed.homework.title} className="block" />
         <div className="meta">
           <span className="label">
+            {label}
+            {week && ` · Term ${week.term_id}`} ·{" "}
             {parsed.questions.length}{" "}
             {parsed.questions.length === 1 ? "question" : "questions"}
             {readOnly && " · handed in"}

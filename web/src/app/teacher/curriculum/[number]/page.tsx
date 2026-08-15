@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { parseOptions, parseRubric } from "@/lib/marking/objective";
+import { moduleTitle } from "@/lib/curriculum/tree";
 import { MixedText } from "@/components/app/mixed-text";
 import { StatTile } from "@/components/app/stat-tile";
 import { fmtMarks } from "@/lib/homework/logic";
@@ -82,7 +83,7 @@ export default async function CurriculumDetail({
             {!hw.is_graded && " · ungraded"}
           </span>
         </div>
-        <MixedText text={hw.title} className="block text-sm text-muted-foreground" />
+        <MixedText text={moduleTitle(hw.title) || hw.title} className="block text-sm text-muted-foreground" />
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

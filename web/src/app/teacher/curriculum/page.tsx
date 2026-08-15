@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
+import { moduleTitle } from "@/lib/curriculum/tree";
 import { MixedText } from "@/components/app/mixed-text";
 import { StatTile } from "@/components/app/stat-tile";
 import { LessonVideoInput } from "@/components/app/lesson-video-input";
@@ -96,7 +97,7 @@ export default async function Curriculum() {
                       {wLessons.map((l) => (
                         <li key={l.id} className="flex flex-wrap items-baseline gap-2 text-sm">
                           <span className="w-1 shrink-0 text-muted-foreground">·</span>
-                          <MixedText text={l.title} className="min-w-0" />
+                          <MixedText text={moduleTitle(l.title) || l.title} className="min-w-0" />
                           <span className="ml-auto shrink-0 text-xs text-muted-foreground">
                             {SERIES[l.series]}
                           </span>

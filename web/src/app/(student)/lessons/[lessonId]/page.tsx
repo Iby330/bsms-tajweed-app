@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { SERIES_LABELS, seriesShort } from "@/lib/lessons/series";
+import { moduleTitle } from "@/lib/curriculum/tree";
 import { LessonPlayer } from "@/components/app/lesson-player";
 import { MixedText } from "@/components/app/mixed-text";
 import { Crumbs } from "@/components/app/crumbs";
@@ -75,14 +76,16 @@ export default async function Lesson({
             { label: `Week ${week.number}` },
           ]}
         />
+        {/* The subject alone. The course and the week are on the line below,
+            so repeating "Tajweed 2" inside the heading said it three times. */}
         <h1 style={{ marginTop: 16 }}>
-          <MixedText text={lesson.title} />
+          <MixedText text={moduleTitle(lesson.title) || lesson.title} />
         </h1>
         <div className="meta">
           <span className="label">
-            {SERIES_LABELS[lesson.series] ?? lesson.series} · Week {week.number} · Term{" "}
-            {week.term_id}
-            {ordered.length > 1 && ` · lesson ${index + 1} of ${ordered.length}`}
+            Lesson {week.number}
+            {ordered.length > 1 && ` of ${ordered.length} this week`} ·{" "}
+            {SERIES_LABELS[lesson.series] ?? lesson.series} · Term {week.term_id}
           </span>
           {watch && <span className="label hi">Watched</span>}
         </div>
