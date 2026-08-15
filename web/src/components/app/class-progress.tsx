@@ -243,7 +243,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
               lines loses the space it opens with, which closed the gap after
               the term number. */}
           Homework average is for Term {termId}
-          {" — "}unsubmitted homework is excluded from it, not counted as zero. Hifz is the share
+          {" — "}unsubmitted homework is excluded from it, not counted as zero. Hifdh is the share
           of the year&rsquo;s target signed off; the surah numbers are places in the 43, and
           &ldquo;should be on&rdquo; is where the teaching calendar puts a student today.
         </p>

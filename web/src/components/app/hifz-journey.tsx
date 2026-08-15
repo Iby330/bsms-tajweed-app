@@ -89,10 +89,15 @@ export function HifzJourney({
                     <span className="n">{String(i + 1).padStart(2, "0")}</span>
                     {i === currentIdx && <span className="tag">NEXT</span>}
                     {rec?.teacher_comment && (
-                      <span className="cmt" title="Your teacher left a comment" aria-hidden>
-                        <svg viewBox="0 0 24 24">
+                      <span className="cmt" title="Your teacher left a comment">
+                        <svg viewBox="0 0 24 24" aria-hidden>
                           <path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9l-5 4V5a1 1 0 0 1 1-1z" />
                         </svg>
+                        {/* The glyph alone is a hover affordance, which a
+                            screen reader never gets. The old record list read
+                            comments out in full; the least this owes is to
+                            say one exists. */}
+                        <span className="sr-only">Your teacher left a comment</span>
                       </span>
                     )}
                     <span dir="rtl" lang="ar" className="ar-quran">{s.name_ar}</span>
