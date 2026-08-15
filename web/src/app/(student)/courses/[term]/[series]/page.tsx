@@ -33,8 +33,8 @@ export default async function CoursePage({
   const nextUnlock = term.lockedWeeks[0];
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-3">
+    <>
+      <header className="masthead">
         <Crumbs
           items={[
             { label: "Courses", href: "/courses" },
@@ -42,23 +42,33 @@ export default async function CoursePage({
             { label: seriesShort(course.series) },
           ]}
         />
-        <header>
-          <h1 className="text-2xl">{course.label}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+        <h1 style={{ marginTop: 16 }}>
+          <b>{course.label}</b>
+        </h1>
+        <p>
+          Every module in this course, week by week. Open one to watch the lesson and
+          hand in its homework.
+        </p>
+        <div className="meta">
+          <span className="label">
             Term {term.id} · {course.moduleCount}{" "}
             {course.moduleCount === 1 ? "module" : "modules"} released
-          </p>
-        </header>
-        <ProgressBar
-          done={course.doneCount}
-          total={course.actionableCount}
-          className="max-w-sm"
-          emptyNote="Nothing to do yet — the videos aren't up"
-          label={`${course.label}: ${course.doneCount} of ${course.actionableCount} modules complete`}
-        />
-      </div>
+          </span>
+          <span className="label hi">
+            {course.doneCount} of {course.actionableCount} complete
+          </span>
+        </div>
+        <div style={{ marginTop: 18, maxWidth: 360 }}>
+          <ProgressBar
+            done={course.doneCount}
+            total={course.actionableCount}
+            emptyNote="Nothing to do yet, the videos aren't up"
+            label={`${course.label}: ${course.doneCount} of ${course.actionableCount} modules complete`}
+          />
+        </div>
+      </header>
 
-      <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <ul className="cards">
         {course.modules.map((m) => (
           <ModuleCard
             key={m.weekId}
@@ -69,8 +79,8 @@ export default async function CoursePage({
         ))}
 
         {nextUnlock && (
-          <li className="flex items-center justify-center rounded-xl border border-dashed border-line p-6">
-            <p className="text-center text-sm text-muted-foreground">
+          <li className="tcard justify-center">
+            <p className="note">
               Week {nextUnlock.number} unlocks{" "}
               <span className="tabular-nums text-foreground">
                 {new Date(nextUnlock.unlockAt).toLocaleDateString("en-GB", {
@@ -85,6 +95,6 @@ export default async function CoursePage({
           </li>
         )}
       </ul>
-    </div>
+    </>
   );
 }

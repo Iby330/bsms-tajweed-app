@@ -85,12 +85,8 @@ export function ModuleCard({
   const watchable = Boolean(lesson?.youtube_id);
 
   return (
-    <li
-      className={cn(
-        "relative flex flex-col overflow-hidden rounded-xl border bg-card transition-colors",
-        m.unlocked ? "border-line hover:border-ink/30" : "border-dashed border-line",
-      )}
-    >
+    <li className={cn("tcard relative overflow-hidden", !m.unlocked && "locked")}
+        style={{ padding: 0, gap: 0 }}>
       {/* ── title strip ── */}
       <div className="flex items-baseline gap-2 px-3 py-2">
         {m.title ? (

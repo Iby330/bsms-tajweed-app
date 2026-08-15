@@ -27,35 +27,35 @@ export default async function TermPage({
   if (!term) notFound();
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-3">
+    <>
+      <header className="masthead">
         <Crumbs items={[{ label: "Courses", href: "/courses" }, { label: `Term ${term.id}` }]} />
-        <header>
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h1 className="text-2xl">Term {term.id}</h1>
-            {term.isCurrent && (
-              <span className="rounded-md bg-ink/8 px-2 py-0.5 text-[11px] font-medium text-ink-2">
-                Current term
-              </span>
-            )}
-          </div>
-          <p className="mt-1 text-sm tabular-nums text-muted-foreground">
-            {dmy(term.startsOn)} – {dmy(term.endsOn)} · exam out of {term.examMax}
-          </p>
-        </header>
-      </div>
+        <h1 style={{ marginTop: 16 }}>
+          <b>Term {term.id}</b>
+        </h1>
+        <p>
+          {dmy(term.startsOn)} to {dmy(term.endsOn)}. The exam at the end of this term is
+          out of {term.examMax}.
+        </p>
+        <div className="meta">
+          <span className="label">
+            {term.courses.length} {term.courses.length === 1 ? "course" : "courses"}
+          </span>
+          {term.isCurrent && <span className="label hi">Current term</span>}
+        </div>
+      </header>
 
       {term.courses.length === 0 ? (
-        <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
-          No courses have been added to this term yet.
-        </p>
+        <div className="field"><div className="box c12">
+          <div className="note">No courses have been added to this term yet.</div>
+        </div></div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="cards">
           {term.courses.map((course) => (
             <CourseCard key={course.series} course={course} />
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }

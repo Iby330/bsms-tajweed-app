@@ -24,6 +24,12 @@ export function TermBars({
         const share = (part: number | null) =>
           bar.total > 0 && part !== null ? `${(part / bar.total) * 100}%` : "0%";
 
+        // Hovering a segment names it and gives the figure. Deliberately
+        // terse: the bar is already labelled with its term, and the panel is
+        // small enough that a tall tooltip covers the heading above it.
+        const examPct =
+          t.examScore !== null && t.examMax ? (t.examScore / t.examMax) * 100 : null;
+
         return (
           <div
             key={t.termId}
@@ -48,6 +54,11 @@ export function TermBars({
                       data-part="exam"
                       className="w-full bg-viz-exam"
                       style={{ height: share(bar.examPart) }}
+                      data-tip="Exam · 80%"
+                      data-tip-value={
+                        `${t.examScore}/${t.examMax}` +
+                        (examPct !== null ? ` · ${examPct.toFixed(1)}%` : "")
+                      }
                     />
                   )}
                   {bar.hwPart !== null && (
@@ -55,6 +66,8 @@ export function TermBars({
                       data-part="homework"
                       className="w-full bg-viz-hw"
                       style={{ height: share(bar.hwPart) }}
+                      data-tip="Homework · 20%"
+                      data-tip-value={`${t.hwAvg!.toFixed(1)}%`}
                     />
                   )}
                 </div>

@@ -120,7 +120,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
 
   if (!rows.length) {
     return (
-      <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
+      <p className="empty">
         No students in this class yet.
       </p>
     );
@@ -144,7 +144,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
         Class list sorted {announce}.
       </p>
 
-      <div className="glass overflow-hidden rounded-2xl">
+      <div className="overflow-hidden">
         <div
           className={cn(
             COLS,
@@ -154,7 +154,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
         >
           <span>Student</span>
           <span>Homework · T{termId}</span>
-          <span>Hifz</span>
+          <span>Hifdh</span>
           <span>Currently on</span>
         </div>
 
@@ -171,7 +171,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
                 href={`/teacher/hifz/${r.studentId}`}
                 className={cn(
                   COLS,
-                  "grid px-4 py-3.5 transition-colors hover:bg-muted/50 lg:px-5",
+                  "classrow grid px-4 py-3.5 lg:px-5",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                 )}
               >
@@ -189,7 +189,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
                 </span>
 
                 <Metric label="Homework" pct={r.hwAvg} bar="bg-viz-hw" />
-                <Metric label="Hifz" pct={r.hifzAvg} bar="bg-viz-exam" />
+                <Metric label="Hifdh" pct={r.hifzAvg} bar="bg-viz-exam" />
 
                 <span className="col-span-2 flex items-end justify-between gap-3 lg:col-span-1">
                   <span className="min-w-0">
@@ -200,10 +200,9 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
                       <>
                         <span className="mt-0.5 flex min-w-0 items-baseline gap-2 lg:mt-0">
                           <span className="truncate text-sm font-medium">{r.surah.nameEn}</span>
-                          <MixedText
-                            text={r.surah.nameAr}
-                            className="shrink-0 text-sm text-muted-foreground"
-                          />
+                          <span dir="rtl" lang="ar" className="ar-quran shrink-0 text-ok">
+                            {r.surah.nameAr}
+                          </span>
                         </span>
                         <span className="mt-0.5 block text-[11px] tabular-nums text-muted-foreground">
                           {r.surah.index} of {r.outOf}
@@ -244,7 +243,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
               lines loses the space it opens with, which closed the gap after
               the term number. */}
           Homework average is for Term {termId}
-          {" — "}unsubmitted homework is excluded from it, not counted as zero. Hifz is the share
+          {" — "}unsubmitted homework is excluded from it, not counted as zero. Hifdh is the share
           of the year&rsquo;s target signed off; the surah numbers are places in the 43, and
           &ldquo;should be on&rdquo; is where the teaching calendar puts a student today.
         </p>

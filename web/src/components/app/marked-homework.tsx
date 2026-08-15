@@ -27,7 +27,7 @@ export function MarkedHomework({ rows }: { rows: ScoredHomework[] }) {
   const announce = SORTS.find((s) => s.value === sort)!.announce;
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       <FilterSelect
         label="Sort"
         value={sort}
@@ -42,14 +42,15 @@ export function MarkedHomework({ rows }: { rows: ScoredHomework[] }) {
         Marked homework sorted {announce}, within each term.
       </p>
 
-      <div id={uid} className="space-y-4">
+      <div id={uid} className="flex flex-col gap-6">
         {terms.map((term) => (
-          <div key={term.termId} className="space-y-1.5">
-            <h3 className="text-xs text-muted-foreground">
-              Term {term.termId}{" "}
-              <span className="tabular-nums text-muted-foreground/60">· {term.rows.length}</span>
+          <div key={term.termId}>
+            {/* No nested panel: this list already sits inside one, and a card
+                within a card reads as a seam rather than a grouping. */}
+            <h3 className="label">
+              Term {term.termId} <span className="tabular-nums">· {term.rows.length}</span>
             </h3>
-            <ul className="glass divide-y divide-line overflow-hidden rounded-2xl">
+            <ul className="rowlist" style={{ marginTop: 8 }}>
               {term.rows.map((r) => (
                 <HomeworkRow
                   key={r.entry.homework.id}

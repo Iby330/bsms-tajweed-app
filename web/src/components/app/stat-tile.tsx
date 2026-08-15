@@ -10,15 +10,12 @@ export function StatTile({
 }) {
   const empty = value === null || value === undefined || value === "";
   return (
-    <div className={cn("glass rounded-2xl px-4 py-3.5", className)}>
-      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className={cn(
-        "mt-1 font-heading text-2xl tabular-nums",
-        empty && "text-muted-foreground/50",
-      )}>
-        {empty ? "—" : value}
+    <div className={cn("box c4", className)}>
+      <span className="label">{label}</span>
+      <div className="stat">
+        <span className={cn("v sm", empty && "opacity-40")}>{empty ? "\u2014" : value}</span>
       </div>
-      {sub && <div className="mt-0.5 text-xs text-muted-foreground">{empty ? "no data yet" : sub}</div>}
+      {sub && <div className="note">{empty ? "no data yet" : sub}</div>}
     </div>
   );
 }

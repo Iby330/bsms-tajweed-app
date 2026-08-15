@@ -48,9 +48,9 @@ export function LeaderboardPanel({
   const canExpand = sorted.length > shown.length || expanded;
 
   return (
-    <div className="glass glass-hover flex flex-col rounded-2xl p-4">
+    <section className="box c6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground">{title}</h3>
+        <span className="label">{title}</span>
 
         {scopes.length > 1 && (
           <FilterSelect
@@ -69,65 +69,36 @@ export function LeaderboardPanel({
         )}
       </div>
 
-      <div id={groupId} className="mt-2.5 flex-1">
+      <div id={groupId}>
         {shown.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No rankings yet.</p>
+          <p className="note">No rankings yet.</p>
         ) : (
-          <ul
-            className={cn(
-              "space-y-1",
-              // Expanded lists can run long — keep the card a sane height and
-              // let the table itself scroll.
-              expanded && "max-h-72 overflow-y-auto pr-1",
-            )}
-          >
+          <ol className={cn("lb", expanded && "max-h-72 overflow-y-auto pr-1")}>
             {shown.map((r) => {
               const isSelf = r.name === scope.selfName;
               return (
                 <li
                   key={`${r.rank}-${r.name}`}
                   data-self={isSelf || undefined}
-                  className={cn(
-                    "rounded-md px-2.5 py-1.5 text-sm",
-                    // A tint plus a ring rather than a filled block: --ink
-                    // inverts to near-white in dark mode, which on glass reads
-                    // as a hole punched in the panel.
-                    isSelf
-                      ? "bg-foreground/10 font-medium text-foreground ring-1 ring-foreground/25"
-                      : "text-foreground",
-                  )}
+                  className={cn("row", isSelf && "me")}
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="flex min-w-0 items-center gap-2.5">
-                      <span className="w-5 shrink-0 text-right tabular-nums opacity-60">
-                        {r.rank}
-                      </span>
-                      <span className="truncate">{r.name}</span>
-                    </span>
-                    <span className="shrink-0 tabular-nums">{r.pct.toFixed(1)}%</span>
-                  </div>
-                  {/* The bar makes the gaps visible: three names within a point
-                      of each other is a different race from three ten apart. */}
-                  <div
-                    className={cn(
-                      "mt-1 h-1.5 overflow-hidden rounded-full",
-                      isSelf ? "bg-foreground/15" : "bg-foreground/10",
-                    )}
-                  >
-                    <div
+                  <span className="rk">{r.rank}</span>
+                  {/* The bar is the score itself, not a share of the leader's:
+                      70% is drawn at 70%, so the gaps read as they really are. */}
+                  <span className="bw">
+                    <span
                       data-bar
                       data-self={isSelf}
+                      className="bar transition-[width] duration-700 ease-out"
                       style={{ width: `${Math.max(0, Math.min(100, r.pct))}%` }}
-                      className={cn(
-                        "h-full rounded-full transition-[width] duration-700 ease-out",
-                        isSelf ? "bg-ok data-glow" : "bg-viz-hw",
-                      )}
                     />
-                  </div>
+                    <span className="nm">{r.name}</span>
+                  </span>
+                  <span className="sc">{r.note ?? `${r.pct.toFixed(1)}%`}</span>
                 </li>
               );
             })}
-          </ul>
+          </ol>
         )}
       </div>
 
@@ -138,7 +109,7 @@ export function LeaderboardPanel({
           aria-expanded={expanded}
           aria-controls={groupId}
           className={cn(
-            "mt-3 self-start rounded text-xs text-ink-2 underline underline-offset-4",
+            "note self-start underline underline-offset-4",
             "transition-colors hover:text-foreground",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           )}
@@ -146,6 +117,6 @@ export function LeaderboardPanel({
           {expanded ? "Show less" : `See all ${sorted.length} ${scope.noun} →`}
         </button>
       )}
-    </div>
+    </section>
   );
 }

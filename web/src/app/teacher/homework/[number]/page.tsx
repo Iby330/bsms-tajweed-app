@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { scopeLabel, teacherRoster } from "@/lib/teacher/scope";
@@ -67,13 +68,14 @@ export default async function TeacherHomeworkDetail({
   const missing = students.filter((s) => !subByStudent.has(s.id)).length;
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-2">
-        <Link href="/teacher/homework" className="text-xs text-muted-foreground underline underline-offset-4">
-          ← Homework
+    <>
+      <header className="masthead">
+        <Link href="/teacher/homework" className="backstep">
+          <ArrowLeft className="size-[13px]" aria-hidden />
+          Homework
         </Link>
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h1 className="text-2xl">{homeworkLabel(hw.number, hw.series)}</h1>
+          <h1><b>{homeworkLabel(hw.number, hw.series)}</b></h1>
           <span className="text-sm text-muted-foreground">
             {seriesShort(hw.series)}
             {week && <> · Term {week.term_id}, week {week.number}</>}
@@ -88,13 +90,13 @@ export default async function TeacherHomeworkDetail({
       </header>
 
       {students.length === 0 ? (
-        <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
+        <p className="empty">
           No active students yet.
         </p>
       ) : (
           <section className="space-y-2">
             <h2 className="text-sm font-medium">{label}</h2>
-            <ul className="divide-y divide-line overflow-hidden glass rounded-2xl">
+            <ul className="box c12 divide-y divide-line" style={{ padding: 0, gap: 0 }}>
               {students.map((s) => {
                 const sub = subByStudent.get(s.id);
                 const pct = pctByStudent.get(s.id);
@@ -151,6 +153,6 @@ export default async function TeacherHomeworkDetail({
             </ul>
           </section>
       )}
-    </div>
+    </>
   );
 }

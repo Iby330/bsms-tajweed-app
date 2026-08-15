@@ -23,44 +23,28 @@ export function TermCard({
   const unlocked = term.courses.reduce((n, c) => n + c.unlockedCount, 0);
 
   return (
-    <div
-      className={cn(
-        "flex flex-col rounded-xl border bg-card p-5 transition-colors",
-        term.isCurrent ? "border-ink/25 shadow-[0_1px_2px_rgba(29,35,57,0.04)]" : "border-line",
-      )}
-    >
-      <Link href={`/courses/${term.id}`} className="group flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="font-heading text-lg tracking-tight transition-colors group-hover:text-ink-2">
-              Term {term.id}
-            </h2>
-            <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
-              {dmy(term.startsOn)} – {dmy(term.endsOn)} · exam out of {term.examMax}
-            </p>
-          </div>
-          {term.isCurrent && (
-            <span className="shrink-0 rounded-md bg-ink/8 px-2 py-0.5 text-[11px] font-medium text-ink-2">
-              Current
-            </span>
-          )}
-        </div>
+    <div className={cn("tcard", term.isCurrent && "current")}>
+      <Link href={`/courses/${term.id}`} className="flex flex-1 flex-col gap-3">
+        <span className="label">
+          Term {term.id}
+          {term.isCurrent && " · current"}
+        </span>
+        <h2>
+          {dmy(term.startsOn)} to {dmy(term.endsOn)}
+        </h2>
+        <span className="note">Exam out of {term.examMax}</span>
 
         {!empty && (
-          <ul className="mt-4 flex flex-wrap gap-1.5">
+          <ul className="tags">
             {term.courses.map((c) => (
-              <li
-                key={c.series}
-                className="rounded-md border border-line px-2 py-0.5 text-xs text-muted-foreground"
-              >
-                {seriesShort(c.series)}
-                <span className="ml-1 tabular-nums text-muted-foreground/70">{c.moduleCount}</span>
+              <li key={c.series}>
+                {seriesShort(c.series)} {c.moduleCount}
               </li>
             ))}
           </ul>
         )}
 
-        <div className="mt-4">
+        <div className="mt-1">
           <ProgressBar
             done={term.doneCount}
             total={term.actionableCount}

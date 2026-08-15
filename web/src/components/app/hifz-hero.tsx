@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { SURAH_INFO } from "@/lib/hifz/surah-info";
 import type { PaceStatus } from "@/lib/hifz/pace";
 import type { CheckStatus, HizbBlock, JuzProgress } from "@/lib/hifz/hizb";
 
@@ -6,6 +7,7 @@ import type { CheckStatus, HizbBlock, JuzProgress } from "@/lib/hifz/hizb";
  *  the distance to the next hizb check. Everything is precomputed by the
  *  page; this only renders. */
 export function HifzHero({
+  number,
   nameEn,
   nameAr,
   meta,
@@ -15,6 +17,8 @@ export function HifzHero({
   complete,
   check,
 }: {
+  /** the surah being memorised now, for its introduction */
+  number: number | null;
   nameEn: string;
   nameAr: string;
   meta?: { ayahs: number; meaning: string };
@@ -26,14 +30,14 @@ export function HifzHero({
 }) {
   const pct = juz && juz.total > 0 ? Math.round((juz.passed / juz.total) * 100) : 0;
   return (
-    <section className="glass rounded-2xl p-5" aria-label="Hifz overview">
+    <section className="box c12" aria-label="Hifdh overview">
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          <p className="label">
             {complete ? "Memorisation target complete" : "Now memorising"}
           </p>
           <p className="mt-1 text-3xl">
-            <span dir="rtl" lang="ar" className="ar-ui">{nameAr}</span>
+            <span dir="rtl" lang="ar" className="ar-quran">{nameAr}</span>
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             {nameEn}
@@ -66,9 +70,9 @@ export function HifzHero({
               </div>
             </div>
             <div className="space-y-1">
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              <p className="label">
                 {juz.name_en}{" "}
-                <span dir="rtl" lang="ar" className="ar-ui normal-case tracking-normal">
+                <span dir="rtl" lang="ar" className="ar-quran normal-case tracking-normal">
                   {juz.name_ar}
                 </span>
               </p>
@@ -137,9 +141,28 @@ export function HifzHero({
           <span className="font-medium tabular-nums">
             {check.remaining} surah{check.remaining === 1 ? "" : "s"}
           </span>{" "}
-          until your <span className="font-medium">Hizb {check.hizb} check</span> — presenting
+          until your <span className="font-medium">Hizb {check.hizb} check</span>. Presenting
           the whole hizb to your teacher.
         </p>
+      )}
+
+      {/* What the student is on now, in context — revealed when, and about
+          what. Static data, so this costs nothing at request time. */}
+      {number !== null && SURAH_INFO[number]?.revealed && (
+        <div className="herodesc">
+          <span className="label">About this surah</span>
+          <p>{SURAH_INFO[number].revealed}</p>
+          {SURAH_INFO[number].theme && <p>{SURAH_INFO[number].theme}</p>}
+          <div className="src">{SURAH_INFO[number].source}</div>
+          <a
+            className="readon"
+            href={`https://quran.com/${number}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Read it on Quran.com →
+          </a>
+        </div>
       )}
     </section>
   );
