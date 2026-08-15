@@ -155,12 +155,11 @@ export default async function SurahPage({
               ))}
               {summary.dispute && <p className="dispute">{summary.dispute}</p>}
 
-              {/* The reflection is set apart: the paragraphs above describe the
-                  surah, this one asks something of the reader. */}
-              <div className="reflect">
-                <div className="seclab">Something to take from it</div>
-                <p>{summary.reflection}</p>
-              </div>
+              {/* summary.reflection is written and kept in the data, but not
+                  shown yet. The reflections make claims about how to live
+                  rather than about what a surah says, so they wait for a
+                  teacher's review before any student reads them. Render this
+                  block again once that has happened. */}
               {!REVIEWED && (
                 <p className="draftnote">
                   Draft summary. Not yet checked by a teacher.
