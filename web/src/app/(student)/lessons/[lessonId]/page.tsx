@@ -57,13 +57,13 @@ export default async function Lesson({
   const homework = forSeries.length === 1 ? forSeries[0] : null;
 
   return (
-    <div className="space-y-6">
+    <>
       {/* React hoists these into <head>, so the TLS handshake with YouTube is
           already done by the time the player mounts and asks for the iframe. */}
       <link rel="preconnect" href="https://www.youtube.com" />
       <link rel="preconnect" href="https://i.ytimg.com" />
 
-      <div>
+      <header className="masthead">
         <Crumbs
           items={[
             { label: "Courses", href: "/courses" },
@@ -75,48 +75,58 @@ export default async function Lesson({
             { label: `Week ${week.number}` },
           ]}
         />
-        <h1 className="mt-2">
-          <MixedText text={lesson.title} className="text-2xl leading-tight" />
+        <h1 style={{ marginTop: 16 }}>
+          <MixedText text={lesson.title} />
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {SERIES_LABELS[lesson.series] ?? lesson.series} · Week {week.number} · Term {week.term_id}
-          {ordered.length > 1 && ` · lesson ${index + 1} of ${ordered.length}`}
-        </p>
-      </div>
-
-      {lesson.youtube_id ? (
-        <LessonPlayer
-          lessonId={lesson.id}
-          youtubeId={lesson.youtube_id}
-          initiallyWatched={Boolean(watch)}
-        />
-      ) : (
-        <div className="flex aspect-video w-full items-center justify-center rounded-lg border border-dashed border-line bg-card px-6 text-center">
-          <p className="max-w-xs text-sm text-muted-foreground">
-            The video for this lesson hasn&apos;t been uploaded yet. Your teacher
-            will add it — check back soon.
-          </p>
+        <div className="meta">
+          <span className="label">
+            {SERIES_LABELS[lesson.series] ?? lesson.series} · Week {week.number} · Term{" "}
+            {week.term_id}
+            {ordered.length > 1 && ` · lesson ${index + 1} of ${ordered.length}`}
+          </span>
+          {watch && <span className="label hi">Watched</span>}
         </div>
-      )}
+      </header>
 
-      <div className="flex flex-wrap items-center gap-3">
-        {next && (
-          <Link
-            href={`/lessons/${next.id}`}
-            className="rounded-md border border-line px-3 py-2 text-sm transition-colors hover:bg-muted"
-          >
-            Next lesson →
-          </Link>
-        )}
-        {homework && (
-          <Link
-            href={`/homework/${homework.number}?from=video`}
-            className="rounded-md border border-line px-3 py-2 text-sm transition-colors hover:bg-muted"
-          >
-            This week&apos;s homework
-          </Link>
+      <div className="field">
+        <div className="box c12">
+          {lesson.youtube_id ? (
+            <LessonPlayer
+              lessonId={lesson.id}
+              youtubeId={lesson.youtube_id}
+              initiallyWatched={Boolean(watch)}
+            />
+          ) : (
+            <div className="empty">
+              The video for this lesson hasn&apos;t been uploaded yet. Your teacher will
+              add it, so check back soon.
+            </div>
+          )}
+        </div>
+
+        {(next || homework) && (
+          <div className="box c12" style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+            {homework && (
+              <Link href={`/homework/${homework.number}?from=video`} className="chip due">
+                This week&apos;s homework →
+              </Link>
+            )}
+            {next && (
+              <Link href={`/lessons/${next.id}`} className="chip">
+                Next lesson →
+              </Link>
+            )}
+          </div>
         )}
       </div>
-    </div>
+
+      <div className="signoff">
+        <Link href={`/courses/${week.term_id}/${lesson.series}`} className="lines">
+          ← All modules
+        </Link>
+        <span className="wm" role="img" aria-label="BSMS Tajweed" />
+        <span className="lines right">Week {week.number}</span>
+      </div>
+    </>
   );
 }

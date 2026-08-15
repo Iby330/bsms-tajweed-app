@@ -85,10 +85,10 @@ export function HomeworkForm({
   const outOf = questions.filter((q) => !q.is_bonus).reduce((s, q) => s + q.points, 0);
 
   return (
-    <div className="space-y-5">
+    <div className="field">
       {approved && (
-        <div className="glass rounded-2xl p-4">
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Your mark</div>
+        <div className="box c12">
+          <span className="label">Your mark</span>
           <div className="mt-1 font-heading text-3xl tabular-nums">
             {fmtMarks(total ?? 0)}<span className="text-muted-foreground"> / {fmtMarks(outOf)}</span>
           </div>
@@ -103,7 +103,7 @@ export function HomeworkForm({
           : null;
 
         return (
-          <section key={q.id} className="glass rounded-2xl p-4 sm:p-5">
+          <section key={q.id} className="box c12">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -222,7 +222,7 @@ export function HomeworkForm({
       })}
 
       {!readOnly && submissionId && (
-        <div className="flex items-center justify-between gap-4 glass rounded-2xl p-4">
+        <div className="box c12" style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
           <span className="text-xs text-muted-foreground">
             {saved === "saving" ? "Saving…" : saved === "saved" ? "Draft saved" : "Your work saves as you type."}
           </span>
@@ -241,7 +241,7 @@ export function HomeworkForm({
       )}
 
       {readOnly && !approved && (
-        <p className="glass rounded-2xl p-4 text-sm text-muted-foreground">
+        <p className="empty">
           Submitted — your teacher will release your mark shortly.
         </p>
       )}
