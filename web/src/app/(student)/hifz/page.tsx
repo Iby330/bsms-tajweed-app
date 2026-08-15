@@ -7,20 +7,44 @@ import { SURAH_META } from "@/lib/hifz/surah-meta";
 import { HifzHero } from "@/components/app/hifz-hero";
 import { HifzJourney } from "@/components/app/hifz-journey";
 import { HifzRecord, type RecordEntry } from "@/components/app/hifz-record";
+import { HifzTabs } from "@/components/app/hifz-tabs";
+import { ReviewTab } from "@/components/app/review-tab";
 
 export const dynamic = "force-dynamic";
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="mx-auto max-w-2xl glass rounded-2xl p-8 text-center">
-      <h1 className="text-xl">Hifz</h1>
-      <p className="mt-2 text-sm text-muted-foreground">{message}</p>
+    <div className="glass rounded-2xl p-8 text-center">
+      <p className="text-sm text-muted-foreground">{message}</p>
     </div>
   );
 }
 
-export default async function StudentHifz() {
+export default async function StudentHifz({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; surah?: string; heat?: string }>;
+}) {
+  const { tab, surah, heat } = await searchParams;
   const profile = (await currentProfile())!;
+
+  const shell = (children: React.ReactNode) => (
+    <div className="mx-auto max-w-2xl space-y-5">
+      <header>
+        <h1 className="text-2xl">Hifz</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Your memorisation journey.</p>
+      </header>
+      <HifzTabs basePath="/hifz" active={tab === "review" ? "review" : "overview"} />
+      {children}
+    </div>
+  );
+
+  // The Review tab must stay reachable even before a target is set — a
+  // student with no run of their own can still review their partner.
+  if (tab === "review") {
+    return shell(<ReviewTab userId={profile.id} surahParam={surah} heatParam={heat} />);
+  }
+
   const db = await supabaseServer();
   const { weeks } = await getTermsAndWeeks();
 
@@ -31,17 +55,17 @@ export default async function StudentHifz() {
   ]);
 
   if (!hp) {
-    return <EmptyState message="Your teacher hasn't set your memorisation target yet." />;
+    return shell(<EmptyState message="Your teacher hasn't set your memorisation target yet." />);
   }
 
   const all = surahs as Surah[];
   if (all.length === 0) {
-    return <EmptyState message="The surah list couldn't be loaded — please try again shortly." />;
+    return shell(<EmptyState message="The surah list couldn't be loaded — please try again shortly." />);
   }
 
   const list = memorisationList(hp.start_surah, hp.target_count, all);
   if (list.length === 0) {
-    return <EmptyState message="Your teacher hasn't set your memorisation target yet." />;
+    return shell(<EmptyState message="Your teacher hasn't set your memorisation target yet." />);
   }
   const recordMap = new Map(
     (records ?? []).map((r) => [
@@ -96,13 +120,8 @@ export default async function StudentHifz() {
         : b.passed_at.localeCompare(a.passed_at),
     );
 
-  return (
-    <div className="mx-auto max-w-2xl space-y-5">
-      <header>
-        <h1 className="text-2xl">Hifz</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Your memorisation journey.</p>
-      </header>
-
+  return shell(
+    <>
       <HifzHero
         nameEn={current?.name_en ?? ""}
         nameAr={current?.name_ar ?? ""}
@@ -117,6 +136,6 @@ export default async function StudentHifz() {
       <HifzJourney list={list} records={recordMap} expected={expected} />
 
       <HifzRecord entries={entries} />
-    </div>
+    </>,
   );
 }
