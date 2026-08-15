@@ -54,15 +54,15 @@ export default async function Roster() {
   const pct = (n: number | undefined) => (n === undefined ? "—" : `${n.toFixed(1)}%`);
 
   return (
-    <div className="space-y-5">
-      <header>
-        <h1 className="text-2xl">Roster</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+    <>
+      <header className="masthead">
+        <h1><span>Roster</span></h1>
+        <p>
           {label} · everything that used to live in the spreadsheet.
         </p>
       </header>
 
-      <div className="overflow-x-auto glass rounded-2xl">
+      <div className="box c12 overflow-x-auto">
         <table className="w-full min-w-[860px] text-sm">
           <thead>
             <tr className="border-b border-line text-left text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -132,6 +132,6 @@ export default async function Roster() {
       <p className="text-xs text-muted-foreground">
         Term % is 80% exam and 20% homework. Unsubmitted homework is excluded from the average, not counted as zero.
       </p>
-    </div>
+    </>
   );
 }

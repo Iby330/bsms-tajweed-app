@@ -45,10 +45,10 @@ export default async function Curriculum() {
   const needsKey = (questions ?? []).filter((q) => q.needs_key).length;
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-2xl">Curriculum</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+    <>
+      <header className="masthead">
+        <h1><span>Curriculum</span></h1>
+        <p>
           Every module, homework and question as imported from the Google Forms.
         </p>
       </header>
@@ -137,6 +137,6 @@ export default async function Curriculum() {
           </div>
         </section>
       ))}
-    </div>
+    </>
   );
 }

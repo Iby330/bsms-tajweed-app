@@ -80,19 +80,33 @@ export default async function TeacherHome() {
   const hifzAvg = mean(hifzRows.map((r) => Number(r.pct)));
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-2xl">Assalamu alaykum, {profile.full_name.split(" ")[0]}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {myClass ? myClass.name : "No class assigned"} · Term {termId}
-        </p>
+    <>
+      <header className="masthead">
+        <h1>
+          <span>Assalamu alaykum,</span>
+          <br />
+          <b>{profile.full_name.split(" ")[0]}.</b>
+        </h1>
+        <div className="meta">
+          <span className="label">
+            {myClass ? myClass.name : "No class assigned"} · Term {termId}
+          </span>
+          {pending.length > 0 && (
+            <span className="label hi">
+              {pending.length} waiting to be marked
+            </span>
+          )}
+        </div>
       </header>
 
-      <section className="space-y-3">
-        <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">
-          Needs my attention
-        </h2>
-        <div className="glass rounded-2xl p-4">
+      <div className="divider">
+        <span className="label">Needs my attention</span>
+        <span className="r" />
+        <span className="m" />
+      </div>
+
+      <div className="field">
+        <div className="box c12">
           {pending.length ? (
             <>
               <div className="flex items-baseline gap-2">
@@ -141,11 +155,15 @@ export default async function TeacherHome() {
             </p>
           )}
         </div>
-      </section>
+      </div>
 
-      <section className="space-y-3">
-        <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">My class</h2>
-        <div className="grid gap-3 sm:grid-cols-3">
+      <div className="divider">
+        <span className="label">My class</span>
+        <span className="r" />
+        <span className="m" />
+      </div>
+
+      <div className="field">
           <StatTile label="Active students" value={roster.length || null} />
           <StatTile
             label={`Class homework avg · T${termId}`}
@@ -157,17 +175,24 @@ export default async function TeacherHome() {
             value={hifzAvg === null ? null : `${hifzAvg.toFixed(1)}%`}
             sub="mean of each student's % of target"
           />
+      </div>
+
+      {/* No roster / register buttons here: both are permanent items in the
+          nav rail, so the pair only repeated navigation the teacher already
+          has, directly under the list that links to every student anyway. */}
+      <div className="field" style={{ marginTop: 1 }}>
+        <div className="box c12">
+          <ClassProgress rows={classRows} termId={termId} />
         </div>
+      </div>
 
-        {/* No roster / register buttons here: both are permanent items in the
-            nav rail, so the pair only repeated navigation the teacher already
-            has, directly under the list that links to every student anyway. */}
-        <ClassProgress rows={classRows} termId={termId} />
-      </section>
+      <div className="divider">
+        <span className="label">Leaderboards</span>
+        <span className="r" />
+        <span className="m" />
+      </div>
 
-      <section className="space-y-3">
-        <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">Leaderboards</h2>
-        <div className="grid gap-3 lg:grid-cols-2">
+      <div className="field">
           <LeaderboardPanel
             title="Homework"
             scopes={[
@@ -213,8 +238,13 @@ export default async function TeacherHome() {
               },
             ]}
           />
-        </div>
-      </section>
-    </div>
+      </div>
+
+      <div className="signoff">
+        <span className="lines">{myClass ? myClass.name : "BSMS"}</span>
+        <span className="wm" role="img" aria-label="BSMS Tajweed" />
+        <span className="lines right">Term {termId}</span>
+      </div>
+    </>
   );
 }

@@ -24,10 +24,10 @@ export default async function Classes() {
   }
 
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl">Classes</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+    <>
+      <header className="masthead">
+        <h1><span>Classes</span></h1>
+        <p>
           All seven classes across the programme. Your own screens — homework,
           register, roster and hifz — cover your class only; opening someone
           else&apos;s class from here arrives with admin accounts.
@@ -36,8 +36,12 @@ export default async function Classes() {
 
       {(["brothers", "sisters"] as const).map((section) => (
         <section key={section} className="space-y-2">
-          <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">{section}</h2>
-          <ul className="divide-y divide-line overflow-hidden glass rounded-2xl">
+          <div className="divider">
+          <span className="label">{section}</span>
+          <span className="r" />
+          <span className="m" />
+        </div>
+          <ul className="box c12 divide-y divide-line" style={{ padding: 0, gap: 0 }}>
             {(classes ?? []).filter((c) => c.section === section).map((c) => {
               const isMine = c.id === mineId;
               return (
@@ -68,6 +72,6 @@ export default async function Classes() {
           </ul>
         </section>
       ))}
-    </div>
+    </>
   );
 }

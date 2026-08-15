@@ -103,7 +103,7 @@ export function HifzRegister({ rows, surahs }: { rows: RegisterRow[]; surahs: Su
       </div>
 
       {sel.size > 0 && (
-        <div className="glass rounded-2xl p-4">
+        <div className="box c12">
           <h2 className="text-sm font-medium">
             {single ? `Target for ${single.name}` : `Target for ${sel.size} students`}
           </h2>
@@ -169,7 +169,7 @@ export function HifzRegister({ rows, surahs }: { rows: RegisterRow[]; surahs: Su
         <p className="text-xs text-ok" aria-live="polite">{message}</p>
       )}
 
-      <ul className="divide-y divide-line overflow-hidden glass rounded-2xl">
+      <ul className="box c12 divide-y divide-line" style={{ padding: 0, gap: 0 }}>
         {rows.map((r) => (
           <li key={r.studentId} className="flex items-center gap-3 pl-4">
             <input

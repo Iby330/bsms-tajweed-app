@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { supabaseServer } from "@/lib/supabase/server";
 import { markSubmission } from "@/lib/marking/actions";
 import { ReviewPanel } from "@/components/app/review-panel";
@@ -63,13 +64,14 @@ export default async function SubmissionReview({
   const backHref = `/teacher/homework/${hw?.number ?? ""}`;
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-2">
-        <Link href={backHref} className="text-xs text-muted-foreground underline underline-offset-4">
-          ← {hw ? homeworkLabel(hw.number, hw.series) : "Homework"}
+    <>
+      <header className="masthead">
+        <Link href={backHref} className="backstep">
+          <ArrowLeft className="size-[13px]" aria-hidden />
+          {hw ? homeworkLabel(hw.number, hw.series) : "Homework"}
         </Link>
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h1 className="text-2xl">{student?.full_name}</h1>
+          <h1><b>{student?.full_name}</b></h1>
           <span className="text-sm text-muted-foreground">
             {cls?.name}{hw && <> · {homeworkLabel(hw.number, hw.series)}</>}
             {sub.is_late && <span className="ml-2 rounded bg-warn/12 px-1.5 py-0.5 text-xs text-warn">late</span>}
@@ -86,6 +88,6 @@ export default async function SubmissionReview({
         approved={sub.status === "approved"}
         backHref={backHref}
       />
-    </div>
+    </>
   );
 }

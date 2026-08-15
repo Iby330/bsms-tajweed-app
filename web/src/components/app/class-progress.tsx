@@ -120,7 +120,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
 
   if (!rows.length) {
     return (
-      <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
+      <p className="empty">
         No students in this class yet.
       </p>
     );
@@ -144,7 +144,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
         Class list sorted {announce}.
       </p>
 
-      <div className="glass overflow-hidden rounded-2xl">
+      <div className="overflow-hidden">
         <div
           className={cn(
             COLS,
