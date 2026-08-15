@@ -37,6 +37,15 @@ out of SQL views so the formula lives in one place:
 The class average is a mean of means: every student counts once regardless of how large
 their target is.
 
+**Peer review sits alongside this, in its own tables (added 2026-08-15).** Teacher-assigned
+revision pairs, word-level mistake logging on a mushaf-style text (seeded `quran_words`,
+chapters 72–114), and a per-student pattern tracker + heatmap live in `revision_pairs` /
+`revision_sessions` / `revision_mistakes`. Both `/hifz` and `/teacher/hifz/[studentId]`
+are now Overview | Review tabs. Spec:
+`docs/superpowers/specs/2026-08-14-hifz-peer-review-design.md`. It keys mistakes on
+`surah:ayah:word` and never touches `hifz_profiles`/`hifz_records` semantics, so the
+rework items below are unaffected.
+
 ---
 
 ## Known gaps
