@@ -78,7 +78,7 @@ export default async function Roster() {
                 <th key={t.id} className="px-2 py-2.5 text-right font-medium">Term {t.id}</th>
               ))}
               <th className="px-2 py-2.5 text-right font-medium">EOY</th>
-              <th className="px-2 py-2.5 text-right font-medium">Hifz</th>
+              <th className="px-2 py-2.5 text-right font-medium">Hifdh</th>
               <th className="px-4 py-2.5 text-right font-medium">Strikes</th>
             </tr>
           </thead>

@@ -38,7 +38,7 @@ export default async function StudentHifzDetail({
     <div className="space-y-6">
       <header className="space-y-2">
         <Link href="/teacher/hifz" className="text-xs text-muted-foreground underline underline-offset-4">
-          ← Hifz register
+          ← Hifdh register
         </Link>
         <h1 className="text-2xl">{student.full_name}</h1>
       </header>

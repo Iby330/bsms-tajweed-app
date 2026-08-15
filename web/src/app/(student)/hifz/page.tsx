@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 function EmptyState({ message }: { message: string }) {
   return (
     <div className="mx-auto max-w-2xl glass rounded-2xl p-8 text-center">
-      <h1 className="text-xl">Hifz</h1>
+      <h1 className="text-xl">Hifdh</h1>
       <p className="mt-2 text-sm text-muted-foreground">{message}</p>
     </div>
   );
@@ -79,7 +79,7 @@ export default async function StudentHifz() {
   return (
     <>
       <header className="masthead">
-        <h1><span>Hifz</span></h1>
+        <h1><span>Hifdh</span></h1>
         <p>Your memorisation journey.</p>
         <div className="meta">
           <span className="label">

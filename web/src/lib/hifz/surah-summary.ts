@@ -45,22 +45,22 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   67: {
     paragraphs: [
       "One of the earliest surahs revealed in Makkah. There is no reliable report of exactly when it came down, but its style places it early, in the period when the whole of Islam was being put to people in short, striking surahs rather than explained at length.",
-      "It opens by saying that all control rests with Allah, who created death and life in order to test which of us acts best. Then it asks the reader to look up at the sky and find a single flaw in it, and to look again, because the eye will come back tired having found nothing. Near the end it asks a question that is genuinely difficult to answer: if the water you drink sank away into the ground, who exactly would bring it back to you? The Prophet صلى الله عليه وسلم said this surah pleads on behalf of whoever recites it until they are forgiven.",
+      "It opens by saying that all control rests with Allah, who created death and life in order to test which of us acts best. Then it asks the reader to look up at the sky and find a single flaw in it, and to look again, because the eye will come back tired having found nothing. Near the end it asks a question that is genuinely difficult to answer: if the water you drink sank away into the ground, who exactly would bring it back to you? The Prophet ﷺ said this surah pleads on behalf of whoever recites it until they are forgiven.",
     ],
     reflection:
       "It asks you to look up and actually examine what you see, which is worth remembering at a university that often treats faith as something inherited rather than thought about. The test it names is not who achieves most but who acts best, and that is a different scoreboard from the one campus runs on.",
   },
   68: {
     paragraphs: [
-      "Among the very earliest surahs revealed, but from a point where opposition in Makkah had turned harsh. The leaders of the city were telling people that the Prophet صلى الله عليه وسلم had lost his mind, which was an effective way of stopping anyone taking him seriously.",
-      "It swears by the pen and by what is written, then answers that accusation directly: you are not mad, and you are upon a great standard of character. In the middle is a story about the owners of an orchard who agreed to harvest it at first light, deliberately early so that the poor would not see them and could not ask for anything. They arrived to find it stripped bare. The surah ends by telling the Prophet صلى الله عليه وسلم to wait patiently for his Lord's judgement.",
+      "Among the very earliest surahs revealed, but from a point where opposition in Makkah had turned harsh. The leaders of the city were telling people that the Prophet ﷺ had lost his mind, which was an effective way of stopping anyone taking him seriously.",
+      "It swears by the pen and by what is written, then answers that accusation directly: you are not mad, and you are upon a great standard of character. In the middle is a story about the owners of an orchard who agreed to harvest it at first light, deliberately early so that the poor would not see them and could not ask for anything. They arrived to find it stripped bare. The surah ends by telling the Prophet ﷺ to wait patiently for his Lord's judgement.",
     ],
     reflection:
       "Being called strange for praying, fasting or not drinking is a mild version of what this surah answers. Its reply is not an argument but a character: you are upon a great standard. People change their minds about Islam far more often through how a Muslim behaves in a seminar or a flatshare than through anything said in a debate.",
   },
   69: {
     paragraphs: [
-      "One of the earliest surahs, from the stage when opposition had begun but had not yet turned violent. Umar ibn al-Khattab, who later became the second caliph but at that time was still hostile to Islam, said that he once came upon the Prophet صلى الله عليه وسلم reciting this surah, and hearing it was part of what eventually changed his mind.",
+      "One of the earliest surahs, from the stage when opposition had begun but had not yet turned violent. Umar ibn al-Khattab, who later became the second caliph but at that time was still hostile to Islam, said that he once came upon the Prophet ﷺ reciting this surah, and hearing it was part of what eventually changed his mind.",
       "Its name means the reality, and the surah names it three times at the start to make the listener stop. It recalls earlier peoples who denied what they were told and what became of them, then describes the Day itself and the moment each person is handed their record, either in the right hand or the left, along with what each of them says at that moment. The second half insists that the Qur'an is not the work of a poet or a fortune teller, but revelation from the Lord of all the worlds.",
     ],
     reflection:
@@ -69,14 +69,14 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   70: {
     paragraphs: [
       "Revealed in Makkah in conditions much like those of Surah Al-Haqqah. People there had begun mocking the warnings about the Day of Judgement, and one of them demanded sarcastically that if this punishment were real it should simply arrive now.",
-      "The surah opens with that very demand and then answers it. It describes a day on which the angels ascend, whose measure is fifty thousand years, and tells the Prophet صلى الله عليه وسلم to be patient with a beautiful patience. It then describes the human being as anxious by nature, panicking when something bad touches him and clutching tight when good comes his way, and makes an exception for those who pray and who set aside a known share of their wealth for the one who asks and the one who is too proud to ask.",
+      "The surah opens with that very demand and then answers it. It describes a day on which the angels ascend, whose measure is fifty thousand years, and tells the Prophet ﷺ to be patient with a beautiful patience. It then describes the human being as anxious by nature, panicking when something bad touches him and clutching tight when good comes his way, and makes an exception for those who pray and who set aside a known share of their wealth for the one who asks and the one who is too proud to ask.",
     ],
     reflection:
       "It describes a person who panics the moment something goes wrong and clamps shut the moment something goes right, which is a recognisable state during exams and job applications. The exception it names is not people with better nerves. It is people who pray consistently and who give part of what they have away.",
   },
   71: {
     paragraphs: [
-      "Revealed in Makkah once opposition to the Prophet صلى الله عليه وسلم had become strong and organised. It tells the story of Nuh, a prophet sent long before, who called his people for a very long time and was answered by almost none of them.",
+      "Revealed in Makkah once opposition to the Prophet ﷺ had become strong and organised. It tells the story of Nuh, a prophet sent long before, who called his people for a very long time and was answered by almost none of them.",
       "He describes how he called them by night and by day, in public and in private, and how they put their fingers in their ears and pulled their clothes over their heads rather than listen. He points them upwards at the moon and the sun, and reminds them that they themselves were grown out of the earth. The story is not told for its own sake. The people of Makkah are being shown that they are behaving exactly as Nuh's people behaved, and warned that the ending need not be different.",
     ],
     reflection:
@@ -84,7 +84,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   72: {
     paragraphs: [
-      "Revealed in Makkah. The Prophet صلى الله عليه وسلم was travelling with some companions and stopped at a place called Nakhlah to lead the dawn prayer. A group of jinn passing by heard the Qur'an being recited and stopped to listen. Jinn are a creation made from smokeless fire, who live alongside us but are not normally seen. No prophet had been sent to them, and they had no warning that any of this was coming.",
+      "Revealed in Makkah. The Prophet ﷺ was travelling with some companions and stopped at a place called Nakhlah to lead the dawn prayer. A group of jinn passing by heard the Qur'an being recited and stopped to listen. Jinn are a creation made from smokeless fire, who live alongside us but are not normally seen. No prophet had been sent to them, and they had no warning that any of this was coming.",
       "Most of the surah is their own words, repeated back to us after they returned to their people. They say they heard a wonderful recitation that guides to what is right, that they believed in it, and that they will never again set up partners alongside their Lord. They also correct ideas their own people had held for generations. Nobody argued them into any of it. Hearing the Qur'an was enough.",
     ],
     reflection:
@@ -92,7 +92,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   73: {
     paragraphs: [
-      "Revealed in Makkah very early, when the Prophet صلى الله عليه وسلم had only just begun receiving revelation and had not yet started preaching openly. He is addressed by how he was at that moment, wrapped in his cloak, and told to stand in prayer for about half the night. The final verse came years later in Madinah and made that much easier, because the community could not keep it up.",
+      "Revealed in Makkah very early, when the Prophet ﷺ had only just begun receiving revelation and had not yet started preaching openly. He is addressed by how he was at that moment, wrapped in his cloak, and told to stand in prayer for about half the night. The final verse came years later in Madinah and made that much easier, because the community could not keep it up.",
       "The reason for the night prayer is given plainly: a weighty word was about to be placed on him, and the night is when the heart is most focused and words come out straightest. Alongside prayer he is told to recite slowly and carefully, to be patient with what people say about him, and to leave those who reject him to Allah. The surah is about getting ready for the work, not about the work itself.",
     ],
     reflection:
@@ -100,7 +100,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   74: {
     paragraphs: [
-      "One of the earliest revelations. After the first five verses of Surah Al-Alaq, revelation stopped for a time. When it returned, the Prophet صلى الله عليه وسلم saw again the angel who had come to him in the cave, went home shaken, and asked his family to cover him with a cloak. These verses came while he lay there.",
+      "One of the earliest revelations. After the first five verses of Surah Al-Alaq, revelation stopped for a time. When it returned, the Prophet ﷺ saw again the angel who had come to him in the cave, went home shaken, and asked his family to cover him with a cloak. These verses came while he lay there.",
       "This is where the public call begins, and the instructions are short and practical. Get up. Warn people. Declare the greatness of your Lord. Keep your clothes clean. Be patient. Do not give something in order to get more back. The later part of the surah describes a man who listened to the Qur'an, thought about it carefully, and then called it magic handed down from others, because admitting what he had heard would have cost him his position among his people.",
     ],
     reflection:
@@ -109,7 +109,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   75: {
     paragraphs: [
       "One of the earliest surahs revealed in Makkah, at a time when the idea of being brought back to life after death was being openly laughed at. The objection people raised was a practical one. Once a body has decayed and the bones are scattered, how could anyone possibly put it back together?",
-      "The surah answers that head on. Allah is able not only to gather the bones but to restore the very tips of the fingers, which are different in every single person. In the middle there is an instruction to the Prophet صلى الله عليه وسلم not to rush his tongue trying to hold on to the revelation as it came, because collecting it and making it clear was Allah's responsibility, not his. The surah ends by describing the moment the soul reaches the collarbone and a person leaves this world.",
+      "The surah answers that head on. Allah is able not only to gather the bones but to restore the very tips of the fingers, which are different in every single person. In the middle there is an instruction to the Prophet ﷺ not to rush his tongue trying to hold on to the revelation as it came, because collecting it and making it clear was Allah's responsibility, not his. The surah ends by describing the moment the soul reaches the collarbone and a person leaves this world.",
     ],
     reflection:
       "The instruction not to rush is aimed at someone anxious about holding on to something precious. If you are worried about forgetting what you have memorised, or falling behind, this surah says the securing of it was never entirely on you. Do the work carefully and stop panicking about the outcome.",
@@ -125,7 +125,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   77: {
     paragraphs: [
-      "Revealed in the earliest period in Makkah, in a run of surahs that all press the same point. At this stage the Prophet صلى الله عليه وسلم was warning people that this world will end and another life will follow, and most of Makkah was refusing to accept it.",
+      "Revealed in the earliest period in Makkah, in a run of surahs that all press the same point. At this stage the Prophet ﷺ was warning people that this world will end and another life will follow, and most of Makkah was refusing to accept it.",
       "The surah opens with an oath by the winds sent out across the earth, and makes an argument from them. Whoever set up a system like this one is not going to be unable to bring about another. One sentence comes back after each stage of the argument, ten times in total: woe that day to those who denied it. That repetition is part of why the surah stays in the memory, and it is why it reads as a series of warnings rather than a lecture.",
     ],
     reflection:
@@ -133,7 +133,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   78: {
     paragraphs: [
-      "Revealed early in Makkah. At that point the Prophet's صلى الله عليه وسلم message came down to three things: that nobody shares in Allah's divinity, that he had been sent as a messenger, and that this world will end and everyone will be raised again. It was the third that people argued about most, and they were asking each other about it constantly.",
+      "Revealed early in Makkah. At that point the Prophet's ﷺ message came down to three things: that nobody shares in Allah's divinity, that he had been sent as a messenger, and that this world will end and everyone will be raised again. It was the third that people argued about most, and they were asking each other about it constantly.",
       "The surah opens by asking what all this questioning is about, then answers with a list of ordinary things nobody disputes. The earth spread out like a bed. Mountains set into it like pegs. Night as a covering. Sleep as rest. The sun as a blazing lamp. The argument it builds is simple: whoever arranged all of that can certainly bring you back. It ends with a person on that day wishing he had sent something ahead of himself.",
     ],
     reflection:
@@ -149,16 +149,16 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   80: {
     paragraphs: [
-      "Some of the leading men of Makkah were sitting with the Prophet صلى الله عليه وسلم while he was doing his best to persuade them to accept Islam. A blind man named Ibn Umm Maktum, who had already become Muslim, came up and interrupted with a question about his religion. The Prophet صلى الله عليه وسلم found the interruption unwelcome and turned away from him.",
-      "The surah opens by correcting that, then widens out. Read as a whole, the real criticism falls on the chiefs. They were being given time and attention while rejecting the truth out of pride, and the one person genuinely trying to learn was the one waved aside. Ibn Umm Maktum was honoured afterwards, and the Prophet صلى الله عليه وسلم is reported to have greeted him by saying: welcome to the one on whose account my Lord corrected me.",
+      "Some of the leading men of Makkah were sitting with the Prophet ﷺ while he was doing his best to persuade them to accept Islam. A blind man named Ibn Umm Maktum, who had already become Muslim, came up and interrupted with a question about his religion. The Prophet ﷺ found the interruption unwelcome and turned away from him.",
+      "The surah opens by correcting that, then widens out. Read as a whole, the real criticism falls on the chiefs. They were being given time and attention while rejecting the truth out of pride, and the one person genuinely trying to learn was the one waved aside. Ibn Umm Maktum was honoured afterwards, and the Prophet ﷺ is reported to have greeted him by saying: welcome to the one on whose account my Lord corrected me.",
     ],
     reflection:
       "He gave attention to the important men and waved away the person who genuinely wanted to learn, and Allah corrected him for it. Notice who you make time for on campus, and whether it tracks with who is useful to you. The quiet person nobody is talking to is usually the one this surah has in mind.",
   },
   81: {
     paragraphs: [
-      "One of the earliest surahs revealed in Makkah. The Prophet صلى الله عليه وسلم said that whoever wants to see the Day of Resurrection as though he were watching it with his own eyes should read this surah and the two that come after it.",
-      "The first verses take the world apart piece by piece. The sun folded up, the stars falling, the mountains moved, the pregnant camels left untended, the seas boiling over. Among them is a question that would have stopped the Arabs of that time in their tracks, about the baby girl buried alive being asked what she was killed for, because burying unwanted daughters was something that actually happened then. The second half of the surah turns to where the revelation came from, and answers the accusation that the Prophet صلى الله عليه وسلم had lost his mind.",
+      "One of the earliest surahs revealed in Makkah. The Prophet ﷺ said that whoever wants to see the Day of Resurrection as though he were watching it with his own eyes should read this surah and the two that come after it.",
+      "The first verses take the world apart piece by piece. The sun folded up, the stars falling, the mountains moved, the pregnant camels left untended, the seas boiling over. Among them is a question that would have stopped the Arabs of that time in their tracks, about the baby girl buried alive being asked what she was killed for, because burying unwanted daughters was something that actually happened then. The second half of the surah turns to where the revelation came from, and answers the accusation that the Prophet ﷺ had lost his mind.",
     ],
     reflection:
       "Every structure that looks permanent here is described being taken apart. Degrees, rankings, the graduate scheme everyone is competing for. None of it is worthless, but this surah puts it at its real size, which is a useful thing to hold when you did not get the offer.",
@@ -205,19 +205,19 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   87: {
     paragraphs: [
-      "One of the earliest surahs revealed. One of its verses promises the Prophet صلى الله عليه وسلم that he will be made to recite and will not forget, which suggests it came while he was still worried about holding on to what was being revealed to him.",
-      "It carries three threads. First, that Allah's name should be kept high and clear of anything that suggests weakness or resemblance to created things, since wrong ideas about Allah are where most false beliefs begin. Second, an instruction to the Prophet صلى الله عليه وسلم simply to remind, because the reminder will help whoever is willing to listen. Third, a plain comparison at the end: people prefer this life, while the next one is better and does not end. It notes that this was in the earlier scriptures too.",
+      "One of the earliest surahs revealed. One of its verses promises the Prophet ﷺ that he will be made to recite and will not forget, which suggests it came while he was still worried about holding on to what was being revealed to him.",
+      "It carries three threads. First, that Allah's name should be kept high and clear of anything that suggests weakness or resemblance to created things, since wrong ideas about Allah are where most false beliefs begin. Second, an instruction to the Prophet ﷺ simply to remind, because the reminder will help whoever is willing to listen. Third, a plain comparison at the end: people prefer this life, while the next one is better and does not end. It notes that this was in the earlier scriptures too.",
     ],
     reflection:
       "Remind, because the reminder benefits whoever is willing to hear it. That is permission to stop wearing yourself out arguing. Say the thing once, clearly and kindly, and leave it. You were never responsible for making someone accept it.",
   },
   88: {
     paragraphs: [
-      "Revealed early in Makkah, once the Prophet صلى الله عليه وسلم had started preaching in public and people were hearing the message for the first time.",
-      "It opens by asking whether news of the overwhelming event has reached you, then shows two faces side by side. One is exhausted and humiliated, the other is pleased with everything it worked for. Having shown both endings, the surah turns to things anybody can look at without being taught anything first. The camel and how it was made. The sky and how it was raised. The mountains and how they were fixed in place. The earth and how it was spread out. The instruction that follows is only to remind, because the Prophet صلى الله عليه وسلم was never sent to force anyone.",
+      "Revealed early in Makkah, once the Prophet ﷺ had started preaching in public and people were hearing the message for the first time.",
+      "It opens by asking whether news of the overwhelming event has reached you, then shows two faces side by side. One is exhausted and humiliated, the other is pleased with everything it worked for. Having shown both endings, the surah turns to things anybody can look at without being taught anything first. The camel and how it was made. The sky and how it was raised. The mountains and how they were fixed in place. The earth and how it was spread out. The instruction that follows is only to remind, because the Prophet ﷺ was never sent to force anyone.",
     ],
     reflection:
-      "It tells the Prophet صلى الله عليه وسلم plainly that he is not there to control anyone. If you have a friend who is drifting from the deen, that line is for you as much as him. Your job is to keep the door open, not to force them through it.",
+      "It tells the Prophet ﷺ plainly that he is not there to control anyone. If you have a friend who is drifting from the deen, that line is for you as much as him. Your job is to keep the door open, not to force them through it.",
   },
   89: {
     paragraphs: [
@@ -229,7 +229,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   90: {
     paragraphs: [
-      "Revealed in Makkah in the period when the leaders of the city had decided to oppose the Prophet صلى الله عليه وسلم openly.",
+      "Revealed in Makkah in the period when the leaders of the city had decided to oppose the Prophet ﷺ openly.",
       "It swears by the city itself, then says something unusually honest: the human being was created into struggle, and life was never designed to be comfortable. It asks whether he really thinks nobody has power over him, and whether he thinks nobody was watching. Then it describes the steep uphill road that most people never attempt: freeing a slave, or feeding someone on a day when food is scarce, an orphan from your own relatives or a poor person with nothing at all. And it adds that the road also means being among those who believe and who keep encouraging each other towards patience and kindness.",
     ],
     reflection:
@@ -237,7 +237,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   91: {
     paragraphs: [
-      "Revealed in the earliest period in Makkah, when opposition to the Prophet صلى الله عليه وسلم had become strong.",
+      "Revealed in the earliest period in Makkah, when opposition to the Prophet ﷺ had become strong.",
       "Eleven oaths follow one after another, by the sun and its brightness, the moon that follows it, the day, the night, the sky, the earth, and finally the soul itself and the One who shaped it and showed it what is right and what is wrong. Every one of them leads to a single sentence: whoever keeps their soul clean has succeeded, and whoever lets it rot has failed. The story of Thamud follows as an example, a people who were shown exactly what to do and deliberately did the opposite.",
     ],
     reflection:
@@ -253,15 +253,15 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   93: {
     paragraphs: [
-      "Revealed in Makkah after revelation had stopped coming for a period. The Prophet صلى الله عليه وسلم was badly distressed by the silence, and people in the city had begun saying that his Lord had abandoned him and was angry with him.",
+      "Revealed in Makkah after revelation had stopped coming for a period. The Prophet ﷺ was badly distressed by the silence, and people in the city had begun saying that his Lord had abandoned him and was angry with him.",
       "The answer is personal and very gentle. By the morning light and by the night when it is still, your Lord has not left you and is not displeased with you. What is coming is better than what has passed, and He will keep giving until you are satisfied. Then it reminds him of his own life. He was an orphan and was sheltered. He was lost and was guided. He was in need and was given enough. And it turns each one into an instruction: so do not treat the orphan harshly, do not turn away the one who asks, and speak about what your Lord has given you.",
     ],
     reflection:
-      "This came after a stretch when revelation stopped and the Prophet صلى الله عليه وسلم felt abandoned. If your prayers feel flat and your imaan feels thin, this surah is closer to you than most. It does not blame him for feeling it. It tells him what is coming is better than what has gone.",
+      "This came after a stretch when revelation stopped and the Prophet ﷺ felt abandoned. If your prayers feel flat and your imaan feels thin, this surah is closer to you than most. It does not blame him for feeling it. It tells him what is coming is better than what has gone.",
   },
   94: {
     paragraphs: [
-      "Revealed in Makkah in the same period and the same conditions as Surah Ad-Duha, and it continues straight on from it. Before he began preaching, the Prophet صلى الله عليه وسلم had been widely respected in Makkah. Afterwards the same people turned on him, which was a shock unlike anything in his life until then.",
+      "Revealed in Makkah in the same period and the same conditions as Surah Ad-Duha, and it continues straight on from it. Before he began preaching, the Prophet ﷺ had been widely respected in Makkah. Afterwards the same people turned on him, which was a shock unlike anything in his life until then.",
       "The surah reminds him of what had already been done for him. His chest was opened up. The weight that had been pressing on his back was lifted off. His name was raised high. Then comes the line the surah is known for, and it is said twice rather than once: with hardship comes ease. It ends with instructions rather than comfort. When you finish one thing, start working on the next, and turn to your Lord.",
     ],
     reflection:
@@ -278,7 +278,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   96: {
     paragraphs: [
-      "The first five verses are the very first words of the Qur'an ever revealed. They came to the Prophet صلى الله عليه وسلم in the cave of Hira, on a mountain outside Makkah, where he used to go alone to think. The rest of the surah came later, once he had begun preaching and opposition had started.",
+      "The first five verses are the very first words of the Qur'an ever revealed. They came to the Prophet ﷺ in the cave of Hira, on a mountain outside Makkah, where he used to go alone to think. The rest of the surah came later, once he had begun preaching and opposition had started.",
       "It opens by telling him to read in the name of the Lord who created, who made the human being from a clinging clot, and who taught by the pen what he did not know. The very first word of the Qur'an is about reading, and the first thing mentioned after creation itself is knowledge. The later verses describe a man who saw someone praying and tried to stop him, and warn him that Allah sees what he is doing. The surah ends by telling the reader to prostrate, which is why a sajdah is made here.",
     ],
     reflection:
@@ -355,7 +355,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   105: {
     paragraphs: [
-      "This surah recalls something that happened in the year the Prophet صلى الله عليه وسلم was born, decades before he received revelation. Abraha, the Abyssinian governor ruling Yemen, marched an army north to destroy the Kabah in Makkah, and brought an elephant with him, an animal the Arabs had barely seen. Makkah had no army capable of stopping him.",
+      "This surah recalls something that happened in the year the Prophet ﷺ was born, decades before he received revelation. Abraha, the Abyssinian governor ruling Yemen, marched an army north to destroy the Kabah in Makkah, and brought an elephant with him, an animal the Arabs had barely seen. Makkah had no army capable of stopping him.",
       "Five short verses were enough, because everyone hearing them already knew the story. It asks whether you have not considered what your Lord did with the companions of the elephant, and answers that He turned their plan to nothing and sent flocks of birds against them, leaving them like chewed straw. The people of Makkah themselves believed the Kabah had been saved by Allah and not by any of their idols, which is exactly the point the surah rests on.",
     ],
     reflection:
@@ -363,7 +363,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   106: {
     paragraphs: [
-      "This follows straight on from Surah Al-Fil and reads as its conclusion. Quraysh were the tribe who controlled Makkah and looked after the Kabah, and the Prophet صلى الله عليه وسلم came from among them.",
+      "This follows straight on from Surah Al-Fil and reads as its conclusion. Quraysh were the tribe who controlled Makkah and looked after the Kabah, and the Prophet ﷺ came from among them.",
       "It reminds them of the security they already enjoyed. Because of the Kabah's standing, their trading caravans could travel south to Yemen in winter and north to Syria in summer without being attacked, which was not true for anyone else. Then it makes an argument they could not easily answer. You already accept that this House belongs to Allah rather than to the idols, and you know who fed you when you would otherwise have gone hungry and kept you safe when you would otherwise have been afraid. So worship Him.",
     ],
     reflection:
@@ -381,8 +381,8 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   108: {
     paragraphs: [
-      "The shortest surah in the Qur'an, three verses. Anas ibn Malik related that the Prophet صلى الله عليه وسلم was sitting among them when he dozed for a moment, then lifted his head smiling. He told them a surah had just been revealed, recited it, and asked whether they knew what al-Kawthar was. When they said Allah and His Messenger know best, he told them it is a river his Lord has given him in Paradise.",
-      "It was revealed while the Prophet صلى الله عليه وسلم was being taunted with the word abtar, meaning cut off. His sons had died in childhood, and in that society a man with no son to carry his name was considered finished, someone who would be forgotten as soon as he died. The reply is that he has been given abundance, and that the one throwing the insult is the one who will be cut off. Between the two comes an instruction: so pray to your Lord, and sacrifice.",
+      "The shortest surah in the Qur'an, three verses. Anas ibn Malik related that the Prophet ﷺ was sitting among them when he dozed for a moment, then lifted his head smiling. He told them a surah had just been revealed, recited it, and asked whether they knew what al-Kawthar was. When they said Allah and His Messenger know best, he told them it is a river his Lord has given him in Paradise.",
+      "It was revealed while the Prophet ﷺ was being taunted with the word abtar, meaning cut off. His sons had died in childhood, and in that society a man with no son to carry his name was considered finished, someone who would be forgotten as soon as he died. The reply is that he has been given abundance, and that the one throwing the insult is the one who will be cut off. Between the two comes an instruction: so pray to your Lord, and sacrifice.",
     ],
     reflection:
       "He was mocked for having nothing to leave behind. If you have been made to feel small, passed over, or treated as though you do not matter, the reply here is not to fight back. It is to go and pray, and to trust that abundance was already given.",
@@ -390,7 +390,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   109: {
     paragraphs: [
-      "Revealed in Makkah when the leaders of the city offered the Prophet صلى الله عليه وسلم a deal. He would worship their gods for a period, and they would worship his for a period, so that the argument splitting the city could be settled without either side losing face.",
+      "Revealed in Makkah when the leaders of the city offered the Prophet ﷺ a deal. He would worship their gods for a period, and they would worship his for a period, so that the argument splitting the city could be settled without either side losing face.",
       "The surah turns that down completely, and does it without insults. It separates the two things entirely, saying that what you worship and what I worship are not the same thing and never will be, and then ends without any further argument: for you your religion, and for me mine. It is not a statement that all beliefs are equally true. It is a refusal to blend two things that cannot be blended.",
     ],
     reflection:
@@ -399,7 +399,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   110: {
     paragraphs: [
-      "To understand this surah you need what came before it. The Prophet صلى الله عليه وسلم preached in Makkah for thirteen years and was driven out, and the Muslims migrated north to Madinah, where they built a community from nothing. Makkah did not leave them alone, and years of conflict followed. Eventually a treaty was signed, and when the Makkans broke it, the Prophet صلى الله عليه وسلم returned with an army so large that the city surrendered without a battle. He entered the place that had expelled him, cleared the idols from the Kabah, and forgave the people who had fought him for twenty years. After that, tribes across Arabia began accepting Islam in large numbers.",
+      "To understand this surah you need what came before it. The Prophet ﷺ preached in Makkah for thirteen years and was driven out, and the Muslims migrated north to Madinah, where they built a community from nothing. Makkah did not leave them alone, and years of conflict followed. Eventually a treaty was signed, and when the Makkans broke it, the Prophet ﷺ returned with an army so large that the city surrendered without a battle. He entered the place that had expelled him, cleared the idols from the Kabah, and forgave the people who had fought him for twenty years. After that, tribes across Arabia began accepting Islam in large numbers.",
       "This surah was revealed near the end of his life, and it is understood to be the last complete surah revealed. It tells him that when the help of Allah and the victory come, and he sees people entering the religion in crowds, the work he was sent to do has been finished. And then, at the very moment of success, it asks for something unexpected. Not celebration. Praise your Lord, and ask His forgiveness.",
     ],
     reflection:
@@ -407,16 +407,16 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   111: {
     paragraphs: [
-      "This surah concerns Abu Lahab, the Prophet's صلى الله عليه وسلم own uncle, who opposed him more persistently than almost anyone else in Makkah. At one point the leading families of the city cut off the Prophet صلى الله عليه وسلم and his whole clan, refusing to trade with them or marry into them, and forcing them into a valley outside the city for around three years. Abu Lahab was the only member of the family who sided with the boycotters against his own relatives.",
-      "The surah is unusual because it names a living opponent and states how he will end while he was still alive and free to prove it wrong, which he never did. His wife is mentioned as the carrier of firewood, understood both literally, since she put thorns in the Prophet's صلى الله عليه وسلم path, and as a picture of someone who carries gossip between people. The lesson underneath it is that being closely related to the Prophet صلى الله عليه وسلم counted for nothing without belief, and neither his wealth nor his standing was going to help him.",
+      "This surah concerns Abu Lahab, the Prophet's ﷺ own uncle, who opposed him more persistently than almost anyone else in Makkah. At one point the leading families of the city cut off the Prophet ﷺ and his whole clan, refusing to trade with them or marry into them, and forcing them into a valley outside the city for around three years. Abu Lahab was the only member of the family who sided with the boycotters against his own relatives.",
+      "The surah is unusual because it names a living opponent and states how he will end while he was still alive and free to prove it wrong, which he never did. His wife is mentioned as the carrier of firewood, understood both literally, since she put thorns in the Prophet's ﷺ path, and as a picture of someone who carries gossip between people. The lesson underneath it is that being closely related to the Prophet ﷺ counted for nothing without belief, and neither his wealth nor his standing was going to help him.",
     ],
     reflection:
-      "Being closely related to the Prophet صلى الله عليه وسلم did not save Abu Lahab. Coming from a practising family, having memorised a lot, being known as religious, none of it carries anyone by itself. What you actually do is what belongs to you.",
+      "Being closely related to the Prophet ﷺ did not save Abu Lahab. Coming from a practising family, having memorised a lot, being known as religious, none of it carries anyone by itself. What you actually do is what belongs to you.",
   },
   112: {
     paragraphs: [
-      "The people of Makkah came to the Prophet صلى الله عليه وسلم and said: tell us the ancestry of your Lord. It was a reasonable question in their world. The gods they worshipped were carved from wood and stone or cast in gold and silver, they had bodies, they were descended from one another, they had wives and children, and they needed feeding. Asking who this new God was descended from was simply how you found out about a god.",
-      "The four verses answer by ruling every part of that out. He is Allah, One. He is as-Samad, the One that everything depends on and who depends on nothing at all. He did not father anyone and was not fathered by anyone. And there is nothing whatsoever like Him. The Prophet صلى الله عليه وسلم said this surah is equal to a third of the Qur'an, and it is one of the first surahs almost every Muslim learns.",
+      "The people of Makkah came to the Prophet ﷺ and said: tell us the ancestry of your Lord. It was a reasonable question in their world. The gods they worshipped were carved from wood and stone or cast in gold and silver, they had bodies, they were descended from one another, they had wives and children, and they needed feeding. Asking who this new God was descended from was simply how you found out about a god.",
+      "The four verses answer by ruling every part of that out. He is Allah, One. He is as-Samad, the One that everything depends on and who depends on nothing at all. He did not father anyone and was not fathered by anyone. And there is nothing whatsoever like Him. The Prophet ﷺ said this surah is equal to a third of the Qur'an, and it is one of the first surahs almost every Muslim learns.",
     ],
     reflection:
       "Someone will eventually ask you what Muslims actually believe about God, probably over coffee and probably without warning. This surah is the answer, and it is four verses long. Knowing it properly is worth more than a long defensive explanation.",
@@ -424,7 +424,7 @@ export const SURAH_SUMMARY: Record<number, SurahSummary> = {
   },
   113: {
     paragraphs: [
-      "Revealed in Makkah, in the period when opposition to the Prophet صلى الله عليه وسلم had become intense and was coming at him from several directions at once.",
+      "Revealed in Makkah, in the period when opposition to the Prophet ﷺ had become intense and was coming at him from several directions at once.",
       "It is a prayer asking Allah for protection, addressing Him as the Lord of the daybreak, the One who splits the darkness open every morning. It asks for shelter from the harm in everything He created, from the dark when night settles in, from those who try to harm others through magic, and from a jealous person when his jealousy takes hold. Together with the surah after it, these two are known as the Muawwidhatayn, the two surahs of seeking refuge. They were revealed together and are normally recited together.",
     ],
     reflection:

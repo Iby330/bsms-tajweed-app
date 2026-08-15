@@ -52,7 +52,7 @@ export default async function TeacherHifz() {
   return (
     <div className="space-y-5">
       <header>
-        <h1 className="text-2xl">Hifz register</h1>
+        <h1 className="text-2xl">Hifdh register</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {label} · Thursday recitation. Colour shows each student against the calendar.
           Select students to set their target.

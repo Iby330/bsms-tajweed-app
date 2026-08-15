@@ -30,7 +30,7 @@ export function HifzHero({
 }) {
   const pct = juz && juz.total > 0 ? Math.round((juz.passed / juz.total) * 100) : 0;
   return (
-    <section className="box c12" aria-label="Hifz overview">
+    <section className="box c12" aria-label="Hifdh overview">
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
         <div className="min-w-0">
           <p className="label">

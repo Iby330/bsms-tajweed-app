@@ -242,7 +242,7 @@ export default async function StudentHome() {
         </section>
 
         <section className="box c8">
-          <span className="label">Hifz</span>
+          <span className="label">Hifdh</span>
           {progress.hifz ? (
             <>
               {lastPassed && (
@@ -286,7 +286,7 @@ export default async function StudentHome() {
               </Link>
             </>
           ) : (
-            <div className="note">Your teacher hasn&rsquo;t set a hifz target yet.</div>
+            <div className="note">Your teacher hasn&rsquo;t set a hifdh target yet.</div>
           )}
         </section>
 
@@ -352,7 +352,7 @@ export default async function StudentHome() {
           ]}
         />
         <LeaderboardPanel
-          title="Hifz"
+          title="Hifdh"
           scopes={[
             { key: "class", label: "My class", rows: leaderboards.hifz.mine,
               selfName: profile.full_name, noun: "in my class" },

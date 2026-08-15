@@ -154,7 +154,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
         >
           <span>Student</span>
           <span>Homework · T{termId}</span>
-          <span>Hifz</span>
+          <span>Hifdh</span>
           <span>Currently on</span>
         </div>
 
@@ -189,7 +189,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
                 </span>
 
                 <Metric label="Homework" pct={r.hwAvg} bar="bg-viz-hw" />
-                <Metric label="Hifz" pct={r.hifzAvg} bar="bg-viz-exam" />
+                <Metric label="Hifdh" pct={r.hifzAvg} bar="bg-viz-exam" />
 
                 <span className="col-span-2 flex items-end justify-between gap-3 lg:col-span-1">
                   <span className="min-w-0">

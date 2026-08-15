@@ -77,7 +77,7 @@ export default async function SurahPage({
     <>
       <header className="masthead">
         <Link href="/hifz" className="label backlink">
-          ← Your hifz
+          ← Your hifdh
         </Link>
         <h1 style={{ marginTop: 18 }}>
           <span dir="rtl" lang="ar" className="ar-quran surahtitle">
@@ -180,7 +180,7 @@ export default async function SurahPage({
 
       <div className="signoff">
         <Link href="/hifz" className="lines">
-          ← Your hifz
+          ← Your hifdh
         </Link>
         <span className="wm" role="img" aria-label="BSMS Tajweed" />
         <span className="lines right">{surah.name_en}</span>

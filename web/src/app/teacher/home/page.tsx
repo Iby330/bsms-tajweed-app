@@ -153,7 +153,7 @@ export default async function TeacherHome() {
             sub="mean of each student's term average"
           />
           <StatTile
-            label="Class hifz avg"
+            label="Class hifdh avg"
             value={hifzAvg === null ? null : `${hifzAvg.toFixed(1)}%`}
             sub="mean of each student's % of target"
           />
@@ -192,7 +192,7 @@ export default async function TeacherHome() {
             ]}
           />
           <LeaderboardPanel
-            title="Hifz"
+            title="Hifdh"
             scopes={[
               ...(myClass
                 ? [{
