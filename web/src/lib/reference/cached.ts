@@ -60,3 +60,18 @@ export const getCachedSurahs = unstable_cache(
   ["ref-surahs"],
   { tags: ["reference"], revalidate: 3600 },
 );
+
+export const getCachedSurahWords = unstable_cache(
+  async (surahNumber: number) => {
+    const { data, error } = await supabaseAdmin()
+      .from("quran_words")
+      .select("surah_number, ayah_number, word_position, text_uthmani, is_end, page_number, line_number")
+      .eq("surah_number", surahNumber)
+      .order("ayah_number")
+      .order("word_position");
+    if (error) throw error;
+    return data ?? [];
+  },
+  ["ref-quran-words"],
+  { tags: ["reference"], revalidate: 3600 },
+);
