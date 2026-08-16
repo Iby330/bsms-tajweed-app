@@ -9,6 +9,7 @@ import { MixedText } from "@/components/app/mixed-text";
 import { Crumbs } from "@/components/app/crumbs";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { seriesShort } from "@/lib/lessons/series";
+import { moduleTitle } from "@/lib/curriculum/tree";
 import { parseOrigin, homeworkNav } from "@/lib/homework/back-link";
 
 export const dynamic = "force-dynamic";
@@ -88,8 +89,8 @@ export default async function HomeworkPage({
   });
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-2">
+    <>
+      <header className="masthead">
         {(week || nav.back || nav.video) && (
           <div className="flex flex-col items-start gap-1">
             {week && (
@@ -106,20 +107,14 @@ export default async function HomeworkPage({
               />
             )}
             {(nav.back || nav.video) && (
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1" style={{ marginTop: 6 }}>
                 {nav.back && (
-                  <Link
-                    href={nav.back.href}
-                    className="text-xs text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
-                  >
+                  <Link href={nav.back.href} className="label backlink">
                     ← {nav.back.label}
                   </Link>
                 )}
                 {nav.video && (
-                  <Link
-                    href={nav.video.href}
-                    className="text-xs text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
-                  >
+                  <Link href={nav.video.href} className="label backlink">
                     <span aria-hidden>▸</span> {nav.video.label}
                   </Link>
                 )}
@@ -127,13 +122,23 @@ export default async function HomeworkPage({
             )}
           </div>
         )}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl">{label}</h1>
+        {/* The subject is the heading; "Homework 2" belongs on the label line
+            with everything else that locates it. */}
+        <h1 style={{ marginTop: 16 }}>
+          <MixedText text={moduleTitle(parsed.homework.title) || label} />
+        </h1>
+        <div className="meta">
+          <span className="label">
+            {label}
+            {week && ` · Term ${week.term_id}`} ·{" "}
+            {parsed.questions.length}{" "}
+            {parsed.questions.length === 1 ? "question" : "questions"}
+            {readOnly && " · handed in"}
+          </span>
           {parsed.homework.due_at && !readOnly && (
             <CountdownChip dueAt={parsed.homework.due_at} />
           )}
         </div>
-        <MixedText text={parsed.homework.title} className="block text-sm text-muted-foreground" />
       </header>
 
       <HomeworkForm
@@ -144,6 +149,6 @@ export default async function HomeworkPage({
         status={sub?.status ?? "draft"}
         readOnly={readOnly}
       />
-    </div>
+    </>
   );
 }

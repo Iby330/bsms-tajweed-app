@@ -29,7 +29,7 @@ export default async function Attendance({
 
   if (!mine) {
     return (
-      <p className="rounded-lg border border-line bg-card p-6 text-sm text-muted-foreground">
+      <p className="empty">
         You have no class assigned yet.
       </p>
     );
@@ -49,13 +49,13 @@ export default async function Attendance({
   ]);
 
   return (
-    <div className="space-y-5">
-      <header className="space-y-3">
+    <>
+      <header className="masthead">
         <div>
-          <h1 className="text-2xl">Attendance</h1>
+          <h1><span>Attendance</span></h1>
           {/* The weekday names the session — there is no separate Monday /
               Thursday choice to make once the date is a lesson date. */}
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p>
             {mine.name} ·{" "}
             {new Date(`${sessionDate}T12:00:00`).toLocaleDateString("en-GB", {
               weekday: "long",
@@ -82,6 +82,6 @@ export default async function Attendance({
         A strike here is your call, never automatic. Marking someone present
         again removes any strike that came with their absence.
       </p>
-    </div>
+    </>
   );
 }

@@ -14,7 +14,9 @@ const text = (c: HTMLElement) => c.textContent ?? "";
 describe("StrikeDots", () => {
   it("always draws three slots", () => {
     const { container } = render(<StrikeDots strikes={[]} />);
-    expect(container.querySelectorAll("[aria-hidden]")).toHaveLength(3);
+    // Scoped to .slots: the panel also carries a decorative boot, which is
+    // aria-hidden too and would otherwise be counted as a fourth slot.
+    expect(container.querySelectorAll(".slots [aria-hidden]")).toHaveLength(3);
   });
 
   it("reads as clear of strikes when there are none", () => {

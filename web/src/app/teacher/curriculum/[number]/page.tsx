@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { supabaseServer } from "@/lib/supabase/server";
 import { parseOptions, parseRubric } from "@/lib/marking/objective";
+import { moduleTitle } from "@/lib/curriculum/tree";
 import { MixedText } from "@/components/app/mixed-text";
 import { StatTile } from "@/components/app/stat-tile";
 import { fmtMarks } from "@/lib/homework/logic";
@@ -67,22 +69,23 @@ export default async function CurriculumDetail({
   ).length;
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-2">
-        <Link href="/teacher/curriculum" className="text-xs text-muted-foreground underline underline-offset-4">
-          ← Curriculum
+    <>
+      <header className="masthead">
+        <Link href="/teacher/curriculum" className="backstep">
+          <ArrowLeft className="size-[13px]" aria-hidden />
+          Curriculum
         </Link>
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h1 className="text-2xl">
+          <h1><b>
             {hw.series === "tfp" ? "TFP " : "Homework "}
             {hw.number > 100 ? hw.number - 100 : hw.number}
-          </h1>
+          </b></h1>
           <span className="text-sm text-muted-foreground">
             {week && `Term ${week.term_id} · week ${week.number}`}
             {!hw.is_graded && " · ungraded"}
           </span>
         </div>
-        <MixedText text={hw.title} className="block text-sm text-muted-foreground" />
+        <MixedText text={moduleTitle(hw.title) || hw.title} className="block text-sm text-muted-foreground" />
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -107,7 +110,7 @@ export default async function CurriculumDetail({
           const gap = points > 0 && !q.is_task && !options?.some((o) => o.correct) && !rubric?.length;
 
           return (
-            <section key={q.id} className="glass rounded-2xl p-4 sm:p-5">
+            <section key={q.id} className="box c12">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -178,6 +181,6 @@ export default async function CurriculumDetail({
           );
         })}
       </div>
-    </div>
+    </>
   );
 }

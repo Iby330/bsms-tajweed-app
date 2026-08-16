@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { getCachedSurahs } from "@/lib/reference/cached";
@@ -40,12 +41,13 @@ export default async function StudentHifzDetail({
   const review = tab === "review";
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-2">
-        <Link href="/teacher/hifz" className="text-xs text-muted-foreground underline underline-offset-4">
-          ← Hifz register
+    <>
+      <header className="masthead">
+        <Link href="/teacher/hifz" className="backstep">
+          <ArrowLeft className="size-[13px]" aria-hidden />
+          Hifdh register
         </Link>
-        <h1 className="text-2xl">{student.full_name}</h1>
+        <h1><b>{student.full_name}</b></h1>
       </header>
 
       <HifzTabs basePath={`/teacher/hifz/${studentId}`} active={review ? "review" : "overview"} />
@@ -58,7 +60,7 @@ export default async function StudentHifzDetail({
         />
       ) : (
         <>
-          <div className="glass rounded-2xl p-4">
+          <div className="box c12">
             <PaceMarker passed={passed} expected={expected} target={target} />
           </div>
 
@@ -74,6 +76,6 @@ export default async function StudentHifzDetail({
           />
         </>
       )}
-    </div>
+    </>
   );
 }

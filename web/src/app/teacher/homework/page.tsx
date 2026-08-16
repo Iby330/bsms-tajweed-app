@@ -179,20 +179,22 @@ export default async function TeacherHomework() {
   );
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-2xl">Homework</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+    <>
+      <header className="masthead">
+        <h1><span>Homework</span></h1>
+        <p>
           {label} · this week first, then anything still waiting, then the whole year.
         </p>
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">
-          This week{week ? ` · Week ${week.number}` : ""}
-        </h2>
+        <div className="divider">
+          <span className="label">This week{week ? ` · Week ${week.number}` : ""}</span>
+          <span className="r" />
+          <span className="m" />
+        </div>
         {thisWeekHws.length === 0 ? (
-          <p className="glass rounded-2xl p-5 text-sm text-muted-foreground">
+          <p className="box c12  p-5 text-sm text-muted-foreground">
             No homework is set for this week.
           </p>
         ) : (
@@ -200,7 +202,7 @@ export default async function TeacherHomework() {
             const queue = pendingByHw.get(h.id) ?? [];
             const done = approvedByHw.get(h.id) ?? 0;
             return (
-              <div key={h.id} className="overflow-hidden glass rounded-2xl">
+              <div key={h.id} className="box c12" style={{ padding: 0, gap: 0 }}>
                 <Link
                   href={`/teacher/homework/${h.number}`}
                   className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-4 py-3 transition-colors hover:bg-muted/60"
@@ -225,13 +227,15 @@ export default async function TeacherHomework() {
 
       {backlogHws.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Still waiting from earlier weeks
-          </h2>
+          <div className="divider">
+          <span className="label">Still waiting from earlier weeks</span>
+          <span className="r" />
+          <span className="m" />
+        </div>
           {backlogHws.map((h) => {
             const queue = pendingByHw.get(h.id) ?? [];
             return (
-              <div key={h.id} className="overflow-hidden glass rounded-2xl">
+              <div key={h.id} className="box c12" style={{ padding: 0, gap: 0 }}>
                 <Link
                   href={`/teacher/homework/${h.number}`}
                   className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-4 py-3 transition-colors hover:bg-muted/60"
@@ -247,7 +251,11 @@ export default async function TeacherHomework() {
       )}
 
       <section className="space-y-3">
-        <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground">All homework</h2>
+        <div className="divider">
+          <span className="label">All homework</span>
+          <span className="r" />
+          <span className="m" />
+        </div>
         {/* Folders, not pages. Only the current term starts open, and a term
             running a single course skips the middle folder — clicking through
             "Tajweed" to reach the only thing inside it is a step for nothing. */}
@@ -262,7 +270,7 @@ export default async function TeacherHomework() {
             <details
               key={term.id}
               open={week?.term_id === term.id}
-              className="folder group/term glass overflow-hidden rounded-2xl"
+              className="folder group/term box c12" style={{ padding: 0, gap: 0 }}
             >
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted/60 [&::-webkit-details-marker]:hidden">
                 <span className="flex min-w-0 items-center gap-2 text-sm font-medium">
@@ -321,6 +329,6 @@ export default async function TeacherHomework() {
           );
         })}
       </section>
-    </div>
+    </>
   );
 }

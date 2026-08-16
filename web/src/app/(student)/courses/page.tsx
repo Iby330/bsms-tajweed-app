@@ -15,23 +15,29 @@ export default async function Courses() {
   const totalDone = terms.reduce((n, t) => n + t.doneCount, 0);
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-2xl">Courses</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+    <>
+      <header className="masthead">
+        <h1><span>Courses</span></h1>
+        <p>
           Three terms. Open a term to see the courses running inside it.
           {totalModules > 0 && (
             <> You have completed {totalDone} of the {totalModules} modules open to you so far.</>
           )}
         </p>
+        {totalModules > 0 && (
+          <div className="meta">
+            <span className="label">{terms.length} terms</span>
+            <span className="label hi">{totalDone} of {totalModules} modules complete</span>
+          </div>
+        )}
       </header>
 
       {terms.length === 0 ? (
-        <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
-          The year hasn&apos;t been set up yet.
-        </p>
+        <div className="field"><div className="box c12">
+          <div className="note">The year hasn&apos;t been set up yet.</div>
+        </div></div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="cards">
           {terms.map((term) => (
             <TermCard
               key={term.id}
@@ -48,6 +54,6 @@ export default async function Courses() {
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }

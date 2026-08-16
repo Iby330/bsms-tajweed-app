@@ -33,7 +33,10 @@ export function Sparkline({
       width={width}
       height={height}
       viewBox={`0 0 ${width} ${height}`}
-      className={cn(TREND_TONE[trend], className)}
+      // overflow-visible matters: the glow is a drop-shadow, and an SVG clips
+      // to its viewBox by default — which sliced the halo off in a rectangle
+      // and read as a box drawn around the line.
+      className={cn("spark", TREND_TONE[trend], className)}
       role="img"
       aria-label={`Last ${values.length} marks, trending ${trend}`}
     >

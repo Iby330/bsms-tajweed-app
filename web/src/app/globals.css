@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-archivo);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-archivo);
   --font-arabic: var(--font-plex-arabic);
@@ -36,6 +36,8 @@
   --color-chart-1: var(--chart-1);
   /* data viz — the chart-* ramp is a greyscale that inverts per theme, so it
      cannot carry a two-part bar. These two stay indigo in both themes. */
+  --color-ink-3: var(--ink-3);
+  --color-hair: var(--hair);
   --color-viz-exam: var(--viz-exam);
   --color-viz-hw: var(--viz-hw);
   --color-ring: var(--ring);
@@ -70,89 +72,93 @@
    Contrast verified: ink/page 8.14:1 · ink-2/page 5.66:1 (AA body)
    ──────────────────────────────────────────────────────────────────── */
 :root {
-  /* raw brand */
-  --ink: #1d2339;
-  --ink-2: #303d5b;
-  --slate: #b0bdcc;
-  --ok: #2e5e4e;      /* above target / approved / pass  */
-  --warn: #8a6a2f;    /* on target / pending review      */
-  --danger: #8c3b2e;  /* below target / strike / overdue */
+  /* raw brand — sampled from the 2026 logo: cream on near-black */
+  --ink: #14140f;
+  --ink-2: #5c5949;
+  --slate: #c9c3a4;
+  --ink-3: #8f8b76;
+  --hair: #c9c3a4;
+  --ok: #6e6010;      /* accent ochre — the cream at readable contrast  */
+  --warn: #8a6614;    /* on target / pending review                     */
+  --danger: #a5321c;  /* below target / strike / overdue                */
 
   /* shadcn slots ← brand */
-  --background: #edf0f4;            /* page — slate tint */
-  --foreground: #1d2339;
-  --card: #fbfcfd;
-  --card-foreground: #1d2339;
-  --popover: #fbfcfd;
-  --popover-foreground: #1d2339;
-  --primary: #1d2339;               /* ink buttons */
-  --primary-foreground: #f5f7fa;
-  --secondary: #dde3ea;
-  --secondary-foreground: #1d2339;
-  --muted: #e4e9ef;
-  --muted-foreground: #303d5b;      /* ink-2 for secondary text */
-  --accent: #e4e9ef;
-  --accent-foreground: #1d2339;
-  --destructive: #8c3b2e;
-  --border: #d6dde5;
-  --input: #d6dde5;
-  --ring: #3b5bdb;                  /* focus rings only */
-  --chart-1: #1d2339;
-  --chart-2: #303d5b;
-  --chart-3: #5a6b8c;
-  --chart-4: #8b99ad;
-  --chart-5: #b0bdcc;
-  --radius: 0.625rem;
-  /* ink sidebar */
-  --sidebar: #1d2339;
-  --sidebar-foreground: #e8ecf2;
-  --sidebar-primary: #e8ecf2;
-  --sidebar-primary-foreground: #1d2339;
-  --sidebar-accent: #303d5b;
-  --sidebar-accent-foreground: #f5f7fa;
-  --sidebar-border: #2a3350;
-  --sidebar-ring: #3b5bdb;
+  --background: #f4f1df;            /* page — pale brand cream */
+  --foreground: #14140f;
+  --card: #fbf9ee;
+  --card-foreground: #14140f;
+  --popover: #fbf9ee;
+  --popover-foreground: #14140f;
+  --primary: #14140f;               /* ink buttons */
+  --primary-foreground: #f4f1df;
+  --secondary: #e7e3cc;
+  --secondary-foreground: #14140f;
+  --muted: #e7e3cc;
+  --muted-foreground: #5c5949;
+  --accent: #ede7c6;
+  --accent-foreground: #14140f;
+  --destructive: #a5321c;
+  --border: #ded9bf;
+  --input: #ded9bf;
+  --ring: #6e6010;
+  --chart-1: #14140f;
+  --chart-2: #6e6010;
+  --chart-3: #5c5949;
+  --chart-4: #8f8b76;
+  --chart-5: #c9c3a4;
+  --radius: 0.125rem;
+  /* the rail keeps the logo's own environment in both themes */
+  --sidebar: #eae5cd;
+  --sidebar-foreground: #14140f;
+  --sidebar-primary: #14140f;
+  --sidebar-primary-foreground: #f4f1df;
+  --sidebar-accent: #ded9bf;
+  --sidebar-accent-foreground: #14140f;
+  --sidebar-border: #d3ccae;
+  --sidebar-ring: #6e6010;
 }
 
 .dark {
-  --ink: #e8ecf2;
-  --ink-2: #aebbcb;
-  --slate: #4a5670;
-  --ok: #5fa98c;
-  --warn: #c9a45c;
-  --danger: #c4664f;
+  --ink: #efede0;
+  --ink-2: #9c9884;
+  --slate: #3a3830;
+  --ink-3: #6e6b5c;
+  --hair: #3a3830;
+  --ok: #f0ebb4;
+  --warn: #dcae4a;
+  --danger: #e8705a;
 
-  --background: #0f1322;
-  --foreground: #e8ecf2;
-  --card: #1d2339;
-  --card-foreground: #e8ecf2;
-  --popover: #1d2339;
-  --popover-foreground: #e8ecf2;
-  --primary: #e8ecf2;
-  --primary-foreground: #1d2339;
-  --secondary: #232b44;
-  --secondary-foreground: #e8ecf2;
-  --muted: #232b44;
-  --muted-foreground: #aebbcb;
-  --accent: #232b44;
-  --accent-foreground: #e8ecf2;
-  --destructive: #c4664f;
-  --border: #2a3350;
-  --input: #2a3350;
-  --ring: #7b93f0;
-  --chart-1: #e8ecf2;
-  --chart-2: #aebbcb;
-  --chart-3: #8b99ad;
-  --chart-4: #5a6b8c;
-  --chart-5: #4a5670;
-  --sidebar: #10141f;
-  --sidebar-foreground: #e8ecf2;
-  --sidebar-primary: #e8ecf2;
-  --sidebar-primary-foreground: #10141f;
-  --sidebar-accent: #232b44;
-  --sidebar-accent-foreground: #f5f7fa;
-  --sidebar-border: #232b44;
-  --sidebar-ring: #7b93f0;
+  --background: #0a0a08;
+  --foreground: #efede0;
+  --card: #141410;
+  --card-foreground: #efede0;
+  --popover: #141410;
+  --popover-foreground: #efede0;
+  --primary: #efede0;
+  --primary-foreground: #0a0a08;
+  --secondary: #1c1b16;
+  --secondary-foreground: #efede0;
+  --muted: #1c1b16;
+  --muted-foreground: #9c9884;
+  --accent: #1f1e14;
+  --accent-foreground: #f0ebb4;
+  --destructive: #e8705a;
+  --border: #26251e;
+  --input: #26251e;
+  --ring: #f0ebb4;
+  --chart-1: #efede0;
+  --chart-2: #f0ebb4;
+  --chart-3: #9c9884;
+  --chart-4: #6e6b5c;
+  --chart-5: #3a3830;
+  --sidebar: #050504;
+  --sidebar-foreground: #f0ebb4;
+  --sidebar-primary: #f0ebb4;
+  --sidebar-primary-foreground: #050504;
+  --sidebar-accent: #1f1e14;
+  --sidebar-accent-foreground: #f0ebb4;
+  --sidebar-border: #1c1b15;
+  --sidebar-ring: #f0ebb4;
 }
 
 @layer base {
@@ -210,34 +216,34 @@ body::after {
   /* Daylight needs more opacity and an ink hairline than the mockup carried:
      white-on-white panels over a slate page read as one flat sheet, and a
      white border only makes the edge disappear faster. */
-  --glass-bg: rgba(255, 255, 255, 0.78);
-  --glass-border: rgba(29, 35, 57, 0.10);
-  --glass-shadow: 0 6px 20px rgba(29, 35, 57, 0.10);
-  --glass-blur: 20px;
-  --glow-1: #3b5bdb;
-  --glow-2: #2e5e4e;
-  --glow-3: #8a6a2f;
-  --glow-opacity: 0.09;
-  --viz-exam: #3b5bdb;
-  --viz-hw: #93a6ee;
+  --glass-bg: #fbf9ee;
+  --glass-border: #ded9bf;
+  --glass-shadow: none;
+  --glass-blur: 0px;
+  --glow-1: #6e6010;
+  --glow-2: #8a6614;
+  --glow-3: #a5321c;
+  --glow-opacity: 0;
+  --viz-exam: #6e6010;
+  --viz-hw: #8f8b76;
   /* The rail sits on a pale page in daylight, so translucency reads as a
      faded navy — like a rendering fault rather than a choice. Keep it
      essentially solid here and save the see-through for dark mode, where
      what shows through is dark anyway. */
-  --sidebar-glass: rgba(29, 35, 57, 0.97);
+  --sidebar-glass: #0a0a08;
 }
 
 .dark {
-  --glass-bg: rgba(29, 35, 57, 0.45);
-  --glass-border: rgba(232, 236, 242, 0.13);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-  --glass-blur: 20px;
-  --glow-1: #3b5bdb;
-  --glow-2: #5fa98c;
-  --glow-3: #c9a45c;
-  --glow-opacity: 0.20;
-  --viz-exam: #5f7ae8;
-  --viz-hw: #a3b4f7;
+  --glass-bg: #141410;
+  --glass-border: #26251e;
+  --glass-shadow: none;
+  --glass-blur: 0px;
+  --glow-1: #f0ebb4;
+  --glow-2: #dcae4a;
+  --glow-3: #e8705a;
+  --glow-opacity: 0;
+  --viz-exam: #f0ebb4;
+  --viz-hw: #6e6b5c;
   --sidebar-glass: rgba(16, 20, 31, 0.82);
 }
 
@@ -249,14 +255,15 @@ body::after {
    Border and shadow are set longhand for the same reason: the `border`
    shorthand also resets the colour a utility just set. */
 @layer components {
+  /* 2026 brand: panels are flat surfaces divided by hairlines, not blurred
+     translucent glass. Kept under the same class name so every page that
+     already reaches for `glass` re-skins without being touched. */
   .glass {
     background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
     border-width: 1px;
     border-style: solid;
     border-color: var(--glass-border);
-    box-shadow: var(--glass-shadow);
+    box-shadow: none;
   }
 
   /* Safari/Firefox without backdrop-filter would render unreadable washes —
@@ -274,15 +281,13 @@ body::after {
       box-shadow 0.25s ease;
   }
   .glass-hover:hover {
-    transform: translateY(-2px);
+    background: color-mix(in oklab, var(--foreground) 3%, var(--glass-bg));
   }
 
   /* The navigation rail. Not .glass — that paints a pale pane, and the rail's
      text is the light-on-ink pair in both themes. */
   .sidebar-glass {
     background: var(--sidebar-glass);
-    backdrop-filter: blur(24px) saturate(1.4);
-    -webkit-backdrop-filter: blur(24px) saturate(1.4);
   }
 
   /* A panel carrying bad news keeps the glass shadow and adds a red bloom.
@@ -306,17 +311,30 @@ body::after {
   .folder::details-content {
     block-size: 0;
     overflow: clip;
+    /* Opacity and transform matter independently of block-size: they animate
+       in every browser, whereas the height only animates where
+       interpolate-size is supported. Without them, a browser lacking it gets
+       an instant snap with nothing to soften it. */
+    opacity: 0;
+    transform: translateY(-6px);
     transition:
-      block-size 240ms cubic-bezier(0.32, 0.72, 0, 1),
-      content-visibility 240ms allow-discrete;
+      block-size 260ms cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 180ms ease-out,
+      transform 260ms cubic-bezier(0.32, 0.72, 0, 1),
+      content-visibility 260ms allow-discrete;
   }
   .folder[open]::details-content {
     block-size: auto;
+    opacity: 1;
+    transform: none;
   }
+  .folder > summary { transition: background 0.16s; }
 
   @media (prefers-reduced-motion: reduce) {
     .folder::details-content {
       transition: none;
+      opacity: 1;
+      transform: none;
     }
   }
 }
@@ -411,4 +429,624 @@ body::after {
   *::after {
     transition-duration: 0.01ms !important;
   }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   2026 layout system — ported from the approved design.
+   Everything here reads the brand tokens above, so the two never drift.
+   Kept in @layer components so a Tailwind utility still wins a tie.
+   ──────────────────────────────────────────────────────────────────── */
+@layer components {
+  /* — the one spacing scale everything aligns to — */
+  :root { --gutter: clamp(20px, 4.4vw, 52px); --pad: clamp(18px, 2.3vw, 26px); }
+
+  .label {
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+
+  .masthead { padding: clamp(40px, 7vw, 88px) 0 clamp(24px, 3.5vw, 40px); }
+  .masthead h1 {
+    margin: 0; font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 250;
+    letter-spacing: -0.04em; line-height: 1.02; text-wrap: balance;
+  }
+  .masthead h1 b { font-weight: 600; }
+  .masthead h1 span { color: var(--ink-3); font-weight: 200; }
+  .masthead p { margin: 14px 0 0; color: var(--muted-foreground); max-width: 52ch; }
+  .masthead .meta { display: flex; align-items: baseline; justify-content: space-between;
+                    gap: 26px; margin-top: 22px; flex-wrap: wrap; }
+  .masthead .meta .hi { color: var(--ok); }
+
+  .divider { display: flex; align-items: center; gap: 14px; margin: clamp(32px, 5vw, 54px) 0 20px; }
+  .divider .r { flex: 1; height: 1px; background: var(--hair); }
+  .divider .m { width: 5px; height: 5px; transform: rotate(45deg); background: var(--ok); flex: none; }
+
+  /* — the hairline grid: panels share 1px rules, no floating cards — */
+  .field {
+    display: grid; grid-template-columns: repeat(12, 1fr); gap: 1px;
+    background: var(--border); border: 1px solid var(--border);
+  }
+  .box {
+    background: var(--card); padding: var(--pad); display: flex; flex-direction: column;
+    gap: 14px; min-width: 0; transition: background 0.2s;
+  }
+  .box:hover { background: color-mix(in oklab, var(--foreground) 3%, var(--card)); }
+  .box.needs {
+    box-shadow: inset 0 2px 0 var(--danger);
+    background: linear-gradient(180deg, color-mix(in oklab, var(--danger) 8%, transparent), transparent 62%), var(--card);
+  }
+  .c12 { grid-column: span 12 } .c9 { grid-column: span 9 } .c8 { grid-column: span 8 }
+  .c7 { grid-column: span 7 } .c6 { grid-column: span 6 } .c5 { grid-column: span 5 }
+  .c4 { grid-column: span 4 } .c3 { grid-column: span 3 }
+  @media (max-width: 800px) { .c3,.c4,.c5,.c6,.c7,.c8,.c9 { grid-column: span 12 } }
+
+  /* — figures: thin, large, on a shared baseline — */
+  .stat { display: flex; align-items: baseline; gap: 9px; line-height: 0.84; }
+  .stat .v { font-size: clamp(3rem, 8vw, 5rem); font-weight: 200; letter-spacing: -0.055em;
+             font-variant-numeric: tabular-nums; }
+  .stat .v.sm { font-size: clamp(2.4rem, 5.4vw, 3.4rem); }
+  .stat .u { font-size: 1.02rem; font-weight: 400; color: var(--ink-3); }
+  .note { font-size: 0.83rem; color: var(--muted-foreground); }
+  .trend { color: var(--ok); font-weight: 600; }
+
+  /* — rows — */
+  .rowlist { list-style: none; margin: 0; padding: 0; }
+  .rowlist li {
+    display: flex; align-items: center; justify-content: space-between; gap: 18px;
+    padding: 15px 0; border-bottom: 1px solid var(--border);
+    transition: background 0.16s, padding-left 0.16s;
+  }
+  .rowlist li:last-child { border-bottom: none; }
+  .rowlist li:hover { background: color-mix(in oklab, var(--foreground) 3%, var(--card)); padding-left: 10px; }
+  .rowlist .tw { min-width: 0; flex: 1; }
+  .rowlist .tw .t, .rowlist .tw .s { display: block; }
+  .rowlist .meta { display: flex; align-items: center; gap: clamp(14px, 2.2vw, 26px); flex: none; }
+  .rowlist .t { font-size: 1.02rem; font-weight: 500; letter-spacing: -0.015em; }
+  .rowlist .s {
+    font-family: var(--font-mono); font-size: 0.66rem; color: var(--ink-3);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px;
+  }
+  .rowlist .s.bad { color: var(--danger); }
+
+  .chip {
+    font-family: var(--font-mono); font-size: 0.63rem; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 5px 10px; border: 1px solid var(--hair);
+    color: var(--muted-foreground); white-space: nowrap; flex: none;
+  }
+  .chip.due, .chip.ok { border-color: var(--ok); color: var(--ok); }
+  .chip.bad { border-color: var(--danger); color: var(--danger); }
+  .chip.warn { border-color: var(--warn); color: var(--warn); }
+
+  /* — leaderboard bars — */
+  .lb { display: flex; flex-direction: column; gap: 8px; }
+  .lb { list-style: none; margin: 0; padding: 0; }
+  .lb .row { display: grid; grid-template-columns: 18px 1fr auto; gap: 11px;
+             align-items: center; transition: transform 0.16s ease; }
+  .lb .row:hover { transform: translateY(-2px); }
+  .lb .rk { font-family: var(--font-mono); font-size: 0.66rem; color: var(--ink-3); text-align: right; }
+  .lb .bw { position: relative; height: 24px; display: flex; align-items: center; }
+  .lb .bar { height: 24px; background: var(--muted); }
+  .lb .nm { position: absolute; left: 10px; font-size: 0.83rem;
+            color: var(--muted-foreground); white-space: nowrap; }
+  .lb .sc { font-family: var(--font-mono); font-size: 0.74rem; text-align: right;
+            color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+  .lb .row.me .bar { background: var(--ok); }
+  .lb .row.me .nm { color: var(--card); font-weight: 700; }
+  .lb .row.me .sc, .lb .row.me .rk { color: var(--foreground); font-weight: 700; }
+
+  /* — one block per homework — */
+  .caps { display: flex; gap: 2px; height: 26px; }
+  .caps i { flex: 1; background: var(--muted); border: 1px solid var(--hair);
+            transition: transform 0.14s ease; transform-origin: center; }
+  .caps i:hover, .caps i:focus-visible { transform: scaleY(1.22); z-index: 3; }
+  .caps i.done { background: var(--ok); border-color: var(--ok); }
+  .caps i.late {
+    border-color: var(--danger);
+    background: repeating-linear-gradient(45deg, var(--danger), var(--danger) 2.5px, transparent 2.5px, transparent 5px);
+  }
+
+  /* — one bead per surah — */
+  .beads { display: flex; flex-wrap: wrap; gap: 7px; }
+  .beads b { width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid var(--hair);
+             background: transparent; position: relative; transition: transform 0.14s ease; }
+  .beads b.done { background: var(--ok); border-color: var(--ok); }
+  .beads b:hover, .beads b:focus-visible { transform: scale(1.42); z-index: 3; }
+  .beads b.pace::after {
+    content: ""; position: absolute; left: 50%; top: -9px; width: 2px; height: 5px;
+    background: var(--foreground); transform: translateX(-50%);
+  }
+
+  .surah-line { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
+  .surah-line .ar { font-family: var(--font-quran); font-size: 2.4rem; line-height: 1.9;
+                    direction: rtl; color: var(--ok); }
+
+  .empty { border: 1px dashed var(--hair); padding: 34px; text-align: center;
+           color: var(--muted-foreground); background: var(--card); }
+
+  .signoff {
+    margin-top: clamp(48px, 7vw, 80px); padding: 40px 0 8px; border-top: 1px solid var(--hair);
+    display: flex; align-items: center; justify-content: space-between; gap: 26px; flex-wrap: wrap;
+  }
+  .signoff .wm {
+    width: 150px; height: 84px; background: var(--foreground); opacity: 0.13;
+    -webkit-mask: url("/brand/logo-mask.png") left center / contain no-repeat;
+    mask: url("/brand/logo-mask.png") left center / contain no-repeat;
+  }
+  .signoff .lines { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.14em;
+                    text-transform: uppercase; color: var(--ink-3); text-align: right; line-height: 2; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   The shell — near-black rail in both themes, so the cream mark always
+   sits in its own environment. Collapsible; the width is a variable so
+   the backdrop behind the content can follow it.
+   ──────────────────────────────────────────────────────────────────── */
+@layer components {
+  .appshell {
+    --rail-w: 248px;
+    display: grid; grid-template-columns: var(--rail-w) 1fr; min-height: 100dvh;
+    transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .appshell[data-rail="off"] { --rail-w: 76px; }
+
+  .rail {
+    background: var(--sidebar); color: var(--sidebar-foreground);
+    position: sticky; top: 0; height: 100dvh; display: flex; flex-direction: column;
+    padding: 24px 14px 16px; gap: 22px; z-index: 30; overflow: hidden;
+  }
+  .rail .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .rail .mark {
+    width: 106px; height: 58px; background: var(--sidebar-foreground); flex: 1; min-width: 0;
+    transition: width 0.3s, height 0.3s;
+    -webkit-mask: url("/brand/logo-mask.png") center / contain no-repeat;
+    mask: url("/brand/logo-mask.png") center / contain no-repeat;
+  }
+  .rail nav { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; }
+  .rail nav a {
+    display: flex; align-items: center; gap: 12px; color: color-mix(in oklab, var(--sidebar-foreground) 58%, transparent);
+    font-size: 0.92rem; font-weight: 500; padding: 10px 12px; border-radius: 8px;
+    text-decoration: none; transition: background 0.16s, color 0.16s;
+  }
+  .rail nav a:hover { background: color-mix(in oklab, var(--sidebar-foreground) 8%, transparent);
+                      color: var(--sidebar-foreground); }
+  .rail nav a[aria-current="page"] { background: var(--sidebar-foreground);
+                                     color: var(--sidebar); font-weight: 700; }
+  .rail nav a .lb { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rail nav a.soon { opacity: 0.45; }
+  .rail .grp {
+    font-family: var(--font-mono); font-size: 0.58rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: color-mix(in oklab, var(--sidebar-foreground) 50%, transparent);
+    padding: 16px 12px 6px;
+  }
+  .rail .foot {
+    border-top: 1px solid var(--sidebar-border); padding-top: 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .rail .me { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .rail .me i {
+    width: 30px; height: 30px; border-radius: 999px; flex: none; font-style: normal;
+    background: color-mix(in oklab, var(--sidebar-foreground) 16%, transparent);
+    color: var(--sidebar-foreground); display: grid; place-items: center;
+    font-size: 0.7rem; font-weight: 800;
+  }
+  .rail .me span { font-size: 0.82rem; font-weight: 600; color: var(--sidebar-foreground);
+                   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .railbtn {
+    width: 30px; height: 30px; border-radius: 7px; flex: none; cursor: pointer;
+    border: 1px solid var(--sidebar-border); background: none; display: grid; place-items: center;
+    color: color-mix(in oklab, var(--sidebar-foreground) 60%, transparent);
+    transition: color 0.18s, background 0.18s, transform 0.3s;
+  }
+  .railbtn:hover { color: var(--sidebar-foreground);
+                   background: color-mix(in oklab, var(--sidebar-foreground) 8%, transparent); }
+
+  .appshell[data-rail="off"] .rail .head { flex-direction: column; gap: 14px; }
+  .appshell[data-rail="off"] .rail .mark {
+    width: 42px; height: 32px; flex: none; margin: 0 auto;
+    -webkit-mask-image: url("/brand/logo-mark-mask.png"); mask-image: url("/brand/logo-mark-mask.png");
+    -webkit-mask-position: center; mask-position: center;
+  }
+  .appshell[data-rail="off"] .railbtn.toggle { transform: rotate(180deg); }
+  .appshell[data-rail="off"] .rail nav a { justify-content: center; padding: 11px 0; gap: 0; }
+  .appshell[data-rail="off"] .rail nav a .lb,
+  .appshell[data-rail="off"] .rail .grp,
+  .appshell[data-rail="off"] .rail .me span { display: none; }
+  .appshell[data-rail="off"] .rail .foot { flex-direction: column; gap: 12px; }
+
+  .shellmain { position: relative; min-width: 0; }
+  .shellview { position: relative; z-index: 2; max-width: 1000px; margin: 0 auto;
+               padding: 0 var(--gutter) 90px; }
+  .topbar { display: none; }
+  .tabs { display: none; }
+
+  @media (max-width: 1023px) {
+    .appshell { grid-template-columns: 1fr; }
+    .rail { display: none; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+      padding: 12px var(--gutter); position: sticky; top: 0; z-index: 35;
+      background: var(--sidebar); color: var(--sidebar-foreground);
+    }
+    .topbar .mark {
+      width: 84px; height: 46px; background: var(--sidebar-foreground);
+      -webkit-mask: url("/brand/logo-mask.png") left center / contain no-repeat;
+      mask: url("/brand/logo-mask.png") left center / contain no-repeat;
+    }
+    .shellview { padding-bottom: 96px; }
+    .tabs {
+      display: grid; grid-auto-flow: column; position: fixed; left: 0; right: 0; bottom: 0;
+      z-index: 35; background: var(--sidebar); border-top: 1px solid var(--sidebar-border);
+    }
+    .tabs a {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 9px 4px calc(9px + env(safe-area-inset-bottom)); text-decoration: none;
+      font-size: 0.62rem; letter-spacing: 0.06em; transition: color 0.16s;
+      color: color-mix(in oklab, var(--sidebar-foreground) 55%, transparent);
+    }
+    .tabs a[aria-current="page"] { color: var(--sidebar-foreground); font-weight: 700; }
+  }
+}
+
+/* — the class backdrop: photograph or geometry, always neutral, always
+     fading into the page before it reaches the content — */
+@layer components {
+  :root { --photo-op: 0.30; --photo-filter: grayscale(0.32) brightness(1.16) contrast(0.76) sepia(0.10); }
+  .dark { --photo-op: 0.42; --photo-filter: grayscale(0.46) brightness(0.52) contrast(1.04); }
+
+  .backdrop {
+    position: fixed; top: 0; left: var(--rail-w, 0); right: 0; height: 72vh;
+    z-index: 0; overflow: hidden; pointer-events: none;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  /* Two fades, not one. The bottom fade was always here; the top one is what
+     stops the image ending in a hard line once parallax has moved it down. */
+  .backdrop::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, var(--background) 0%, transparent 30%),
+      linear-gradient(180deg, transparent 38%, var(--background) 97%);
+  }
+  /* Headroom. The layer travels up to scrollY * 0.3 before the backdrop has
+     faded out, which is roughly a third of its height, so it is built that
+     much taller than the box it sits in. Without this the translate simply
+     runs off the top of the image and exposes the page behind it. */
+  .backdrop-layer {
+    position: absolute; left: 0; right: 0; top: -36%; height: 136%;
+    will-change: transform;
+  }
+  .backdrop-photo {
+    position: absolute; inset: 0; background-position: center bottom;
+    background-size: cover; background-repeat: no-repeat;
+    opacity: var(--photo-op); filter: var(--photo-filter);
+  }
+  .backdrop-art {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: max(1400px, 120%); height: auto; display: block;
+    color: var(--foreground); opacity: 0.13;
+  }
+  @media (max-width: 1023px) { .backdrop { left: 0; } }
+}
+
+/* — strikes: the panel escalates with the count, and a boot approaches — */
+@layer components {
+  .strikebox { transition: background 0.3s, box-shadow 0.3s; }
+  .strikebox[data-n="1"] { background: color-mix(in oklab, var(--warn) 7%, var(--card)); }
+  .strikebox[data-n="1"] .label { color: var(--warn); }
+  .strikebox[data-n="2"] { background: color-mix(in oklab, var(--danger) 11%, var(--card));
+                           box-shadow: inset 0 0 0 1px var(--danger); }
+  .strikebox[data-n="3"] { background: color-mix(in oklab, var(--danger) 20%, var(--card));
+                           box-shadow: inset 0 0 0 2px var(--danger); }
+  .strikebox[data-n="2"] .label, .strikebox[data-n="3"] .label { color: var(--danger); }
+  .strikebox[data-n="2"] .stat .v, .strikebox[data-n="3"] .stat .v { color: var(--danger); }
+
+  .runway { position: relative; height: 52px; display: flex; align-items: center; }
+  .slots { display: flex; gap: 11px; align-items: center; }
+  .slots span { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--hair);
+                transition: background 0.3s, border-color 0.3s; }
+  .slots span.on { background: var(--danger); border-color: var(--danger); }
+  .strikebox[data-n="1"] .slots span.on { background: var(--warn); border-color: var(--warn); }
+
+  .boot { position: absolute; top: 50%; width: 50px; height: 38px;
+          transform: translateY(-50%); transform-origin: 88% 50%;
+          transition: right 0.55s cubic-bezier(0.34, 1.4, 0.5, 1), opacity 0.4s; }
+  .boot path, .boot rect { fill: var(--ink-3); transition: fill 0.3s; }
+  .strikebox[data-n="0"] .boot { right: 2%; opacity: 0.3; }
+  .strikebox[data-n="1"] .boot { right: 24%; opacity: 0.65; }
+  .strikebox[data-n="2"] .boot { right: 46%; opacity: 1; }
+  .strikebox[data-n="3"] .boot { right: 60%; opacity: 1; }
+  .strikebox[data-n="2"] .boot path, .strikebox[data-n="2"] .boot rect,
+  .strikebox[data-n="3"] .boot path, .strikebox[data-n="3"] .boot rect { fill: var(--danger); }
+
+  .reasons { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .reasons li { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.08em;
+                text-transform: uppercase; color: var(--ink-3); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .strikebox[data-n="1"] .boot { animation: boot-sway 3.4s ease-in-out infinite; }
+    .strikebox[data-n="2"] .boot { animation: boot-kick 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+    .strikebox[data-n="3"] .boot { animation: boot-kick 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+    @keyframes boot-sway {
+      0%, 100% { transform: translateY(-50%) rotate(0); }
+      50%      { transform: translateY(-50%) rotate(-7deg); }
+    }
+    @keyframes boot-kick {
+      0%, 52% { transform: translateY(-50%) rotate(0); }
+      64%     { transform: translateY(-50%) rotate(24deg); }
+      76%     { transform: translateY(-50%) rotate(-30deg); }
+      88%     { transform: translateY(-50%) rotate(6deg); }
+      100%    { transform: translateY(-50%) rotate(0); }
+    }
+  }
+}
+
+/* — one tooltip for the page; the tiny marks carry their detail on hover — */
+@layer components {
+  #hovertip {
+    position: fixed; z-index: 99; pointer-events: none; opacity: 0; max-width: 230px;
+    background: var(--foreground); color: var(--background); padding: 7px 10px;
+    box-shadow: 0 6px 24px -8px rgb(0 0 0 / 0.55);
+    transform: translate(-50%, -100%) translateY(-8px); transition: opacity 0.12s;
+  }
+  /* Flipped below the mark when there is no room above it. */
+  #hovertip.below { transform: translate(-50%, 0) translateY(8px); }
+  #hovertip.on { opacity: 1; }
+  #hovertip .ar { font-family: var(--font-quran); font-size: 1.35rem; line-height: 1.7; direction: rtl; }
+  #hovertip .h { font-size: 0.76rem; font-weight: 600; line-height: 1.25; }
+  #hovertip .m {
+    font-family: var(--font-mono); font-size: 0.58rem; letter-spacing: 0.1em;
+    text-transform: uppercase; margin-top: 3px; opacity: 0.7;
+  }
+  #hovertip .v { font-family: var(--font-mono); font-size: 0.68rem; margin-top: 3px; }
+  .caps i, .beads b, [data-part] { cursor: pointer; }
+}
+
+/* — the trend line, and the panels that let the class show through — */
+@layer components {
+  /* An SVG clips to its viewBox, so the glow filter was being cut square.
+     The stroke keeps its width under scaling via vector-effect. */
+  /* The only job here is to stop the glow being clipped: an SVG clips to
+     its viewBox, which sliced the drop-shadow off square. Size stays as
+     the element asks for it. */
+  .spark { display: block; overflow: visible; }
+
+  /* Overdue sits over the class photograph rather than hiding it. Enough
+     opacity to keep the type at full contrast, enough transparency that the
+     place behind it still reads. The blur stops the photograph's detail
+     fighting the words. */
+  .field.see-through { background: transparent; }
+  .box.needs {
+    box-shadow: inset 0 2px 0 var(--danger);
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--danger) 10%, transparent), transparent 62%),
+      color-mix(in oklab, var(--card) 76%, transparent);
+    backdrop-filter: blur(6px) saturate(1.1);
+    -webkit-backdrop-filter: blur(6px) saturate(1.1);
+  }
+  .box.needs:hover {
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--danger) 10%, transparent), transparent 62%),
+      color-mix(in oklab, var(--card) 84%, transparent);
+  }
+
+  /* Sign-off: place on the left, mark in the middle, term on the right. */
+  .signoff { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 20px; }
+  .signoff .wm { margin: 0 auto; }
+  .signoff .lines { text-align: left; }
+  .signoff .lines.right { text-align: right; }
+  @media (max-width: 640px) {
+    .signoff { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+    .signoff .lines, .signoff .lines.right { text-align: center; }
+  }
+}
+
+/* — the report card: term bars legend and the exact-marks table — */
+@layer components {
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-family: var(--font-mono);
+            font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .legend span { display: flex; align-items: center; gap: 7px; }
+  .legend i { width: 10px; height: 10px; flex: none; }
+
+  .twrap { overflow-x: auto; }
+  table.marks { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  table.marks th {
+    font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-3); font-weight: 400;
+    text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--hair);
+  }
+  table.marks td { padding: 12px 8px; border-bottom: 1px solid var(--border); }
+  table.marks tr:last-child td { border-bottom: none; }
+  table.marks td.r, table.marks th.r { text-align: right; font-variant-numeric: tabular-nums; }
+  table.marks td.dim { color: var(--ink-3); }
+  table.marks tr.now td { background: color-mix(in oklab, var(--ok) 10%, transparent); }
+}
+
+/* — hifz: the year as a mushaf index — */
+@layer components {
+  .band { display: flex; align-items: center; gap: 12px; margin: 26px 0 10px; }
+  .band:first-of-type { margin-top: 0; }
+  .band .t { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.15em;
+             text-transform: uppercase; color: var(--muted-foreground); }
+  .band .r { flex: 1; height: 1px; background: var(--hair); }
+  .band .st { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em;
+              text-transform: uppercase; color: var(--ok); }
+  .band .st.wait { color: var(--ink-3); }
+
+  .index { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+           gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .cell { background: var(--card); padding: 13px 12px 11px; display: flex; flex-direction: column;
+          gap: 5px; min-height: 106px; cursor: pointer; position: relative; text-align: left;
+          border: none; font: inherit; color: inherit; width: 100%; transition: background 0.16s; }
+  .cell:hover { background: color-mix(in oklab, var(--foreground) 3%, var(--card)); }
+  .cell .n { font-family: var(--font-mono); font-size: 0.6rem; color: var(--ink-3); letter-spacing: 0.1em; }
+  .cell .ar-quran { font-size: 1.45rem; line-height: 1.7; color: var(--ink-3); margin-top: auto; }
+  .cell .en { font-size: 0.75rem; color: var(--ink-3); overflow: hidden;
+              text-overflow: ellipsis; white-space: nowrap; }
+  .cell.done { background: color-mix(in oklab, var(--ok) 12%, var(--card)); }
+  /* Needed explicitly: .cell.done and .cell:hover have equal specificity, so
+     the later rule won and passed surahs simply did not respond to hover. */
+  .cell.done:hover { background: color-mix(in oklab, var(--ok) 24%, var(--card)); }
+  .cell.done .ar-quran { color: var(--ok); }
+  .cell.done .en, .cell.done .n { color: var(--muted-foreground); }
+  .cell.next { box-shadow: inset 0 0 0 2px var(--ok); }
+  .cell .tag { position: absolute; top: 9px; right: 10px; font-family: var(--font-mono);
+               font-size: 0.52rem; letter-spacing: 0.14em; color: var(--ok); }
+  .cell .cmt { position: absolute; top: 9px; right: 10px; width: 13px; height: 13px; color: var(--ok); }
+  .cell.next .cmt { right: 44px; }
+  .cell .cmt svg { width: 100%; height: 100%; fill: currentColor; }
+  /* Selected beats hover, and has to say so: .cell.done:hover outweighs a
+     bare .cell.sel, so hovering a selected cell repainted the background
+     while the text kept its selected colour — dark on dark. */
+  .cell.sel,
+  .cell.sel:hover,
+  .cell.done.sel,
+  .cell.done.sel:hover { background: var(--foreground); }
+  .cell.sel .ar-quran { color: var(--background); }
+  .cell.sel .en, .cell.sel .n, .cell.sel .cmt { color: var(--background); opacity: 0.75; }
+
+  /* The pace rule, in words. It was an unlabelled hairline before. */
+  .paceline { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  .paceline .r { flex: 1; height: 1px; background: var(--foreground); }
+  .paceline .t { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.13em;
+                 text-transform: uppercase; color: var(--foreground); }
+
+  .detail { border-top: 1px solid var(--hair); margin-top: 26px; padding-top: 22px;
+            display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: start; }
+  .detail .ar-quran.big { font-size: 3rem; line-height: 1.5; color: var(--ok); }
+  .detail .en { font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; }
+  .detail .facts { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px; }
+  .detail .facts span { font-family: var(--font-mono); font-size: 0.63rem; letter-spacing: 0.11em;
+                        text-transform: uppercase; color: var(--ink-3); }
+  .detail .desc { margin: 6px 0 0; font-size: 0.95rem; color: var(--muted-foreground); max-width: 62ch; }
+  .detail .src { margin-top: 10px; font-size: 0.72rem; color: var(--ink-3); font-style: italic; }
+  .seclab { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.13em;
+            text-transform: uppercase; color: var(--ink-3); margin-top: 16px; }
+  .shared { margin-top: 12px; font-size: 0.83rem; color: var(--muted-foreground);
+            font-style: italic; border-left: 2px solid var(--hair); padding-left: 12px; }
+
+  /* The teacher's words are set apart: they are not part of the scholarship. */
+  .saywrap { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .say { margin: 8px 0 0; border-left: 2px solid var(--ok); padding: 10px 12px 10px 14px;
+         background: color-mix(in oklab, var(--ok) 10%, transparent); }
+  .say p { margin: 0; font-size: 0.98rem; font-style: italic; color: var(--muted-foreground); }
+  .say .by { margin-top: 6px; font-family: var(--font-mono); font-size: 0.62rem;
+             letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+  .readon { display: inline-block; margin-top: 18px; font-family: var(--font-mono);
+            font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase;
+            color: var(--ok); text-decoration: none; border-bottom: 1px solid currentColor;
+            padding-bottom: 2px; }
+  @media (max-width: 760px) { .detail { grid-template-columns: 1fr; } }
+}
+
+/* — the surah being memorised now, in context — */
+@layer components {
+  .herodesc { border-top: 1px solid var(--border); margin-top: 18px; padding-top: 16px; }
+  .herodesc p { margin: 8px 0 0; font-size: 0.93rem; color: var(--muted-foreground); max-width: 70ch; }
+  .herodesc .src { margin-top: 10px; font-size: 0.72rem; color: var(--ink-3); font-style: italic; }
+}
+
+/* — one surah, in full — */
+@layer components {
+  .backlink { text-decoration: none; display: inline-block; }
+  .backlink:hover { color: var(--foreground); }
+  .surahtitle { font-size: clamp(2.6rem, 7vw, 4.4rem); line-height: 1.4; color: var(--ok); }
+  .facts { display: flex; gap: 18px; flex-wrap: wrap; }
+  .facts span { font-family: var(--font-mono); font-size: 0.63rem; letter-spacing: 0.11em;
+                text-transform: uppercase; color: var(--ink-3); }
+
+  /* Long-form reading: a real measure, and headings that separate sections
+     rather than shouting. */
+  .reading { gap: 0; }
+  .reading section { margin-top: 26px; }
+  .reading section:first-of-type { margin-top: 6px; }
+  .reading h2 {
+    margin: 0 0 8px; font-family: var(--font-mono); font-size: 0.66rem;
+    letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-3);
+    font-weight: 500; letter-spacing: 0.15em;
+  }
+  .reading p { margin: 0 0 14px; font-size: 1rem; line-height: 1.75; max-width: 68ch;
+               color: var(--muted-foreground); }
+  .reading p:last-of-type { margin-bottom: 0; }
+  .reading .src { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border);
+                  font-size: 0.72rem; color: var(--ink-3); font-style: italic; }
+  .reading .readon { margin-top: 14px; }
+  .reading .shared { margin-bottom: 4px; }
+  .reflect { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .reflect p { margin-top: 8px; color: var(--foreground); }
+  .reading .dispute { margin-top: 12px; font-size: 0.88rem; color: var(--ink-3); font-style: italic; }
+  /* Visible while REVIEWED is false: nothing unchecked reaches a student
+     without saying so. */
+  .draftnote {
+    margin-top: 20px; padding: 9px 12px; font-family: var(--font-mono);
+    font-size: 0.62rem; letter-spacing: 0.11em; text-transform: uppercase;
+    color: var(--warn); border: 1px dashed color-mix(in oklab, var(--warn) 55%, transparent);
+  }
+}
+
+/* — course cards: the same hairline grid, one cell per course or term — */
+@layer components {
+  .cards {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+    gap: 1px; background: var(--border); border: 1px solid var(--border);
+  }
+  .tcard {
+    background: var(--card); padding: var(--pad); display: flex; flex-direction: column;
+    gap: 13px; min-width: 0; transition: background 0.2s; text-decoration: none; color: inherit;
+  }
+  .tcard:hover { background: color-mix(in oklab, var(--foreground) 3%, var(--card)); }
+  .tcard.current { box-shadow: inset 0 2px 0 var(--ok); }
+  /* A module whose week has not opened yet: present, but visibly not yours. */
+  .tcard.locked { opacity: 0.62; }
+  .tcard.locked:hover { background: var(--card); }
+  .tcard.current .label { color: var(--ok); }
+  .tcard h2, .tcard h3 {
+    margin: 0; font-size: 1.5rem; font-weight: 250; letter-spacing: -0.03em; line-height: 1.1;
+  }
+  .tcard .meter { height: 4px; background: var(--muted); position: relative; }
+  .tcard .meter i { position: absolute; inset: 0 auto 0 0; background: var(--ok); }
+  .tcard .tags { display: flex; flex-wrap: wrap; gap: 5px; list-style: none; margin: 0; padding: 0; }
+  .tcard .tags li {
+    font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-3); border: 1px solid var(--hair);
+    padding: 3px 7px;
+  }
+  .crumbs {
+    font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .crumbs a { text-decoration: none; }
+  .crumbs a:hover { color: var(--foreground); }
+}
+
+/* — going back: one step up, above the trail — */
+@layer components {
+  .trail { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .backstep {
+    display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+    font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--muted-foreground);
+    border: 1px solid var(--hair); padding: 7px 12px 7px 10px;
+    transition: color 0.16s, border-color 0.16s, background 0.16s;
+  }
+  .backstep:hover {
+    color: var(--foreground); border-color: var(--foreground);
+    background: color-mix(in oklab, var(--foreground) 4%, transparent);
+  }
+}
+
+/* — teacher class list: a row you can actually see yourself hovering — */
+@layer components {
+  .classrow { transition: background 0.16s, box-shadow 0.16s; }
+  .classrow:hover {
+    background: color-mix(in oklab, var(--foreground) 8%, transparent);
+    box-shadow: inset 3px 0 0 var(--ok);
+  }
+  .classrow:focus-visible {
+    outline: none;
+    background: color-mix(in oklab, var(--foreground) 8%, transparent);
+    box-shadow: inset 0 0 0 2px var(--ring);
+  }
+  /* The surah beside a student's name reads at UI size, not the 1.35em the
+     reading style uses. */
+  .classrow .ar-quran { font-size: 1.05rem; line-height: 1.4; }
 }

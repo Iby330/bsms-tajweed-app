@@ -1,6 +1,14 @@
 import { cn } from "@/lib/utils";
 
-export type LbRow = { name: string; pct: number; rank: number };
+export type LbRow = {
+  name: string;
+  pct: number;
+  rank: number;
+  /** Shown instead of the percentage where a figure is not the useful thing.
+   *  On the hifdh board that is the surah the student is actually on: "62% of
+   *  target" tells a teacher far less than "Al-Fajr". */
+  note?: string;
+};
 
 /** Exactly three rows: above, you, below — never a full table (plan Q11). */
 export function neighbours(rows: LbRow[], selfName: string): LbRow[] {
@@ -15,7 +23,7 @@ export function LeaderboardWidget({
 }: { rows: LbRow[]; selfName: string; title: string }) {
   const window = neighbours(rows, selfName);
   return (
-    <div className="glass rounded-2xl p-4">
+    <div className="box c12">
       <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground">{title}</h3>
       {window.length === 0 ? (
         <p className="mt-3 text-sm text-muted-foreground">No rankings yet.</p>

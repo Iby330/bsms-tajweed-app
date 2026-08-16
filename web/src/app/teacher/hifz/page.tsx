@@ -65,10 +65,10 @@ export default async function TeacherHifz() {
   });
 
   return (
-    <div className="space-y-5">
-      <header>
-        <h1 className="text-2xl">Hifz register</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+    <>
+      <header className="masthead">
+        <h1><span>Hifdh register</span></h1>
+        <p>
           {label} · Thursday recitation. Colour shows each student against the calendar.
           Select students to set their target.
         </p>
@@ -79,10 +79,10 @@ export default async function TeacherHifz() {
       {rows.length ? (
         <HifzRegister rows={rows} surahs={run} />
       ) : (
-        <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
+        <p className="box c12  p-6 text-sm text-muted-foreground">
           No active students yet.
         </p>
       )}
-    </div>
+    </>
   );
 }

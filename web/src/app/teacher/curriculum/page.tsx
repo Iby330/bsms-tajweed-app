@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
+import { moduleTitle } from "@/lib/curriculum/tree";
 import { MixedText } from "@/components/app/mixed-text";
 import { StatTile } from "@/components/app/stat-tile";
 import { LessonVideoInput } from "@/components/app/lesson-video-input";
@@ -23,6 +24,11 @@ export default async function Curriculum() {
     db.from("submissions").select("homework_id, status"),
   ]);
 
+  // The term running today opens by default; the others start closed.
+  const currentTerm =
+    (terms ?? []).find((t) => Date.parse(t.starts_on) <= now && now <= Date.parse(t.ends_on))?.id ??
+    (terms ?? []).at(-1)?.id;
+
   const qByHw = new Map<string, typeof questions>();
   for (const q of questions ?? []) {
     const list = qByHw.get(q.homework_id) ?? [];
@@ -44,10 +50,10 @@ export default async function Curriculum() {
   const needsKey = (questions ?? []).filter((q) => q.needs_key).length;
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-2xl">Curriculum</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+    <>
+      <header className="masthead">
+        <h1><span>Curriculum</span></h1>
+        <p>
           Every module, homework and question as imported from the Google Forms.
         </p>
       </header>
@@ -59,19 +65,36 @@ export default async function Curriculum() {
         <StatTile label="Marked by hand" value={needsKey || "—"} sub="grid questions, no answer key" />
       </div>
 
+      {/* One term open at a time. All three expanded put every week of the
+          year on screen at once, which is a lot of rows to hunt through. The
+          current term opens by default, since that is the one being taught. */}
       {(terms ?? []).map((term) => (
-        <section key={term.id} className="space-y-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-sm font-medium">Term {term.id}</h2>
+        <details
+          key={term.id}
+          open={term.id === currentTerm}
+          className="folder group/term box c12"
+          style={{ padding: 0, gap: 0 }}
+        >
+          <summary className="flex cursor-pointer list-none flex-wrap items-baseline justify-between gap-2 px-4 py-3.5 transition-colors hover:bg-muted/60 [&::-webkit-details-marker]:hidden">
+            <span className="flex items-baseline gap-2">
+              <span
+                aria-hidden
+                className="text-xs text-muted-foreground transition-transform duration-200 group-open/term:rotate-90"
+              >
+                ▸
+              </span>
+              <span className="text-sm font-medium">Term {term.id}</span>
+              {term.id === currentTerm && <span className="label">current</span>}
+            </span>
             <span className="text-xs tabular-nums text-muted-foreground">
               {new Date(term.starts_on).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-              {" – "}
+              {" to "}
               {new Date(term.ends_on).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
               {" · exam out of "}{term.exam_max}
             </span>
-          </div>
+          </summary>
 
-          <div className="space-y-2">
+          <div className="space-y-2 px-4 pb-4">
             {(weeks ?? []).filter((w) => w.term_id === term.id).map((w) => {
               const unlocked = Date.parse(w.unlock_at) <= now;
               const wLessons = (lessons ?? []).filter((l) => l.week_id === w.id);
@@ -96,7 +119,7 @@ export default async function Curriculum() {
                       {wLessons.map((l) => (
                         <li key={l.id} className="flex flex-wrap items-baseline gap-2 text-sm">
                           <span className="w-1 shrink-0 text-muted-foreground">·</span>
-                          <MixedText text={l.title} className="min-w-0" />
+                          <MixedText text={moduleTitle(l.title) || l.title} className="min-w-0" />
                           <span className="ml-auto shrink-0 text-xs text-muted-foreground">
                             {SERIES[l.series]}
                           </span>
@@ -134,8 +157,8 @@ export default async function Curriculum() {
               );
             })}
           </div>
-        </section>
+        </details>
       ))}
-    </div>
+    </>
   );
 }

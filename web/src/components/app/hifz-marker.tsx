@@ -24,7 +24,7 @@ export function HifzMarker({
   const [pending, startTransition] = useTransition();
 
   return (
-    <ul className="divide-y divide-line overflow-hidden glass rounded-2xl">
+    <ul className="divide-y divide-line">
       {rows.map((s) => (
         <li key={s.number} className="px-4 py-2.5">
           <div className="flex items-center justify-between gap-3">
@@ -35,7 +35,7 @@ export function HifzMarker({
               )}>{s.passed ? "✓" : ""}</span>
               <span className="truncate text-sm">
                 {s.name_en}{" "}
-                <span dir="rtl" lang="ar" className="ar-ui text-muted-foreground">{s.name_ar}</span>
+                <span dir="rtl" lang="ar" className="ar-quran text-muted-foreground">{s.name_ar}</span>
               </span>
             </span>
             <span className="flex shrink-0 gap-1.5">
