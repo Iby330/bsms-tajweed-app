@@ -37,9 +37,9 @@ describe("labels", () => {
     expect(detailLabel("makhraj", "ض")).toBe("Makhraj of ض");
   });
   it("falls back to the category for null detail", () => {
-    expect(detailLabel("hifz", null)).toBe("Hifz");
+    expect(detailLabel("hifz", null)).toBe("Hifdh");
   });
   it("labels flags", () => {
-    expect(flagLabel("weak_hifz")).toBe("Weak hifz overall");
+    expect(flagLabel("weak_hifz")).toBe("Weak hifdh overall");
   });
 });

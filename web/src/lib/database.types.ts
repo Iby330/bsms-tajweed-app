@@ -156,6 +156,125 @@ export type Database = {
           },
         ]
       }
+      deposit_entries: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          notes: string | null
+          season_id: number
+          section: Database["public"]["Enums"]["section_t"]
+          still_in: boolean
+          student_id: string | null
+          term1_strikes: number
+          term2_strikes: number
+          term3_strikes: number
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          notes?: string | null
+          season_id: number
+          section: Database["public"]["Enums"]["section_t"]
+          still_in?: boolean
+          student_id?: string | null
+          term1_strikes?: number
+          term2_strikes?: number
+          term3_strikes?: number
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          season_id?: number
+          section?: Database["public"]["Enums"]["section_t"]
+          still_in?: boolean
+          student_id?: string | null
+          term1_strikes?: number
+          term2_strikes?: number
+          term3_strikes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposit_entries_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_entries_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "v_season_finance"
+            referencedColumns: ["season_id"]
+          },
+          {
+            foreignKeyName: "deposit_entries_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deposit_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          entry_id: string
+          id: string
+          kind: string
+          note: string | null
+          paid_on: string
+          recorded_by: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          entry_id: string
+          id?: string
+          kind?: string
+          note?: string | null
+          paid_on?: string
+          recorded_by?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          entry_id?: string
+          id?: string
+          kind?: string
+          note?: string | null
+          paid_on?: string
+          recorded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposit_payments_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "deposit_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_payments_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "v_deposit_entry_totals"
+            referencedColumns: ["entry_id"]
+          },
+          {
+            foreignKeyName: "deposit_payments_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exam_scores: {
         Row: {
           entered_at: string | null
@@ -201,6 +320,103 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          description: string
+          id: string
+          incurred_on: string
+          note: string | null
+          paid_by: string | null
+          paid_by_name: string | null
+          reimbursed: boolean
+          season_id: number
+        }
+        Insert: {
+          amount: number
+          category?: string
+          created_at?: string
+          description: string
+          id?: string
+          incurred_on?: string
+          note?: string | null
+          paid_by?: string | null
+          paid_by_name?: string | null
+          reimbursed?: boolean
+          season_id: number
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          incurred_on?: string
+          note?: string | null
+          paid_by?: string | null
+          paid_by_name?: string | null
+          reimbursed?: boolean
+          season_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "v_season_finance"
+            referencedColumns: ["season_id"]
+          },
+        ]
+      }
+      finance_audit: {
+        Row: {
+          action: string
+          actor_id: string | null
+          after: Json | null
+          at: string
+          before: Json | null
+          id: number
+          row_id: string
+          table_name: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          after?: Json | null
+          at?: string
+          before?: Json | null
+          id?: never
+          row_id: string
+          table_name: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          after?: Json | null
+          at?: string
+          before?: Json | null
+          id?: never
+          row_id?: string
+          table_name?: string
+        }
+        Relationships: []
       }
       hifz_profiles: {
         Row: {
@@ -526,15 +742,7 @@ export type Database = {
           text_uthmani?: string
           word_position?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "quran_words_surah_number_fkey"
-            columns: ["surah_number"]
-            isOneToOne: false
-            referencedRelation: "surahs"
-            referencedColumns: ["number"]
-          },
-        ]
+        Relationships: []
       }
       revision_mistakes: {
         Row: {
@@ -689,6 +897,39 @@ export type Database = {
         }
         Relationships: []
       }
+      seasons: {
+        Row: {
+          created_at: string
+          deposit_amount: number
+          ends_on: string
+          id: number
+          is_current: boolean
+          label: string
+          opening_balance: number
+          starts_on: string
+        }
+        Insert: {
+          created_at?: string
+          deposit_amount?: number
+          ends_on: string
+          id?: never
+          is_current?: boolean
+          label: string
+          opening_balance?: number
+          starts_on: string
+        }
+        Update: {
+          created_at?: string
+          deposit_amount?: number
+          ends_on?: string
+          id?: never
+          is_current?: boolean
+          label?: string
+          opening_balance?: number
+          starts_on?: string
+        }
+        Relationships: []
+      }
       strikes: {
         Row: {
           id: string
@@ -836,21 +1077,42 @@ export type Database = {
           ends_on: string
           exam_max: number
           id: number
+          number: number | null
+          season_id: number | null
           starts_on: string
         }
         Insert: {
           ends_on: string
           exam_max: number
           id: number
+          number?: number | null
+          season_id?: number | null
           starts_on: string
         }
         Update: {
           ends_on?: string
           exam_max?: number
           id?: number
+          number?: number | null
+          season_id?: number | null
           starts_on?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "terms_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "terms_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "v_season_finance"
+            referencedColumns: ["season_id"]
+          },
+        ]
       }
       voice_notes: {
         Row: {
@@ -922,6 +1184,16 @@ export type Database = {
       }
     }
     Views: {
+      v_deposit_entry_totals: {
+        Row: {
+          entry_id: string | null
+          first_amount: number | null
+          payment_count: number | null
+          re_entries: number | null
+          total: number | null
+        }
+        Relationships: []
+      }
       v_eoy: {
         Row: {
           eoy_pct: number | null
@@ -1066,6 +1338,18 @@ export type Database = {
         }
         Relationships: []
       }
+      v_season_finance: {
+        Row: {
+          costs: number | null
+          deposits: number | null
+          gross_income: number | null
+          label: string | null
+          left_over: number | null
+          opening_balance: number | null
+          season_id: number | null
+        }
+        Relationships: []
+      }
       v_term_pct: {
         Row: {
           student_id: string | null
@@ -1114,6 +1398,10 @@ export type Database = {
       }
     }
     Functions: {
+      apply_deposit_strike_delta: {
+        Args: { p_delta: number; p_student: string; p_term: number }
+        Returns: undefined
+      }
       get_homework_for_student: { Args: { hw_id: string }; Returns: Json }
       is_teacher: { Args: never; Returns: boolean }
     }

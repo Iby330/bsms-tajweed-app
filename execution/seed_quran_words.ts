@@ -2,8 +2,10 @@
  * seed_quran_words.ts — import word-by-word Uthmani text with Madani mushaf
  * page/line layout from the quran.com v4 API into `quran_words`.
  *
- * Scope: chapters 72..114 — the BSMS memorisation run (An-Nas ← Al-Jinn),
- * matching the `surahs` table the FK points at.
+ * Scope: chapters 67..114 — the BSMS content range (An-Nas ← Al-Mulk). The
+ * memorisation run in `surahs` currently ends at Al-Jinn (72); the text is
+ * seeded past it (migration 0014 dropped the FK) so extending the run never
+ * has to wait on a reseed.
  * Run:  npx tsx execution/seed_quran_words.ts
  * Idempotent: upserts on (surah_number, ayah_number, word_position).
  * One-off operational tooling — production NEVER calls quran.com.
@@ -57,7 +59,7 @@ async function fetchChapter(n: number): Promise<ApiVerse[]> {
 
 async function main() {
   const rows: Record<string, unknown>[] = [];
-  for (let n = 72; n <= 114; n++) {
+  for (let n = 67; n <= 114; n++) {
     const verses = await fetchChapter(n);
     for (const v of verses) {
       for (const w of v.words) {
@@ -82,7 +84,7 @@ async function main() {
     const { error } = await db.from("quran_words").upsert(rows.slice(i, i + 1000));
     if (error) throw new Error(`upsert batch at ${i}: ${error.message}`);
   }
-  console.log(`seeded ${rows.length} words across chapters 72–114`);
+  console.log(`seeded ${rows.length} words across chapters 67–114`);
 }
 
 main().catch((e) => {

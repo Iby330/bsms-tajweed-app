@@ -2,8 +2,10 @@
  *  must be scannable mid-recitation. Stored values are the ids; labels are
  *  presentation. Changing an id orphans stored rows — add, don't rename. */
 
+// Labels say "Hifdh" (the 2026 redesign's spelling); stored ids keep the
+// original "hifz" slug — renaming an id orphans stored rows.
 export const CATEGORIES = [
-  { id: "hifz", label: "Hifz" },
+  { id: "hifz", label: "Hifdh" },
   { id: "tajweed", label: "Tajweed" },
   { id: "makhraj", label: "Makhraj" },
   { id: "fluency", label: "Fluency" },
@@ -35,7 +37,7 @@ export const DETAILS: Record<Exclude<Category, "makhraj">, { id: string; label: 
 
 /** Session-level observations that aren't anchored to one word. */
 export const SESSION_FLAGS = [
-  { id: "weak_hifz", label: "Weak hifz overall" },
+  { id: "weak_hifz", label: "Weak hifdh overall" },
   { id: "halting", label: "Halting — needs more revision" },
   { id: "strong", label: "Strong recitation" },
 ] as const;

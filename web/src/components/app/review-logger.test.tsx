@@ -29,7 +29,7 @@ describe("ReviewLogger", () => {
     render(<ReviewLogger sessionId="s1" reciterName="Bilal" pages={pages} initialMistakes={[]} />);
     expect(screen.getByText(/0 mistakes/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "قُلْ" }));
-    fireEvent.click(screen.getByRole("button", { name: "Hifz" }));
+    fireEvent.click(screen.getByRole("button", { name: "Hifdh" }));
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(logMistake).toHaveBeenCalledWith(
       "s1", { surah: 114, ayah: 1, position: 1 }, "hifz", undefined, "");
@@ -38,7 +38,7 @@ describe("ReviewLogger", () => {
   it("submits flags and note from the wrap-up", async () => {
     render(<ReviewLogger sessionId="s1" reciterName="Bilal" pages={pages} initialMistakes={[]} />);
     fireEvent.click(screen.getByRole("button", { name: "Finish" }));
-    fireEvent.click(screen.getByLabelText("Weak hifz overall"));
+    fireEvent.click(screen.getByLabelText("Weak hifdh overall"));
     fireEvent.click(screen.getByRole("button", { name: /Submit/ }));
     expect(submitSession).toHaveBeenCalledWith("s1", ["weak_hifz"], "");
   }, SLOW);
