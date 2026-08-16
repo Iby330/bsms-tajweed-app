@@ -65,13 +65,49 @@ export const getCachedSurahWords = unstable_cache(
   async (surahNumber: number) => {
     const { data, error } = await supabaseAdmin()
       .from("quran_words")
-      .select("surah_number, ayah_number, word_position, text_uthmani, is_end, page_number, line_number")
+      .select("surah_number, ayah_number, word_position, text_uthmani, code_v1, is_end, page_number, line_number")
       .eq("surah_number", surahNumber)
       .order("ayah_number")
       .order("word_position");
     if (error) throw error;
     return data ?? [];
   },
-  ["ref-quran-words"],
+  // key carries the row shape — bumped when the select gains code_v1, so a
+  // deploy never serves hour-old rows missing the new column
+  ["ref-quran-words-v2"],
+  { tags: ["reference"], revalidate: 3600 },
+);
+
+/** One full mushaf page — every surah on it, in reading order. */
+export const getCachedPageWords = unstable_cache(
+  async (pageNumber: number) => {
+    const { data, error } = await supabaseAdmin()
+      .from("quran_words")
+      .select("surah_number, ayah_number, word_position, text_uthmani, code_v1, is_end, page_number, line_number")
+      .eq("page_number", pageNumber)
+      .order("surah_number")
+      .order("ayah_number")
+      .order("word_position");
+    if (error) throw error;
+    return data ?? [];
+  },
+  // v2: rows re-seeded from the by_page feed — page-boundary words were
+  // mis-filed before (79:16 under p583); the key bump drops stale copies
+  ["ref-quran-page-words-v2"],
+  { tags: ["reference"], revalidate: 3600 },
+);
+
+/** Where each seeded surah begins in the mushaf: surah → page. */
+export const getCachedSurahStartPages = unstable_cache(
+  async () => {
+    const { data, error } = await supabaseAdmin()
+      .from("quran_words")
+      .select("surah_number, page_number")
+      .eq("ayah_number", 1)
+      .eq("word_position", 1);
+    if (error) throw error;
+    return Object.fromEntries((data ?? []).map((r) => [r.surah_number, r.page_number])) as Record<number, number>;
+  },
+  ["ref-surah-start-pages"],
   { tags: ["reference"], revalidate: 3600 },
 );

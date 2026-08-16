@@ -2,18 +2,19 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MushafReader } from "./mushaf-reader";
+import { MushafReader, type SurahNames } from "./mushaf-reader";
 import { wordKey, type MushafPage, type QuranWord } from "@/lib/quran/mushaf";
 
 export type WordHistoryEntry = { label: string; note: string | null; date: string };
 
 /** Heat mode: tinted mushaf; tapping a hot word lists what went wrong there. */
 export function HeatViewer({
-  pages, heat, history,
+  pages, heat, history, surahNames,
 }: {
   pages: MushafPage[];
   heat: Record<string, string>;                    // wordKey → tint class
   history: Record<string, WordHistoryEntry[]>;     // wordKey → entries, newest first
+  surahNames?: SurahNames;
 }) {
   const [open, setOpen] = useState<{ word: QuranWord; entries: WordHistoryEntry[] } | null>(null);
   const onTap = (word: QuranWord) => {
@@ -22,7 +23,7 @@ export function HeatViewer({
   };
   return (
     <>
-      <MushafReader pages={pages} heat={heat} onWordTap={onTap} />
+      <MushafReader pages={pages} heat={heat} surahNames={surahNames} onWordTap={onTap} />
       <Dialog open={open !== null} onOpenChange={(o) => !o && setOpen(null)}>
         <DialogContent className="max-w-sm space-y-2">
           <DialogHeader>

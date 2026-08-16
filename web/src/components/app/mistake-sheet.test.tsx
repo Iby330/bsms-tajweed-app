@@ -5,7 +5,7 @@ import { MistakeSheet } from "./mistake-sheet";
 import type { QuranWord } from "@/lib/quran/mushaf";
 
 const word: QuranWord = {
-  surah: 114, ayah: 1, position: 4, text: "ٱلنَّاسِ", isEnd: false, page: 604, line: 12,
+  surah: 114, ayah: 1, position: 4, text: "ٱلنَّاسِ", glyph: null, isEnd: false, page: 604, line: 12,
 };
 
 // Dialog renders are slow under full-suite worker contention — the default

@@ -2,24 +2,31 @@ import Link from "next/link";
 import {
   draftMistakes, myActivePair, myDraftSession, partnerRange,
 } from "@/lib/hifz/review-queries";
-import { getCachedSurahWords } from "@/lib/reference/cached";
+import {
+  getCachedPageWords, getCachedSurahs, getCachedSurahStartPages,
+} from "@/lib/reference/cached";
 import { fromRow, groupIntoPages } from "@/lib/quran/mushaf";
+import type { SurahNames } from "./mushaf-reader";
 import { ReviewLogger } from "./review-logger";
 import { StartReviewButton } from "./start-review-button";
 import { ReviewFeedback } from "./review-feedback";
 import { cn } from "@/lib/utils";
 
+/** The seeded mushaf runs An-Nas back to Al-Mulk — pages 562–604. */
+const LAST_PAGE = 604;
+
 /** The student Review tab: review-your-partner on top, your own feedback
- *  below. Everything hangs off the teacher-assigned active pair. */
+ *  below. The reader is a real mushaf — one full page at a time, turned
+ *  RTL; the surah chips only jump to a surah's opening page. */
 export async function ReviewTab({
-  userId, surahParam, heatParam,
+  userId, pageParam, heatParam,
 }: {
   userId: string;
-  surahParam?: string;
+  pageParam?: string;
   heatParam?: string;
 }) {
   const pair = await myActivePair(userId);
-  const heatSurah = heatParam ? Number(heatParam) : undefined;
+  const heat = heatParam ? Number(heatParam) : undefined;
 
   if (!pair) {
     return (
@@ -30,56 +37,69 @@ export async function ReviewTab({
         </p>
         <section className="space-y-2">
           <h2 className="text-lg">Your feedback</h2>
-          <ReviewFeedback studentId={userId} heatSurah={heatSurah} basePath="/hifz?tab=review" />
+          <ReviewFeedback studentId={userId} heat={heat} basePath="/hifz?tab=review" />
         </section>
       </div>
     );
   }
 
-  const [range, draft] = await Promise.all([
+  const [range, draft, startPages, surahs] = await Promise.all([
     partnerRange(pair.partnerId),
     myDraftSession(userId, pair.partnerId),
+    getCachedSurahStartPages(),
+    getCachedSurahs(),
   ]);
+  const surahNames: SurahNames = Object.fromEntries(
+    surahs.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]),
+  );
+  const firstPage = Math.min(...Object.values(startPages));
 
   let logging: React.ReactNode;
-  if (draft) {
-    const requested = Number(surahParam);
-    const surah =
-      (range.some((s) => s.number === requested) ? requested : null) ??
-      (range.find((s) => s.current) ?? range[0])?.number;
-    if (!surah) {
-      logging = (
-        <p className="text-sm text-muted-foreground">
-          {pair.partnerName} has no memorisation target yet — ask your teacher.
-        </p>
-      );
-    } else {
-      const [rows, mistakes] = await Promise.all([
-        getCachedSurahWords(surah),
-        draftMistakes(draft.id),
-      ]);
-      logging = (
-        <div className="space-y-3">
-          <div className="flex flex-wrap gap-1.5">
-            {range.map((s) => (
-              <Link key={s.number} href={`/hifz?tab=review&surah=${s.number}`}
-                className={cn(
-                  "rounded-md border border-line px-2 py-1 text-xs transition-colors",
-                  s.number === surah ? "bg-primary text-primary-foreground" : "hover:bg-muted",
-                )}>
-                {s.name_en}{s.current ? " · current" : ""}
-              </Link>
-            ))}
-          </div>
-          <ReviewLogger
-            sessionId={draft.id}
-            reciterName={pair.partnerName}
-            pages={groupIntoPages(rows.map(fromRow))}
-            initialMistakes={mistakes.filter((m) => m.surah_number === surah)}
-          />
+  if (draft && range.length > 0) {
+    const current = range.find((s) => s.current) ?? range[0];
+    const requested = Number(pageParam);
+    const fallback = startPages[current.number] ?? firstPage;
+    const page = Number.isInteger(requested)
+      ? Math.min(Math.max(requested, firstPage), LAST_PAGE)
+      : fallback;
+
+    const [rows, mistakes] = await Promise.all([
+      getCachedPageWords(page),
+      draftMistakes(draft.id),
+    ]);
+    const onPage = new Set(rows.map((r) => r.surah_number));
+    const heatQuery = heatParam ? `&heat=${heatParam}` : "";
+
+    logging = (
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-1.5">
+          {range.map((s) => (
+            <Link key={s.number}
+              href={`/hifz?tab=review${heatQuery}&page=${startPages[s.number] ?? firstPage}`}
+              className={cn(
+                "rounded-md border border-line px-2 py-1 text-xs transition-colors",
+                onPage.has(s.number) ? "bg-primary text-primary-foreground" : "hover:bg-muted",
+              )}>
+              {s.name_en}{s.current ? " · current" : ""}
+            </Link>
+          ))}
         </div>
-      );
-    }
+        <ReviewLogger
+          sessionId={draft.id}
+          reciterName={pair.partnerName}
+          pages={groupIntoPages(rows.map(fromRow))}
+          initialMistakes={mistakes}
+          surahNames={surahNames}
+          pager={{ page, min: firstPage, max: LAST_PAGE, basePath: `/hifz?tab=review${heatQuery}` }}
+        />
+      </div>
+    );
+  } else if (draft) {
+    logging = (
+      <p className="text-sm text-muted-foreground">
+        {pair.partnerName} has no memorisation target yet — ask your teacher.
+      </p>
+    );
   } else {
     logging = (
       <div className="space-y-2">
@@ -97,6 +117,7 @@ export async function ReviewTab({
     );
   }
 
+  const pageQuery = pageParam ? `&page=${pageParam}` : "";
   return (
     <div className="space-y-5">
       <section className="glass rounded-2xl p-4 space-y-3">
@@ -107,7 +128,7 @@ export async function ReviewTab({
       </section>
       <section className="space-y-2">
         <h2 className="text-lg">Your feedback</h2>
-        <ReviewFeedback studentId={userId} heatSurah={heatSurah} basePath="/hifz?tab=review" />
+        <ReviewFeedback studentId={userId} heat={heat} basePath={`/hifz?tab=review${pageQuery}`} />
       </section>
     </div>
   );

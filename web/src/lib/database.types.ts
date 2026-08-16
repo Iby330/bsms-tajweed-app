@@ -717,6 +717,7 @@ export type Database = {
       quran_words: {
         Row: {
           ayah_number: number
+          code_v1: string | null
           is_end: boolean
           line_number: number
           page_number: number
@@ -726,6 +727,7 @@ export type Database = {
         }
         Insert: {
           ayah_number: number
+          code_v1?: string | null
           is_end?: boolean
           line_number: number
           page_number: number
@@ -735,6 +737,7 @@ export type Database = {
         }
         Update: {
           ayah_number?: number
+          code_v1?: string | null
           is_end?: boolean
           line_number?: number
           page_number?: number

@@ -4,6 +4,7 @@ export type QuranWord = {
   ayah: number;
   position: number; // 1-based within the ayah
   text: string;
+  glyph: string | null; // QCF v1 page-font character — the printed word itself
   isEnd: boolean;   // ayah-end marker (the numeral)
   page: number;
   line: number;
@@ -14,6 +15,7 @@ export type QuranWordRow = {
   ayah_number: number;
   word_position: number;
   text_uthmani: string;
+  code_v1: string | null;
   is_end: boolean;
   page_number: number;
   line_number: number;
@@ -27,7 +29,8 @@ export const wordKey = (w: Pick<QuranWord, "surah" | "ayah" | "position">): stri
 
 export const fromRow = (r: QuranWordRow): QuranWord => ({
   surah: r.surah_number, ayah: r.ayah_number, position: r.word_position,
-  text: r.text_uthmani, isEnd: r.is_end, page: r.page_number, line: r.line_number,
+  text: r.text_uthmani, glyph: r.code_v1, isEnd: r.is_end,
+  page: r.page_number, line: r.line_number,
 });
 
 /** DB order (ayah asc, position asc) IS mushaf reading order within a surah;

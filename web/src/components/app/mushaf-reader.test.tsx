@@ -5,7 +5,7 @@ import { MushafReader } from "./mushaf-reader";
 import { groupIntoPages, type QuranWord } from "@/lib/quran/mushaf";
 
 const w = (over: Partial<QuranWord>): QuranWord => ({
-  surah: 114, ayah: 1, position: 1, text: "قُلْ", isEnd: false, page: 604, line: 12, ...over,
+  surah: 114, ayah: 1, position: 1, text: "قُلْ", glyph: null, isEnd: false, page: 604, line: 12, ...over,
 });
 // 5 tokens on one line (so it renders justified) + one word on the next
 const line = [

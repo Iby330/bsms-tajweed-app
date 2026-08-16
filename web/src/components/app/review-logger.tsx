@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MushafReader } from "./mushaf-reader";
+import { MushafReader, type SurahNames } from "./mushaf-reader";
+import { MushafPager } from "./mushaf-pager";
 import { MistakeSheet, type SheetResult } from "./mistake-sheet";
 import { logMistake, removeMistake, submitSession } from "@/lib/hifz/review-actions";
 import { SESSION_FLAGS, type Category } from "@/lib/hifz/mistake-taxonomy";
@@ -24,11 +25,15 @@ export function ReviewLogger({
   reciterName,
   pages,
   initialMistakes,
+  surahNames,
+  pager,
 }: {
   sessionId: string;
   reciterName: string;
   pages: MushafPage[];
-  initialMistakes: MistakeRow[];
+  initialMistakes: MistakeRow[];   // the whole session — marks span pages
+  surahNames?: SurahNames;
+  pager?: { page: number; min: number; max: number; basePath: string };
 }) {
   const router = useRouter();
   const [marks, setMarks] = useState<Record<string, Mark>>(() =>
@@ -103,7 +108,13 @@ export function ReviewLogger({
         <Button size="sm" disabled={pending} onClick={() => setWrapUp(true)}>Finish</Button>
       </div>
 
-      <MushafReader pages={pages} marks={marks} onWordTap={setTapped} />
+      {pager ? (
+        <MushafPager {...pager}>
+          <MushafReader pages={pages} marks={marks} surahNames={surahNames} onWordTap={setTapped} />
+        </MushafPager>
+      ) : (
+        <MushafReader pages={pages} marks={marks} surahNames={surahNames} onWordTap={setTapped} />
+      )}
 
       <MistakeSheet
         key={tapped ? wordKey(tapped) : "closed"}

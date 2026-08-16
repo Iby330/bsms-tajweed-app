@@ -13,7 +13,7 @@ vi.mock("@/lib/hifz/review-actions", () => ({
 import { logMistake, submitSession } from "@/lib/hifz/review-actions";
 
 const w = (over: Partial<QuranWord>): QuranWord => ({
-  surah: 114, ayah: 1, position: 1, text: "قُلْ", isEnd: false, page: 604, line: 12, ...over,
+  surah: 114, ayah: 1, position: 1, text: "قُلْ", glyph: null, isEnd: false, page: 604, line: 12, ...over,
 });
 const pages = groupIntoPages([w({}), w({ position: 2, text: "أَعُوذُ" })]);
 

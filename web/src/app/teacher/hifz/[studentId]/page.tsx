@@ -55,7 +55,7 @@ export default async function StudentHifzDetail({
       {review ? (
         <ReviewFeedback
           studentId={studentId}
-          heatSurah={heat ? Number(heat) : undefined}
+          heat={heat ? Number(heat) : undefined}
           basePath={`/teacher/hifz/${studentId}?tab=review`}
         />
       ) : (
