@@ -19,6 +19,22 @@
 const SITE = "https://bsms-tajweed.netlify.app";
 const LOGO = `${SITE}/brand/logo.png`;
 
+/**
+ * How long the link in this email actually lasts.
+ *
+ * This is NOT set here — it mirrors "Email OTP Expiration" under
+ * Authentication → Sign In / Providers → Email in the Supabase dashboard,
+ * which is the only thing that decides when a token dies. The number lives in
+ * one place so the promise in the email cannot quietly drift from the truth:
+ * a message claiming 24 hours while tokens expire in one is worse than saying
+ * nothing, because the teacher stops trusting the link rather than retrying.
+ *
+ * Supabase caps this at 86400 seconds. If that setting is ever lowered, lower
+ * this to match on the same day.
+ */
+const LINK_VALID_HOURS = 24;
+const validFor = LINK_VALID_HOURS === 1 ? "about an hour" : `${LINK_VALID_HOURS} hours`;
+
 export type Invite = {
   firstName: string;
   className: string;
@@ -49,7 +65,7 @@ export function inviteText(i: Invite): string {
     `Set your password and finish setting up here:`,
     i.link,
     ``,
-    `This link works once and expires in about an hour. If it has run out by`,
+    `This link works once and expires after ${validFor}. If it has run out by`,
     `the time you open it, go to ${SITE}/forgot-password`,
     `and enter this address — that sends you a fresh one.`,
     ``,
@@ -180,7 +196,7 @@ export function inviteHtml(i: Invite): string {
               <tr>
                 <td style="padding-top:18px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
                   <p style="margin:0 0 12px 0;font-size:13px;line-height:1.6;color:#5c5949;">
-                    <strong style="color:#14140f;">The link works once and runs out after about an hour.</strong>
+                    <strong style="color:#14140f;">The link works once and runs out after ${validFor}.</strong>
                     If it has expired by the time you open this, go to
                     <a href="${SITE}/forgot-password" style="color:#6e6010;text-decoration:underline;">${SITE.replace("https://", "")}/forgot-password</a>
                     and enter this address &mdash; that sends a fresh one straight away.

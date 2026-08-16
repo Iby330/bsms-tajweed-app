@@ -57,7 +57,11 @@ export function ForgotPasswordForm({ linkExpired }: { linkExpired?: boolean }) {
           link to set a new password is on its way.
         </p>
         <p className="text-muted-foreground">
-          The link lasts an hour and can be opened on any device. Check the spam
+          {/* Mirrors "Email OTP Expiration" in the Supabase dashboard, which is
+              what actually decides this. If that setting changes, change this
+              sentence the same day — a promise the tokens don't keep teaches
+              people to distrust the link rather than retry it. */}
+          The link lasts 24 hours and can be opened on any device. Check the spam
           folder if it hasn&apos;t arrived in a minute or two.
         </p>
         <Link
