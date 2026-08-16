@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { PASSWORD_RESET_READY } from "@/lib/flags";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,13 +60,25 @@ export function LoginForm({ next }: { next?: string }) {
           id="email"
           type="email"
           autoComplete="email"
+          // Red squiggles under an address help nobody.
+          spellCheck={false}
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="password">Password</Label>
+        <div className="flex items-baseline justify-between gap-3">
+          <Label htmlFor="password">Password</Label>
+          {PASSWORD_RESET_READY && (
+            <Link
+              href="/forgot-password"
+              className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          )}
+        </div>
         <Input
           id="password"
           type="password"
@@ -94,6 +108,15 @@ export function LoginForm({ next }: { next?: string }) {
       ) : (
         <p className="text-center text-xs text-muted-foreground">
           Access is by invitation — speak to your teacher if you need one.
+        </p>
+      )}
+      {/* With the reset link hidden, someone who has forgotten their password
+          is otherwise left with no way forward at all — and a returning
+          visitor never sees the invitation line above, because it is replaced
+          by "Not you?". This says what to do either way. */}
+      {!PASSWORD_RESET_READY && (
+        <p className="text-center text-xs text-muted-foreground">
+          Forgotten your password? Ask your teacher to reset it.
         </p>
       )}
     </form>

@@ -27,8 +27,23 @@ import { NextResponse, type NextRequest } from "next/server";
  *     layout forwards teachers on to /teacher/home.
  */
 
-/** Reachable signed out. Everything else requires a session. */
-const PUBLIC_PATHS = ["/", "/login", "/locked"];
+/**
+ * Reachable signed out. Everything else requires a session.
+ *
+ * The password-reset paths have to be here, and /auth/confirm especially:
+ * that is where the link in the email lands, carrying the token that creates
+ * the session. Gate it and it would bounce every reset to /login *before*
+ * redeeming the token — the flow could never complete.
+ */
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/locked",
+  "/forgot-password",
+  "/reset-password",
+  "/welcome",
+  "/auth/confirm",
+];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -89,7 +104,12 @@ export const config = {
      * Everything except Next internals and static assets. Without this the
      * proxy would run on every CSS, font and image request — an auth round
      * trip per asset.
+     *
+     * `webmanifest` earns its place: the browser fetches the manifest while
+     * signed out, and without the exemption the proxy answers that fetch with
+     * a redirect to /login. The browser then parses an HTML page as JSON,
+     * fails, and drops the install prompt — with nothing on screen to say so.
      */
-    "/((?!_next/static|_next/image|favicon.ico|icon.png|brand/|fonts/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|brand/|fonts/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf|webmanifest)$).*)",
   ],
 };
