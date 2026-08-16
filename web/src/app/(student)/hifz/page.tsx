@@ -22,9 +22,9 @@ function EmptyState({ message }: { message: string }) {
 export default async function StudentHifz({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; surah?: string; heat?: string }>;
+  searchParams: Promise<{ tab?: string; page?: string; heat?: string }>;
 }) {
-  const { tab, surah, heat } = await searchParams;
+  const { tab, page, heat } = await searchParams;
   const profile = (await currentProfile())!;
 
   // The Review tab must stay reachable even before a target is set — a
@@ -37,7 +37,7 @@ export default async function StudentHifz({
           <p>Peer revision with your partner.</p>
         </header>
         <HifzTabs basePath="/hifz" active="review" />
-        <ReviewTab userId={profile.id} surahParam={surah} heatParam={heat} />
+        <ReviewTab userId={profile.id} pageParam={page} heatParam={heat} />
       </>
     );
   }

@@ -4,27 +4,36 @@ import {
   aggregateFlags, aggregatePatterns, heatClass, wordHeat,
 } from "@/lib/hifz/mistakes";
 import { detailLabel } from "@/lib/hifz/mistake-taxonomy";
-import { getCachedSurahs, getCachedSurahWords } from "@/lib/reference/cached";
+import {
+  getCachedPageWords, getCachedSurahs, getCachedSurahStartPages,
+} from "@/lib/reference/cached";
 import { fromRow, groupIntoPages, wordKey } from "@/lib/quran/mushaf";
 import { PatternTracker } from "./pattern-tracker";
 import { HeatViewer, type WordHistoryEntry } from "./heat-viewer";
+import { MushafPager } from "./mushaf-pager";
+import type { SurahNames } from "./mushaf-reader";
 import { cn } from "@/lib/utils";
 
+const LAST_PAGE = 604;
+
 /**
- * Submitted-review results for one student: pattern tracker, per-surah
- * heatmap, session history. RLS behind feedbackFor decides who may look.
- * basePath already carries ?tab=review — heat links append &heat=N.
+ * Submitted-review results for one student: pattern tracker, mushaf heatmap,
+ * session history. RLS behind feedbackFor decides who may look. The heatmap
+ * is the same page-turning mushaf as the logger; surah chips jump to a
+ * surah's opening page and the `heat` query param owns the shown page.
+ * basePath already carries ?tab=review (and the logger's page, if any).
  */
 export async function ReviewFeedback({
-  studentId, heatSurah, basePath,
+  studentId, heat, basePath,
 }: {
   studentId: string;
-  heatSurah?: number;
+  heat?: number;      // raw param — a surah number or a mushaf page
   basePath: string;
 }) {
-  const [{ sessions, mistakes }, surahs] = await Promise.all([
+  const [{ sessions, mistakes }, surahs, startPages] = await Promise.all([
     feedbackFor(studentId),
     getCachedSurahs(),
+    getCachedSurahStartPages(),
   ]);
   if (!sessions.length) {
     return (
@@ -37,23 +46,34 @@ export async function ReviewFeedback({
   const now = new Date();
   const patterns = aggregatePatterns(mistakes, now);
   const flags = aggregateFlags(sessions);
+  const surahNames: SurahNames = Object.fromEntries(
+    surahs.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]),
+  );
+  const firstPage = Math.min(...Object.values(startPages));
 
   const counts = new Map<number, number>();
   for (const m of mistakes) counts.set(m.surah_number, (counts.get(m.surah_number) ?? 0) + 1);
   const heatSurahs = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([n]) => n);
-  const active = heatSurah && counts.has(heatSurah) ? heatSurah : heatSurahs[0];
   const nameOf = new Map(surahs.map((s) => [s.number, s.name_en]));
 
   let heatBlock: React.ReactNode = null;
-  if (active) {
-    const rows = await getCachedSurahWords(active);
+  if (heatSurahs.length) {
+    // `heat` may name a surah (jump to its opening page) or a page itself.
+    const page =
+      heat && startPages[heat] !== undefined
+        ? startPages[heat]
+        : heat && Number.isInteger(heat) && heat >= firstPage && heat <= LAST_PAGE
+          ? heat
+          : startPages[heatSurahs[0]] ?? firstPage;
+
+    const rows = await getCachedPageWords(page);
     const pages = groupIntoPages(rows.map(fromRow));
-    const inSurah = mistakes.filter((m) => m.surah_number === active);
-    const heat = Object.fromEntries(
-      Object.entries(wordHeat(inSurah, now)).map(([k, v]) => [k, heatClass(v)]),
+    const onPage = new Set(rows.map((r) => r.surah_number));
+    const heatValues = Object.fromEntries(
+      Object.entries(wordHeat(mistakes, now)).map(([k, v]) => [k, heatClass(v)]),
     );
     const history: Record<string, WordHistoryEntry[]> = {};
-    for (const m of [...inSurah].sort((a, b) => b.created_at.localeCompare(a.created_at))) {
+    for (const m of [...mistakes].sort((a, b) => b.created_at.localeCompare(a.created_at))) {
       const k = wordKey({ surah: m.surah_number, ayah: m.ayah_number, position: m.word_position });
       (history[k] ??= []).push({
         label: detailLabel(m.category, m.detail), note: m.note, date: m.created_at,
@@ -64,16 +84,18 @@ export async function ReviewFeedback({
         <h3 className="text-sm font-medium">Mistake heatmap</h3>
         <div className="flex flex-wrap gap-1.5">
           {heatSurahs.map((n) => (
-            <Link key={n} href={`${basePath}&heat=${n}`}
+            <Link key={n} href={`${basePath}&heat=${startPages[n] ?? firstPage}`}
               className={cn(
                 "rounded-md border border-line px-2 py-1 text-xs transition-colors",
-                n === active ? "bg-primary text-primary-foreground" : "hover:bg-muted",
+                onPage.has(n) ? "bg-primary text-primary-foreground" : "hover:bg-muted",
               )}>
               {nameOf.get(n) ?? n} · {counts.get(n)}
             </Link>
           ))}
         </div>
-        <HeatViewer pages={pages} heat={heat} history={history} />
+        <MushafPager page={page} min={firstPage} max={LAST_PAGE} basePath={basePath} param="heat">
+          <HeatViewer pages={pages} heat={heatValues} history={history} surahNames={surahNames} />
+        </MushafPager>
       </div>
     );
   }

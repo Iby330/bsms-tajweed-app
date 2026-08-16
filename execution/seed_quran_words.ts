@@ -28,25 +28,32 @@ const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_
   auth: { persistSession: false },
 });
 
-const API = "https://api.quran.com/api/v4/verses/by_chapter";
+const API = "https://api.quran.com/api/v4/verses/by_page";
+const FIRST_PAGE = 562; // Al-Mulk opens juz 29
+const LAST_PAGE = 604;
 
 type ApiWord = {
   position: number;
   char_type_name: string; // "word" | "end"
   text_uthmani: string;
-  page_number: number;
+  code_v1: string; // glyph in the page's QCF v1 font (1405 Madani mushaf)
   line_number: number;
 };
-type ApiVerse = { verse_number: number; words: ApiWord[] };
+type ApiVerse = { verse_key: string; words: ApiWord[] };
 
-async function fetchChapter(n: number): Promise<ApiVerse[]> {
+/** By PAGE, not by chapter: a verse that straddles a page boundary carries
+ *  its verse-level page on every word in the by_chapter feed, which files
+ *  the spill-over words under the wrong page (seen: 79:16 stamped p583,
+ *  printed on p584 line 1). The by_page feed is the page's actual
+ *  composition — the same source quran.com's own mushaf mode renders. */
+async function fetchPage(p: number): Promise<ApiVerse[]> {
   const verses: ApiVerse[] = [];
   for (let page = 1; ; page++) {
     const url =
-      `${API}/${n}?words=true&word_fields=text_uthmani,page_number,line_number,char_type_name` +
+      `${API}/${p}?words=true&word_fields=text_uthmani,code_v1,line_number,char_type_name` +
       `&per_page=50&page=${page}`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`chapter ${n} page ${page}: HTTP ${res.status}`);
+    if (!res.ok) throw new Error(`mushaf page ${p} (request page ${page}): HTTP ${res.status}`);
     const json = (await res.json()) as {
       verses: ApiVerse[];
       pagination: { next_page: number | null };
@@ -59,32 +66,57 @@ async function fetchChapter(n: number): Promise<ApiVerse[]> {
 
 async function main() {
   const rows: Record<string, unknown>[] = [];
-  for (let n = 67; n <= 114; n++) {
-    const verses = await fetchChapter(n);
+  for (let p = FIRST_PAGE; p <= LAST_PAGE; p++) {
+    const verses = await fetchPage(p);
     for (const v of verses) {
+      const [surah, ayah] = v.verse_key.split(":").map(Number);
+      if (!surah || !ayah) throw new Error(`page ${p}: bad verse_key ${v.verse_key}`);
       for (const w of v.words) {
-        if (!w.text_uthmani || !w.page_number || !w.line_number)
-          throw new Error(
-            `chapter ${n} ayah ${v.verse_number}: incomplete word ${JSON.stringify(w)}`,
-          );
+        if (!w.text_uthmani || !w.line_number)
+          throw new Error(`page ${p} verse ${v.verse_key}: incomplete word ${JSON.stringify(w)}`);
         rows.push({
-          surah_number: n,
-          ayah_number: v.verse_number,
+          surah_number: surah,
+          ayah_number: ayah,
           word_position: w.position,
           text_uthmani: w.text_uthmani,
+          code_v1: w.code_v1 ?? null,
           is_end: w.char_type_name === "end",
-          page_number: w.page_number,
+          page_number: p,
           line_number: w.line_number,
         });
       }
     }
-    console.log(`chapter ${n}: ${verses.length} ayahs`);
+    console.log(`page ${p}: ${verses.length} verses`);
   }
   for (let i = 0; i < rows.length; i += 1000) {
     const { error } = await db.from("quran_words").upsert(rows.slice(i, i + 1000));
     if (error) throw new Error(`upsert batch at ${i}: ${error.message}`);
   }
   console.log(`seeded ${rows.length} words across chapters 67–114`);
+
+  await fetchPageFonts(rows);
+}
+
+/** The QCF v1 per-page fonts (nuqayah/qpc-fonts mirror) for every page the
+ *  seed touched, into web/public/fonts/qcf/. Skips files already present. */
+const FONT_BASE = "https://raw.githubusercontent.com/nuqayah/qpc-fonts/master/mushaf-woff2";
+
+async function fetchPageFonts(rows: Record<string, unknown>[]) {
+  const { mkdirSync, existsSync, writeFileSync } = await import("node:fs");
+  const dir = join(repoRoot, "web/public/fonts/qcf");
+  mkdirSync(dir, { recursive: true });
+  const pages = [...new Set(rows.map((r) => r.page_number as number))].sort((a, b) => a - b);
+  let fetched = 0;
+  for (const p of pages) {
+    const name = `QCF_P${String(p).padStart(3, "0")}.woff2`;
+    const dest = join(dir, name);
+    if (existsSync(dest)) continue;
+    const res = await fetch(`${FONT_BASE}/${name}`);
+    if (!res.ok) throw new Error(`${name}: HTTP ${res.status}`);
+    writeFileSync(dest, Buffer.from(await res.arrayBuffer()));
+    fetched++;
+  }
+  console.log(`page fonts: ${pages.length} needed (${pages[0]}–${pages[pages.length - 1]}), ${fetched} downloaded`);
 }
 
 main().catch((e) => {

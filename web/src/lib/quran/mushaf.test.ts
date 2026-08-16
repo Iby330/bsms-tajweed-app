@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { fromRow, groupIntoPages, wordKey, type QuranWord } from "./mushaf";
 
 const w = (over: Partial<QuranWord>): QuranWord => ({
-  surah: 114, ayah: 1, position: 1, text: "قُلْ", isEnd: false, page: 604, line: 12, ...over,
+  surah: 114, ayah: 1, position: 1, text: "قُلْ", glyph: null, isEnd: false, page: 604, line: 12, ...over,
 });
 
 describe("wordKey", () => {
@@ -15,8 +15,8 @@ describe("fromRow", () => {
   it("maps DB column names to the word shape", () => {
     expect(fromRow({
       surah_number: 114, ayah_number: 1, word_position: 5,
-      text_uthmani: "١", is_end: true, page_number: 604, line_number: 12,
-    })).toEqual({ surah: 114, ayah: 1, position: 5, text: "١", isEnd: true, page: 604, line: 12 });
+      text_uthmani: "١", code_v1: "ﭓ", is_end: true, page_number: 604, line_number: 12,
+    })).toEqual({ surah: 114, ayah: 1, position: 5, text: "١", glyph: "ﭓ", isEnd: true, page: 604, line: 12 });
   });
 });
 

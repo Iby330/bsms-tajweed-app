@@ -5,7 +5,7 @@ import { MushafReader } from "./mushaf-reader";
 import { groupIntoPages, type QuranWord } from "@/lib/quran/mushaf";
 
 const w = (over: Partial<QuranWord>): QuranWord => ({
-  surah: 114, ayah: 1, position: 1, text: "قُلْ", isEnd: false, page: 604, line: 12, ...over,
+  surah: 114, ayah: 1, position: 1, text: "قُلْ", glyph: null, isEnd: false, page: 604, line: 12, ...over,
 });
 // 5 tokens on one line (so it renders justified) + one word on the next
 const line = [
@@ -17,9 +17,10 @@ const line = [
 describe("MushafReader", () => {
   it("renders pages, lines and words in order", () => {
     const { container } = render(<MushafReader pages={groupIntoPages(line)} />);
-    expect(container.textContent).toContain("page 604");
+    expect(container.textContent).toContain("604");
     expect(container.textContent).toContain("قُلْ");
-    expect(container.querySelectorAll("[dir='rtl']")).toHaveLength(2); // two lines
+    // two printed lines + the basmala (the fixture starts at ayah 1, word 1)
+    expect(container.querySelectorAll("[dir='rtl']")).toHaveLength(3);
   });
   it("end markers are not tappable; words are when onWordTap given", () => {
     const onTap = vi.fn();
