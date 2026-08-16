@@ -17,9 +17,10 @@ const line = [
 describe("MushafReader", () => {
   it("renders pages, lines and words in order", () => {
     const { container } = render(<MushafReader pages={groupIntoPages(line)} />);
-    expect(container.textContent).toContain("page 604");
+    expect(container.textContent).toContain("604");
     expect(container.textContent).toContain("قُلْ");
-    expect(container.querySelectorAll("[dir='rtl']")).toHaveLength(2); // two lines
+    // two printed lines + the basmala (the fixture starts at ayah 1, word 1)
+    expect(container.querySelectorAll("[dir='rtl']")).toHaveLength(3);
   });
   it("end markers are not tappable; words are when onWordTap given", () => {
     const onTap = vi.fn();

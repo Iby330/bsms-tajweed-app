@@ -208,6 +208,28 @@ body::after {
   unicode-bidi: isolate;
 }
 
+/* The mushaf itself — KFGQPC Uthmanic Hafs, the King Fahd Complex face the
+   printed Madani page is set in. Only the review reader uses it; everything
+   else stays on Amiri Quran (--font-quran). */
+@font-face {
+  font-family: "Uthmanic Hafs";
+  src: url("/fonts/uthmanic_hafs_v22.ttf") format("truetype");
+  font-display: swap;
+}
+.ar-mushaf {
+  font-family: "Uthmanic Hafs", var(--font-quran);
+  font-size: 1.7rem;
+  line-height: 2.15;
+  unicode-bidi: isolate;
+  text-align: justify;
+  text-align-last: justify;
+  word-spacing: 0.06em;
+}
+.ar-mushaf.centered {
+  text-align: center;
+  text-align-last: center;
+}
+
 /* ─────────────────────────────────────────────────────────────────────
    Liquid glass — panels, ambient glows, entrance motion.
    Every value is a token so light and dark stay one design, lit twice.
