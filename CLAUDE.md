@@ -172,6 +172,40 @@ suspecting the code.
 Conversely, treat a push to `main` as a release: it goes straight to real
 users with no gate. Run the build and tests before merging, not after.
 
+### You are never the only one working here
+
+Several Claude Code sessions run against this repo at once, and a second
+developer (`Yz80`) pushes to it too. Assume the working tree contains work
+that is not yours and that `main` may move mid-session.
+
+**Commit only what you touched.** When asked to "push to main", stage the
+specific files this session changed — never `git add -A`, `git add .`, or
+`git commit -a`. Anything you did not touch stays uncommitted for whoever
+owns it. This holds unless the user explicitly says otherwise.
+
+```sh
+git add <the exact paths you edited>     # not -A, not .
+git status --short                       # confirm nothing else got swept in
+```
+
+**Give a heads-up before pushing, then push.** Report in a line or two what
+else is in flight — other branches and who is on them, foreign edits sitting
+in the working tree, whether `main` moved since the session started. It is a
+courtesy note so the user knows what else is live, *not* a request for
+permission and not a blocker. Push anyway.
+
+```sh
+git fetch --all --prune
+git rev-list --left-right --count main...origin/main   # 0 0 = safe to push
+git for-each-ref --sort=-committerdate \
+  --format='%(committerdate:relative)|%(refname:short)|%(authorname)|%(subject)' \
+  refs/remotes | head
+```
+
+If `main` has moved ahead, rebase onto it and re-run the build before pushing
+— a release that silently reverts someone else's work is the failure mode this
+whole section exists to prevent.
+
 ### Build configuration
 Set on the Netlify site, not in the repo root — the app lives in `web/`:
 
