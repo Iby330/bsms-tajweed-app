@@ -182,6 +182,56 @@ export default async function StudentHome() {
       )}
 
       <div className="divider">
+        <span className="label">This week</span>
+        <span className="r" />
+        <span className="m" />
+      </div>
+
+      <div className="field">
+        {lessons.length ? (
+          lessons.map((l, i) => {
+            // No standalone homework cards: the homework is reached from the
+            // lesson, since watching is the first step to handing in.
+            const hw = hws.find((h) => h.series === l.series);
+            const status = hw ? statusByHw.get(hw.id) : undefined;
+            const isIn =
+              status === "submitted" || status === "auto_marked" || status === "approved";
+            // Two to a row. An odd one out spans the full twelve rather than
+            // leaving half a row of bare border colour beside it.
+            const odd = lessons.length % 2 === 1 && i === lessons.length - 1;
+            return (
+              <Link
+                key={l.id}
+                href={`/lessons/${l.id}`}
+                className={cn("box lesson", odd ? "c12" : "c6")}
+              >
+                <span className="label">{SERIES_LABELS[l.series] ?? l.series}</span>
+                <MixedText text={moduleTitle(l.title) || l.title} className="t" />
+                <span className="foot">
+                  <span className={cn("s", watched.has(l.id) && "on")}>
+                    {watched.has(l.id)
+                      ? "Watched"
+                      : l.youtube_id
+                        ? "Not watched yet"
+                        : "Video coming soon"}
+                  </span>
+                  {hw?.due_at && !isIn ? (
+                    <CountdownChip dueAt={hw.due_at} />
+                  ) : hw && isIn ? (
+                    <span className="chip ok">Homework in ✓</span>
+                  ) : null}
+                </span>
+              </Link>
+            );
+          })
+        ) : (
+          <section className="box c12">
+            <div className="note">No lessons released yet.</div>
+          </section>
+        )}
+      </div>
+
+      <div className="divider">
         <span className="label">Where you stand</span>
         <span className="r" />
         <span className="m" />
@@ -291,48 +341,6 @@ export default async function StudentHome() {
         </section>
 
         <StrikeDots strikes={strikes} />
-      </div>
-
-      <div className="divider">
-        <span className="label">This week</span>
-        <span className="r" />
-        <span className="m" />
-      </div>
-
-      <div className="field">
-        <section className="box c12" style={{ gap: 0 }}>
-          {lessons.length ? (
-            <ul className="rowlist">
-              {lessons.map((l) => {
-                // No standalone homework rows: the homework is reached from
-                // the lesson, since watching is the first step to handing in.
-                const hw = hws.find((h) => h.series === l.series);
-                const status = hw ? statusByHw.get(hw.id) : undefined;
-                const isIn =
-                  status === "submitted" || status === "auto_marked" || status === "approved";
-                return (
-                  <li key={l.id}>
-                    <Link href={`/lessons/${l.id}`} className="tw">
-                      <MixedText text={moduleTitle(l.title) || l.title} className="t" />
-                      <span className="s">
-                        {SERIES_LABELS[l.series] ?? l.series}
-                        {watched.has(l.id) ? " · watched" : ""}
-                        {!l.youtube_id ? " · video coming soon" : ""}
-                      </span>
-                    </Link>
-                    {hw?.due_at && !isIn ? (
-                      <CountdownChip dueAt={hw.due_at} />
-                    ) : hw && isIn ? (
-                      <span className="chip ok">Homework in ✓</span>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <div className="note">No lessons released yet.</div>
-          )}
-        </section>
       </div>
 
       <div className="divider">
