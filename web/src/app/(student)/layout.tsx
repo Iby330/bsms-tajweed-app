@@ -4,6 +4,7 @@ import { ClassBackdrop } from "@/components/app/class-backdrop";
 import { HoverTip } from "@/components/app/hover-tip";
 import { studentNav, studentMobileNav } from "@/lib/nav";
 import { currentProfile } from "@/lib/supabase/server";
+import { signedAvatarUrl } from "@/lib/account/avatar";
 
 export default async function StudentLayout({
   children,
@@ -19,6 +20,7 @@ export default async function StudentLayout({
       nav={studentNav}
       mobileNav={studentMobileNav}
       userName={profile.full_name}
+      avatarSrc={await signedAvatarUrl(profile.avatar_url)}
       roleLabel="Student"
       backdrop={<ClassBackdrop className={profile.classes?.name ?? null} />}
     >

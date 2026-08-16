@@ -611,6 +611,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           class_id: string | null
           created_at: string | null
           full_name: string
@@ -620,6 +621,7 @@ export type Database = {
           section: Database["public"]["Enums"]["section_t"]
         }
         Insert: {
+          avatar_url?: string | null
           class_id?: string | null
           created_at?: string | null
           full_name: string
@@ -629,6 +631,7 @@ export type Database = {
           section: Database["public"]["Enums"]["section_t"]
         }
         Update: {
+          avatar_url?: string | null
           class_id?: string | null
           created_at?: string | null
           full_name?: string

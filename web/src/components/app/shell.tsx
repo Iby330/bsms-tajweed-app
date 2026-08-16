@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import {
   Moon, Sun, Home, PlaySquare, ClipboardList, BookOpenCheck, User, Library,
   Landmark, Bell, CheckSquare, Users, GraduationCap, Settings2, CalendarDays,
-  LogOut, PanelLeftClose, type LucideIcon,
+  LogOut, PanelLeftClose, Wallet, type LucideIcon,
 } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -20,7 +20,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   home: Home, video: PlaySquare, clipboard: ClipboardList, book: BookOpenCheck,
   user: User, library: Library, landmark: Landmark, bell: Bell,
   check: CheckSquare, users: Users, graduation: GraduationCap,
-  settings: Settings2, calendar: CalendarDays,
+  settings: Settings2, calendar: CalendarDays, wallet: Wallet,
 };
 
 /**
@@ -90,6 +90,7 @@ export function AppShell({
   mobileNav,
   userName,
   roleLabel,
+  avatarSrc,
   backdrop,
   children,
 }: {
@@ -98,6 +99,8 @@ export function AppShell({
   mobileNav: NavItem[];
   userName: string;
   roleLabel: string;
+  /** signed URL for their picture, or null — initials stand in when absent */
+  avatarSrc?: string | null;
   /** the class's place, painted behind the content area */
   backdrop?: React.ReactNode;
   children: React.ReactNode;
@@ -146,6 +149,12 @@ export function AppShell({
 
   return (
     <div className="appshell" data-rail={railOff ? "off" : "on"}>
+      {/* Twelve nav links stand between the top of the page and the content.
+          Hidden until focused, so it only appears for the keyboard users it
+          is for. */}
+      <a href="#content" className="skiplink">
+        Skip to content
+      </a>
       <aside className="rail">
         <div className="head">
           <span className="mark" role="img" aria-label="BSMS Tajweed" />
@@ -167,10 +176,26 @@ export function AppShell({
         </nav>
 
         <div className="foot">
-          <span className="me">
-            <i aria-hidden>{initialsOf(userName)}</i>
-            <span title={`${userName} · ${roleLabel}`}>{userName}</span>
-          </span>
+          {/* The name was already the one personal thing in the rail, so it
+              becomes the way in to /account rather than spending a nav slot
+              on it. Rail link styling is scoped to `.rail nav a`, so this
+              anchor keeps the plain `.me` treatment. */}
+          <Link href="/account" className="me" title={`${userName} · ${roleLabel}`}>
+            {/* The picture occupies the same 30px slot as the initials, so the
+                rail does not reflow depending on whether someone uploaded one.
+                Plain <img>, not next/image: the src is a signed URL that
+                rotates every hour, which the optimiser would cache a fresh
+                copy of each time for no benefit at this size. */}
+            <i aria-hidden>
+              {avatarSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarSrc} alt="" />
+              ) : (
+                initialsOf(userName)
+              )}
+            </i>
+            <span>{userName}</span>
+          </Link>
           <span className="flex shrink-0 items-center gap-1.5">
             <ThemeToggle />
             <SignOutIcon />
@@ -183,12 +208,17 @@ export function AppShell({
         <header className="topbar">
           <span className="mark" role="img" aria-label="BSMS Tajweed" />
           <span className="flex items-center gap-1.5">
+            {/* The rail is hidden at this width, so the name-as-link route to
+                /account is gone with it — this is the mobile way in. */}
+            <Link href="/account" aria-label="Account" title="Account" className="railbtn">
+              <User className="size-[15px]" />
+            </Link>
             <ThemeToggle />
             <SignOutIcon />
           </span>
         </header>
 
-        <main className="shellview">{children}</main>
+        <main id="content" tabIndex={-1} className="shellview">{children}</main>
 
         <nav className="tabs">
           {mobileNav.map((item) => {
