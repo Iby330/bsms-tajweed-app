@@ -29,6 +29,11 @@ Examples:
 Idempotent: safe to call repeatedly. Creates the research dir tree on first write.
 """
 
+# `str | None` in a signature is evaluated at def time on Python 3.9, which is
+# what `python3` still resolves to on macOS — without this the module raises
+# TypeError on import and the journal silently stops being written.
+from __future__ import annotations
+
 import argparse
 import sys
 from datetime import datetime

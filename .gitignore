@@ -28,3 +28,15 @@ execution/node_modules
 
 # browser debug artifacts from playwright-mcp sessions
 .playwright-mcp/
+
+# vendored agent skills — the `skills` CLI writes a second copy here alongside
+# .claude/skills (which is already ignored above). 184K of third-party markdown
+# that would otherwise land in a public repo.
+.agents/
+
+# browser artifacts from playwright-cli sessions (sibling of .playwright-mcp)
+.playwright-cli/
+
+# real people's addresses and rosters — this repo is public
+execution/*.local.json
+execution/roster*.json
