@@ -176,6 +176,24 @@
     letter-spacing: -0.02em;
     font-weight: 700;
   }
+  /* Tailwind v4's preflight puts `cursor: default` on buttons. Everything
+     clickable shows the hand instead — one rule here rather than a
+     cursor-pointer class on every call-site. Disabled controls keep the
+     arrow (`:not(:disabled)`), and labels only get the hand when they
+     actually toggle a checkbox or radio. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  input[type="button"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  select:not(:disabled),
+  summary,
+  label:has(input[type="checkbox"]:not(:disabled)),
+  label:has(input[type="radio"]:not(:disabled)) {
+    cursor: pointer;
+  }
 }
 
 /* film grain — the logo's texture at whisper level */
