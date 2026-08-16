@@ -6,7 +6,7 @@
 export type IconName =
   | "home" | "video" | "clipboard" | "book" | "user"
   | "library" | "landmark" | "bell" | "check" | "users"
-  | "graduation" | "settings" | "calendar";
+  | "graduation" | "settings" | "calendar" | "wallet";
 
 export type NavItem = {
   href: string;
@@ -35,6 +35,7 @@ export const teacherNav: NavItem[] = [
   { href: "/teacher/roster", label: "Roster", icon: "users" },
   { href: "/teacher/hifz", label: "Hifdh", icon: "book" },
   { href: "/teacher/classes", label: "Classes", icon: "graduation" },
+  { href: "/teacher/deposits", label: "Deposits", icon: "wallet" },
   { href: "/teacher/curriculum", label: "Curriculum", icon: "settings" },
   { href: "/coming-soon/notifications", label: "Notifications", icon: "bell", comingSoon: true },
 ];
