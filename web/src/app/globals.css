@@ -161,6 +161,10 @@
   --sidebar-ring: #f0ebb4;
 }
 
+/* No `color-scheme` rule here on purpose: next-themes writes it as an inline
+   style on <html> (its enableColorScheme default), which outranks any
+   stylesheet. A rule here would look authoritative and do nothing. */
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -657,8 +661,11 @@ body::after {
     width: 30px; height: 30px; border-radius: 999px; flex: none; font-style: normal;
     background: color-mix(in oklab, var(--sidebar-foreground) 16%, transparent);
     color: var(--sidebar-foreground); display: grid; place-items: center;
-    font-size: 0.7rem; font-weight: 800;
+    font-size: 0.7rem; font-weight: 800; overflow: hidden;
   }
+  /* Fills the circle regardless of the crop they uploaded — a portrait photo
+     centres rather than letterboxing inside the dot. */
+  .rail .me i img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .rail .me span { font-size: 0.82rem; font-weight: 600; color: var(--sidebar-foreground);
                    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .railbtn {
@@ -888,6 +895,197 @@ body::after {
   table.marks td.r, table.marks th.r { text-align: right; font-variant-numeric: tabular-nums; }
   table.marks td.dim { color: var(--ink-3); }
   table.marks tr.now td { background: color-mix(in oklab, var(--ok) 10%, transparent); }
+}
+
+/* — the ledger: a table that reads like the spreadsheet it replaces — */
+@layer components {
+  table.ledger { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+
+  /* The header stays put while the roster scrolls, so you never lose track of
+     which column the number under your cursor belongs to. */
+  /* Row rhythm is set against the 26px panel padding these tables sit in:
+     a 20px row inside a 26px-padded box reads as cramped no matter how much
+     air the panel itself has. */
+  table.ledger thead th {
+    position: sticky; top: 0; z-index: 3;
+    background: var(--card);
+    font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-3); font-weight: 400;
+    text-align: left; padding: 6px 12px 10px; white-space: nowrap;
+    border-bottom: 1px solid var(--foreground);
+  }
+  table.ledger th.r, table.ledger td.r { text-align: right; font-variant-numeric: tabular-nums; }
+  table.ledger th.c, table.ledger td.c { text-align: center; }
+
+  /* Slightly more below than above — optically even, since the cap-height of
+     the text sits high in the line box. */
+  table.ledger td { padding: 9px 12px 10px; border-bottom: 1px solid var(--hair); }
+  table.ledger tbody tr:last-child td { border-bottom: none; }
+  table.ledger tbody tr:hover td { background: color-mix(in oklab, var(--foreground) 3%, transparent); }
+
+  table.ledger tfoot td {
+    padding-top: 14px; border-bottom: none;
+    border-top: 1px solid var(--foreground);
+  }
+
+  /* Brothers / sisters, called out as bands rather than left to be inferred
+     from the names. */
+  table.ledger tr.band th {
+    position: static; border-bottom: 1px solid var(--hair);
+    padding-top: 18px; color: var(--ok); letter-spacing: 0.16em;
+    background: transparent;
+  }
+
+  /* Names stay on one line. Wrapping them gave neighbouring rows different
+     heights, which reads as broken rather than as dense.
+     Frozen to the left edge, the way a spreadsheet holds its first column:
+     the table is wider than its container, and tabbing to a control on the
+     right used to scroll the names out of sight — leaving a screen of figures
+     with nothing to say whose they were. */
+  table.ledger td.nm,
+  table.ledger thead th:first-child {
+    white-space: nowrap;
+    position: sticky; left: 0; z-index: 2;
+    background: var(--card);
+  }
+  table.ledger thead th:first-child { z-index: 4; }
+  table.ledger tbody tr:hover td.nm {
+    background: color-mix(in oklab, var(--foreground) 3%, var(--card));
+  }
+
+  /* The sheet's N column: still listed, plainly no longer on the course. */
+  table.ledger tr.out td { color: var(--ink-3); }
+  table.ledger tr.out td.nm { text-decoration: line-through;
+                              text-decoration-color: color-mix(in oklab, var(--ink-3) 60%, transparent); }
+
+  /* A box that is empty until it is ticked, brightens under the cursor, and
+     only then shows a mark — so its state is never in doubt. */
+  .tickbox {
+    width: 18px; height: 18px; flex: none; display: grid; place-items: center;
+    border: 1px solid var(--border); border-radius: 5px; cursor: pointer;
+    background: transparent; color: transparent;
+    transition: border-color .15s, background .15s, color .15s, transform .15s;
+  }
+  .tickbox:hover { border-color: var(--ok); background: color-mix(in oklab, var(--ok) 12%, transparent);
+                   color: color-mix(in oklab, var(--ok) 45%, transparent); }
+  .tickbox[aria-pressed="true"] { border-color: var(--ok);
+                                  background: color-mix(in oklab, var(--ok) 18%, transparent);
+                                  color: var(--ok); }
+  .tickbox:disabled { opacity: .45; cursor: default; }
+
+  /* Icon buttons that grow a little and colour on hover, so they read as
+     targets rather than decoration. */
+  .iconbtn {
+    width: 22px; height: 22px; flex: none; display: grid; place-items: center;
+    border-radius: 5px; border: 1px solid transparent; background: transparent;
+    color: var(--ink-3); cursor: pointer;
+    transition: color .15s, background .15s, transform .15s, border-color .15s;
+  }
+  .iconbtn:hover { color: var(--foreground); transform: scale(1.15);
+                   background: color-mix(in oklab, var(--foreground) 8%, transparent); }
+  .iconbtn.danger:hover { color: var(--danger);
+                          background: color-mix(in oklab, var(--danger) 12%, transparent); }
+  .iconbtn:disabled { opacity: .3; cursor: default; transform: none; background: transparent; }
+  /* A press should feel like one — the button gives slightly under the cursor
+     rather than only changing colour. */
+  .iconbtn:active:not(:disabled) { transform: scale(.94); }
+  .tickbox:active:not(:disabled) { transform: scale(.92); }
+  .yn:active:not(:disabled) { transform: scale(.94); }
+
+  /* The audit trail: one change per row, columns aligned so the eye can run
+     down "who" without re-reading each line. */
+  .timeline { display: flex; flex-direction: column; }
+  .timeline li {
+    display: grid; align-items: baseline; gap: 4px 10px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 9px 0 10px; border-bottom: 1px solid var(--hair);
+    font-size: 0.88rem;
+  }
+  .timeline li:last-child { border-bottom: none; }
+  .timeline .who { font-weight: 600; }
+  .timeline .did { color: var(--ink-3); }
+  .timeline .what { color: var(--foreground); }
+  .timeline time {
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em;
+    color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+  @media (max-width: 640px) {
+    .timeline li { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  /* Brothers / sisters within the roster. Quieter than the page-level tabs
+     so the two levels stay distinguishable. */
+  .sidetab {
+    padding: 5px 12px; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--border); background: transparent;
+    font-size: 0.82rem; color: var(--ink-3);
+    transition: color .15s, background .15s, border-color .15s;
+  }
+  .sidetab:hover { color: var(--foreground); }
+  .sidetab.on {
+    background: var(--foreground); border-color: var(--foreground);
+    color: var(--background); font-weight: 600;
+  }
+  .sidetab:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+  /* Off-screen until it takes focus, then pinned top-left over everything. */
+  .skiplink {
+    position: absolute; top: 8px; left: -9999px; z-index: 100;
+    padding: 10px 16px; border-radius: 8px;
+    background: var(--foreground); color: var(--background);
+    font-size: 0.85rem; font-weight: 600;
+  }
+  .skiplink:focus { left: 8px; }
+
+  /* ---- keyboard focus -------------------------------------------------
+     These four controls carried hover and active states but nothing for
+     focus, so tabbing through the roster — around three hundred controls on
+     that one screen — gave no indication of position at all. :focus-visible
+     rather than :focus, so a mouse click doesn't leave a ring behind. */
+  .iconbtn:focus-visible,
+  .tickbox:focus-visible,
+  .yn:focus-visible,
+  .railbtn:focus-visible {
+    outline: 2px solid var(--ring, var(--foreground));
+    outline-offset: 2px;
+    border-radius: 5px;
+  }
+
+  /* The rail is near-black in both themes, so its focus ring has to be the
+     cream side of the palette to be visible at all. */
+  .railbtn:focus-visible { outline-color: var(--sidebar-foreground); }
+
+  /* Pointer affordances. This is a desktop-first tool, so these matter less
+     than the focus rings above — but they cost nothing and help on the
+     touchscreen laptops and tablets that do get used. */
+  .iconbtn, .tickbox, .yn, .railbtn,
+  table.ledger button, .timeline button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Someone who has asked for less motion should not get the scale-on-press
+     or scale-on-hover added for everyone else; colour still carries the state. */
+  @media (prefers-reduced-motion: reduce) {
+    .iconbtn, .tickbox, .yn { transition: color .15s, background .15s, border-color .15s; }
+    .iconbtn:hover, .iconbtn:active,
+    .tickbox:active, .yn:hover, .yn:active { transform: none; }
+  }
+
+  /* Y / N, the sheet's own control. */
+  .yn {
+    height: 22px; min-width: 34px; padding: 0 8px; border-radius: 5px;
+    border: 1px solid var(--border); background: transparent; cursor: pointer;
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.08em;
+    /* Named explicitly rather than `all`: `all` also animates properties you
+       never meant to, and costs the browser a check on every one of them. */
+    color: var(--ink-3);
+    transition: color .15s, background .15s, border-color .15s, transform .15s;
+  }
+  .yn[data-in="true"]  { border-color: var(--ok);
+                         background: color-mix(in oklab, var(--ok) 15%, transparent); color: var(--ok); }
+  .yn:hover { transform: scale(1.06); }
+  .yn:disabled { opacity: .45; cursor: default; transform: none; }
 }
 
 /* — hifz: the year as a mushaf index — */

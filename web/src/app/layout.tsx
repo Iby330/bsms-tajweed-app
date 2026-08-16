@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Sans_Arabic, Amiri_Quran, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
@@ -33,6 +33,18 @@ export const metadata: Metadata = {
   title: { default: "BSMS Tajweed", template: "%s · BSMS Tajweed" },
   description:
     "Tajweed and Qur'an memorisation platform for the Brighton Sussex Muslim Students programme.",
+};
+
+/**
+ * The browser chrome around the page — the address bar on mobile, the title
+ * bar of an installed window. Two values so it follows the theme rather than
+ * leaving a pale strip above a dark page.
+ */
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f1df" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a08" },
+  ],
 };
 
 export default function RootLayout({
