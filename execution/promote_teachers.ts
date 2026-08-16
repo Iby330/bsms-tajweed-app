@@ -145,6 +145,24 @@ async function main() {
     if (COMMIT) {
       const { error } = await db.from("classes").update({ teacher_id: u.id }).eq("id", cls.id);
       if (error) throw error;
+
+      // The class is linked from BOTH sides and moving only one leaves the app
+      // half-right: `classes.teacher_id` decides whose roster it is, but
+      // `profiles.class_id` is what the teacher's own screens read — it is
+      // where ClassBackdrop gets the name of the place behind the page. Set
+      // only the first and the new teacher gets somebody else's students on a
+      // blank background.
+      const { error: joinError } = await db
+        .from("profiles").update({ class_id: cls.id }).eq("id", u.id);
+      if (joinError) throw joinError;
+
+      // Release the outgoing teacher, so two profiles never claim membership
+      // of one class.
+      if (cls.teacher_id && cls.teacher_id !== u.id) {
+        const { error: oldError } = await db
+          .from("profiles").update({ class_id: null }).eq("id", cls.teacher_id);
+        if (oldError) throw oldError;
+      }
     }
   }
 
