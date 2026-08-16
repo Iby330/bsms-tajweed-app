@@ -1,0 +1,11 @@
+-- ═══════════════════════════════════════════════════════════════════════
+-- quran_words: drop the FK to surahs.
+--
+-- The 2026 redesign carries surah content down to Al-Mulk (67), but the
+-- `surahs` table — the memorisation RUN — still ends at Al-Jinn (72), and
+-- whether the run extends is an open rework question (HIFZ.md item 3).
+-- The seeded text shouldn't have to wait on that decision: it is inert
+-- reference data, and the FK was incidental. Dropping it lets the seed
+-- cover 67–114 now, so an extended run finds its text already in place.
+-- ═══════════════════════════════════════════════════════════════════════
+alter table quran_words drop constraint if exists quran_words_surah_number_fkey;

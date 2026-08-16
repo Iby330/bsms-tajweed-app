@@ -6,20 +6,42 @@ import { assumedPassed, checkStatus, hizbBlocks, juzProgress } from "@/lib/hifz/
 import { SURAH_META } from "@/lib/hifz/surah-meta";
 import { HifzHero } from "@/components/app/hifz-hero";
 import { HifzJourney } from "@/components/app/hifz-journey";
+import { HifzTabs } from "@/components/app/hifz-tabs";
+import { ReviewTab } from "@/components/app/review-tab";
 
 export const dynamic = "force-dynamic";
 
 function EmptyState({ message }: { message: string }) {
   return (
     <div className="mx-auto max-w-2xl glass rounded-2xl p-8 text-center">
-      <h1 className="text-xl">Hifdh</h1>
-      <p className="mt-2 text-sm text-muted-foreground">{message}</p>
+      <p className="text-sm text-muted-foreground">{message}</p>
     </div>
   );
 }
 
-export default async function StudentHifz() {
+export default async function StudentHifz({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; surah?: string; heat?: string }>;
+}) {
+  const { tab, surah, heat } = await searchParams;
   const profile = (await currentProfile())!;
+
+  // The Review tab must stay reachable even before a target is set — a
+  // student with no run of their own can still review their partner.
+  if (tab === "review") {
+    return (
+      <>
+        <header className="masthead">
+          <h1><span>Hifdh</span></h1>
+          <p>Peer revision with your partner.</p>
+        </header>
+        <HifzTabs basePath="/hifz" active="review" />
+        <ReviewTab userId={profile.id} surahParam={surah} heatParam={heat} />
+      </>
+    );
+  }
+
   const db = await supabaseServer();
   const { weeks } = await getTermsAndWeeks();
 
@@ -29,18 +51,31 @@ export default async function StudentHifz() {
     db.from("hifz_records").select("surah_number, passed_at, teacher_comment").eq("student_id", profile.id),
   ]);
 
+  // Empty states keep the masthead and tabs — a student with no target of
+  // their own still reaches Review to log their partner's recitation.
+  const emptyShell = (message: string) => (
+    <>
+      <header className="masthead">
+        <h1><span>Hifdh</span></h1>
+        <p>Your memorisation journey.</p>
+      </header>
+      <HifzTabs basePath="/hifz" active="overview" />
+      <EmptyState message={message} />
+    </>
+  );
+
   if (!hp) {
-    return <EmptyState message="Your teacher hasn't set your memorisation target yet." />;
+    return emptyShell("Your teacher hasn't set your memorisation target yet.");
   }
 
   const all = surahs as Surah[];
   if (all.length === 0) {
-    return <EmptyState message="The surah list couldn't be loaded. Please try again shortly." />;
+    return emptyShell("The surah list couldn't be loaded. Please try again shortly.");
   }
 
   const list = memorisationList(hp.start_surah, hp.target_count, all);
   if (list.length === 0) {
-    return <EmptyState message="Your teacher hasn't set your memorisation target yet." />;
+    return emptyShell("Your teacher hasn't set your memorisation target yet.");
   }
   const recordMap = new Map(
     (records ?? []).map((r) => [
@@ -96,6 +131,8 @@ export default async function StudentHifz() {
           )}
         </div>
       </header>
+
+      <HifzTabs basePath="/hifz" active="overview" />
 
       <div className="divider">
         <span className="label">Where you are</span>
