@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { scopedHref, type HomeworkScope } from "./scope";
+import { canOpenSection, scopedHref, type HomeworkScope } from "./scope";
 
 const cls = (id: string, name: string) => ({ id, name, section: "sisters" });
 
@@ -41,5 +41,39 @@ describe("scopedHref", () => {
     // next page would open on the section instead of the class being marked
     const s = scope({ own: null });
     expect(scopedHref(s, "/teacher/homework")).toBe("/teacher/homework?class=hareer");
+  });
+});
+
+/** The section is the boundary: every class is listed, only your own open. */
+describe("canOpenSection", () => {
+  it("opens a class in the teacher's own section", () => {
+    expect(canOpenSection("brothers", "brothers")).toBe(true);
+    expect(canOpenSection("sisters", "sisters")).toBe(true);
+    expect(canOpenSection("demo", "demo")).toBe(true);
+  });
+
+  it("refuses the other cohort, both ways round", () => {
+    expect(canOpenSection("brothers", "sisters")).toBe(false);
+    expect(canOpenSection("sisters", "brothers")).toBe(false);
+  });
+
+  it("keeps the demo cohort out of the real classes, and vice versa", () => {
+    expect(canOpenSection("demo", "brothers")).toBe(false);
+    expect(canOpenSection("demo", "sisters")).toBe(false);
+    expect(canOpenSection("brothers", "demo")).toBe(false);
+  });
+
+  // A missing section is an account mid-setup, not a wildcard — refusing is
+  // the safe read, and the page it guards 404s rather than showing a roster.
+  it("refuses when either section is missing", () => {
+    expect(canOpenSection(null, "brothers")).toBe(false);
+    expect(canOpenSection(undefined, "brothers")).toBe(false);
+    expect(canOpenSection("brothers", null)).toBe(false);
+    expect(canOpenSection("brothers", undefined)).toBe(false);
+    expect(canOpenSection(null, null)).toBe(false);
+  });
+
+  it("does not treat two empty strings as a match", () => {
+    expect(canOpenSection("", "")).toBe(false);
   });
 });

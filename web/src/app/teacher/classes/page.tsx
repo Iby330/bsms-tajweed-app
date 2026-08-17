@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { Rule } from "@/components/app/rule";
+import { canOpenSection, SECTION_POSSESSIVE } from "@/lib/teacher/scope";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +41,7 @@ export default async function Classes() {
         <p>
           {profile?.section === "demo"
             ? "Your training class. It is made of demo students, so nothing you do here touches a real record."
-            : "All seven classes across the programme. Your own screens — homework, register, roster and hifz — cover your class only; opening someone else’s class from here arrives with admin accounts."}
+            : "All seven classes across the programme. Every class is listed; the ones in your own section open."}
         </p>
       </header>
 
@@ -51,21 +53,26 @@ export default async function Classes() {
         // A section with no classes would otherwise draw an empty hairline frame.
         if (inSection.length === 0) return null;
 
+        // Whole sections open or they do not, so the reason is said once under
+        // the heading rather than repeated down every row of somebody else's
+        // cohort. The rows themselves differ only in being links or not.
+        const openable = canOpenSection(profile?.section, section);
+
         return (
         <section key={section}>
           <Rule label={section} />
+          {!openable && (
+            <p className="mb-2 text-xs text-muted-foreground">
+              Listed for reference. Only {SECTION_POSSESSIVE[section] ?? "their own"} teachers
+              can open these.
+            </p>
+          )}
           <div className="field">
           <ul className="box c12 divide-y divide-line" style={{ padding: 0, gap: 0 }}>
             {inSection.map((c) => {
               const isMine = c.id === mineId;
-              return (
-                <li
-                  key={c.id}
-                  className={cn(
-                    "flex items-center justify-between gap-3 px-4 py-3",
-                    isMine && "bg-muted/40",
-                  )}
-                >
+              const row = (
+                <>
                   <span>
                     <span className="text-sm font-medium">{c.name}</span>
                     {isMine && (
@@ -80,6 +87,35 @@ export default async function Classes() {
                   <span className="text-xs tabular-nums text-muted-foreground">
                     {counts.get(c.id) ?? 0} students
                   </span>
+                </>
+              );
+
+              const shape = cn(
+                "flex items-center justify-between gap-3 px-4 py-3",
+                isMine && "bg-muted/40",
+              );
+
+              // Your own class goes to the Roster, not to the read-only view of
+              // it — that page is for looking into someone else's, and yours is
+              // the one you can actually mark, register and sign off.
+              const href = isMine ? "/teacher/roster" : `/teacher/classes/${c.id}`;
+
+              return (
+                <li key={c.id}>
+                  {openable ? (
+                    <Link
+                      href={href}
+                      className={cn(
+                        shape,
+                        "transition-colors hover:bg-muted/60",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                      )}
+                    >
+                      {row}
+                    </Link>
+                  ) : (
+                    <div className={shape}>{row}</div>
+                  )}
                 </li>
               );
             })}

@@ -165,3 +165,37 @@ export async function homeworkScope(classParam?: string): Promise<HomeworkScope>
   };
 }
 
+
+/**
+ * Whether a teacher may OPEN a given class, which is the same section rule
+ * `teacherClasses` applies, asked one class at a time.
+ *
+ * Both exist because they answer different questions. `teacherClasses` builds
+ * the set a teacher can work in, for a filter that only ever offers those.
+ * This decides how to render a class already on screen: the Classes page lists
+ * every class in the programme — knowing there are seven and who teaches them
+ * is not the same as reading a roster of somebody else's students, and the
+ * list is how a teacher finds a colleague — so it needs a per-row verdict
+ * without a query per row.
+ *
+ * The same caveat as every other guard here: this is usability and
+ * blast-radius scoping, not a security boundary. RLS still grants every
+ * teacher the whole cohort.
+ */
+export function canOpenSection(
+  viewerSection: string | null | undefined,
+  classSection: string | null | undefined,
+): boolean {
+  return !!viewerSection && !!classSection && viewerSection === classSection;
+}
+
+/**
+ * How to name a section's staff possessively, mid-sentence. Held as whole
+ * phrases rather than bare nouns because "demo" does not take an apostrophe
+ * the way the two cohorts do, and gluing one on produced "demo’ teachers".
+ */
+export const SECTION_POSSESSIVE: Record<string, string> = {
+  brothers: "the brothers’",
+  sisters: "the sisters’",
+  demo: "the demo cohort’s",
+};
