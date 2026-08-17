@@ -261,7 +261,7 @@ body::after {
 .ar-tap {
   font-family: "Uthmanic Hafs", var(--font-quran);
   font-size: clamp(1.5rem, 3.4vw, 2rem);
-  line-height: 2.3;
+  line-height: 2.5;
   text-align: center;
   unicode-bidi: isolate;
 }
@@ -271,7 +271,20 @@ body::after {
      font. In `base` deliberately: written unlayered it would outrank the
      Tailwind text-* utility coluring a selected word, which is precisely how a
      tapped word turned into a solid blank block. */
-  .ar-tap button { font: inherit; color: inherit; }
+  .ar-tap button {
+    font: inherit;
+    color: inherit;
+    /* The highlight needs a height of its OWN. Left as an inline box it takes
+       the line-height and then adds its padding on top, so it is always taller
+       than the line advance and the boxes on consecutive lines collide —
+       raising line-height cannot fix that, because the box grows with it.
+       inline-block with a line-height of its own decouples the two: 1.45em
+       clears the glyph's ink, and the 2.5 above sets the spacing between
+       lines. */
+    display: inline-block;
+    line-height: 1.45;
+    vertical-align: middle;
+  }
 }
 
 .ar-mushaf {
