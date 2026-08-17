@@ -96,15 +96,25 @@ export default async function HomeworkResults({
   // scopedHref. Without it, opening a script from a colleague's class would
   // bounce back to your own the moment you approved it.
   const fromCourse = (Array.isArray(from) ? from[0] : from) === "course";
-  const path = `/teacher/homework/${hw.number}`;
-  const trail = fromCourse ? "&from=course" : "";
+  //
+  // One builder for every link back into this page. Sticking the tab, the class
+  // and the way in together by hand produced "?class=x?from=course" the moment
+  // a teacher opened a colleague's class from a course — scopedHref appends the
+  // class last and needs a well-formed query to append to, so the query is
+  // built first and handed over whole.
+  const link = (extra: Record<string, string> = {}) => {
+    const q = new URLSearchParams(extra);
+    if (fromCourse) q.set("from", "course");
+    const base = `/teacher/homework/${hw.number}`;
+    return scopedHref(scope, q.size ? `${base}?${q}` : base);
+  };
   const tabHrefs = {
-    summary: scopedHref(scope, path) + (fromCourse ? "?from=course" : ""),
-    question: scopedHref(scope, `${path}?tab=question`) + trail,
-    individual: scopedHref(scope, `${path}?tab=individual`) + trail,
+    summary: link(),
+    question: link({ tab: "question" }),
+    individual: link({ tab: "individual" }),
   };
   const individualHref = (studentId: string) =>
-    scopedHref(scope, `${path}?tab=individual&student=${studentId}`) + trail;
+    link({ tab: "individual", student: studentId });
 
   // Drafts are the student's own business — a teacher can neither see nor mark
   // one, so they are not "handed in" for any count on this page.
@@ -248,6 +258,8 @@ export default async function HomeworkResults({
     options:
       parseOptions(q.options)?.map((o) => ({
         position: o.position,
+        // the locator a tap-the-rule question hangs its passage off
+        label: o.label,
         value: o.value,
         correct: o.correct,
       })) ?? null,
