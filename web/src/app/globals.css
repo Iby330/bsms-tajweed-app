@@ -272,6 +272,10 @@ body::after {
    KFGQPC artwork; web/public/mushaf/basmala.svg). */
 
 .mushaf-page {
+  /* the frame hugs the page instead of stretching to the panel — the block
+     reads as a held page, not a banner */
+  inline-size: fit-content;
+  margin-inline: auto;
   background: var(--card);
   border: 1px solid color-mix(in oklab, var(--ok) 45%, var(--border));
   box-shadow:
@@ -314,15 +318,19 @@ body::after {
 .mushaf-body {
   max-inline-size: 18.78em; /* 563.28px / 30px */
   margin-inline: auto;
-  /* one knob scales the whole page — every metric below is em-based */
-  font-size: clamp(1.02rem, 3.4vw, 1.95rem);
+  /* one knob scales the whole page — every metric below is em-based. The
+     cap puts the framed page at ~14cm equivalent, the standard mushaf's
+     physical width, so the block reads as a real page rather than a poster. */
+  font-size: clamp(1.02rem, 2.6vw, 1.55rem);
   direction: rtl;
   text-align: justify;
 }
 /* the fixed 15-line rhythm: every printed line, header and basmala included,
-   occupies one slot */
+   occupies one slot. Height comes from the print itself: the KFGQPC page
+   geometry has a 244.6×399.6 text block, i.e. each of the 15 slots is
+   0.1089 × the line width (18.78em × 0.1089). */
 .mushaf-slot {
-  height: 2.317em; /* 69.5px / 30px */
+  height: 2.05em;
 }
 .qcf-line {
   font-size: inherit;
