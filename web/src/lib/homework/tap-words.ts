@@ -29,10 +29,44 @@ export type TapOption = {
   correct?: boolean;
 };
 
-export type TapAyah = { surah: number; ayah: number; words: TapOption[] };
+export type TapAyah = {
+  surah: number;
+  ayah: number;
+  /** Mushaf page, when the passage was built with printed glyphs. */
+  page: number | null;
+  words: TapOption[];
+};
 
-/** `78:14:3` — surah, ayah, word position. */
-const LOCATOR = /^(\d+):(\d+):(\d+)$/;
+/** `78:14:3` — surah, ayah, word position — optionally with the mushaf page
+ *  it is printed on, `78:14:3:582`, which is what names the glyph font. */
+const LOCATOR = /^(\d+):(\d+):(\d+)(?::(\d+))?$/;
+
+/** The KFGQPC page font a printed word's glyph belongs to. Each page of the
+ *  mushaf has its own, and a glyph means nothing in any other. */
+export function pageFont(page: number): string {
+  return `QCF_P${String(page).padStart(3, "0")}`;
+}
+
+/**
+ * A word carries two things the option can only hold one of: the PRINTED glyph
+ * and the readable text. The glyph is what goes on screen — it is the mushaf's
+ * own rendering of the word, marks and all — and the text is what a screen
+ * reader should say, since a glyph is a private-use codepoint that means
+ * nothing outside its page font.
+ *
+ * They travel packed into `value` because `get_homework_for_student` passes
+ * exactly `position`, `label` and `value` through to a student and drops
+ * anything else an option carries.
+ */
+export function packWord(glyph: string | null, text: string): string {
+  return glyph ? `${glyph}\t${text}` : text;
+}
+
+export function unpackWord(value: string): { glyph: string | null; text: string } {
+  const tab = value.indexOf("\t");
+  if (tab < 0) return { glyph: null, text: value };
+  return { glyph: value.slice(0, tab), text: value.slice(tab + 1) };
+}
 
 /** Below this, a run of locator-shaped labels is more likely a coincidence
  *  than a passage. A real passage is dozens of words. */
@@ -40,10 +74,15 @@ const MIN_WORDS = 5;
 
 export function parseLocator(
   label: string,
-): { surah: number; ayah: number; position: number } | null {
+): { surah: number; ayah: number; position: number; page: number | null } | null {
   const m = LOCATOR.exec(label.trim());
   if (!m) return null;
-  return { surah: Number(m[1]), ayah: Number(m[2]), position: Number(m[3]) };
+  return {
+    surah: Number(m[1]),
+    ayah: Number(m[2]),
+    position: Number(m[3]),
+    page: m[4] ? Number(m[4]) : null,
+  };
 }
 
 /** True when these options are a passage to tap rather than answers to pick. */
@@ -69,7 +108,7 @@ export function tapAyahs(options: TapOption[]): TapAyah[] {
     if (last && last.surah === loc.surah && last.ayah === loc.ayah) {
       last.words.push(option);
     } else {
-      out.push({ surah: loc.surah, ayah: loc.ayah, words: [option] });
+      out.push({ surah: loc.surah, ayah: loc.ayah, page: loc.page, words: [option] });
     }
   }
   return out;

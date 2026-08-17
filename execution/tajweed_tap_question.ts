@@ -92,6 +92,9 @@ type Word = {
   word_position: number;
   text_uthmani: string;
   is_end: boolean;
+  /** The printed word as a single KFGQPC glyph, page-font specific. */
+  code_v1: string | null;
+  page_number: number;
 };
 
 /** Cached in the temp dir: 5MB, unchanging, and not ours to vendor. */
@@ -114,6 +117,8 @@ export type Tapword = {
   ayah: number;
   position: number;
   text: string;
+  glyph: string | null;
+  page: number;
   correct: boolean;
 };
 
@@ -180,6 +185,8 @@ export function mapRule(
         ayah,
         position: s.word.word_position,
         text: s.word.text_uthmani,
+        glyph: s.word.code_v1,
+        page: s.word.page_number,
         correct: marked.has(s.word.word_position),
       });
     }
@@ -213,7 +220,7 @@ async function main() {
 
   const { data: words, error: wordErr } = await db
     .from("quran_words")
-    .select("ayah_number, word_position, text_uthmani, is_end")
+    .select("ayah_number, word_position, text_uthmani, is_end, code_v1, page_number")
     .eq("surah_number", SURAH)
     .gte("ayah_number", FROM_AYAH)
     .lte("ayah_number", TO_AYAH)
@@ -224,12 +231,23 @@ async function main() {
 
   const { passage, instances } = mapRule(words as Word[], await annotations(), RULE);
 
+  // The label carries the page as well as the locator, because the page names
+  // the glyph font; the value carries the glyph AND the readable text, because
+  // the student RPC passes only these three fields through.
   const options = passage.map((w, i) => ({
     position: i + 1,
-    label: `${SURAH}:${w.ayah}:${w.position}`,
-    value: w.text,
+    label: `${SURAH}:${w.ayah}:${w.position}:${w.page}`,
+    value: w.glyph ? `${w.glyph}\t${w.text}` : w.text,
     correct: w.correct,
   }));
+
+  const unprinted = passage.filter((w) => !w.glyph);
+  if (unprinted.length) {
+    console.warn(
+      `warning: ${unprinted.length} of ${passage.length} words have no printed glyph ` +
+        `and will fall back to Amiri, which renders the Madani marks poorly.`,
+    );
+  }
   const key = options.filter((o) => o.correct);
 
   console.log(`\n${hw.title} — ${SURAH}:${FROM_AYAH}-${TO_AYAH}, rule "${RULE}"`);

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MixedText } from "@/components/app/mixed-text";
 import { parseOptions, parseRubric } from "@/lib/marking/objective";
+import { isTapWords } from "@/lib/homework/tap-words";
 import { questionStats, tallyOptions, type ScoreAnswer } from "@/lib/marking/responses";
 import { fmtMarks, pctTone, responseIsEmpty, textOf } from "@/lib/homework/logic";
 import { cn } from "@/lib/utils";
@@ -145,7 +146,17 @@ export function QuestionBreakdown({
               </div>
             )}
 
-            {options && (
+            {/* A tap-the-rule passage is thirty words, and a tally row per word
+                says nothing a teacher can act on — the useful figure is how
+                many found each spot, which the per-question average above
+                already carries. The passage itself belongs on the script. */}
+            {options && isTapWords(options) ? (
+              <p className="mt-4 text-xs text-muted-foreground">
+                A passage of {options.length} words with{" "}
+                {options.filter((o) => o.correct).length} to find. Open a student
+                under Individual to see the passage with their taps on it.
+              </p>
+            ) : options && (
               <ul className="mt-4 space-y-1">
                 {(() => {
                   const { tallies, blank } = tallyOptions(options, rows);

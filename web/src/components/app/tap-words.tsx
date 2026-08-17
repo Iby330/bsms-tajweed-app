@@ -1,6 +1,12 @@
 "use client";
 
-import { arabicNumber, tapAyahs, type TapOption } from "@/lib/homework/tap-words";
+import {
+  arabicNumber,
+  pageFont,
+  tapAyahs,
+  unpackWord,
+  type TapOption,
+} from "@/lib/homework/tap-words";
 import { cn } from "@/lib/utils";
 
 /**
@@ -36,6 +42,13 @@ export function TapWords({
   const chosen = new Set(selected);
   const ayahs = tapAyahs(options);
 
+  // The printed page's own font, one per page the passage crosses. A glyph is a
+  // private-use codepoint that draws the whole word — marks, tanwīn and all —
+  // exactly as the mushaf prints it, and means nothing in any other font. That
+  // is the point: it takes the browser out of the business of positioning
+  // Arabic marks, which is what left small meems drifting beside the words.
+  const pages = [...new Set(ayahs.map((a) => a.page).filter((p): p is number => p !== null))];
+
   const toggle = (position: number) => {
     if (readOnly || !onChange) return;
     onChange(
@@ -47,6 +60,16 @@ export function TapWords({
 
   return (
     <div className="space-y-3">
+      {pages.length > 0 && (
+        <style>
+          {pages
+            .map(
+              (page) =>
+                `@font-face{font-family:"${pageFont(page)}";src:url("/fonts/qcf/${pageFont(page)}.woff2") format("woff2");font-display:block;}`,
+            )
+            .join("\n")}
+        </style>
+      )}
       <div
         dir="rtl"
         lang="ar"
@@ -56,6 +79,9 @@ export function TapWords({
           <span key={`${a.surah}:${a.ayah}`}>
             {a.words.map((w) => {
               const picked = chosen.has(w.position);
+              // Draw the glyph, but say the word: a screen reader reading a
+              // private-use codepoint aloud says nothing at all.
+              const { glyph, text } = unpackWord(w.value ?? w.label);
               // Four states once revealed: found it, wrongly picked, missed,
               // and correctly left alone (which needs no mark at all).
               const hit = reveal && picked && w.correct;
@@ -68,8 +94,11 @@ export function TapWords({
                   type="button"
                   disabled={readOnly}
                   aria-pressed={picked}
-                  aria-label={w.value ?? w.label}
+                  aria-label={text}
                   onClick={() => toggle(w.position)}
+                  style={
+                    glyph && a.page ? { fontFamily: `"${pageFont(a.page)}"` } : undefined
+                  }
                   className={cn(
                     "mx-[0.12em] rounded-md px-[0.2em] py-[0.05em] transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -85,7 +114,7 @@ export function TapWords({
                     readOnly && "cursor-default",
                   )}
                 >
-                  {w.value ?? w.label}
+                  {glyph ?? text}
                 </button>
               );
             })}

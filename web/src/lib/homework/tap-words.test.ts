@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { arabicNumber, isTapWords, parseLocator, tapAyahs, type TapOption } from "./tap-words";
+import {
+  arabicNumber,
+  isTapWords,
+  packWord,
+  pageFont,
+  parseLocator,
+  tapAyahs,
+  unpackWord,
+  type TapOption,
+} from "./tap-words";
 
 const word = (position: number, label: string, value = "كَلِمَة"): TapOption => ({
   position,
@@ -18,15 +27,21 @@ const passage: TapOption[] = [
 
 describe("parseLocator", () => {
   it("reads surah, ayah and word position", () => {
-    expect(parseLocator("78:14:3")).toEqual({ surah: 78, ayah: 14, position: 3 });
+    expect(parseLocator("78:14:3")).toEqual({ surah: 78, ayah: 14, position: 3, page: null });
+  });
+
+  it("reads the mushaf page when the passage carries printed glyphs", () => {
+    expect(parseLocator("78:14:3:582")).toEqual({
+      surah: 78, ayah: 14, position: 3, page: 582,
+    });
   });
 
   it("tolerates surrounding space", () => {
-    expect(parseLocator(" 2:255:1 ")).toEqual({ surah: 2, ayah: 255, position: 1 });
+    expect(parseLocator(" 2:255:1 ")).toEqual({ surah: 2, ayah: 255, position: 1, page: null });
   });
 
   it("refuses anything that is not three numbers", () => {
-    for (const label of ["Option 1", "78:14", "78:14:3:1", "a:b:c", "", "78-14-3"]) {
+    for (const label of ["Option 1", "78:14", "78:14:3:582:9", "a:b:c", "", "78-14-3"]) {
       expect(parseLocator(label)).toBeNull();
     }
   });
@@ -100,5 +115,30 @@ describe("arabicNumber", () => {
     expect(arabicNumber(14)).toBe("١٤");
     expect(arabicNumber(7)).toBe("٧");
     expect(arabicNumber(100)).toBe("١٠٠");
+  });
+});
+
+describe("packWord / unpackWord", () => {
+  it("carries the printed glyph and the readable word in one field", () => {
+    const packed = packWord("ﮁ", "سِرَاجًۭا");
+    expect(unpackWord(packed)).toEqual({ glyph: "ﮁ", text: "سِرَاجًۭا" });
+  });
+
+  it("falls back to text alone when a word has no glyph", () => {
+    expect(unpackWord(packWord(null, "سِرَاجًۭا"))).toEqual({
+      glyph: null,
+      text: "سِرَاجًۭا",
+    });
+  });
+
+  it("reads a plain value written before glyphs existed", () => {
+    expect(unpackWord("سِرَاجًۭا")).toEqual({ glyph: null, text: "سِرَاجًۭا" });
+  });
+});
+
+describe("pageFont", () => {
+  it("names the page's own KFGQPC face", () => {
+    expect(pageFont(582)).toBe("QCF_P582");
+    expect(pageFont(1)).toBe("QCF_P001");
   });
 });
