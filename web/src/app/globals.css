@@ -290,65 +290,84 @@ body::after {
   margin-block-end: 0.4rem;
   padding-inline: 0.15rem;
 }
-.mushaf-body {
-  /* measured, not guessed: the v1 page fonts are cut to near-equal natural
-     line widths of ~14.5em at this font size (fill ratios 0.77–0.80 of the
-     old 18em measure, sampled across pages). The measure sits just above
-     that, so space-between adds only the print's sliver of slack instead
-     of gaping word gaps. */
-  max-inline-size: 14.6em;
-  margin-inline: auto;
-  /* one knob scales the whole page: lines, cartouche and basmala are all
-     em-sized against this */
-  font-size: clamp(1.02rem, 3.4vw, 1.95rem);
-}
-
-/* QCF v1 page-font lines — glyphs are the printed words, one font per page
-   (lazy @font-face from the reader). Flex space-between spreads the
-   pre-shaped glyphs to both margins of the measure, which is how the
-   printed line fills its width (and how quran.com renders the same fonts);
-   the print's centred lines (surah closings) get .centered instead. */
-.qcf-line {
-  font-size: inherit;
-  line-height: 1.9;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  unicode-bidi: isolate;
-  white-space: nowrap;
-}
-.qcf-line.centered {
-  justify-content: center;
-  gap: 0.35em;
-}
-
-/* The ornamental surah header of the printed page — one cartouche glyph per
-   surah (QUL's Surah Header font; see lib/quran/surah-header.ts). Sized so
-   the band spans the text measure, as printed. */
+/* These metrics are QUL's own layout preview, copied verbatim and converted
+   to em against a 30px reference (qul.tarteel.ai/resources/mushaf-layout/15;
+   the platform is MIT-licensed). Page: 563.28px wide, 55.5px leading,
+   69.5px fixed line slots, text-align-last justification, layered
+   quran-icon + surah-name-v4 headers, the ﷽ ligature basmala. */
 @font-face {
-  font-family: "Surah Header";
-  src: url("/fonts/surah-header-color.ttf") format("truetype");
+  font-family: "quran-icon";
+  src: url("/fonts/qul/quran-common.woff2") format("woff2");
   font-display: block;
 }
-.surah-cartouche {
-  font-family: "Surah Header";
-  font-size: 3.05em; /* band width ≈ the 14.6em measure */
-  line-height: 1.2;
-  display: block;
-  text-align: center;
-  unicode-bidi: isolate;
+@font-face {
+  font-family: "surah-name-v4";
+  src: url("/fonts/qul/surah-name-v4.woff2") format("woff2");
+  font-display: block;
+}
+@font-face {
+  font-family: "bismillah";
+  src: url("/fonts/qul/bismillah.woff2") format("woff2");
+  font-display: block;
 }
 
-/* The print's basmala — its actual calligraphy, not a text font's. Drawn
-   via mask so it follows the ink colour in both themes. In the print it
-   spans ~58% of the text measure. */
-.basmala-print {
+.mushaf-body {
+  max-inline-size: 18.78em; /* 563.28px / 30px */
+  margin-inline: auto;
+  /* one knob scales the whole page — every metric below is em-based */
+  font-size: clamp(1.02rem, 3.4vw, 1.95rem);
+  direction: rtl;
+  text-align: justify;
+}
+/* the fixed 15-line rhythm: every printed line, header and basmala included,
+   occupies one slot */
+.mushaf-slot {
+  height: 2.317em; /* 69.5px / 30px */
+}
+.qcf-line {
+  font-size: inherit;
+  line-height: 1.85; /* 55.5px / 30px */
+  text-align: justify;
+  text-align-last: justify;
+  unicode-bidi: isolate;
+}
+.qcf-line > * {
+  display: inline-block;
+}
+.qcf-line.centered {
+  text-align: center;
+  text-align-last: center;
+}
+
+/* the header: ornamental band ligature with the surah-name icon overlaid */
+.mushaf-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "quran-icon";
+  font-size: 2.333em; /* 70px */
+  line-height: 1;
+  margin-block: -0.2em;
+  font-feature-settings: "liga";
+  font-variant-ligatures: discretionary-ligatures;
+}
+.mushaf-header .name {
+  position: absolute;
+  font-family: "surah-name-v4";
+  font-size: 0.715em; /* 50px / 70px */
+  line-height: 1;
+  font-feature-settings: "liga";
+  font-variant-ligatures: discretionary-ligatures;
+}
+
+.bismillah {
   display: block;
-  margin: 0.35em auto;
-  inline-size: 58%;
-  aspect-ratio: 142.66 / 20.84;
-  background-color: currentColor;
-  mask: url("/mushaf/basmala.svg") center / contain no-repeat;
+  font-family: "bismillah";
+  font-size: 1.6em; /* 48px */
+  line-height: 1.4;
+  text-align: center;
+  text-align-last: center;
 }
 
 /* ─────────────────────────────────────────────────────────────────────
