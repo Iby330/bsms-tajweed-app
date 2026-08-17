@@ -81,6 +81,12 @@ export async function depositRoster(seasonId: number): Promise<DepositRow[]> {
       .from("deposit_entries")
       .select("id, student_id, full_name, section, still_in, notes, term1_strikes, term2_strikes, term3_strikes")
       .eq("season_id", seasonId)
+      // The deposit tracker mirrors a physical sheet with two sides, and the
+      // roster component has a tab per side. `section` gained a third value for
+      // the training cohort, which has no deposits and no tab — so it is
+      // excluded here rather than widening DepositRow, which would have let a
+      // row exist that no tab could ever show.
+      .in("section", ["brothers", "sisters"])
       .order("section")
       // Anyone marked N sinks to the bottom of their section. They stay on the
       // roster — that is the whole point of it — but the people still on the
@@ -95,7 +101,13 @@ export async function depositRoster(seasonId: number): Promise<DepositRow[]> {
     (totals ?? []).map((t) => [t.entry_id as string, t]),
   );
 
-  return (entries ?? []).map((e) => {
+  return (entries ?? [])
+    // The `.in()` above already asks for the two real sides; this is what tells
+    // the compiler so, without an `as` that would lie if a demo row ever did
+    // arrive. A type predicate rather than an assertion, so the narrowing is
+    // something the code checks rather than something it claims.
+    .filter((e): e is typeof e & { section: "brothers" | "sisters" } => e.section !== "demo")
+    .map((e) => {
     const t = byEntry.get(e.id);
     return {
       id: e.id,
@@ -109,7 +121,7 @@ export async function depositRoster(seasonId: number): Promise<DepositRow[]> {
       first_amount: t?.first_amount == null ? null : Number(t.first_amount),
       re_entries: Number(t?.re_entries ?? 0),
     };
-  });
+    });
 }
 
 export async function seasonExpenses(seasonId: number): Promise<ExpenseRow[]> {

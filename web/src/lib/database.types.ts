@@ -1417,7 +1417,7 @@ export type Database = {
     Enums: {
       qtype_t: "mcq" | "checkbox" | "text" | "paragraph" | "grid"
       scoring_t: "exact" | "per_option" | "manual"
-      section_t: "brothers" | "sisters"
+      section_t: "brothers" | "sisters" | "demo"
       series_t: "tajweed" | "umm_al_kitab" | "tfp" | "seerah"
       session_t: "monday" | "thursday"
       strike_reason: "absence" | "homework" | "conduct"
@@ -1552,7 +1552,7 @@ export const Constants = {
     Enums: {
       qtype_t: ["mcq", "checkbox", "text", "paragraph", "grid"],
       scoring_t: ["exact", "per_option", "manual"],
-      section_t: ["brothers", "sisters"],
+      section_t: ["brothers", "sisters", "demo"],
       series_t: ["tajweed", "umm_al_kitab", "tfp", "seerah"],
       session_t: ["monday", "thursday"],
       strike_reason: ["absence", "homework", "conduct"],

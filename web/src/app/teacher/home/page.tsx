@@ -28,7 +28,15 @@ export default async function TeacherHome() {
   ]);
 
   const termId = currentTermId(terms);
-  const cohortNoun = profile.section === "sisters" ? "sisters" : "brothers";
+  // Whose ranking the cohort scope shows. 'demo' is a training cohort of its
+  // own — the leaderboard views filter on the viewer's section, so a demo
+  // teacher's "everyone" IS the demo classes, and calling it "All brothers"
+  // (the old fallback for anything that was not 'sisters') named the wrong
+  // people entirely.
+  const cohortNoun =
+    profile.section === "sisters" ? "sisters"
+    : profile.section === "demo" ? "demo classes"
+    : "brothers";
 
   // the queue is this teacher's own class — someone else's marking is not
   // their problem, and mixing it in buries their twenty students in a hundred

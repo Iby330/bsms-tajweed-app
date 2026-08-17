@@ -45,7 +45,10 @@ export default async function StudentHome() {
   // The cohort scope is the student's own section and only ever that — the
   // views filter on it in SQL, so this label describes what is shown rather
   // than choosing it.
-  const cohortNoun = profile.section === "sisters" ? "sisters" : "brothers";
+  const cohortNoun =
+    profile.section === "sisters" ? "sisters"
+    : profile.section === "demo" ? "demo classes"
+    : "brothers";
   const cohortLabel = `All ${cohortNoun}`;
 
   // A week can carry more than one course's homework — Term 3 week 1 has both

@@ -18,6 +18,14 @@ export default async function Classes() {
   const mineId =
     (classes ?? []).find((c) => c.teacher_id === profile?.id)?.id ?? profile?.class_id ?? null;
 
+  // A teacher on the demo cohort is being shown round the app, not the
+  // programme: their own training class is the only one that means anything to
+  // them, and the real classes would list colleagues they have not met and
+  // rosters they cannot open. Everyone else sees the two real cohorts and not
+  // the training classes, which are noise on this page.
+  const sections =
+    profile?.section === "demo" ? (["demo"] as const) : (["brothers", "sisters"] as const);
+
   const teacherName = new Map((people ?? []).filter((p) => p.role === "teacher").map((p) => [p.id, p.full_name]));
   const counts = new Map<string, number>();
   for (const p of people ?? []) {
@@ -29,16 +37,16 @@ export default async function Classes() {
       <header className="masthead">
         <h1><span>Classes</span></h1>
         <p>
-          All seven classes across the programme. Your own screens — homework,
-          register, roster and hifz — cover your class only; opening someone
-          else’s class from here arrives with admin accounts.
+          {profile?.section === "demo"
+            ? "Your training class. It is made of demo students, so nothing you do here touches a real record."
+            : "All seven classes across the programme. Your own screens — homework, register, roster and hifz — cover your class only; opening someone else’s class from here arrives with admin accounts."}
         </p>
       </header>
 
       {/* No `space-y-*` here: the utility writes a margin onto every child but
           the last, which outranks `.divider`'s own and cost these headings the
           whole rhythm of the page. `.field` spaces the panel instead. */}
-      {(["brothers", "sisters"] as const).map((section) => {
+      {sections.map((section) => {
         const inSection = (classes ?? []).filter((c) => c.section === section);
         // A section with no classes would otherwise draw an empty hairline frame.
         if (inSection.length === 0) return null;
