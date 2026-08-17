@@ -291,7 +291,12 @@ body::after {
   padding-inline: 0.15rem;
 }
 .mushaf-body {
-  max-inline-size: 18em;
+  /* measured, not guessed: the v1 page fonts are cut to near-equal natural
+     line widths of ~14.5em at this font size (fill ratios 0.77–0.80 of the
+     old 18em measure, sampled across pages). The measure sits just above
+     that, so space-between adds only the print's sliver of slack instead
+     of gaping word gaps. */
+  max-inline-size: 14.6em;
   margin-inline: auto;
   /* one knob scales the whole page: lines, cartouche and basmala are all
      em-sized against this */
@@ -327,7 +332,7 @@ body::after {
 }
 .surah-cartouche {
   font-family: "Surah Header";
-  font-size: 3.7em;
+  font-size: 3.05em; /* band width ≈ the 14.6em measure */
   line-height: 1.2;
   display: block;
   text-align: center;
