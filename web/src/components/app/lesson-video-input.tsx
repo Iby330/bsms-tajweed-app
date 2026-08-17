@@ -37,18 +37,11 @@ export function LessonVideoInput({
   if (!open) {
     return (
       <span className="flex shrink-0 items-center gap-1.5">
-        {videoId ? (
-          <a
-            href={`https://youtu.be/${videoId}`}
-            target="_blank"
-            rel="noreferrer"
-            className="font-mono text-[11px] text-muted-foreground underline-offset-2 hover:underline"
-          >
-            {videoId}
-          </a>
-        ) : (
-          <span className="text-xs text-warn">no video</span>
-        )}
+        {/* No video id on show, and nothing leading out to YouTube. The id is a
+            database detail, and the way to watch a lesson is the lesson page,
+            where the video plays inside the app. Change reveals the id in the
+            field below for anyone who needs to read it. */}
+        {!videoId && <span className="text-xs text-warn">no video</span>}
         <Button
           variant="ghost"
           size="xs"

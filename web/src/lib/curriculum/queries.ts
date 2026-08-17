@@ -30,6 +30,36 @@ export type StudentCurriculum = {
   submissionByHomeworkId: Map<string, SubStatus>;
 };
 
+/**
+ * The same tree with no student on it — every week of the year, released or
+ * not, as the teacher screens need it.
+ *
+ * No `overlayProgress`: watches and submissions belong to one student, and a
+ * teacher is looking at a class. Nothing is filtered by unlock date either,
+ * because RLS hands teachers the locked rows too — which is the whole point of
+ * a curriculum screen, where preparing next term is the work.
+ */
+export async function getCurriculumTree(now: Date = new Date()): Promise<Term[]> {
+  const db = await supabaseServer();
+
+  const [terms, weeks, lessons, homeworks] = await Promise.all([
+    getCachedTerms(),
+    getCachedWeeks(),
+    db.from("lessons").select("id, week_id, series, title, youtube_id, position").order("position"),
+    db.from("homeworks").select("id, week_id, number, series, title, total_marks, due_at, is_graded").order("number"),
+  ]);
+
+  return buildTree(
+    {
+      terms: terms as TermRow[],
+      weeks: weeks as WeekRow[],
+      lessons: (lessons.data ?? []) as LessonRow[],
+      homeworks: (homeworks.data ?? []) as HomeworkRow[],
+    },
+    now,
+  );
+}
+
 export async function getStudentCurriculum(
   studentId: string,
   now: Date = new Date(),

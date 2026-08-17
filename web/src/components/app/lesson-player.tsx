@@ -89,11 +89,22 @@ function loadYouTubeApi(): Promise<YTNamespace> {
 export function LessonPlayer({
   lessonId,
   youtubeId,
-  initiallyWatched,
+  initiallyWatched = false,
+  track = true,
 }: {
   lessonId: string;
   youtubeId: string;
-  initiallyWatched: boolean;
+  initiallyWatched?: boolean;
+  /**
+   * Whether reaching the end marks this lesson watched.
+   *
+   * False on the teacher's copy of the page. `lesson_watches` is a record of
+   * student progress — it feeds the module ticks, the course meters and the
+   * class figures — so a teacher checking that a video plays must not write a
+   * row into it, and must not be told a lesson is "marked off for you" when
+   * nothing was marked.
+   */
+  track?: boolean;
 }) {
   const mountRef = useRef<HTMLDivElement>(null);
   const [watched, setWatched] = useState(initiallyWatched);
@@ -111,7 +122,7 @@ export function LessonPlayer({
     let cancelled = false;
 
     const reachedEnd = () => {
-      if (watchedRef.current) return;
+      if (!track || watchedRef.current) return;
       watchedRef.current = true;
       setWatched(true);
       // Fire-and-forget: a failed write shouldn't interrupt the video. The
@@ -193,7 +204,9 @@ export function LessonPlayer({
         // must not overwrite a real position.
         if (current > 0) savePosition(lessonId, current, duration);
         if (duration <= 0) return;
-        if (!watchedRef.current && current / duration >= WATCHED_FRACTION) reachedEnd();
+        if (track && !watchedRef.current && current / duration >= WATCHED_FRACTION) {
+          reachedEnd();
+        }
       }, 1000);
     });
 
@@ -203,7 +216,7 @@ export function LessonPlayer({
       if (primeTimer) clearTimeout(primeTimer);
       player?.destroy();
     };
-  }, [lessonId, youtubeId]);
+  }, [lessonId, youtubeId, track]);
 
   return (
     <div className="space-y-3">
@@ -213,11 +226,13 @@ export function LessonPlayer({
           <div ref={mountRef} className="size-full" />
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">
-        {watched
-          ? "✓ Watched — this one's marked off for you."
-          : "Watch to the end and this marks itself off."}
-      </p>
+      {track && (
+        <p className="text-xs text-muted-foreground">
+          {watched
+            ? "✓ Watched — this one's marked off for you."
+            : "Watch to the end and this marks itself off."}
+        </p>
+      )}
     </div>
   );
 }

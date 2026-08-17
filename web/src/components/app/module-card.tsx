@@ -11,23 +11,36 @@ const dmy = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 
 /** The 16:9 slot at the middle of every card. Exactly one of three states:
- *  locked, no-video-yet, or a real poster frame (optionally ticked). */
-function Poster({
-  module: m,
+ *  locked, no-video-yet, or a real poster frame (optionally ticked).
+ *
+ *  Shared with the teacher's card, which draws the same three states from
+ *  different facts — it has no student to have watched anything and nothing is
+ *  ever locked to it — so it takes them as props rather than a Module. */
+export function ModulePoster({
+  youtubeId,
   series,
+  locked = false,
+  unlockAt,
+  ticked = false,
 }: {
-  module: Module;
+  youtubeId: string | null;
+  /** Course series key, for the placeholder label. */
   series: string;
+  locked?: boolean;
+  /** Read only when locked. */
+  unlockAt?: string;
+  ticked?: boolean;
 }) {
-  const lesson = m.lessons.find((l) => l.youtube_id) ?? m.lessons[0];
-  const src = thumbnailUrl(lesson?.youtube_id ?? null);
+  const src = thumbnailUrl(youtubeId);
 
   return (
     <div className="relative aspect-video w-full overflow-hidden bg-muted">
-      {!m.unlocked ? (
+      {locked ? (
         <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground">
           <span aria-hidden className="text-lg">🔒</span>
-          <span className="text-xs tabular-nums">unlocks {dmy(m.unlockAt)}</span>
+          {unlockAt && (
+            <span className="text-xs tabular-nums">unlocks {dmy(unlockAt)}</span>
+          )}
         </div>
       ) : src ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -46,7 +59,7 @@ function Poster({
         </div>
       )}
 
-      {m.unlocked && m.watched && (
+      {ticked && (
         <span
           className="absolute right-2 top-2 rounded-full bg-ok/90 px-1.5 py-0.5 text-[11px] font-medium text-page"
           title="Watched"
@@ -107,7 +120,13 @@ export function ModuleCard({
         </span>
       </div>
 
-      <Poster module={m} series={series} />
+      <ModulePoster
+        youtubeId={lesson?.youtube_id ?? null}
+        series={series}
+        locked={!m.unlocked}
+        unlockAt={m.unlockAt}
+        ticked={m.unlocked && m.watched}
+      />
 
       {/* ── actions ── */}
       {m.unlocked && (
