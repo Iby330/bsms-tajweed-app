@@ -84,8 +84,8 @@ const LAYOUT = [
     students: ["sumayya.a", "khadija.f", "amina.c", "zaynab.h", "fatima.n"],
   },
   {
-    slot: "abdullah",
-    className: "Demo — Abdullah",
+    slot: "abdallah",
+    className: "Demo — Abdallah",
     from: "brothers",
     students: ["adam.w", "bilal.o", "idris.k", "zayd.m"],
   },
