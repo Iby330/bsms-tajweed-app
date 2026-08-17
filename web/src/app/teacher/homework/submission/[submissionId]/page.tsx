@@ -13,10 +13,12 @@ export const dynamic = "force-dynamic";
 
 export default async function SubmissionReview({
   params,
+  searchParams,
 }: {
   params: Promise<{ submissionId: string }>;
+  searchParams: Promise<{ from?: string | string[] }>;
 }) {
-  const { submissionId } = await params;
+  const [{ submissionId }, { from }] = await Promise.all([params, searchParams]);
   const db = await supabaseServer();
   // Read alongside the submission: it decides whether to render, not what to
   // fetch. See the guard below for why it is here at all.
@@ -78,14 +80,21 @@ export default async function SubmissionReview({
     answers = marked;
   }
 
-  const backHref = `/teacher/homework/${hw?.number ?? ""}`;
+  // Back belongs wherever the reader actually came from. Arriving from a bar
+  // on a student's record, the homework's list of every student is a page they
+  // never visited — so `?from=student` sends them back to the record instead.
+  const fromStudent = (Array.isArray(from) ? from[0] : from) === "student";
+  const backHref = fromStudent
+    ? `/teacher/roster/${sub.student_id}`
+    : `/teacher/homework/${hw?.number ?? ""}`;
 
   return (
     <>
       <header className="masthead">
         <Link href={backHref} className="backstep">
           <ArrowLeft className="size-[13px]" aria-hidden />
-          {hw ? homeworkLabel(hw.number, hw.series) : "Homework"}
+          {/* Not the student's name — the heading directly below already is. */}
+          {fromStudent ? "Back to record" : hw ? homeworkLabel(hw.number, hw.series) : "Homework"}
         </Link>
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h1><b>{student?.full_name}</b></h1>

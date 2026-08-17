@@ -65,6 +65,7 @@ export default async function StudentRecord({
     { data: strikeRows },
     surahs,
     { data: records },
+    { data: submissions },
   ] = await Promise.all([
     getTermsAndWeeks(),
     teacherClass(),
@@ -72,10 +73,19 @@ export default async function StudentRecord({
     getFullProgress(studentId),
     getIndividualLeaderboard(),
     db.from("v_hw_pct").select("number, pct, term_id").eq("student_id", studentId),
-    db.from("homeworks").select("number, title, series").order("number"),
+    db.from("homeworks").select("id, number, title, series").order("number"),
     db.from("strikes").select("id, term_id, reason, note, issued_at").eq("student_id", studentId).order("issued_at"),
     getCachedSurahs(),
     db.from("hifz_records").select("surah_number, teacher_comment, passed_at").eq("student_id", studentId).order("passed_at"),
+    // Which submission each mark came from, so a bar can open this student's
+    // own script rather than the list of everyone who sat the homework.
+    // Drafts are excluded: a mark implies work handed in, and a draft is the
+    // student's own business until it is.
+    db
+      .from("submissions")
+      .select("id, homework_id")
+      .eq("student_id", studentId)
+      .in("status", ["submitted", "auto_marked", "approved"]),
   ]);
 
   if (!student) notFound();
@@ -94,6 +104,16 @@ export default async function StudentRecord({
     .filter((r) => r.number !== null && r.pct !== null)
     .map((r) => ({ number: r.number!, pct: Number(r.pct), termId: r.term_id }))
     .sort((a, b) => a.number - b.number);
+
+  // homework number → this student's submission for it. Two hops because the
+  // chart is keyed on the human-facing number while a submission points at the
+  // homework's id.
+  const subIdByHwId = new Map((submissions ?? []).map((s) => [s.homework_id, s.id]));
+  const hwIdByNumber = new Map((homeworks ?? []).map((h) => [h.number, h.id]));
+  const submissionFor = (number: number): string | null => {
+    const hwId = hwIdByNumber.get(number);
+    return (hwId && subIdByHwId.get(hwId)) || null;
+  };
 
   const surahName = new Map(surahs.map((s) => [s.number, s]));
   const comments = (records ?? []).filter((r) => r.teacher_comment?.trim());
@@ -247,14 +267,22 @@ export default async function StudentRecord({
                 role="group"
                 aria-label={`${marks.length} marked homeworks, averaging ${(marks.reduce((a, m) => a + m.pct, 0) / marks.length).toFixed(1)} per cent`}
               >
-                {/* Each bar opens its own homework. The chart was the only
-                    place naming a mark that had nowhere to go from — a teacher
-                    spotting the low bar wants that homework, not a hunt for it
-                    by number in the year tree. */}
-                {marks.map((m) => (
+                {/* Each bar opens THIS student's script for that homework, not
+                    the homework's list of every student. The reader is already
+                    looking at one person; sending them to a picker to choose
+                    the person they are looking at is a step for nothing.
+                    `?from=student` tells the marking screen to send them back
+                    here rather than to the homework they never visited. */}
+                {marks.map((m) => {
+                  const subId = submissionFor(m.number);
+                  return (
                   <Link
                     key={m.number}
-                    href={`/teacher/homework/${m.number}`}
+                    href={
+                      subId
+                        ? `/teacher/homework/submission/${subId}?from=student`
+                        : `/teacher/homework/${m.number}`
+                    }
                     aria-label={`${title.get(m.number) ?? `Homework ${m.number}`} — ${m.pct.toFixed(1)}%`}
                     className={cn(
                       "min-w-0 flex-1 rounded-t-sm transition-colors hover:opacity-80",
@@ -265,7 +293,8 @@ export default async function StudentRecord({
                     data-tip={title.get(m.number) ?? `Homework ${m.number}`}
                     data-tip-value={`${m.pct.toFixed(1)}%`}
                   />
-                ))}
+                  );
+                })}
               </div>
               <p className="note">
                 {marks.length} marked · average {(marks.reduce((a, m) => a + m.pct, 0) / marks.length).toFixed(1)}%
