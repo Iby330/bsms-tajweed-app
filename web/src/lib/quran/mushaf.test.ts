@@ -1,5 +1,16 @@
 import { describe, it, expect } from "vitest";
-import { fromRow, groupIntoPages, wordKey, type QuranWord } from "./mushaf";
+import { fromRow, groupIntoPages, isCenteredLine, wordKey, type QuranWord } from "./mushaf";
+
+describe("isCenteredLine", () => {
+  it("centres the print's closing lines", () => {
+    expect(isCenteredLine(604, 15)).toBe(true);
+    expect(isCenteredLine(586, 1)).toBe(true);
+  });
+  it("stretches everything else", () => {
+    expect(isCenteredLine(604, 5)).toBe(false);
+    expect(isCenteredLine(583, 7)).toBe(false);
+  });
+});
 
 const w = (over: Partial<QuranWord>): QuranWord => ({
   surah: 114, ayah: 1, position: 1, text: "قُلْ", glyph: null, isEnd: false, page: 604, line: 12, ...over,

@@ -264,14 +264,38 @@ body::after {
   text-align-last: center;
 }
 /* QCF v1 page-font lines — glyphs are the printed words, one font per page
-   (lazy @font-face from the reader). Centered: the glyph metrics already
-   carry the printed line's proportions. */
+   (lazy @font-face from the reader). Flex space-between spreads the
+   pre-shaped glyphs to both margins of the fixed measure, which is how the
+   printed line fills its width (and how quran.com renders the same fonts);
+   the print's centred lines (surah closings) get .centered instead. */
 .qcf-line {
-  font-size: clamp(1.15rem, 3.6vw, 2.1rem);
-  line-height: 1.85;
-  text-align: center;
+  font-size: clamp(1.15rem, 3.6vw, 2.05rem);
+  line-height: 1.9;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
   unicode-bidi: isolate;
   white-space: nowrap;
+}
+.qcf-line.centered {
+  justify-content: center;
+  gap: 0.35em;
+}
+
+/* The ornamental surah header of the printed page — one cartouche glyph per
+   surah (QUL's Surah Header font; see lib/quran/surah-header.ts). */
+@font-face {
+  font-family: "Surah Header";
+  src: url("/fonts/surah-header-color.ttf") format("truetype");
+  font-display: block;
+}
+.surah-cartouche {
+  font-family: "Surah Header";
+  font-size: 3.1em;
+  line-height: 1.15;
+  display: block;
+  text-align: center;
+  unicode-bidi: isolate;
 }
 
 /* ─────────────────────────────────────────────────────────────────────

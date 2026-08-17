@@ -1,7 +1,8 @@
 "use client";
 
 import { Fragment } from "react";
-import { wordKey, type MushafLine, type MushafPage, type QuranWord } from "@/lib/quran/mushaf";
+import { isCenteredLine, wordKey, type MushafLine, type MushafPage, type QuranWord } from "@/lib/quran/mushaf";
+import { surahHeaderGlyph } from "@/lib/quran/surah-header";
 import { cn } from "@/lib/utils";
 
 export type WordMark = { category: string };
@@ -100,20 +101,29 @@ export function MushafReader({
             <div className={cn(!glyphMode && "space-y-0.5")}>
               {p.lines.map((ln) => {
                 const opener = surahStart(ln);
+                const cartouche = opener && glyphMode ? surahHeaderGlyph(opener.surah) : null;
                 const name = opener ? surahNames?.[opener.surah] : undefined;
                 return (
                   // line number + first word: two surahs can't collide even
                   // if upstream page data ever mis-files a boundary again
                   <Fragment key={`${ln.line}:${ln.words[0] ? wordKey(ln.words[0]) : "empty"}`}>
-                    {opener && name && (
-                      <div className="my-2 rounded-lg border-y-2 border-line/80 bg-muted/40 px-3 py-1.5 text-center">
-                        <span dir="rtl" lang="ar" className="ar-quran text-lg">
-                          سُورَةُ {name.ar}
-                        </span>
-                        <span className="ml-3 align-middle text-[11px] uppercase tracking-wide text-muted-foreground">
-                          {name.en}
-                        </span>
+                    {opener && cartouche ? (
+                      // The printed header: the whole ornamental cartouche —
+                      // frame and calligraphic name — is one glyph.
+                      <div dir="rtl" lang="ar" className="surah-cartouche" aria-label={name?.en}>
+                        {cartouche}
                       </div>
+                    ) : (
+                      opener && name && (
+                        <div className="my-2 rounded-lg border-y-2 border-line/80 bg-muted/40 px-3 py-1.5 text-center">
+                          <span dir="rtl" lang="ar" className="ar-quran text-lg">
+                            سُورَةُ {name.ar}
+                          </span>
+                          <span className="ml-3 align-middle text-[11px] uppercase tracking-wide text-muted-foreground">
+                            {name.en}
+                          </span>
+                        </div>
+                      )
                     )}
                     {opener && (
                       <p dir="rtl" lang="ar" className="ar-mushaf centered mb-1 text-ink-2">
@@ -125,6 +135,7 @@ export function MushafReader({
                       lang="ar"
                       className={cn(
                         glyphMode ? "qcf-line" : "ar-mushaf",
+                        glyphMode && isCenteredLine(p.page, ln.line) && "centered",
                         !glyphMode && ln === last && ln.words.length < 6 && "centered",
                       )}
                       style={glyphMode ? { fontFamily: `"${pageFont(p.page)}"` } : undefined}
