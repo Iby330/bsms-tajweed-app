@@ -296,7 +296,7 @@ body::after {
 .mushaf-frame {
   border: 1px solid color-mix(in oklab, var(--ok) 45%, var(--border));
   box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3px color-mix(in oklab, var(--ok) 40%, var(--border));
-  padding: 0.4em 0.35em;
+  padding: 0.62em 0.55em;
 }
 .mushaf-pageno {
   position: absolute;
@@ -404,6 +404,9 @@ body::after {
   font-family: "surah-name-v4";
   font-size: 0.715em; /* 50px / 70px */
   line-height: 1;
+  /* the v4 name ligatures carry a small baked-in downward offset (they're
+     cut for the v4 band); calibrated against the band window visually */
+  transform: translateY(-0.12em);
   font-feature-settings: "liga";
   font-variant-ligatures: discretionary-ligatures;
 }
