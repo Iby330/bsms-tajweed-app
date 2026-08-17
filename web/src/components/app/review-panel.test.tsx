@@ -46,8 +46,8 @@ const MCQ = question({
   qtype: "mcq",
   points: 2,
   options: [
-    { position: 0, value: "right", correct: true },
-    { position: 1, value: "wrong", correct: false },
+    { position: 0, label: "Option 0", value: "right", correct: true },
+    { position: 1, label: "Option 1", value: "wrong", correct: false },
   ],
 });
 const TASK = question({ id: "q3", position: 3, is_task: true, points: 3 });

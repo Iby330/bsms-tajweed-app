@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { MixedText } from "@/components/app/mixed-text";
+import { TapWords } from "@/components/app/tap-words";
+import { isTapWords } from "@/lib/homework/tap-words";
 import { VoicePlayback } from "@/components/app/voice-playback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +21,9 @@ export type ReviewQuestion = {
   qtype: string;
   is_bonus: boolean;
   is_task: boolean;
-  options: { position: number; value: string; correct: boolean }[] | null;
+  /** `label` carries the word locator on a tap-the-rule question — see
+   *  lib/homework/tap-words. Ordinary options use it for "Option 3". */
+  options: { position: number; label: string; value: string; correct: boolean }[] | null;
 };
 
 export type ReviewAnswer = {
@@ -228,7 +232,12 @@ export function ReviewPanel({
             </div>
 
             <div className="mt-4 space-y-3">
-              {q.options ? (
+              {isTapWords(q.options) ? (
+                /* The passage as the student saw it, with the key drawn over
+                   their taps — a list of thirty Arabic words tells a teacher
+                   nothing about where the rule was missed. */
+                <TapWords options={q.options!} selected={chosen} readOnly reveal />
+              ) : q.options ? (
                 <ul className="space-y-1">
                   {q.options.map((o) => {
                     const picked = chosen.includes(o.position);

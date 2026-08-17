@@ -241,6 +241,12 @@ body::after {
      · panel  — the name heading the teacher's sign-off panel. */
 .ar-quran.ar-figure { font-size: clamp(2rem, 3.6vw, 2.7rem); line-height: 1.06; align-self: start; }
 .ar-quran.ar-panel { font-size: 2rem; line-height: 1.4; }
+/* tap — a passage whose every word is a target. Generous line-height because
+   the words carry a tap highlight that would otherwise collide with the line
+   above, and unlayered like its siblings: a font-size for .ar-quran written
+   inside @layer components never applies (see the note above). */
+.ar-quran.ar-tap { font-size: clamp(1.5rem, 3.4vw, 2rem); line-height: 2.1; text-align: center; }
+.ar-quran.ar-tap button { font: inherit; color: inherit; }
 
 /* The mushaf itself — KFGQPC Uthmanic Hafs, the King Fahd Complex face the
    printed Madani page is set in. Only the review reader uses it; everything

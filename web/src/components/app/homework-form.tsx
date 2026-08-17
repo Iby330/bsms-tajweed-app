@@ -3,6 +3,8 @@
 import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MixedText } from "@/components/app/mixed-text";
+import { TapWords } from "@/components/app/tap-words";
+import { isTapWords } from "@/lib/homework/tap-words";
 import { MarkBadge } from "@/components/app/mark-badge";
 import { VoiceRecorder } from "@/components/app/voice-recorder";
 import { Button } from "@/components/ui/button";
@@ -134,6 +136,16 @@ export function HomeworkForm({
                     Open this homework to start recording.
                   </p>
                 )
+              ) : isTapWords(q.options) ? (
+                /* A passage to tap rather than options to pick — the same
+                   {selected:[…]} answer either way, so nothing downstream
+                   knows the difference. */
+                <TapWords
+                  options={q.options!}
+                  selected={selectedOf(value)}
+                  readOnly={readOnly}
+                  onChange={(next) => update(q.id, checkboxResponse(next))}
+                />
               ) : q.qtype === "mcq" && q.options ? (
                 <ul className="space-y-1.5">
                   {q.options.map((o) => {
