@@ -10,6 +10,7 @@ import { HifzGrid, type MarkRow } from "@/components/app/hifz-grid";
 import { HifzTabs } from "@/components/app/hifz-tabs";
 import { ReviewFeedback } from "@/components/app/review-feedback";
 import { Rule } from "@/components/app/rule";
+import { teacherClass } from "@/lib/teacher/scope";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -37,8 +38,9 @@ export default async function StudentHifzDetail({
 
   // Every read here is keyed on the student id alone, the guard included — it
   // decides whether to render, not what to fetch, so it goes out with the rest.
-  const [{ weeks }, { data: student }, { data: hp }, surahs, { data: records }] = await Promise.all([
+  const [{ weeks }, mine, { data: student }, { data: hp }, surahs, { data: records }] = await Promise.all([
     getTermsAndWeeks(),
+    teacherClass(),
     db
       .from("profiles")
       .select("full_name, class_id, classes!profiles_class_id_fkey(name)")
@@ -52,6 +54,12 @@ export default async function StudentHifzDetail({
       .eq("student_id", studentId),
   ]);
   if (!student) notFound();
+  // A teacher with a class of their own sees only their own students, the same
+  // way the roster page decides it. Without this, one guessed URL showed any
+  // student's hifdh record — and, worse, offered the buttons that sign their
+  // surahs off. Usability and blast-radius scoping, not a security boundary:
+  // RLS still grants teachers the whole cohort.
+  if (mine && student.class_id !== mine.id) notFound();
 
   const review = tab === "review";
   const className = student.classes?.name ?? null;

@@ -13,6 +13,19 @@ async function requireTeacher() {
   return profile;
 }
 
+/**
+ * …and one of your own students.
+ *
+ * setStudentHifzProfile has always checked this; the three record-level actions
+ * below did not, so any teacher could sign off any student's surah by posting
+ * the id. The pages are scoped now, which hides the buttons — this is what
+ * stops the action itself, which is the part a hidden button does not.
+ */
+async function requireOwnStudent(studentId: string): Promise<void> {
+  const roster = await teacherRoster();
+  if (!roster.some((s) => s.id === studentId)) throw new Error("Not your student.");
+}
+
 /** Recited correctly to the teacher. The comment is visible to the student —
  *  it replaces the mistakes they used to mark in their physical Qur'an. */
 export async function markSurahPassed(
@@ -21,6 +34,7 @@ export async function markSurahPassed(
   comment?: string,
 ): Promise<void> {
   const teacher = await requireTeacher();
+  await requireOwnStudent(studentId);
   const db = await supabaseServer();
   await db.from("hifz_records").upsert(
     {
@@ -50,6 +64,7 @@ export async function setSurahComment(
   comment: string,
 ): Promise<void> {
   await requireTeacher();
+  await requireOwnStudent(studentId);
   const db = await supabaseServer();
   const { error } = await db
     .from("hifz_records")
@@ -63,6 +78,7 @@ export async function setSurahComment(
 
 export async function unmarkSurah(studentId: string, surahNumber: number): Promise<void> {
   await requireTeacher();
+  await requireOwnStudent(studentId);
   const db = await supabaseServer();
   await db.from("hifz_records").delete()
     .eq("student_id", studentId).eq("surah_number", surahNumber);
@@ -91,8 +107,7 @@ export async function setStudentHifzProfile(
   targetCount: number,
 ): Promise<void> {
   await requireTeacher();
-  const roster = await teacherRoster();
-  if (!roster.some((s) => s.id === studentId)) throw new Error("Not your student.");
+  await requireOwnStudent(studentId);
   await requireValidTarget(startSurah, targetCount);
 
   const db = await supabaseServer();

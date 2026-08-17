@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { supabaseServer } from "@/lib/supabase/server";
+import { teacherClass } from "@/lib/teacher/scope";
 import { markSubmission } from "@/lib/marking/actions";
 import { ReviewPanel } from "@/components/app/review-panel";
 import { MixedText } from "@/components/app/mixed-text";
@@ -17,6 +18,9 @@ export default async function SubmissionReview({
 }) {
   const { submissionId } = await params;
   const db = await supabaseServer();
+  // Read alongside the submission: it decides whether to render, not what to
+  // fetch. See the guard below for why it is here at all.
+  const mine = await teacherClass();
 
   // Student, class, homework, questions, answers and voice notes all hang off
   // this submission by a foreign key, so PostgREST returns the lot in one round
@@ -41,6 +45,19 @@ export default async function SubmissionReview({
     .order("position", { referencedTable: "homeworks.questions" })
     .maybeSingle();
   if (!sub) notFound();
+
+  // A teacher with a class of their own only marks their own class. The roster
+  // page has always done this; this page and the hifdh page did not, so every
+  // marked script in the programme — answers, marks and comments — was one
+  // guessed URL away from any teacher. It matters more now that accounts exist
+  // for teachers who are meant to see a demo class and nothing else.
+  //
+  // Same shape as the roster's guard, and the same caveat: this is usability
+  // and blast-radius scoping, not a security boundary. RLS still grants every
+  // teacher the whole cohort, so a determined teacher with their own token can
+  // still read these rows through the API. Narrowing that means narrowing the
+  // policies, which would change what the leaderboards can show everyone.
+  if (mine && sub.profiles?.class_id !== mine.id) notFound();
 
   const hw = sub.homeworks;
   const student = sub.profiles;
