@@ -272,10 +272,21 @@ body::after {
    KFGQPC artwork; web/public/mushaf/basmala.svg). */
 
 .mushaf-page {
-  /* the frame hugs the page instead of stretching to the panel — the block
-     reads as a held page, not a banner */
+  /* Every number below derives from two measured facts, no eyeballing:
+     (a) the V1 page fonts' natural line width — glyph runs fill 14.6em
+         at 1em body size (measured 98–100% fill; the fonts carry the
+         print's own spacing, so an unstretched line IS the printed line);
+     (b) the print's page geometry from the KFGQPC vectors — page
+         382.7×547.1 units, text block 244.6×399.6 at (69.0, 76.6).
+     Margins: side 69.0/244.6, top 76.6/244.6, bottom 70.9/244.6 of the
+     measure. At the 1.45rem cap the framed page is 530×758px — the
+     physical mushaf's 14×20cm — aspect 0.70. One knob (font-size)
+     scales the whole object. */
+  position: relative;
   inline-size: fit-content;
   margin-inline: auto;
+  font-size: clamp(0.95rem, 2.5vw, 1.45rem);
+  padding: 4.57em 4.12em 4.23em;
   background: var(--card);
   border: 1px solid color-mix(in oklab, var(--ok) 45%, var(--border));
   box-shadow:
@@ -283,7 +294,15 @@ body::after {
     inset 0 0 0 8px color-mix(in oklab, var(--ok) 16%, var(--card)),
     inset 0 0 0 9px color-mix(in oklab, var(--ok) 45%, var(--border));
   border-radius: 4px;
-  padding: 1.1rem clamp(1.1rem, 4vw, 2rem) 0.9rem;
+}
+.mushaf-pageno {
+  position: absolute;
+  inset-block-end: 1.6em;
+  inset-inline: 0;
+  text-align: center;
+  font-size: 0.75em;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
 }
 /* These metrics are QUL's own layout preview, copied verbatim and converted
    to em against a 30px reference (qul.tarteel.ai/resources/mushaf-layout/15;
@@ -307,25 +326,21 @@ body::after {
 }
 
 .mushaf-body {
-  max-inline-size: 18.78em; /* 563.28px / 30px */
+  /* the V1 fonts' natural line width — lines fill this without stretch */
+  max-inline-size: 14.6em;
   margin-inline: auto;
-  /* one knob scales the whole page — every metric below is em-based. The
-     cap puts the framed page at ~14cm equivalent, the standard mushaf's
-     physical width, so the block reads as a real page rather than a poster. */
-  font-size: clamp(1.02rem, 2.6vw, 1.55rem);
   direction: rtl;
   text-align: justify;
 }
 /* the fixed 15-line rhythm: every printed line, header and basmala included,
-   occupies one slot. Height comes from the print itself: the KFGQPC page
-   geometry has a 244.6×399.6 text block, i.e. each of the 15 slots is
-   0.1089 × the line width (18.78em × 0.1089). */
+   occupies one slot. Print ratio: each slot is 399.6/15 = 26.64 units of a
+   244.6-unit line → 0.1089 × the 14.6em measure. */
 .mushaf-slot {
-  height: 2.05em;
+  height: 1.59em;
 }
 .qcf-line {
   font-size: inherit;
-  line-height: 1.85; /* 55.5px / 30px */
+  line-height: 1.59; /* fills its slot; glyph ink interleaves like print */
   text-align: justify;
   text-align-last: justify;
   unicode-bidi: isolate;
@@ -347,7 +362,7 @@ body::after {
   justify-content: center;
   height: 100%;
   font-family: "quran-icon";
-  font-size: 2em;
+  font-size: 1.55em; /* the band fills its 1.59em slot, never its neighbours */
   line-height: 1;
   font-feature-settings: "liga";
   font-variant-ligatures: discretionary-ligatures;
@@ -364,8 +379,8 @@ body::after {
 .bismillah {
   display: block;
   font-family: "bismillah";
-  font-size: 1.6em; /* 48px */
-  line-height: 1.4;
+  font-size: 1.3em; /* sits inside its slot like the printed basmala line */
+  line-height: 1.22;
   text-align: center;
   text-align-last: center;
 }

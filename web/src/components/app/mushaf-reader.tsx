@@ -161,10 +161,13 @@ export function MushafReader({
                 );
               })}
             </div>
-            <p className="mt-3 text-center text-[11px] tabular-nums text-muted-foreground">
-              {p.page}
-            </p>
+            {!glyphMode && (
+              <p className="mt-3 text-center text-[11px] tabular-nums text-muted-foreground">
+                {p.page}
+              </p>
+            )}
           </div>
+          {glyphMode && <p className="mushaf-pageno">{p.page}</p>}
         </section>
         );
       })}
