@@ -73,3 +73,95 @@ export async function scopeLabel(): Promise<string> {
   return cls?.name ?? "All classes";
 }
 
+/**
+ * Every class this teacher may look at: the ones in their own section.
+ *
+ * Teachers cover for each other — someone is away, their class has handed a
+ * homework in, and it needs marking — so the homework screens let a teacher
+ * switch to a colleague's class rather than pinning them to their own. The
+ * section is the boundary: brothers' teachers see the brothers' classes,
+ * sisters' the sisters', and the demo accounts see the demo classes and
+ * nothing else, which is the point of having them.
+ *
+ * Like `teacherClass`, this is scoping and not a security boundary — RLS still
+ * grants every teacher the whole cohort. It decides what the screens offer.
+ */
+export const teacherClasses = cache(async (): Promise<TeacherClass[]> => {
+  const profile = await currentProfile();
+  if (!profile || profile.role !== "teacher") return [];
+  const db = await supabaseServer();
+  const { data } = await db
+    .from("classes")
+    .select("id, name, section")
+    .eq("section", profile.section)
+    .order("name");
+  return (data ?? []) as TeacherClass[];
+});
+
+/**
+ * A link that stays in the current scope.
+ *
+ * The class has to travel with every link out of a homework screen, or marking
+ * a colleague's class ends the moment you open a script: approve it, come back,
+ * and you are looking at your own class again. The teacher's own class carries
+ * nothing, so ordinary use leaves no query string behind.
+ */
+export function scopedHref(scope: HomeworkScope, href: string): string {
+  const carry = scope.selected
+    ? scope.selected.id === scope.own
+      ? null
+      : scope.selected.id
+    : "all";
+  if (!carry) return href;
+  return `${href}${href.includes("?") ? "&" : "?"}class=${carry}`;
+}
+
+export type HomeworkScope = {
+  /** The filter's options, in order. */
+  classes: TeacherClass[];
+  /** The class being looked at, or null for every class in the section. */
+  selected: TeacherClass | null;
+  students: { id: string; full_name: string }[];
+  label: string;
+  /** The `?class=` value that needs no query string — the teacher's own. */
+  own: string | null;
+};
+
+/**
+ * Who the homework screens are looking at, given `?class=`.
+ *
+ * Opens on the teacher's own class, as those screens always have. `all` widens
+ * to their whole section; a class id narrows to that class. Anything else — a
+ * hand-typed id, a class from another section, a stale link — falls back to
+ * their own class rather than 404ing or, worse, honouring it.
+ */
+export async function homeworkScope(classParam?: string): Promise<HomeworkScope> {
+  const [classes, own] = await Promise.all([teacherClasses(), teacherClass()]);
+
+  const selected =
+    classParam === "all"
+      ? null
+      : classes.find((c) => c.id === classParam) ?? own;
+
+  const db = await supabaseServer();
+  let q = db
+    .from("profiles")
+    .select("id, full_name")
+    .eq("role", "student")
+    .eq("is_active", true);
+  if (selected) q = q.eq("class_id", selected.id);
+  // No class chosen and no section to fall back on — an account with neither is
+  // the programme lead, and narrowing them to nothing would lock them out of
+  // screens they use today. Same everything-view teacherRoster() gives them.
+  else if (classes.length) q = q.in("class_id", classes.map((c) => c.id));
+  const { data } = await q.order("full_name");
+
+  return {
+    classes,
+    selected,
+    students: data ?? [],
+    label: selected?.name ?? "All classes",
+    own: own?.id ?? null,
+  };
+}
+

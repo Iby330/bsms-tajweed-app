@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { currentWeek, getTermsAndWeeks } from "@/lib/dashboard/queries";
-import { scopeLabel, teacherRoster } from "@/lib/teacher/scope";
+import { homeworkScope, scopedHref } from "@/lib/teacher/scope";
+import { ClassFilter } from "@/components/app/class-filter";
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { Rule } from "@/components/app/rule";
@@ -31,14 +32,22 @@ type Hw = {
 const PENDING = ["submitted", "auto_marked"];
 
 /**
- * The teacher's homework section, for their own class only.
+ * The teacher's homework section.
+ *
+ * Opens on the teacher's own class and filters to any class in their section,
+ * so covering for a colleague is a dropdown rather than a dead end.
  *
  * Three layers, most urgent first: this week's homework and its queue, a
  * backlog section that appears only when earlier weeks still have unmarked
  * work, and the whole year as folders — term ▸ course ▸ homeworks — so any
  * old homework is a couple of clicks from a mark edit.
  */
-export default async function TeacherHomework() {
+export default async function TeacherHomework({
+  searchParams,
+}: {
+  searchParams: Promise<{ class?: string }>;
+}) {
+  const { class: classParam } = await searchParams;
   const db = await supabaseServer();
 
   // Only the submissions read needs the roster, so everything else goes first
@@ -46,15 +55,16 @@ export default async function TeacherHomework() {
   // homework list is fetched while the teacher's class is still being looked
   // up. That leaves three waves — class, roster, submissions — where the
   // roster genuinely cannot start before the class is known.
-  const [label, { terms, weeks }, { data: homeworks }] = await Promise.all([
-    scopeLabel(),
+  const [scope, { terms, weeks }, { data: homeworks }] = await Promise.all([
+    homeworkScope(classParam),
     getTermsAndWeeks(),
     db.from("homeworks").select("id, week_id, number, title, series, is_graded").order("number"),
   ]);
 
-  const roster = await teacherRoster();
+  const roster = scope.students;
   const rosterIds = roster.map((s) => s.id);
   const nameOf = new Map(roster.map((s) => [s.id, s.full_name]));
+  const href = (path: string) => scopedHref(scope, path);
 
   const { data: subs } = rosterIds.length
     ? await db.from("submissions")
@@ -115,7 +125,7 @@ export default async function TeacherHomework() {
       {list.map((s) => (
         <li key={s.id}>
           <Link
-            href={`/teacher/homework/submission/${s.id}`}
+            href={href(`/teacher/homework/submission/${s.id}`)}
             className="flex items-center justify-between gap-3 px-4 py-2.5 transition-colors hover:bg-muted/60"
           >
             <span className="min-w-0 truncate text-sm font-medium">
@@ -151,7 +161,7 @@ export default async function TeacherHomework() {
     return (
       <li key={h.id}>
         <Link
-          href={`/teacher/homework/${h.number}`}
+          href={href(`/teacher/homework/${h.number}`)}
           className={cn(
             "flex items-center justify-between gap-3 px-3 py-2.5 transition-colors hover:bg-muted/60",
             indent ? "pl-8" : "pl-4",
@@ -182,9 +192,12 @@ export default async function TeacherHomework() {
   return (
     <>
       <header className="masthead">
-        <h1><span>Homework</span></h1>
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h1><span>Homework</span></h1>
+          <ClassFilter classes={scope.classes} selected={scope.selected?.id ?? null} own={scope.own} />
+        </div>
         <p>
-          {label} · this week first, then anything still waiting, then the whole year.
+          {scope.label} · this week first, then anything still waiting, then the whole year.
         </p>
       </header>
 
@@ -206,7 +219,7 @@ export default async function TeacherHomework() {
             return (
               <div key={h.id} className="box c12" style={{ padding: 0, gap: 0 }}>
                 <Link
-                  href={`/teacher/homework/${h.number}`}
+                  href={href(`/teacher/homework/${h.number}`)}
                   className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-4 py-3 transition-colors hover:bg-muted/60"
                 >
                   <span className="text-sm font-medium">{hwHeading(h)}</span>
@@ -237,7 +250,7 @@ export default async function TeacherHomework() {
               return (
                 <div key={h.id} className="box c12" style={{ padding: 0, gap: 0 }}>
                   <Link
-                    href={`/teacher/homework/${h.number}`}
+                    href={href(`/teacher/homework/${h.number}`)}
                     className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-4 py-3 transition-colors hover:bg-muted/60"
                   >
                     <span className="text-sm font-medium">{hwHeading(h)}</span>

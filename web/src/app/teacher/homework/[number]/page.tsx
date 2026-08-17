@@ -2,7 +2,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
-import { scopeLabel, teacherRoster } from "@/lib/teacher/scope";
+import { homeworkScope, scopedHref } from "@/lib/teacher/scope";
+import { ClassFilter } from "@/components/app/class-filter";
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { Rule } from "@/components/app/rule";
@@ -13,16 +14,21 @@ import { cn } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 /**
- * One homework, every student. Grouped by class so a teacher scans their own
- * first; approved rows carry the mark and stay clickable — opening one lands
- * on the marking screen where marks can still be edited.
+ * One homework, every student in the class being looked at.
+ *
+ * Opens on the teacher's own class; the filter switches to any class in their
+ * section, which is how a teacher marks for a colleague who is away. Approved
+ * rows carry the mark and stay clickable — opening one lands on the marking
+ * screen, where marks can still be edited, and comes back to the same class.
  */
 export default async function TeacherHomeworkDetail({
   params,
+  searchParams,
 }: {
   params: Promise<{ number: string }>;
+  searchParams: Promise<{ class?: string }>;
 }) {
-  const { number } = await params;
+  const [{ number }, { class: classParam }] = await Promise.all([params, searchParams]);
   const n = Number(number);
   if (!Number.isInteger(n)) notFound();
 
@@ -31,18 +37,18 @@ export default async function TeacherHomeworkDetail({
   // The week rides along on the homework's own foreign key, and the teacher's
   // class is an independent lookup — so both start together. Only the roster
   // has to wait on the class, and only the submission reads on the roster.
-  const [{ data: hw }, label] = await Promise.all([
+  const [{ data: hw }, scope] = await Promise.all([
     db
       .from("homeworks")
       .select("id, week_id, number, title, series, total_marks, is_graded, weeks(term_id, number)")
       .eq("number", n)
       .maybeSingle(),
-    scopeLabel(),
+    homeworkScope(classParam),
   ]);
   if (!hw) notFound();
 
   const week = hw.weeks;
-  const students = await teacherRoster();
+  const students = scope.students;
   const studentIds = students.map((s) => s.id);
 
   const [{ data: subs }, { data: pcts }] = await Promise.all([
@@ -71,7 +77,7 @@ export default async function TeacherHomeworkDetail({
   return (
     <>
       <header className="masthead">
-        <Link href="/teacher/homework" className="backstep">
+        <Link href={scopedHref(scope, "/teacher/homework")} className="backstep">
           <ArrowLeft className="size-[13px]" aria-hidden />
           Homework
         </Link>
@@ -88,9 +94,16 @@ export default async function TeacherHomeworkDetail({
             it the module title sat flush against a 3.4rem heading while the
             counts line below it kept the 14px, so the block read lopsided. */}
         {title && <MixedText text={title} className="mt-3.5 block text-sm text-muted-foreground" />}
-        <p className="text-xs tabular-nums text-muted-foreground">
-          {approved} marked · {waiting} waiting · {missing} not submitted
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs tabular-nums text-muted-foreground">
+            {approved} marked · {waiting} waiting · {missing} not submitted
+          </p>
+          <ClassFilter
+            classes={scope.classes}
+            selected={scope.selected?.id ?? null}
+            own={scope.own}
+          />
+        </div>
       </header>
 
       {students.length === 0 ? (
@@ -101,7 +114,7 @@ export default async function TeacherHomeworkDetail({
         <>
           {/* The class name was an `h2` floating above an unwrapped panel, at a
               rhythm of its own; it is the section heading, so it is a rule. */}
-          <Rule label={label} />
+          <Rule label={scope.label} />
           <div className="field">
             <ul className="box c12 divide-y divide-line" style={{ padding: 0, gap: 0 }}>
               {students.map((s) => {
@@ -144,7 +157,7 @@ export default async function TeacherHomeworkDetail({
                   <li key={s.id}>
                     {sub ? (
                       <Link
-                        href={`/teacher/homework/submission/${sub.id}`}
+                        href={scopedHref(scope, `/teacher/homework/submission/${sub.id}`)}
                         className="flex items-center justify-between gap-3 px-4 py-2.5 transition-colors hover:bg-muted/60"
                       >
                         {row}

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { supabaseServer } from "@/lib/supabase/server";
-import { teacherClass } from "@/lib/teacher/scope";
+import { teacherClasses } from "@/lib/teacher/scope";
 import { markSubmission } from "@/lib/marking/actions";
 import { ReviewPanel } from "@/components/app/review-panel";
 import { MixedText } from "@/components/app/mixed-text";
@@ -16,13 +16,16 @@ export default async function SubmissionReview({
   searchParams,
 }: {
   params: Promise<{ submissionId: string }>;
-  searchParams: Promise<{ from?: string | string[] }>;
+  searchParams: Promise<{ from?: string | string[]; class?: string }>;
 }) {
-  const [{ submissionId }, { from }] = await Promise.all([params, searchParams]);
+  const [{ submissionId }, { from, class: classParam }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const db = await supabaseServer();
   // Read alongside the submission: it decides whether to render, not what to
   // fetch. See the guard below for why it is here at all.
-  const mine = await teacherClass();
+  const allowed = await teacherClasses();
 
   // Student, class, homework, questions, answers and voice notes all hang off
   // this submission by a foreign key, so PostgREST returns the lot in one round
@@ -48,18 +51,19 @@ export default async function SubmissionReview({
     .maybeSingle();
   if (!sub) notFound();
 
-  // A teacher with a class of their own only marks their own class. The roster
-  // page has always done this; this page and the hifdh page did not, so every
-  // marked script in the programme — answers, marks and comments — was one
-  // guessed URL away from any teacher. It matters more now that accounts exist
-  // for teachers who are meant to see a demo class and nothing else.
+  // A teacher marks their own section: their class, and a colleague's when
+  // covering. Beyond it — a sisters' script opened by a brothers' teacher, the
+  // whole programme opened by a demo account — is not theirs to read, and
+  // before this guard existed every marked script was one guessed URL away.
   //
-  // Same shape as the roster's guard, and the same caveat: this is usability
-  // and blast-radius scoping, not a security boundary. RLS still grants every
-  // teacher the whole cohort, so a determined teacher with their own token can
-  // still read these rows through the API. Narrowing that means narrowing the
-  // policies, which would change what the leaderboards can show everyone.
-  if (mine && sub.profiles?.class_id !== mine.id) notFound();
+  // Same caveat as the rest of the scoping: this is usability and blast-radius,
+  // not a security boundary. RLS still grants every teacher the whole cohort,
+  // so a determined teacher with their own token can still read these rows
+  // through the API. Narrowing that means narrowing the policies, which would
+  // change what the leaderboards can show everyone.
+  if (allowed.length && !allowed.some((c) => c.id === sub.profiles?.class_id)) {
+    notFound();
+  }
 
   const hw = sub.homeworks;
   const student = sub.profiles;
@@ -84,9 +88,15 @@ export default async function SubmissionReview({
   // on a student's record, the homework's list of every student is a page they
   // never visited — so `?from=student` sends them back to the record instead.
   const fromStudent = (Array.isArray(from) ? from[0] : from) === "student";
+  // Otherwise the class rides back with the teacher: approve a script from a
+  // colleague's class and you land on that class's list, not your own. Anything
+  // but a class this teacher may look at is dropped rather than echoed into a
+  // link. A student's record is one student, so it needs no class.
+  const carry =
+    classParam === "all" || allowed.some((c) => c.id === classParam) ? classParam : undefined;
   const backHref = fromStudent
     ? `/teacher/roster/${sub.student_id}`
-    : `/teacher/homework/${hw?.number ?? ""}`;
+    : `/teacher/homework/${hw?.number ?? ""}` + (carry ? `?class=${carry}` : "");
 
   return (
     <>
