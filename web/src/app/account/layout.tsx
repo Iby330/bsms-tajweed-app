@@ -4,6 +4,7 @@ import {
   studentNav, studentMobileNav, teacherNav, teacherMobileNav,
 } from "@/lib/nav";
 import { currentProfile } from "@/lib/supabase/server";
+import { requireSetup } from "@/lib/account/require-setup";
 import { signedAvatarUrl } from "@/lib/account/avatar";
 
 /**
@@ -21,6 +22,7 @@ export default async function AccountLayout({
 }) {
   const profile = await currentProfile();
   if (!profile) redirect("/login");
+  requireSetup(profile);
 
   const teacher = profile.role === "teacher";
   return (

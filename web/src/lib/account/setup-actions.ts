@@ -40,7 +40,7 @@ export async function completeSetup(
 
   const { error } = await db
     .from("profiles")
-    .update({ full_name: `${first} ${last}` })
+    .update({ full_name: `${first} ${last}`, setup_complete: true })
     .eq("id", user.id);
   if (error) return { ok: false, message: "Saved your password, but not your name. Set it on your account page." };
 

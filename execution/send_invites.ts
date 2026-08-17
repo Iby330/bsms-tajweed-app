@@ -140,6 +140,12 @@ async function main() {
       const { id } = await sendViaResend(
         target, inviteSubject(), inviteHtml(invite), inviteText(invite),
       );
+      // Mark them as needing setup only once the mail is actually away. Set it
+      // before the send and a Resend failure would lock a teacher who never
+      // got an invitation behind a form they cannot escape.
+      const { error: flagErr } = await db
+        .from("profiles").update({ setup_complete: false }).eq("id", user.id);
+      if (flagErr) throw flagErr;
       console.log(`      sent, resend id ${id}`);
       sent++;
     }

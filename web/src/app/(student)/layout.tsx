@@ -4,6 +4,7 @@ import { ClassBackdrop } from "@/components/app/class-backdrop";
 import { HoverTip } from "@/components/app/hover-tip";
 import { studentNav, studentMobileNav } from "@/lib/nav";
 import { currentProfile } from "@/lib/supabase/server";
+import { requireSetup } from "@/lib/account/require-setup";
 import { signedAvatarUrl } from "@/lib/account/avatar";
 
 export default async function StudentLayout({
@@ -14,6 +15,7 @@ export default async function StudentLayout({
   const profile = await currentProfile();
   if (!profile) redirect("/login");
   if (profile.role === "teacher") redirect("/teacher/home");
+  requireSetup(profile);
   if (!profile.is_active) redirect("/locked");
   return (
     <AppShell
