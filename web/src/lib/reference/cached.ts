@@ -74,7 +74,7 @@ export const getCachedSurahWords = unstable_cache(
   },
   // key carries the row shape — bumped when the select gains code_v1, so a
   // deploy never serves hour-old rows missing the new column
-  ["ref-quran-words-v3"],
+  ["ref-quran-words-v4"],
   { tags: ["reference"], revalidate: 3600 },
 );
 
@@ -93,7 +93,7 @@ export const getCachedPageWords = unstable_cache(
   },
   // v2: rows re-seeded from the by_page feed — page-boundary words were
   // mis-filed before (79:16 under p583); the key bump drops stale copies
-  ["ref-quran-page-words-v3"],
+  ["ref-quran-page-words-v4"],
   { tags: ["reference"], revalidate: 3600 },
 );
 
@@ -108,6 +108,6 @@ export const getCachedSurahStartPages = unstable_cache(
     if (error) throw error;
     return Object.fromEntries((data ?? []).map((r) => [r.surah_number, r.page_number])) as Record<number, number>;
   },
-  ["ref-surah-start-pages"],
+  ["ref-surah-start-pages-v2"],
   { tags: ["reference"], revalidate: 3600 },
 );

@@ -27,7 +27,7 @@ describe("fromRow", () => {
     expect(fromRow({
       surah_number: 114, ayah_number: 1, word_position: 5,
       text_uthmani: "١", code_v1: "ﭓ", code_v2: "ﱂ", is_end: true, page_number: 604, line_number: 12,
-    })).toEqual({ surah: 114, ayah: 1, position: 5, text: "١", glyph: "ﱂ", isEnd: true, page: 604, line: 12 });
+    })).toEqual({ surah: 114, ayah: 1, position: 5, text: "١", glyph: "ﭓ", isEnd: true, page: 604, line: 12 });
   });
 });
 

@@ -28,12 +28,12 @@ export type MushafPage = { page: number; lines: MushafLine[] };
 export const wordKey = (w: Pick<QuranWord, "surah" | "ayah" | "position">): string =>
   `${w.surah}:${w.ayah}:${w.position}`;
 
-// V2 only — never fall back to code_v1 per word: the glyph must match the
-// page font's edition, so a missing v2 glyph drops the PAGE to Unicode
-// rendering (the reader's glyphMode check) rather than mixing editions.
+// V1 (1405H) — the school's physical mushaf, confirmed by its own line
+// breaks (Al-Ikhlas splits لم يلد / ولم يولد). Glyph edition must match
+// the page fonts AND the seeded line data; never mix editions per word.
 export const fromRow = (r: QuranWordRow): QuranWord => ({
   surah: r.surah_number, ayah: r.ayah_number, position: r.word_position,
-  text: r.text_uthmani, glyph: r.code_v2, isEnd: r.is_end,
+  text: r.text_uthmani, glyph: r.code_v1, isEnd: r.is_end,
   page: r.page_number, line: r.line_number,
 });
 

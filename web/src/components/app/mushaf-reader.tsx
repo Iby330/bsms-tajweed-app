@@ -9,15 +9,8 @@ export type SurahNames = Record<number, { ar: string; en: string }>;
 
 const BASMALA = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ";
 
-// QUL's family naming for the 1421H print's per-page fonts
-const pageFont = (page: number) => `p${page}-v2`;
-
-/** Juz labels for the seeded range (pages 562–604 = juz 29–30); the print's
- *  running head spells them out. */
-const juzLabel = (page: number): string | null =>
-  page >= 582 && page <= 604 ? "الجزء الثلاثون"
-  : page >= 562 ? "الجزء التاسع والعشرون"
-  : null;
+// the 1405H print's per-page fonts (QCF v1)
+const pageFont = (page: number) => `QCF_P${String(page).padStart(3, "0")}`;
 
 /** A surah opens at this line when its first word sits on it — where the
  *  printed page carries the ornamental name band and the basmala. */
@@ -97,23 +90,14 @@ export function MushafReader({
           {pages
             .map(
               (p) =>
-                `@font-face{font-family:"${pageFont(p.page)}";src:url("/fonts/qcf2/p${p.page}.woff2") format("woff2");font-display:block;}`,
+                `@font-face{font-family:"${pageFont(p.page)}";src:url("/fonts/qcf/${pageFont(p.page)}.woff2") format("woff2");font-display:block;}`,
             )
             .join("\n")}
         </style>
       )}
       {pages.map((p) => {
-        const opening = p.lines[0]?.words[0];
-        const headName = opening ? surahNames?.[opening.surah] : undefined;
-        const juz = juzLabel(p.page);
         return (
         <section key={p.page} className={cn(glyphMode ? "mushaf-page" : "glass rounded-2xl px-5 py-6")}>
-          {glyphMode && (headName || juz) && (
-            <div className="mushaf-running-head" dir="rtl" lang="ar">
-              <span className="ar-ui">{headName ? `سُورَةُ ${headName.ar}` : ""}</span>
-              <span className="ar-ui">{juz ?? ""}</span>
-            </div>
-          )}
           <div className={cn(glyphMode ? "mushaf-body" : "mx-auto max-w-xl")}>
             <div className={cn(!glyphMode && "space-y-0.5")}>
               {p.lines.map((ln) => {

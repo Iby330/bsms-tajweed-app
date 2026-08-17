@@ -285,15 +285,6 @@ body::after {
   border-radius: 4px;
   padding: 1.1rem clamp(1.1rem, 4vw, 2rem) 0.9rem;
 }
-.mushaf-running-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  font-size: 0.95rem;
-  color: var(--ink-2);
-  margin-block-end: 0.4rem;
-  padding-inline: 0.15rem;
-}
 /* These metrics are QUL's own layout preview, copied verbatim and converted
    to em against a 30px reference (qul.tarteel.ai/resources/mushaf-layout/15;
    the platform is MIT-licensed). Page: 563.28px wide, 55.5px leading,
@@ -347,16 +338,17 @@ body::after {
   text-align-last: center;
 }
 
-/* the header: ornamental band ligature with the surah-name icon overlaid */
+/* the header: ornamental band ligature with the surah-name icon overlaid.
+   Sized to its slot — the band must never bleed into neighbouring lines. */
 .mushaf-header {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100%;
   font-family: "quran-icon";
-  font-size: 2.333em; /* 70px */
+  font-size: 2em;
   line-height: 1;
-  margin-block: -0.2em;
   font-feature-settings: "liga";
   font-variant-ligatures: discretionary-ligatures;
 }

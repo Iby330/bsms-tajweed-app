@@ -37,7 +37,6 @@ type ApiWord = {
   char_type_name: string; // "word" | "end"
   text_uthmani: string;
   code_v1: string; // glyph in the page's QCF v1 font (1405H print)
-  code_v2: string; // glyph in the page's QCF v2 font (1421H print)
   line_number: number;
 };
 type ApiVerse = { verse_key: string; words: ApiWord[] };
@@ -51,7 +50,7 @@ async function fetchPage(p: number): Promise<ApiVerse[]> {
   const verses: ApiVerse[] = [];
   for (let page = 1; ; page++) {
     const url =
-      `${API}/${p}?words=true&word_fields=text_uthmani,code_v1,code_v2,line_number,char_type_name` +
+      `${API}/${p}?words=true&word_fields=text_uthmani,code_v1,line_number,char_type_name` +
       `&per_page=50&page=${page}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`mushaf page ${p} (request page ${page}): HTTP ${res.status}`);
@@ -81,7 +80,10 @@ async function main() {
           word_position: w.position,
           text_uthmani: w.text_uthmani,
           code_v1: w.code_v1 ?? null,
-          code_v2: w.code_v2 ?? null,
+          // v2 glyphs pair with the v2 layout's OWN line data — requesting
+          // code_v2 flips the feed's line numbers to 1421H. The school's mushaf
+          // is the 1405 print, so this seed is v1-only and code_v2 stays null.
+          code_v2: null,
           is_end: w.char_type_name === "end",
           page_number: p,
           line_number: w.line_number,
