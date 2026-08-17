@@ -112,7 +112,10 @@ export default async function TeacherLesson({
         {(next || homework) && (
           <div className="box c12" style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
             {homework && (
-              <Link href={`/teacher/curriculum/${homework.number}`} className="chip due">
+              <Link
+                href={`/teacher/homework/${homework.number}?from=course`}
+                className="chip due"
+              >
                 This week&apos;s homework →
               </Link>
             )}

@@ -109,7 +109,9 @@ export default async function CurriculumBlock({
               module={m}
               series={course.series}
               homeworkHref={
-                m.homework ? `/teacher/curriculum/${m.homework.number}` : null
+                m.homework
+                  ? `/teacher/homework/${m.homework.number}?from=course`
+                  : null
               }
               homeworkNote={
                 m.homework
