@@ -58,15 +58,12 @@ export async function ReviewTab({
     const current = range.find((s) => s.current) ?? range[0];
     const requested = Number(pageParam);
     const fallback = startPages[current.number] ?? firstPage;
-    const paged = Number.isInteger(requested)
+    const page = Number.isInteger(requested)
       ? Math.min(Math.max(requested, firstPage), LAST_PAGE)
       : fallback;
-    // an open mushaf shows a spread: even (right) + odd (left) page
-    const base = paged % 2 === 1 ? paged - 1 : paged;
 
-    const [rowsRight, rowsLeft, mistakes] = await Promise.all([
-      getCachedPageWords(base),
-      base + 1 <= LAST_PAGE ? getCachedPageWords(base + 1) : Promise.resolve([]),
+    const [rows, mistakes] = await Promise.all([
+      getCachedPageWords(page),
       draftMistakes(draft.id),
     ]);
     const heatQuery = heatParam ? `&heat=${heatParam}` : "";
@@ -85,10 +82,10 @@ export async function ReviewTab({
         <ReviewLogger
           sessionId={draft.id}
           reciterName={pair.partnerName}
-          pages={groupIntoPages([...rowsRight, ...rowsLeft].map(fromRow))}
+          pages={groupIntoPages(rows.map(fromRow))}
           initialMistakes={mistakes}
           surahNames={surahNames}
-          pager={{ page: base, min: firstPage, max: LAST_PAGE, step: 2, basePath: `/hifz?tab=review${heatQuery}` }}
+          pager={{ page, min: firstPage, max: LAST_PAGE, basePath: `/hifz?tab=review${heatQuery}` }}
         />
       </div>
     );

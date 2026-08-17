@@ -394,7 +394,13 @@ body::after {
   transform-origin: center;
 }
 .mushaf-header .name {
+  /* centred in the band's window — the band became a block for scaleX,
+     which had dropped the name's static position to the bottom */
   position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: "surah-name-v4";
   font-size: 0.715em; /* 50px / 70px */
   line-height: 1;
