@@ -285,10 +285,10 @@ body::after {
   position: relative;
   inline-size: fit-content;
   margin-inline: auto;
-  font-size: clamp(0.95rem, 2.5vw, 1.45rem);
-  /* print margins minus the frame's own padding — the frame now sits
-     tight around the text, margins OUTSIDE it, as on the real page */
-  padding: 4.17em 3.77em 3.83em;
+  font-size: clamp(0.95rem, 2.5vw, 1.3rem);
+  /* enough margin to read as paper, tight enough that a two-page spread
+     fits the panel side by side */
+  padding: 1.2em 1em 1.5em;
   background: var(--card);
   border-radius: 4px;
 }
@@ -300,12 +300,22 @@ body::after {
 }
 .mushaf-pageno {
   position: absolute;
-  inset-block-end: 1.6em;
+  inset-block-end: 0.35em;
   inset-inline: 0;
   text-align: center;
-  font-size: 0.75em;
+  font-size: 0.95em;
   font-variant-numeric: tabular-nums;
   color: var(--muted-foreground);
+}
+/* an open mushaf: two facing pages, lower (even) page on the right as in
+   any RTL book; stacks when the viewport can't fit the pair */
+.mushaf-spread {
+  display: flex;
+  flex-wrap: wrap;
+  direction: rtl;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.7rem;
 }
 /* These metrics are QUL's own layout preview, copied verbatim and converted
    to em against a 30px reference (qul.tarteel.ai/resources/mushaf-layout/15;
@@ -329,24 +339,28 @@ body::after {
 }
 
 .mushaf-body {
-  /* the V1 fonts' natural line width — lines fill this without stretch */
-  max-inline-size: 14.6em;
+  /* the measure: audited across every seeded line (549 of them) by summing
+     glyph advances straight from the page fonts — the widest natural line
+     is 15.549em INCLUDING inter-word space advances (page 585). Anything
+     narrower WRAPPED (or now overflows); the measure must clear the max. */
+  max-inline-size: 15.6em;
   margin-inline: auto;
   direction: rtl;
   text-align: justify;
 }
 /* the fixed 15-line rhythm: every printed line, header and basmala included,
    occupies one slot. Print ratio: each slot is 399.6/15 = 26.64 units of a
-   244.6-unit line → 0.1089 × the 14.6em measure. */
+   244.6-unit line → 0.1089 × the 15.6em measure. */
 .mushaf-slot {
-  height: 1.59em;
+  height: 1.7em;
 }
 .qcf-line {
   font-size: inherit;
-  line-height: 1.59; /* fills its slot; glyph ink interleaves like print */
+  line-height: 1.7; /* fills its slot; glyph ink interleaves like print */
   text-align: justify;
   text-align-last: justify;
   unicode-bidi: isolate;
+  white-space: nowrap; /* lines are pre-broken by the print — never wrap */
 }
 .qcf-line > * {
   display: inline-block;
@@ -376,7 +390,7 @@ body::after {
      plumb line from its ends clears every ayah. Its glyph's natural aspect
      is 8.047 (measured from the font): 1.55em tall → 12.47em wide, and the
      measure is 14.6em → scaleX 1.171. Same slight ovalising Tarteel shows. */
-  transform: scaleX(1.171);
+  transform: scaleX(1.251); /* 15.6em measure / 12.47em natural band */
   transform-origin: center;
 }
 .mushaf-header .name {

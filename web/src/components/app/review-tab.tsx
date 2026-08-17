@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   draftMistakes, myActivePair, myDraftSession, partnerRange,
 } from "@/lib/hifz/review-queries";
@@ -10,7 +9,7 @@ import type { SurahNames } from "./mushaf-reader";
 import { ReviewLogger } from "./review-logger";
 import { StartReviewButton } from "./start-review-button";
 import { ReviewFeedback } from "./review-feedback";
-import { cn } from "@/lib/utils";
+import { SurahJump } from "./surah-jump";
 
 /** The seeded mushaf runs An-Nas back to Al-Mulk — pages 562–604. */
 const LAST_PAGE = 604;
@@ -59,38 +58,37 @@ export async function ReviewTab({
     const current = range.find((s) => s.current) ?? range[0];
     const requested = Number(pageParam);
     const fallback = startPages[current.number] ?? firstPage;
-    const page = Number.isInteger(requested)
+    const paged = Number.isInteger(requested)
       ? Math.min(Math.max(requested, firstPage), LAST_PAGE)
       : fallback;
+    // an open mushaf shows a spread: even (right) + odd (left) page
+    const base = paged % 2 === 1 ? paged - 1 : paged;
 
-    const [rows, mistakes] = await Promise.all([
-      getCachedPageWords(page),
+    const [rowsRight, rowsLeft, mistakes] = await Promise.all([
+      getCachedPageWords(base),
+      base + 1 <= LAST_PAGE ? getCachedPageWords(base + 1) : Promise.resolve([]),
       draftMistakes(draft.id),
     ]);
-    const onPage = new Set(rows.map((r) => r.surah_number));
     const heatQuery = heatParam ? `&heat=${heatParam}` : "";
 
     logging = (
       <div className="space-y-3">
-        <div className="flex flex-wrap gap-1.5">
-          {range.map((s) => (
-            <Link key={s.number}
-              href={`/hifz?tab=review${heatQuery}&page=${startPages[s.number] ?? firstPage}`}
-              className={cn(
-                "rounded-md border border-line px-2 py-1 text-xs transition-colors",
-                onPage.has(s.number) ? "bg-primary text-primary-foreground" : "hover:bg-muted",
-              )}>
-              {s.name_en}{s.current ? " · current" : ""}
-            </Link>
-          ))}
-        </div>
+        <SurahJump
+          basePath={`/hifz?tab=review${heatQuery}`}
+          options={range.map((s) => ({
+            number: s.number,
+            name: s.name_en,
+            page: startPages[s.number] ?? firstPage,
+            current: s.current,
+          }))}
+        />
         <ReviewLogger
           sessionId={draft.id}
           reciterName={pair.partnerName}
-          pages={groupIntoPages(rows.map(fromRow))}
+          pages={groupIntoPages([...rowsRight, ...rowsLeft].map(fromRow))}
           initialMistakes={mistakes}
           surahNames={surahNames}
-          pager={{ page, min: firstPage, max: LAST_PAGE, basePath: `/hifz?tab=review${heatQuery}` }}
+          pager={{ page: base, min: firstPage, max: LAST_PAGE, step: 2, basePath: `/hifz?tab=review${heatQuery}` }}
         />
       </div>
     );

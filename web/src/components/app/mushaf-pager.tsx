@@ -6,10 +6,12 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 /**
- * RTL page turning around one rendered mushaf page. The next page (higher
+ * RTL page turning around the rendered mushaf. The next page (higher
  * number) lies to the LEFT, as in a physical mushaf — the left arrow and a
  * rightward swipe both advance; the right arrow and a leftward swipe go
- * back. Neighbouring pages are prefetched so a turn feels immediate.
+ * back. Arrows sit mid-height at the sides, like holding the book's edges.
+ * `step` is 2 for a two-page spread. Neighbours are prefetched so a turn
+ * feels immediate.
  */
 export function MushafPager({
   page,
@@ -17,6 +19,7 @@ export function MushafPager({
   max,
   basePath,
   param = "page",
+  step = 1,
   children,
 }: {
   page: number;
@@ -24,6 +27,7 @@ export function MushafPager({
   max: number;
   basePath: string;   // already carries its ?tab=… query
   param?: string;     // query key this pager owns
+  step?: number;
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -33,10 +37,10 @@ export function MushafPager({
   };
 
   useEffect(() => {
-    if (page > min) router.prefetch(href(page - 1));
-    if (page < max) router.prefetch(href(page + 1));
+    if (page - step >= min) router.prefetch(href(page - step));
+    if (page + step <= max) router.prefetch(href(page + step));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, min, max, basePath, param]);
+  }, [page, min, max, step, basePath, param]);
 
   const startX = useRef<number | null>(null);
   return (
@@ -47,24 +51,33 @@ export function MushafPager({
           if (startX.current === null) return;
           const dx = e.clientX - startX.current;
           startX.current = null;
-          if (dx > 48) go(page + 1);      // dragged rightward → turn forward
-          else if (dx < -48) go(page - 1); // dragged leftward → turn back
+          if (dx > 48) go(page + step);      // dragged rightward → turn forward
+          else if (dx < -48) go(page - step); // dragged leftward → turn back
         }}
         className="touch-pan-y"
       >
         {children}
       </div>
-      <div className="mt-2 flex items-center justify-between">
-        <Button size="sm" variant="outline" disabled={page >= max}
-          onClick={() => go(page + 1)} aria-label="Next page">
-          <ChevronLeft className="size-4" aria-hidden />
-        </Button>
-        <span className="text-xs tabular-nums text-muted-foreground">{page}</span>
-        <Button size="sm" variant="outline" disabled={page <= min}
-          onClick={() => go(page - 1)} aria-label="Previous page">
-          <ChevronRight className="size-4" aria-hidden />
-        </Button>
-      </div>
+      <Button
+        size="sm"
+        variant="outline"
+        className="absolute left-0 top-1/2 z-10 -translate-y-1/2"
+        disabled={page + step > max}
+        onClick={() => go(page + step)}
+        aria-label="Next page"
+      >
+        <ChevronLeft className="size-4" aria-hidden />
+      </Button>
+      <Button
+        size="sm"
+        variant="outline"
+        className="absolute right-0 top-1/2 z-10 -translate-y-1/2"
+        disabled={page - step < min}
+        onClick={() => go(page - step)}
+        aria-label="Previous page"
+      >
+        <ChevronRight className="size-4" aria-hidden />
+      </Button>
     </div>
   );
 }

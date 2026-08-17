@@ -33,7 +33,7 @@ export function ReviewLogger({
   pages: MushafPage[];
   initialMistakes: MistakeRow[];   // the whole session — marks span pages
   surahNames?: SurahNames;
-  pager?: { page: number; min: number; max: number; basePath: string };
+  pager?: { page: number; min: number; max: number; basePath: string; step?: number };
 }) {
   const router = useRouter();
   const [marks, setMarks] = useState<Record<string, Mark>>(() =>

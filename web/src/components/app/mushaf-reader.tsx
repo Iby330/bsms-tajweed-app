@@ -84,7 +84,7 @@ export function MushafReader({
   };
 
   return (
-    <div className="space-y-4">
+    <div className={cn(glyphMode ? "mushaf-spread" : "space-y-4")}>
       {glyphMode && (
         <style>
           {pages
