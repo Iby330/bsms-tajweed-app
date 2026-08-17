@@ -5,6 +5,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { scopeLabel, teacherRoster } from "@/lib/teacher/scope";
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
+import { Rule } from "@/components/app/rule";
 import { moduleTitle } from "@/lib/curriculum/tree";
 import { seriesShort } from "@/lib/lessons/series";
 import { cn } from "@/lib/utils";
@@ -83,7 +84,10 @@ export default async function TeacherHomeworkDetail({
             {!hw.is_graded && " · ungraded"}
           </span>
         </div>
-        {title && <MixedText text={title} className="block text-sm text-muted-foreground" />}
+        {/* mt-3.5 is the 14px `.masthead p` gives its own paragraphs — without
+            it the module title sat flush against a 3.4rem heading while the
+            counts line below it kept the 14px, so the block read lopsided. */}
+        {title && <MixedText text={title} className="mt-3.5 block text-sm text-muted-foreground" />}
         <p className="text-xs tabular-nums text-muted-foreground">
           {approved} marked · {waiting} waiting · {missing} not submitted
         </p>
@@ -94,8 +98,11 @@ export default async function TeacherHomeworkDetail({
           No active students yet.
         </p>
       ) : (
-          <section className="space-y-2">
-            <h2 className="text-sm font-medium">{label}</h2>
+        <>
+          {/* The class name was an `h2` floating above an unwrapped panel, at a
+              rhythm of its own; it is the section heading, so it is a rule. */}
+          <Rule label={label} />
+          <div className="field">
             <ul className="box c12 divide-y divide-line" style={{ padding: 0, gap: 0 }}>
               {students.map((s) => {
                 const sub = subByStudent.get(s.id);
@@ -151,7 +158,8 @@ export default async function TeacherHomeworkDetail({
                 );
               })}
             </ul>
-          </section>
+          </div>
+        </>
       )}
     </>
   );

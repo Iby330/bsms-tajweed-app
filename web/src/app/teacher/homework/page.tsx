@@ -4,6 +4,7 @@ import { currentWeek, getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { scopeLabel, teacherRoster } from "@/lib/teacher/scope";
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
+import { Rule } from "@/components/app/rule";
 import { moduleTitle } from "@/lib/curriculum/tree";
 import { SERIES_LABELS, seriesRank } from "@/lib/lessons/series";
 import { cn } from "@/lib/utils";
@@ -187,14 +188,15 @@ export default async function TeacherHomework() {
         </p>
       </header>
 
-      <section className="space-y-3">
-        <div className="divider">
-          <span className="label">This week{week ? ` · Week ${week.number}` : ""}</span>
-          <span className="r" />
-          <span className="m" />
-        </div>
+      {/* No `space-y-*` on these sections: the utility overwrites the margins
+          `.divider` sets, which is the whole vertical rhythm of the page. The
+          panels take their spacing from `.field` instead — one hairline
+          between them, like every other section in the app. */}
+      <section>
+        <Rule label={`This week${week ? ` · Week ${week.number}` : ""}`} />
+        <div className="field">
         {thisWeekHws.length === 0 ? (
-          <p className="box c12  p-5 text-sm text-muted-foreground">
+          <p className="box c12 note">
             No homework is set for this week.
           </p>
         ) : (
@@ -223,39 +225,35 @@ export default async function TeacherHomework() {
             );
           })
         )}
+        </div>
       </section>
 
       {backlogHws.length > 0 && (
-        <section className="space-y-3">
-          <div className="divider">
-          <span className="label">Still waiting from earlier weeks</span>
-          <span className="r" />
-          <span className="m" />
-        </div>
-          {backlogHws.map((h) => {
-            const queue = pendingByHw.get(h.id) ?? [];
-            return (
-              <div key={h.id} className="box c12" style={{ padding: 0, gap: 0 }}>
-                <Link
-                  href={`/teacher/homework/${h.number}`}
-                  className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-4 py-3 transition-colors hover:bg-muted/60"
-                >
-                  <span className="text-sm font-medium">{hwHeading(h)}</span>
-                  <span className="shrink-0 text-xs tabular-nums text-warn">{queue.length} waiting</span>
-                </Link>
-                {queueRows(queue)}
-              </div>
-            );
-          })}
+        <section>
+          <Rule label="Still waiting from earlier weeks" />
+          <div className="field">
+            {backlogHws.map((h) => {
+              const queue = pendingByHw.get(h.id) ?? [];
+              return (
+                <div key={h.id} className="box c12" style={{ padding: 0, gap: 0 }}>
+                  <Link
+                    href={`/teacher/homework/${h.number}`}
+                    className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-4 py-3 transition-colors hover:bg-muted/60"
+                  >
+                    <span className="text-sm font-medium">{hwHeading(h)}</span>
+                    <span className="shrink-0 text-xs tabular-nums text-warn">{queue.length} waiting</span>
+                  </Link>
+                  {queueRows(queue)}
+                </div>
+              );
+            })}
+          </div>
         </section>
       )}
 
-      <section className="space-y-3">
-        <div className="divider">
-          <span className="label">All homework</span>
-          <span className="r" />
-          <span className="m" />
-        </div>
+      <section>
+        <Rule label="All homework" />
+        <div className="field">
         {/* Folders, not pages. Only the current term starts open, and a term
             running a single course skips the middle folder — clicking through
             "Tajweed" to reach the only thing inside it is a step for nothing. */}
@@ -328,6 +326,7 @@ export default async function TeacherHomework() {
             </details>
           );
         })}
+        </div>
       </section>
     </>
   );

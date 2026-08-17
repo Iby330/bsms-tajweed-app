@@ -1,4 +1,5 @@
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
+import { Rule } from "@/components/app/rule";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -30,19 +31,24 @@ export default async function Classes() {
         <p>
           All seven classes across the programme. Your own screens — homework,
           register, roster and hifz — cover your class only; opening someone
-          else&apos;s class from here arrives with admin accounts.
+          else’s class from here arrives with admin accounts.
         </p>
       </header>
 
-      {(["brothers", "sisters"] as const).map((section) => (
-        <section key={section} className="space-y-2">
-          <div className="divider">
-          <span className="label">{section}</span>
-          <span className="r" />
-          <span className="m" />
-        </div>
+      {/* No `space-y-*` here: the utility writes a margin onto every child but
+          the last, which outranks `.divider`'s own and cost these headings the
+          whole rhythm of the page. `.field` spaces the panel instead. */}
+      {(["brothers", "sisters"] as const).map((section) => {
+        const inSection = (classes ?? []).filter((c) => c.section === section);
+        // A section with no classes would otherwise draw an empty hairline frame.
+        if (inSection.length === 0) return null;
+
+        return (
+        <section key={section}>
+          <Rule label={section} />
+          <div className="field">
           <ul className="box c12 divide-y divide-line" style={{ padding: 0, gap: 0 }}>
-            {(classes ?? []).filter((c) => c.section === section).map((c) => {
+            {inSection.map((c) => {
               const isMine = c.id === mineId;
               return (
                 <li
@@ -70,8 +76,10 @@ export default async function Classes() {
               );
             })}
           </ul>
+          </div>
         </section>
-      ))}
+        );
+      })}
     </>
   );
 }
