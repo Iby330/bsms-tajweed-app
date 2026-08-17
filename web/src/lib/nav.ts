@@ -34,12 +34,15 @@ export const teacherNav: NavItem[] = [
   { href: "/teacher/attendance", label: "Register", icon: "calendar" },
   { href: "/teacher/roster", label: "Roster", icon: "users" },
   { href: "/teacher/hifz", label: "Hifdh", icon: "book" },
+  // Curriculum came off the rail when it was setup work — attach a lesson
+  // video, check a rubric, done once for the year. It is the teaching side of
+  // the courses now: the grid a class sees, each lesson playing in the app, and
+  // a homework's results read three ways. That is opened weekly, so it is back.
+  // Sixth, not third: the first five are the mobile tab bar, and the register
+  // is taken on a phone in the room.
+  { href: "/teacher/curriculum", label: "Curriculum", icon: "video" },
   { href: "/teacher/classes", label: "Classes", icon: "graduation" },
   { href: "/teacher/deposits", label: "Deposits", icon: "wallet" },
-  // Curriculum is deliberately absent. Attaching lesson videos and filling in
-  // rubrics is setup done once, in the codebase, not something a teacher does
-  // mid-year — so the page stays live at /teacher/curriculum for that work and
-  // off the rail, where it was one of nine competing for attention.
   { href: "/coming-soon/notifications", label: "Notifications", icon: "bell", comingSoon: true },
 ];
 export const teacherMobileNav: NavItem[] = teacherNav.slice(0, 5);
