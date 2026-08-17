@@ -57,7 +57,7 @@ export function HifzJourney({
   });
 
   return (
-    <section className="box c12" aria-label="Your surahs">
+    <section className="box c12 hifzindex" aria-label="Your surahs">
       {groups.map((g) => {
         const bound = HIZB_BOUNDS.find((b) => b.hizb === g.hizb);
         const inHizb = bound ? bound.to - bound.from + 1 : g.items.length;

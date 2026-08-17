@@ -35,6 +35,32 @@ export async function markSurahPassed(
   revalidatePath("/hifz");
 }
 
+/**
+ * Reword the comment on a surah already signed off.
+ *
+ * Passing and commenting used to be one act, so correcting a comment meant
+ * unmarking the surah and marking it again — which silently reset the date it
+ * was heard on. An update touches the comment and nothing else. A surah with
+ * no record matches no rows, which is a no-op rather than an error: the grid
+ * only offers this on cells it has already drawn as passed.
+ */
+export async function setSurahComment(
+  studentId: string,
+  surahNumber: number,
+  comment: string,
+): Promise<void> {
+  await requireTeacher();
+  const db = await supabaseServer();
+  const { error } = await db
+    .from("hifz_records")
+    .update({ teacher_comment: comment.trim() || null })
+    .eq("student_id", studentId)
+    .eq("surah_number", surahNumber);
+  if (error) throw new Error(error.message);
+  revalidatePath("/teacher/hifz");
+  revalidatePath("/hifz");
+}
+
 export async function unmarkSurah(studentId: string, surahNumber: number): Promise<void> {
   await requireTeacher();
   const db = await supabaseServer();

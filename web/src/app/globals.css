@@ -229,6 +229,18 @@ body::after {
   line-height: 2;
   unicode-bidi: isolate;
 }
+/* Size variants for the Qur'anic face, here beside the base rule rather than
+   with the components that use them. `.ar-quran` above is UNLAYERED, and an
+   unlayered declaration outranks every layered one however specific it is —
+   so a font-size for `.ar-quran` written inside `@layer components` is dead
+   on arrival. (Several such rules are: see `.cell .ar-quran` and
+   `.detail .ar-quran.big`, both of which currently render at 1.35em.)
+     · figure — the name standing in for a numeral in a stat box. The tight
+       line-height holds its line box to the height of a `.stat` figure, so
+       the caption below lands level with the captions either side of it.
+     · panel  — the name heading the teacher's sign-off panel. */
+.ar-quran.ar-figure { font-size: clamp(2rem, 3.6vw, 2.7rem); line-height: 1.06; align-self: start; }
+.ar-quran.ar-panel { font-size: 2rem; line-height: 1.4; }
 
 /* The mushaf itself — KFGQPC Uthmanic Hafs, the King Fahd Complex face the
    printed Madani page is set in. Only the review reader uses it; everything
@@ -1173,8 +1185,15 @@ body::after {
 
 /* — hifz: the year as a mushaf index — */
 @layer components {
-  .band { display: flex; align-items: center; gap: 12px; margin: 26px 0 10px; }
-  .band:first-of-type { margin-top: 0; }
+
+  /* Air BETWEEN hizb groups, and the section owns it. The band used to carry
+     `margin-top: 26px` cancelled on `:first-of-type`, which never once fired:
+     every group is its own wrapper div, so every band was the first of its
+     type inside it, and the whole index ran at the section's 14px gap with
+     the hizb captions sitting nearly on the grid above them. One gap here
+     rather than a margin as well, so the two can never stack. */
+  .hifzindex { gap: 26px; }
+  .band { display: flex; align-items: center; gap: 12px; margin: 0 0 10px; }
   .band .t { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.15em;
              text-transform: uppercase; color: var(--muted-foreground); }
   .band .r { flex: 1; height: 1px; background: var(--hair); }
@@ -1213,12 +1232,42 @@ body::after {
   .cell.done.sel:hover { background: var(--foreground); }
   .cell.sel .ar-quran { color: var(--background); }
   .cell.sel .en, .cell.sel .n, .cell.sel .cmt { color: var(--background); opacity: 0.75; }
+  /* The cells are the page's main control and had no focus state at all.
+     Inset, because the grid shares 1px rules — an outside ring would sit on
+     top of the neighbouring cell. */
+  .cell:focus-visible { outline: 2px solid var(--ring, var(--foreground)); outline-offset: -3px; }
+  .cell { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
   /* The pace rule, in words. It was an unlabelled hairline before. */
   .paceline { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
   .paceline .r { flex: 1; height: 1px; background: var(--foreground); }
   .paceline .t { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.13em;
                  text-transform: uppercase; color: var(--foreground); }
+
+  /* — the teacher's sign-off panel, hung off the bottom of its own band —
+     no top border: the panel is the open drawer of the grid above it, and a
+     second hairline against the grid's own read as a gap. */
+  /* Spacing here is pairs, not one flat gap: the label belongs to the field
+     under it, so it sits 7px off it and 20px clear of the heading above. */
+  .markpanel { border: 1px solid var(--border); border-top: none; background: var(--card);
+               padding: var(--pad); }
+  .markpanel .head { display: flex; align-items: flex-start; gap: 16px; }
+  /* Size lives on `.ar-panel` up with the base rule — a font-size for
+     `.ar-quran` cannot be set from in here. Colour can: the base sets none. */
+  .markpanel .head .ar-quran { color: var(--ok); }
+  .markpanel .who { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 9px; }
+  .markpanel .who b { font-size: 1.05rem; font-weight: 500; letter-spacing: -0.02em; }
+  /* `.facts` gaps both axes at 18px, which on a phone — where these wrap to
+     two lines — opened a gap you could read a sentence in. */
+  .markpanel .facts { row-gap: 5px; }
+  .markpanel .facts .hi { color: var(--ok); }
+  .markpanel .label { display: block; margin: 20px 0 7px; }
+  .markpanel .acts { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+                     margin-top: 14px; }
+  .markpanel .hint { font-size: 0.78rem; color: var(--muted-foreground); }
+  /* Bigger than the 22px icon buttons in a dense table: this one sits alone in
+     a wide panel, where a 22px target is a target you have to aim at. */
+  .markpanel .iconbtn { width: 28px; height: 28px; margin: -3px -5px 0 0; }
 
   .detail { border-top: 1px solid var(--hair); margin-top: 26px; padding-top: 22px;
             display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: start; }
