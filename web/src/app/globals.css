@@ -263,13 +263,48 @@ body::after {
   text-align: center;
   text-align-last: center;
 }
+/* ─── The printed page ────────────────────────────────────────────────
+   Everything below reproduces the 1405H Madani page: the double-rule
+   frame with its tinted band, the running head (surah right, juz left),
+   a text block whose measure scales WITH the type (em-based, so phones
+   get a smaller page rather than gappier lines), the ornamental surah
+   cartouche, and the print's own basmala calligraphy (vector-traced from
+   KFGQPC artwork; web/public/mushaf/basmala.svg). */
+
+.mushaf-page {
+  background: var(--card);
+  border: 1px solid color-mix(in oklab, var(--ok) 45%, var(--border));
+  box-shadow:
+    inset 0 0 0 3px var(--card),
+    inset 0 0 0 8px color-mix(in oklab, var(--ok) 16%, var(--card)),
+    inset 0 0 0 9px color-mix(in oklab, var(--ok) 45%, var(--border));
+  border-radius: 4px;
+  padding: 1.1rem clamp(1.1rem, 4vw, 2rem) 0.9rem;
+}
+.mushaf-running-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.95rem;
+  color: var(--ink-2);
+  margin-block-end: 0.4rem;
+  padding-inline: 0.15rem;
+}
+.mushaf-body {
+  max-inline-size: 18em;
+  margin-inline: auto;
+  /* one knob scales the whole page: lines, cartouche and basmala are all
+     em-sized against this */
+  font-size: clamp(1.02rem, 3.4vw, 1.95rem);
+}
+
 /* QCF v1 page-font lines — glyphs are the printed words, one font per page
    (lazy @font-face from the reader). Flex space-between spreads the
-   pre-shaped glyphs to both margins of the fixed measure, which is how the
+   pre-shaped glyphs to both margins of the measure, which is how the
    printed line fills its width (and how quran.com renders the same fonts);
    the print's centred lines (surah closings) get .centered instead. */
 .qcf-line {
-  font-size: clamp(1.15rem, 3.6vw, 2.05rem);
+  font-size: inherit;
   line-height: 1.9;
   display: flex;
   justify-content: space-between;
@@ -283,7 +318,8 @@ body::after {
 }
 
 /* The ornamental surah header of the printed page — one cartouche glyph per
-   surah (QUL's Surah Header font; see lib/quran/surah-header.ts). */
+   surah (QUL's Surah Header font; see lib/quran/surah-header.ts). Sized so
+   the band spans the text measure, as printed. */
 @font-face {
   font-family: "Surah Header";
   src: url("/fonts/surah-header-color.ttf") format("truetype");
@@ -291,13 +327,23 @@ body::after {
 }
 .surah-cartouche {
   font-family: "Surah Header";
-  /* the glyph is a wide band — sized so the frame spans the text measure,
-     as the printed header does */
-  font-size: clamp(3.2rem, 13vw, 7.5rem);
+  font-size: 3.7em;
   line-height: 1.2;
   display: block;
   text-align: center;
   unicode-bidi: isolate;
+}
+
+/* The print's basmala — its actual calligraphy, not a text font's. Drawn
+   via mask so it follows the ink colour in both themes. In the print it
+   spans ~58% of the text measure. */
+.basmala-print {
+  display: block;
+  margin: 0.35em auto;
+  inline-size: 58%;
+  aspect-ratio: 142.66 / 20.84;
+  background-color: currentColor;
+  mask: url("/mushaf/basmala.svg") center / contain no-repeat;
 }
 
 /* ─────────────────────────────────────────────────────────────────────

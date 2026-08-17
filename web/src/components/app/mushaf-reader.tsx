@@ -12,6 +12,13 @@ const BASMALA = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَ
 
 const pageFont = (page: number) => `QCF_P${String(page).padStart(3, "0")}`;
 
+/** Juz labels for the seeded range (pages 562–604 = juz 29–30); the print's
+ *  running head spells them out. */
+const juzLabel = (page: number): string | null =>
+  page >= 582 && page <= 604 ? "الجزء الثلاثون"
+  : page >= 562 ? "الجزء التاسع والعشرون"
+  : null;
+
 /** A surah opens at this line when its first word sits on it — where the
  *  printed page carries the ornamental name band and the basmala. */
 const surahStart = (ln: MushafLine): QuranWord | null => {
@@ -95,9 +102,19 @@ export function MushafReader({
             .join("\n")}
         </style>
       )}
-      {pages.map((p) => (
-        <section key={p.page} className="glass rounded-2xl px-5 py-6">
-          <div className="mx-auto max-w-xl">
+      {pages.map((p) => {
+        const opening = p.lines[0]?.words[0];
+        const headName = opening ? surahNames?.[opening.surah] : undefined;
+        const juz = juzLabel(p.page);
+        return (
+        <section key={p.page} className={cn(glyphMode ? "mushaf-page" : "glass rounded-2xl px-5 py-6")}>
+          {glyphMode && (headName || juz) && (
+            <div className="mushaf-running-head" dir="rtl" lang="ar">
+              <span className="ar-ui">{headName ? `سُورَةُ ${headName.ar}` : ""}</span>
+              <span className="ar-ui">{juz ?? ""}</span>
+            </div>
+          )}
+          <div className={cn(glyphMode ? "mushaf-body" : "mx-auto max-w-xl")}>
             <div className={cn(!glyphMode && "space-y-0.5")}>
               {p.lines.map((ln) => {
                 const opener = surahStart(ln);
@@ -125,10 +142,15 @@ export function MushafReader({
                         </div>
                       )
                     )}
-                    {opener && (
-                      <p dir="rtl" lang="ar" className="ar-mushaf centered mb-1 text-ink-2">
-                        {BASMALA}
-                      </p>
+                    {opener && glyphMode ? (
+                      // The print's own basmala calligraphy, vector-traced.
+                      <div className="basmala-print" role="img" aria-label={BASMALA} />
+                    ) : (
+                      opener && (
+                        <p dir="rtl" lang="ar" className="ar-mushaf centered mb-1 text-ink-2">
+                          {BASMALA}
+                        </p>
+                      )
                     )}
                     <div
                       dir="rtl"
@@ -148,12 +170,13 @@ export function MushafReader({
                 );
               })}
             </div>
-            <p className="mt-4 text-center text-[11px] tabular-nums text-muted-foreground">
+            <p className="mt-3 text-center text-[11px] tabular-nums text-muted-foreground">
               {p.page}
             </p>
           </div>
         </section>
-      ))}
+        );
+      })}
     </div>
   );
 }
