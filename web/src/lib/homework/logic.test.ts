@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseMarkInput } from "./logic";
+import { parseMarkInput, pctTone } from "./logic";
 
 /**
  * The marking screen types marks into a plain text field, so `min`/`max`/`step`
@@ -49,5 +49,23 @@ describe("parseMarkInput", () => {
     for (const raw of ["abc", "2a", "1.2.3", "-1", "--1", ".", "1e3", "٢"]) {
       expect(parseMarkInput(raw, 5)).toEqual({ value: null, valid: false });
     }
+  });
+});
+
+/** One set of bands for every percentage on the homework screens. */
+describe("pctTone", () => {
+  it("reads 80 and up as well done", () => {
+    expect(pctTone(80)).toBe("ok");
+    expect(pctTone(100)).toBe("ok");
+  });
+
+  it("reads the middle band as worth a look", () => {
+    expect(pctTone(50)).toBe("warn");
+    expect(pctTone(79.9)).toBe("warn");
+  });
+
+  it("reads below half as needing a conversation", () => {
+    expect(pctTone(49.9)).toBe("danger");
+    expect(pctTone(0)).toBe("danger");
   });
 });

@@ -189,6 +189,18 @@ export function markTone(marks: number, points: number): MarkTone {
   return "warn";
 }
 
+/**
+ * A percentage's tone: 80 and up reads well, 50 and up needs a look, below
+ * that needs a conversation. The same three bands the homework screens have
+ * always coloured a percentage with, in one place so a class average and a
+ * student's own mark are never coloured by different rules.
+ */
+export function pctTone(pct: number): MarkTone {
+  if (pct >= 80) return "ok";
+  if (pct >= 50) return "warn";
+  return "danger";
+}
+
 /** "2.5" not "2.50"; "3" not "3.00" — numeric columns arrive with scale. */
 export function fmtMarks(n: number): string {
   return String(Number(n.toFixed(2)));
