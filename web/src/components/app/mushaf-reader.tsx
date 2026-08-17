@@ -9,7 +9,8 @@ export type SurahNames = Record<number, { ar: string; en: string }>;
 
 const BASMALA = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ";
 
-const pageFont = (page: number) => `QCF_P${String(page).padStart(3, "0")}`;
+// QUL's family naming for the 1421H print's per-page fonts
+const pageFont = (page: number) => `p${page}-v2`;
 
 /** Juz labels for the seeded range (pages 562–604 = juz 29–30); the print's
  *  running head spells them out. */
@@ -96,7 +97,7 @@ export function MushafReader({
           {pages
             .map(
               (p) =>
-                `@font-face{font-family:"${pageFont(p.page)}";src:url("/fonts/qcf/${pageFont(p.page)}.woff2") format("woff2");font-display:block;}`,
+                `@font-face{font-family:"${pageFont(p.page)}";src:url("/fonts/qcf2/p${p.page}.woff2") format("woff2");font-display:block;}`,
             )
             .join("\n")}
         </style>

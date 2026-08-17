@@ -612,7 +612,6 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
-          setup_complete: boolean
           class_id: string | null
           created_at: string | null
           full_name: string
@@ -620,10 +619,10 @@ export type Database = {
           is_active: boolean
           role: Database["public"]["Enums"]["user_role"]
           section: Database["public"]["Enums"]["section_t"]
+          setup_complete: boolean
         }
         Insert: {
           avatar_url?: string | null
-          setup_complete?: boolean
           class_id?: string | null
           created_at?: string | null
           full_name: string
@@ -631,10 +630,10 @@ export type Database = {
           is_active?: boolean
           role?: Database["public"]["Enums"]["user_role"]
           section: Database["public"]["Enums"]["section_t"]
+          setup_complete?: boolean
         }
         Update: {
           avatar_url?: string | null
-          setup_complete?: boolean
           class_id?: string | null
           created_at?: string | null
           full_name?: string
@@ -642,6 +641,7 @@ export type Database = {
           is_active?: boolean
           role?: Database["public"]["Enums"]["user_role"]
           section?: Database["public"]["Enums"]["section_t"]
+          setup_complete?: boolean
         }
         Relationships: [
           {
@@ -724,6 +724,7 @@ export type Database = {
         Row: {
           ayah_number: number
           code_v1: string | null
+          code_v2: string | null
           is_end: boolean
           line_number: number
           page_number: number
@@ -734,6 +735,7 @@ export type Database = {
         Insert: {
           ayah_number: number
           code_v1?: string | null
+          code_v2?: string | null
           is_end?: boolean
           line_number: number
           page_number: number
@@ -744,6 +746,7 @@ export type Database = {
         Update: {
           ayah_number?: number
           code_v1?: string | null
+          code_v2?: string | null
           is_end?: boolean
           line_number?: number
           page_number?: number
@@ -997,6 +1000,7 @@ export type Database = {
           approved_by: string | null
           homework_id: string
           id: string
+          imported_marks: number | null
           is_late: boolean
           status: Database["public"]["Enums"]["sub_status"]
           student_id: string
@@ -1007,6 +1011,7 @@ export type Database = {
           approved_by?: string | null
           homework_id: string
           id?: string
+          imported_marks?: number | null
           is_late?: boolean
           status?: Database["public"]["Enums"]["sub_status"]
           student_id: string
@@ -1017,6 +1022,7 @@ export type Database = {
           approved_by?: string | null
           homework_id?: string
           id?: string
+          imported_marks?: number | null
           is_late?: boolean
           status?: Database["public"]["Enums"]["sub_status"]
           student_id?: string

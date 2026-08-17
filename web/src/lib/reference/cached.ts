@@ -65,7 +65,7 @@ export const getCachedSurahWords = unstable_cache(
   async (surahNumber: number) => {
     const { data, error } = await supabaseAdmin()
       .from("quran_words")
-      .select("surah_number, ayah_number, word_position, text_uthmani, code_v1, is_end, page_number, line_number")
+      .select("surah_number, ayah_number, word_position, text_uthmani, code_v1, code_v2, is_end, page_number, line_number")
       .eq("surah_number", surahNumber)
       .order("ayah_number")
       .order("word_position");
@@ -74,7 +74,7 @@ export const getCachedSurahWords = unstable_cache(
   },
   // key carries the row shape — bumped when the select gains code_v1, so a
   // deploy never serves hour-old rows missing the new column
-  ["ref-quran-words-v2"],
+  ["ref-quran-words-v3"],
   { tags: ["reference"], revalidate: 3600 },
 );
 
@@ -83,7 +83,7 @@ export const getCachedPageWords = unstable_cache(
   async (pageNumber: number) => {
     const { data, error } = await supabaseAdmin()
       .from("quran_words")
-      .select("surah_number, ayah_number, word_position, text_uthmani, code_v1, is_end, page_number, line_number")
+      .select("surah_number, ayah_number, word_position, text_uthmani, code_v1, code_v2, is_end, page_number, line_number")
       .eq("page_number", pageNumber)
       .order("surah_number")
       .order("ayah_number")
@@ -93,7 +93,7 @@ export const getCachedPageWords = unstable_cache(
   },
   // v2: rows re-seeded from the by_page feed — page-boundary words were
   // mis-filed before (79:16 under p583); the key bump drops stale copies
-  ["ref-quran-page-words-v2"],
+  ["ref-quran-page-words-v3"],
   { tags: ["reference"], revalidate: 3600 },
 );
 

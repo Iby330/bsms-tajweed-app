@@ -36,7 +36,8 @@ type ApiWord = {
   position: number;
   char_type_name: string; // "word" | "end"
   text_uthmani: string;
-  code_v1: string; // glyph in the page's QCF v1 font (1405 Madani mushaf)
+  code_v1: string; // glyph in the page's QCF v1 font (1405H print)
+  code_v2: string; // glyph in the page's QCF v2 font (1421H print)
   line_number: number;
 };
 type ApiVerse = { verse_key: string; words: ApiWord[] };
@@ -50,7 +51,7 @@ async function fetchPage(p: number): Promise<ApiVerse[]> {
   const verses: ApiVerse[] = [];
   for (let page = 1; ; page++) {
     const url =
-      `${API}/${p}?words=true&word_fields=text_uthmani,code_v1,line_number,char_type_name` +
+      `${API}/${p}?words=true&word_fields=text_uthmani,code_v1,code_v2,line_number,char_type_name` +
       `&per_page=50&page=${page}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`mushaf page ${p} (request page ${page}): HTTP ${res.status}`);
@@ -80,6 +81,7 @@ async function main() {
           word_position: w.position,
           text_uthmani: w.text_uthmani,
           code_v1: w.code_v1 ?? null,
+          code_v2: w.code_v2 ?? null,
           is_end: w.char_type_name === "end",
           page_number: p,
           line_number: w.line_number,
@@ -97,26 +99,33 @@ async function main() {
   await fetchPageFonts(rows);
 }
 
-/** The QCF v1 per-page fonts (nuqayah/qpc-fonts mirror) for every page the
- *  seed touched, into web/public/fonts/qcf/. Skips files already present. */
-const FONT_BASE = "https://raw.githubusercontent.com/nuqayah/qpc-fonts/master/mushaf-woff2";
+/** Per-page fonts for every page the seed touched. V2 (1421H, what the
+ *  reader renders) comes from QUL's CDN into web/public/fonts/qcf2/;
+ *  V1 (1405H, kept as fallback data) from the nuqayah mirror into
+ *  web/public/fonts/qcf/. Skips files already present. */
+const V1_BASE = "https://raw.githubusercontent.com/nuqayah/qpc-fonts/master/mushaf-woff2";
+const V2_BASE = "https://static-cdn.tarteel.ai/qul/fonts/quran_fonts/v2/woff2";
 
 async function fetchPageFonts(rows: Record<string, unknown>[]) {
   const { mkdirSync, existsSync, writeFileSync } = await import("node:fs");
-  const dir = join(repoRoot, "web/public/fonts/qcf");
-  mkdirSync(dir, { recursive: true });
   const pages = [...new Set(rows.map((r) => r.page_number as number))].sort((a, b) => a - b);
-  let fetched = 0;
-  for (const p of pages) {
-    const name = `QCF_P${String(p).padStart(3, "0")}.woff2`;
-    const dest = join(dir, name);
-    if (existsSync(dest)) continue;
-    const res = await fetch(`${FONT_BASE}/${name}`);
-    if (!res.ok) throw new Error(`${name}: HTTP ${res.status}`);
-    writeFileSync(dest, Buffer.from(await res.arrayBuffer()));
-    fetched++;
+  for (const [dirName, base, name] of [
+    ["web/public/fonts/qcf2", V2_BASE, (p: number) => `p${p}.woff2`],
+    ["web/public/fonts/qcf", V1_BASE, (p: number) => `QCF_P${String(p).padStart(3, "0")}.woff2`],
+  ] as const) {
+    const dir = join(repoRoot, dirName);
+    mkdirSync(dir, { recursive: true });
+    let fetched = 0;
+    for (const p of pages) {
+      const dest = join(dir, name(p));
+      if (existsSync(dest)) continue;
+      const res = await fetch(`${base}/${name(p)}`);
+      if (!res.ok) throw new Error(`${dirName}/${name(p)}: HTTP ${res.status}`);
+      writeFileSync(dest, Buffer.from(await res.arrayBuffer()));
+      fetched++;
+    }
+    console.log(`${dirName}: ${pages.length} needed, ${fetched} downloaded`);
   }
-  console.log(`page fonts: ${pages.length} needed (${pages[0]}–${pages[pages.length - 1]}), ${fetched} downloaded`);
 }
 
 main().catch((e) => {
