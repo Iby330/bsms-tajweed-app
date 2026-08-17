@@ -241,12 +241,6 @@ body::after {
      · panel  — the name heading the teacher's sign-off panel. */
 .ar-quran.ar-figure { font-size: clamp(2rem, 3.6vw, 2.7rem); line-height: 1.06; align-self: start; }
 .ar-quran.ar-panel { font-size: 2rem; line-height: 1.4; }
-/* tap — a passage whose every word is a target. Generous line-height because
-   the words carry a tap highlight that would otherwise collide with the line
-   above, and unlayered like its siblings: a font-size for .ar-quran written
-   inside @layer components never applies (see the note above). */
-.ar-quran.ar-tap { font-size: clamp(1.5rem, 3.4vw, 2rem); line-height: 2.1; text-align: center; }
-.ar-quran.ar-tap button { font: inherit; color: inherit; }
 
 /* The mushaf itself — KFGQPC Uthmanic Hafs, the King Fahd Complex face the
    printed Madani page is set in. Only the review reader uses it; everything
@@ -256,6 +250,30 @@ body::after {
   src: url("/fonts/uthmanic_hafs_v22.ttf") format("truetype");
   font-display: swap;
 }
+/* tap — a passage whose every word is a tap target ("find the ikhfā'").
+   Set in the SAME King Fahd face as the mushaf above, not in Amiri: the Madani
+   text carries marks Amiri has no glyph for — U+06ED, the small low meem that
+   rides with a tanwīn — so the browser fell back to whatever it had and drew
+   them as loose meems sitting beside the word. Uthmanic Hafs has them, and
+   draws them attached where they belong.
+   Generous line-height: every word wears a tap highlight, which would
+   otherwise collide with the line above. */
+.ar-tap {
+  font-family: "Uthmanic Hafs", var(--font-quran);
+  font-size: clamp(1.5rem, 3.4vw, 2rem);
+  line-height: 2.3;
+  text-align: center;
+  unicode-bidi: isolate;
+}
+
+@layer base {
+  /* The word buttons take the page's Qur'anic type rather than the UA's button
+     font. In `base` deliberately: written unlayered it would outrank the
+     Tailwind text-* utility coluring a selected word, which is precisely how a
+     tapped word turned into a solid blank block. */
+  .ar-tap button { font: inherit; color: inherit; }
+}
+
 .ar-mushaf {
   font-family: "Uthmanic Hafs", var(--font-quran);
   font-size: 1.7rem;

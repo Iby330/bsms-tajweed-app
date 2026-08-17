@@ -50,7 +50,7 @@ export function TapWords({
       <div
         dir="rtl"
         lang="ar"
-        className="ar-quran ar-tap rounded-lg border border-line bg-page px-4 py-5"
+        className="ar-tap rounded-lg border border-line bg-page px-4 py-5"
       >
         {ayahs.map((a) => (
           <span key={`${a.surah}:${a.ayah}`}>
@@ -73,11 +73,15 @@ export function TapWords({
                   className={cn(
                     "mx-[0.12em] rounded-md px-[0.2em] py-[0.05em] transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    !reveal && picked && "bg-ink text-background",
+                    // A tint and a ring rather than a solid fill: the word has
+                    // to stay READABLE while selected, and a filled chip means
+                    // relying on a text colour to sit on top of it — which is
+                    // how a tapped word became a blank block.
+                    !reveal && picked && "bg-ink/15 ring-1 ring-ink/50",
                     !reveal && !picked && !readOnly && "hover:bg-muted",
-                    hit && "bg-ok/20 text-ok",
-                    wrong && "bg-danger/20 text-danger line-through",
-                    missed && "bg-warn/15 text-warn ring-1 ring-warn/40",
+                    hit && "bg-ok/15 text-ok ring-1 ring-ok/50",
+                    wrong && "bg-danger/15 text-danger ring-1 ring-danger/50",
+                    missed && "bg-warn/10 text-warn ring-1 ring-warn/40",
                     readOnly && "cursor-default",
                   )}
                 >
