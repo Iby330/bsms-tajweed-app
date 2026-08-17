@@ -181,7 +181,12 @@ export default async function TeacherHome() {
       </div>
 
       <div className="field">
-          <StatTile label="Active students" value={roster.length || null} />
+          <StatTile
+            label="Active students"
+            value={roster.length || null}
+            sub="open the roster"
+            href="/teacher/roster"
+          />
           <StatTile
             label={`Class homework avg · T${termId}`}
             value={classAvg === null ? null : `${classAvg.toFixed(1)}%`}

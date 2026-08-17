@@ -106,3 +106,36 @@ export function nearestSessionDate(iso: string): string {
   for (let i = dates.length - 1; i >= 0; i--) if (dates[i] <= iso) return dates[i];
   return first;
 }
+
+/**
+ * The session to OPEN ON when nobody has asked for a date — itself if today is
+ * a lesson day, otherwise the next one coming.
+ *
+ * The counterpart to `nearestSessionDate`, and deliberately not a replacement
+ * for it. This one answers "which register am I about to take", so a Tuesday
+ * resolves forward to Thursday. `nearestSessionDate` answers "which real
+ * lesson did this typed date mean", and has to keep resolving backwards — used
+ * here, picking the 14th in the calendar would silently land on the 15th.
+ */
+export function nextSessionDate(iso: string): string {
+  const dates = sessionDates();
+  const first = dates[0];
+  const last = dates[dates.length - 1];
+  if (!ISO.test(iso) || iso <= first) return first;
+  if (iso > last) return last;
+  for (const d of dates) if (d >= iso) return d;
+  return last;
+}
+
+/**
+ * The taught date immediately before `iso`, or null if it is the year's first.
+ *
+ * Exists so the register can point at the session behind it: opening on the
+ * next lesson means the last one scrolls out of view, and a register nobody
+ * filled in is silent otherwise.
+ */
+export function previousSessionDate(iso: string): string | null {
+  const dates = sessionDates();
+  for (let i = dates.length - 1; i >= 0; i--) if (dates[i] < iso) return dates[i];
+  return null;
+}

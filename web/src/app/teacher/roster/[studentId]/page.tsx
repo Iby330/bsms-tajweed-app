@@ -10,7 +10,8 @@ import {
 } from "@/lib/dashboard/queries";
 import { getCachedSurahs } from "@/lib/reference/cached";
 import { teacherClass } from "@/lib/teacher/scope";
-import { expectedPassed } from "@/lib/hifz/pace";
+import { currentSurah, expectedSurah } from "@/lib/teacher/class-progress";
+import { expectedPassed, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { TermBars } from "@/components/app/term-bars";
 import { PaceMarker } from "@/components/app/pace-marker";
 import { ExamInput } from "@/components/app/exam-input";
@@ -106,6 +107,16 @@ export default async function StudentRecord({
 
   const expected = expectedPassed(new Date(), weeks, full.hifz?.target ?? 43);
 
+  // Where they ARE and where the calendar puts them, as surahs rather than
+  // counts. `currentSurah` is the first in their own run not yet signed off —
+  // not the deepest record, because sign-offs land out of order and the
+  // furthest surah passed would name one nobody is reciting on Thursday.
+  const run = full.hifz
+    ? memorisationList(full.hifz.startSurah, full.hifz.target, surahs as Surah[])
+    : [];
+  const onSurah = currentSurah(run, new Set((records ?? []).map((r) => r.surah_number)));
+  const dueSurah = expectedSurah(run, expected);
+
   return (
     <>
       <header className="masthead">
@@ -147,7 +158,12 @@ export default async function StudentRecord({
             <span className="v sm">{full.hifz?.passed ?? 0}</span>
             <span className="u">of {full.hifz?.target ?? 43}</span>
           </div>
-          <p className="note">{expected} expected by now</p>
+          {/* The count says how far along; the name says which surah to ask
+              for. Null once the target is done — nothing left to be on. */}
+          <p className="note">
+            {onSurah ? <>on {onSurah.name_en} · </> : full.hifz ? <>target complete · </> : null}
+            {expected} expected by now
+          </p>
         </div>
 
         <div className="box c3">
@@ -221,13 +237,28 @@ export default async function StudentRecord({
           <span className="label">Homework · every mark this year</span>
           {marks.length ? (
             <>
-              <div className="flex h-32 items-end gap-[3px]" role="img"
-                aria-label={`${marks.length} marked homeworks, averaging ${(marks.reduce((a, m) => a + m.pct, 0) / marks.length).toFixed(1)} per cent`}>
+              {/* Was role="img" with a summary label. That hides every
+                  descendant from assistive tech, which was harmless while the
+                  bars were inert spans and would have made them unreachable
+                  now they are links. A labelled group keeps the summary and
+                  the individual bars both readable. */}
+              <div
+                className="flex h-32 items-end gap-[3px]"
+                role="group"
+                aria-label={`${marks.length} marked homeworks, averaging ${(marks.reduce((a, m) => a + m.pct, 0) / marks.length).toFixed(1)} per cent`}
+              >
+                {/* Each bar opens its own homework. The chart was the only
+                    place naming a mark that had nowhere to go from — a teacher
+                    spotting the low bar wants that homework, not a hunt for it
+                    by number in the year tree. */}
                 {marks.map((m) => (
-                  <span
+                  <Link
                     key={m.number}
+                    href={`/teacher/homework/${m.number}`}
+                    aria-label={`${title.get(m.number) ?? `Homework ${m.number}`} — ${m.pct.toFixed(1)}%`}
                     className={cn(
-                      "min-w-0 flex-1 rounded-t-sm transition-colors",
+                      "min-w-0 flex-1 rounded-t-sm transition-colors hover:opacity-80",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       m.pct >= 80 ? "bg-viz-hw" : m.pct >= 50 ? "bg-warn/70" : "bg-danger/70",
                     )}
                     style={{ height: `${Math.max(m.pct, 2)}%` }}
@@ -257,6 +288,18 @@ export default async function StudentRecord({
             expected={expected}
             target={full.hifz?.target ?? 43}
           />
+          {/* The track above counts; these name the two positions, so the gap
+              between them reads as a gap rather than as arithmetic. */}
+          {onSurah && (
+            <p className="text-sm">
+              On{" "}
+              <span className="font-medium">{onSurah.name_en}</span>
+              <span dir="rtl" lang="ar" className="ar-quran ml-2 text-ok">{onSurah.name_ar}</span>
+              {dueSurah && dueSurah.number !== onSurah.number && (
+                <span className="text-muted-foreground"> · due to be on {dueSurah.name_en}</span>
+              )}
+            </p>
+          )}
           <Link href={`/teacher/hifz/${studentId}`} className="backstep" style={{ marginTop: 4 }}>
             Open the register to sign a surah off
           </Link>
@@ -304,7 +347,7 @@ export default async function StudentRecord({
         <StrikeDots strikes={thisTerm} />
 
         <div className="box c8">
-          <span className="label">Issue or withdraw a strike</span>
+          <span className="label">Strike record</span>
           <div>
             <StrikeManager
               studentId={studentId}

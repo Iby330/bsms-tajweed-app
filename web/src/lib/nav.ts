@@ -36,7 +36,10 @@ export const teacherNav: NavItem[] = [
   { href: "/teacher/hifz", label: "Hifdh", icon: "book" },
   { href: "/teacher/classes", label: "Classes", icon: "graduation" },
   { href: "/teacher/deposits", label: "Deposits", icon: "wallet" },
-  { href: "/teacher/curriculum", label: "Curriculum", icon: "settings" },
+  // Curriculum is deliberately absent. Attaching lesson videos and filling in
+  // rubrics is setup done once, in the codebase, not something a teacher does
+  // mid-year — so the page stays live at /teacher/curriculum for that work and
+  // off the rail, where it was one of nine competing for attention.
   { href: "/coming-soon/notifications", label: "Notifications", icon: "bell", comingSoon: true },
 ];
 export const teacherMobileNav: NavItem[] = teacherNav.slice(0, 5);

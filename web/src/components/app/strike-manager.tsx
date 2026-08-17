@@ -6,7 +6,7 @@ import { issueStrike, removeStrike, type StrikeReason } from "@/lib/strikes/acti
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -50,17 +50,20 @@ export function StrikeManager({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
+      {/* A bare digit was the whole control here — roughly a 20px target,
+          muted grey, sitting under a heading that made it read as a statistic
+          rather than something to press. It says what it does now. */}
       <DialogTrigger
         render={
           <button
             type="button"
             className={cn(
-              "rounded-md px-2 py-0.5 tabular-nums transition-colors hover:bg-muted",
-              count >= 3 ? "font-medium text-danger" : count > 0 ? "text-warn" : "text-muted-foreground",
+              buttonVariants({ variant: "outline", size: "sm" }),
+              count >= 2 && "border-danger/40 text-danger",
             )}
             title={`Strikes for ${studentName}`}
           >
-            {count}
+            {count === 0 ? "Issue a strike" : `Manage strikes · ${count} of 3`}
           </button>
         }
       />
@@ -94,6 +97,9 @@ export function StrikeManager({
                   disabled={pending}
                   onClick={() =>
                     startTransition(async () => {
+                      // Clear first: without this a failed removal left its
+                      // message on screen through every later attempt.
+                      setError(null);
                       const r = await removeStrike(s.id);
                       if (!r.ok) setError(r.error);
                       else router.refresh();

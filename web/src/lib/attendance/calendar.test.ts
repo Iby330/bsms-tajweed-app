@@ -6,6 +6,8 @@ import {
   holidayReason,
   isSessionDate,
   nearestSessionDate,
+  nextSessionDate,
+  previousSessionDate,
   sessionDates,
   sessionTypeFor,
 } from "./calendar";
@@ -102,6 +104,83 @@ describe("nearestSessionDate", () => {
 
   it("falls back to the first session for an unparseable date", () => {
     expect(nearestSessionDate("garbage")).toBe(YEAR_START);
+  });
+});
+
+describe("nextSessionDate", () => {
+  it("leaves a session date alone", () => {
+    expect(nextSessionDate("2026-10-05")).toBe("2026-10-05"); // Monday
+    expect(nextSessionDate("2026-10-08")).toBe("2026-10-08"); // Thursday
+  });
+
+  // The week the register is expected to walk through, day by day. Mon 5 Oct
+  // and Thu 8 Oct 2026 are the year's first two sessions.
+  it.each([
+    ["Tuesday", "2026-10-06", "2026-10-08"],
+    ["Wednesday", "2026-10-07", "2026-10-08"],
+    ["Friday", "2026-10-09", "2026-10-12"],
+    ["Saturday", "2026-10-10", "2026-10-12"],
+    ["Sunday", "2026-10-11", "2026-10-12"],
+  ])("resolves %s forward to the next lesson", (_day, from, expected) => {
+    expect(nextSessionDate(from)).toBe(expected);
+  });
+
+  it("is the opposite of nearestSessionDate on a non-lesson day", () => {
+    expect(nearestSessionDate("2026-10-07")).toBe("2026-10-05");
+    expect(nextSessionDate("2026-10-07")).toBe("2026-10-08");
+  });
+
+  it("opens on the first session before the year starts", () => {
+    expect(nextSessionDate("2026-08-13")).toBe(YEAR_START);
+    expect(nextSessionDate(YEAR_START)).toBe(YEAR_START);
+  });
+
+  it("stays on the last session once the year is over", () => {
+    expect(nextSessionDate("2027-07-01")).toBe("2027-05-27");
+    expect(nextSessionDate("2027-05-28")).toBe("2027-05-27");
+  });
+
+  it("falls back to the first session for an unparseable date", () => {
+    expect(nextSessionDate("garbage")).toBe(YEAR_START);
+  });
+
+  it("never returns a date that isn't taught", () => {
+    const dates = sessionDates();
+    for (const iso of ["2026-10-06", "2026-12-25", "2027-03-14", "2027-01-01"]) {
+      expect(dates).toContain(nextSessionDate(iso));
+    }
+  });
+
+  it("skips a holiday rather than landing on it", () => {
+    const [first] = Object.keys(HOLIDAYS);
+    if (!first) return; // no faculty calendar yet — nothing to assert
+    expect(nextSessionDate(first)).not.toBe(first);
+    expect(nextSessionDate(first) > first).toBe(true);
+  });
+});
+
+describe("previousSessionDate", () => {
+  it("steps back one lesson from a session date", () => {
+    expect(previousSessionDate("2026-10-08")).toBe("2026-10-05");
+    expect(previousSessionDate("2026-10-12")).toBe("2026-10-08");
+  });
+
+  it("is null for the year's first session — nothing sits behind it", () => {
+    expect(previousSessionDate(YEAR_START)).toBeNull();
+  });
+
+  it("is null for any date before the year opens", () => {
+    expect(previousSessionDate("2026-08-13")).toBeNull();
+  });
+
+  it("is the last session of the year for a date after it", () => {
+    expect(previousSessionDate("2027-07-01")).toBe("2027-05-27");
+  });
+
+  it("is strictly before its argument, never equal", () => {
+    for (const iso of sessionDates().slice(1, 20)) {
+      expect(previousSessionDate(iso)! < iso).toBe(true);
+    }
   });
 });
 
