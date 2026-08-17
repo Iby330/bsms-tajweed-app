@@ -1494,6 +1494,11 @@ body::after {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
     gap: 1px; background: var(--border); border: 1px solid var(--border);
   }
+  /* The container paints the hairlines, so an incomplete last row paints a
+     block of border colour where the missing cards would be. Fine at three
+     cards, conspicuous with one — which the locked section can be. Shrinking
+     the track to the cards present leaves whitespace instead of a slab. */
+  .cards.few { grid-template-columns: repeat(var(--n), minmax(258px, 340px)); width: fit-content; }
   .tcard {
     background: var(--card); padding: var(--pad); display: flex; flex-direction: column;
     gap: 13px; min-width: 0; transition: background 0.2s; text-decoration: none; color: inherit;
@@ -1503,6 +1508,26 @@ body::after {
   /* A module whose week has not opened yet: present, but visibly not yours. */
   .tcard.locked { opacity: 0.62; }
   .tcard.locked:hover { background: var(--card); }
+  /* — cover-art tiles (the courses index) — the card's padding moves inside
+     so the image can go edge to edge, as it does on the platforms this grid is
+     modelled on. — */
+  .cover-card { padding: 0; gap: 0; overflow: hidden; }
+  .cover-card .cover { position: relative; aspect-ratio: 16 / 9; width: 100%;
+                       background: color-mix(in oklab, var(--foreground) 6%, var(--card));
+                       border-bottom: 1px solid var(--border); overflow: hidden; }
+  .cover-card .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* The stand-in until real art lands: the course's own name, set the way the
+     masthead sets a name. */
+  .cover-card .plate { position: absolute; inset: 0; display: flex; flex-direction: column;
+                       align-items: center; justify-content: center; gap: 4px; text-align: center;
+                       padding: 0 16px; }
+  .cover-card .plate b { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.18em;
+                         text-transform: uppercase; color: var(--ink-3); font-weight: 400; }
+  .cover-card .plate i { font-style: normal; font-size: 1.05rem; font-weight: 500;
+                         letter-spacing: -0.02em; color: var(--ink-2); text-wrap: balance; }
+  .cover-card .tbody { padding: var(--pad); display: flex; flex-direction: column;
+                       gap: 0; flex: 1; min-width: 0; }
+  .cover-card .tbody .label { margin-bottom: 6px; }
   .tcard.current .label { color: var(--ok); }
   .tcard h2, .tcard h3 {
     margin: 0; font-size: 1.5rem; font-weight: 250; letter-spacing: -0.03em; line-height: 1.1;

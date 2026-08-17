@@ -1,164 +1,71 @@
-import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
-import { moduleTitle } from "@/lib/curriculum/tree";
-import { MixedText } from "@/components/app/mixed-text";
-import { StatTile } from "@/components/app/stat-tile";
-import { LessonVideoInput } from "@/components/app/lesson-video-input";
-import { SERIES_LABELS as SERIES } from "@/lib/lessons/series";
-import { cn } from "@/lib/utils";
+import { getCatalogue } from "@/lib/curriculum/catalogue";
+import { CourseTile } from "@/components/app/course-tile";
 
 export const dynamic = "force-dynamic";
 
-/** The whole year, exactly as imported — teachers can audit every module. */
+/**
+ * The programme, exactly as the students see it.
+ *
+ * Two things this page used to be and is not any more. It was a stack of
+ * collapsed term folders — every week of the year as rows to hunt through. And
+ * it was an audit dashboard: counts of questions, questions without a rubric,
+ * questions with no answer key. Those numbers described the shape of the import,
+ * not the teaching, and no one was going to act on "23 written answers marked by
+ * hand" — the marking screen already says so where it matters, on the script in
+ * front of you.
+ *
+ * So it is the students' grid, cover art and all, and the only difference is
+ * that a teacher can open everything: preparing Term 3 during Term 1 is the job,
+ * so no tile is ever locked for want of an unlock date. Clicking one opens its
+ * weeks, where the videos are attached and the homework lives.
+ */
 export default async function Curriculum() {
   const db = await supabaseServer();
-  const now = Date.now();
 
-  const [{ data: terms }, { data: weeks }, { data: lessons }, { data: homeworks },
-         { data: questions }, { data: subs }] = await Promise.all([
-    db.from("terms").select("id, starts_on, ends_on, exam_max").order("id"),
-    db.from("weeks").select("id, term_id, number, unlock_at").order("term_id").order("number"),
-    db.from("lessons").select("id, week_id, series, title, youtube_id, position").order("position"),
-    db.from("homeworks").select("id, week_id, number, title, series, total_marks, due_at, is_graded").order("number"),
-    db.from("questions").select("id, homework_id, points, rubric, needs_key, is_task, is_bonus, qtype"),
-    db.from("submissions").select("homework_id, status"),
+  const [{ blocks }, { data: weeks }, { data: lessons }, { data: homeworks }] = await Promise.all([
+    getCatalogue(),
+    db.from("weeks").select("id, term_id"),
+    db.from("lessons").select("week_id, series, youtube_id"),
+    db.from("homeworks").select("week_id, series"),
   ]);
 
-  // The term running today opens by default; the others start closed.
-  const currentTerm =
-    (terms ?? []).find((t) => Date.parse(t.starts_on) <= now && now <= Date.parse(t.ends_on))?.id ??
-    (terms ?? []).at(-1)?.id;
-
-  const qByHw = new Map<string, typeof questions>();
-  for (const q of questions ?? []) {
-    const list = qByHw.get(q.homework_id) ?? [];
-    list.push(q);
-    qByHw.set(q.homework_id, list);
-  }
-  const subByHw = new Map<string, { approved: number; pending: number }>();
-  for (const s of subs ?? []) {
-    const e = subByHw.get(s.homework_id) ?? { approved: 0, pending: 0 };
-    if (s.status === "approved") e.approved++; else e.pending++;
-    subByHw.set(s.homework_id, e);
-  }
-
-  const totalQ = questions?.length ?? 0;
-  const gradedQ = (questions ?? []).filter((q) => Number(q.points) > 0).length;
-  const needsRubric = (questions ?? []).filter(
-    (q) => (q.qtype === "text" || q.qtype === "paragraph") && Number(q.points) > 0 && !q.rubric && !q.is_task,
-  ).length;
-  const needsKey = (questions ?? []).filter((q) => q.needs_key).length;
+  const termOf = new Map((weeks ?? []).map((w) => [w.id, w.term_id]));
+  const inBlock = (row: { week_id: string; series: string }, series: string, termId: number | null) =>
+    row.series === series && termOf.get(row.week_id) === termId;
 
   return (
     <>
       <header className="masthead">
         <h1><span>Curriculum</span></h1>
         <p>
-          Every module, homework and question as imported from the Google Forms.
+          Every course in the programme, open to you whether or not it has
+          reached the students yet. Open one to attach a video or look at a
+          homework.
         </p>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Homeworks" value={homeworks?.length ?? 0} sub={`${lessons?.length ?? 0} lessons`} />
-        <StatTile label="Questions" value={totalQ} sub={`${gradedQ} carry marks`} />
-        <StatTile label="Need a rubric" value={needsRubric || "—"} sub="written answers marked by hand" />
-        <StatTile label="Marked by hand" value={needsKey || "—"} sub="grid questions, no answer key" />
+      <div className="cards">
+        {blocks.map((block) => {
+          const videos = (lessons ?? []).filter(
+            (l) => inBlock(l, block.series, block.termId) && l.youtube_id,
+          ).length;
+          const hw = (homeworks ?? []).filter((h) => inBlock(h, block.series, block.termId)).length;
+          return (
+            <CourseTile
+              key={`${block.series} ${block.termId}`}
+              block={block}
+              href={block.termId ? `/teacher/curriculum/c/${block.series}/${block.termId}` : null}
+              note={
+                block.termId
+                  ? `${videos} of ${block.moduleCount} with video` +
+                    (hw ? ` · ${hw} homework` : "")
+                  : undefined
+              }
+            />
+          );
+        })}
       </div>
-
-      {/* One term open at a time. All three expanded put every week of the
-          year on screen at once, which is a lot of rows to hunt through. The
-          current term opens by default, since that is the one being taught. */}
-      {(terms ?? []).map((term) => (
-        <details
-          key={term.id}
-          open={term.id === currentTerm}
-          className="folder group/term box c12"
-          style={{ padding: 0, gap: 0 }}
-        >
-          <summary className="flex cursor-pointer list-none flex-wrap items-baseline justify-between gap-2 px-4 py-3.5 transition-colors hover:bg-muted/60 [&::-webkit-details-marker]:hidden">
-            <span className="flex items-baseline gap-2">
-              <span
-                aria-hidden
-                className="text-xs text-muted-foreground transition-transform duration-200 group-open/term:rotate-90"
-              >
-                ▸
-              </span>
-              <span className="text-sm font-medium">Term {term.id}</span>
-              {term.id === currentTerm && <span className="label">current</span>}
-            </span>
-            <span className="text-xs tabular-nums text-muted-foreground">
-              {new Date(term.starts_on).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-              {" to "}
-              {new Date(term.ends_on).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-              {" · exam out of "}{term.exam_max}
-            </span>
-          </summary>
-
-          <div className="space-y-2 px-4 pb-4">
-            {(weeks ?? []).filter((w) => w.term_id === term.id).map((w) => {
-              const unlocked = Date.parse(w.unlock_at) <= now;
-              const wLessons = (lessons ?? []).filter((l) => l.week_id === w.id);
-              const wHw = (homeworks ?? []).filter((h) => h.week_id === w.id);
-              return (
-                <div key={w.id} className={cn(
-                  "rounded-lg border p-4",
-                  unlocked ? "border-line bg-card" : "border-dashed border-line",
-                )}>
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className={cn("text-sm font-medium", !unlocked && "text-muted-foreground")}>
-                      Week {w.number}
-                    </span>
-                    <span className="text-xs tabular-nums text-muted-foreground">
-                      {unlocked ? "released " : "unlocks "}
-                      {new Date(w.unlock_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                    </span>
-                  </div>
-
-                  {wLessons.length > 0 && (
-                    <ul className="mt-3 space-y-1">
-                      {wLessons.map((l) => (
-                        <li key={l.id} className="flex flex-wrap items-baseline gap-2 text-sm">
-                          <span className="w-1 shrink-0 text-muted-foreground">·</span>
-                          <MixedText text={moduleTitle(l.title) || l.title} className="min-w-0" />
-                          <span className="ml-auto shrink-0 text-xs text-muted-foreground">
-                            {SERIES[l.series]}
-                          </span>
-                          <LessonVideoInput lessonId={l.id} initial={l.youtube_id} />
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  {wHw.map((h) => {
-                    const qs = qByHw.get(h.id) ?? [];
-                    const stats = subByHw.get(h.id);
-                    const gaps = qs.filter(
-                      (q) => (q.qtype === "text" || q.qtype === "paragraph") && Number(q.points) > 0 && !q.rubric && !q.is_task,
-                    ).length;
-                    return (
-                      <Link key={h.id} href={`/teacher/curriculum/${h.number}`}
-                        className="mt-3 flex items-center justify-between gap-3 rounded-md border border-line bg-page px-3 py-2 transition-colors hover:border-ink/30">
-                        <span className="min-w-0">
-                          <span className="text-sm font-medium">
-                            {h.series === "tfp" ? "TFP" : "Homework"} {h.number > 100 ? h.number - 100 : h.number}
-                          </span>
-                          <MixedText text={` · ${h.title}`} className="text-xs text-muted-foreground" />
-                        </span>
-                        <span className="flex shrink-0 items-center gap-2 text-xs tabular-nums text-muted-foreground">
-                          {!h.is_graded && <span className="rounded bg-muted px-1.5 py-0.5">ungraded</span>}
-                          {gaps > 0 && <span className="rounded bg-warn/12 px-1.5 py-0.5 text-warn">{gaps} no rubric</span>}
-                          {stats && <span>{stats.approved} marked{stats.pending ? ` · ${stats.pending} waiting` : ""}</span>}
-                          <span>{qs.length} Q · {Number(h.total_marks)} marks</span>
-                        </span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
-        </details>
-      ))}
     </>
   );
 }
