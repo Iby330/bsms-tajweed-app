@@ -5,24 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseServer, currentProfile } from "@/lib/supabase/server";
 import { RECOVERY_COOKIE } from "./recovery";
-import { checkPassword, type PasswordResult } from "./password";
-
-/**
- * Supabase's own words are written for developers ("New password should be
- * different from the old password."), and some of them leak internals. These
- * are the two the user can actually do something about; anything else becomes
- * a plain apology rather than a raw error string on screen.
- */
-function humanise(message: string): string {
-  const m = message.toLowerCase();
-  if (m.includes("different from the old password")) {
-    return "That's already your password — pick a new one.";
-  }
-  if (m.includes("password should be") || m.includes("weak")) {
-    return "That password is too weak. Try a longer one.";
-  }
-  return "Something went wrong updating your password. Try again.";
-}
+import { checkPassword, humanisePasswordError, type PasswordResult } from "./password";
 
 /**
  * Set your own display name.
@@ -46,7 +29,17 @@ export async function setOwnName(fullName: string): Promise<PasswordResult> {
 
   const db = await supabaseServer();
   const { error } = await db.from("profiles").update({ full_name: name }).eq("id", profile.id);
-  if (error) return { ok: false, message: humanise(error.message) };
+  // Not the password humaniser, which this used to borrow: a failure to save a
+  // NAME answering "Something went wrong updating your password" is a message
+  // about the wrong thing entirely.
+  if (error) return { ok: false, message: "Something went wrong saving your name. Try again." };
+
+  // The app reads names from `profiles` alone, but the Supabase dashboard reads
+  // `raw_user_meta_data.full_name`, so a rename that stops here leaves the
+  // Users table still calling them by the placeholder name their account was
+  // seeded with. Not fatal if it fails — the app is already correct — so the
+  // name change is not reported as a failure over it.
+  await db.auth.updateUser({ data: { full_name: name } });
 
   // Every screen that shows a name reads it from profiles, and most are
   // cached per-route, so the whole shell needs re-rendering rather than /account.
@@ -107,7 +100,7 @@ export async function changePassword(
     password: newPassword,
     current_password: currentPassword,
   });
-  if (error) return { ok: false, message: humanise(error.message) };
+  if (error) return { ok: false, message: humanisePasswordError(error.message) };
 
   return { ok: true };
 }
@@ -145,7 +138,7 @@ export async function setPasswordAfterRecovery(
   }
 
   const { error } = await db.auth.updateUser({ password: newPassword });
-  if (error) return { ok: false, message: humanise(error.message) };
+  if (error) return { ok: false, message: humanisePasswordError(error.message) };
 
   // Spent. Leaving it would let the next person at this browser set the
   // password again without a fresh link.
