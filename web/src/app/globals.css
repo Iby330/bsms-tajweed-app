@@ -291,8 +291,10 @@ body::after {
 }
 .surah-cartouche {
   font-family: "Surah Header";
-  font-size: 3.1em;
-  line-height: 1.15;
+  /* the glyph is a wide band — sized so the frame spans the text measure,
+     as the printed header does */
+  font-size: clamp(3.2rem, 13vw, 7.5rem);
+  line-height: 1.2;
   display: block;
   text-align: center;
   unicode-bidi: isolate;
