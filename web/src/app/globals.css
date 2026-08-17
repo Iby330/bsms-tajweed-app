@@ -286,14 +286,17 @@ body::after {
   inline-size: fit-content;
   margin-inline: auto;
   font-size: clamp(0.95rem, 2.5vw, 1.45rem);
-  padding: 4.57em 4.12em 4.23em;
+  /* print margins minus the frame's own padding — the frame now sits
+     tight around the text, margins OUTSIDE it, as on the real page */
+  padding: 4.17em 3.77em 3.83em;
   background: var(--card);
-  border: 1px solid color-mix(in oklab, var(--ok) 45%, var(--border));
-  box-shadow:
-    inset 0 0 0 3px var(--card),
-    inset 0 0 0 8px color-mix(in oklab, var(--ok) 16%, var(--card)),
-    inset 0 0 0 9px color-mix(in oklab, var(--ok) 45%, var(--border));
   border-radius: 4px;
+}
+/* the print's thin double-rule frame, hugging the text block */
+.mushaf-frame {
+  border: 1px solid color-mix(in oklab, var(--ok) 45%, var(--border));
+  box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3px color-mix(in oklab, var(--ok) 40%, var(--border));
+  padding: 0.4em 0.35em;
 }
 .mushaf-pageno {
   position: absolute;
@@ -366,6 +369,15 @@ body::after {
   line-height: 1;
   font-feature-settings: "liga";
   font-variant-ligatures: discretionary-ligatures;
+}
+.mushaf-header .band {
+  display: block;
+  /* the band spans the full measure — the widest ink on the page, so a
+     plumb line from its ends clears every ayah. Its glyph's natural aspect
+     is 8.047 (measured from the font): 1.55em tall → 12.47em wide, and the
+     measure is 14.6em → scaleX 1.171. Same slight ovalising Tarteel shows. */
+  transform: scaleX(1.171);
+  transform-origin: center;
 }
 .mushaf-header .name {
   position: absolute;

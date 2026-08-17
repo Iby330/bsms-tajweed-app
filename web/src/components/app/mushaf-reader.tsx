@@ -98,6 +98,7 @@ export function MushafReader({
       {pages.map((p) => {
         return (
         <section key={p.page} className={cn(glyphMode ? "mushaf-page" : "glass rounded-2xl px-5 py-6")}>
+          <div className={cn(glyphMode && "mushaf-frame")}>
           <div className={cn(glyphMode ? "mushaf-body" : "mx-auto max-w-xl")}>
             <div className={cn(!glyphMode && "space-y-0.5")}>
               {p.lines.map((ln) => {
@@ -129,7 +130,7 @@ export function MushafReader({
                       // it from the surah-name icon font.
                       <div className="mushaf-slot">
                         <div className="mushaf-header" aria-label={name?.en}>
-                          header
+                          <span className="band" aria-hidden>header</span>
                           <span className="name">{`surah${String(opener.surah).padStart(3, "0")}`}</span>
                         </div>
                       </div>
@@ -166,6 +167,7 @@ export function MushafReader({
                 {p.page}
               </p>
             )}
+          </div>
           </div>
           {glyphMode && <p className="mushaf-pageno">{p.page}</p>}
         </section>
