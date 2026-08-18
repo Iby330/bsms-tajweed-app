@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { MixedText } from "@/components/app/mixed-text";
-import { StatTile } from "@/components/app/stat-tile";
 import { Rule } from "@/components/app/rule";
 import { histogram, spread } from "@/lib/marking/responses";
 import { fmtMarks, pctTone } from "@/lib/homework/logic";
@@ -45,6 +44,33 @@ const barClass = (pct: number) => {
   );
 };
 
+/**
+ * One figure in the strip: label above, figure below, no card of its own.
+ *
+ * Label first so an unscored paper reads "Class average —" rather than a
+ * dash with nothing attached to it.
+ */
+function Stat({
+  label,
+  value,
+  unit,
+}: {
+  label: string;
+  value: string | number | null;
+  unit?: string;
+}) {
+  const empty = value === null || value === "";
+  return (
+    <div>
+      <span className="label">{label}</span>
+      <div className="fig">
+        <span className={cn("v", empty && "opacity-40")}>{empty ? "—" : value}</span>
+        {!empty && unit && <span className="u">{unit}</span>}
+      </div>
+    </div>
+  );
+}
+
 const STATE_LABEL: Record<SummaryRow["state"], string> = {
   approved: "released",
   provisional: "not approved",
@@ -59,7 +85,7 @@ const STATE_LABEL: Record<SummaryRow["state"], string> = {
  * The average counts provisional marks — a submission the model has scored but
  * the teacher has not approved — because the summary is most useful during
  * marking, not after it. Rows say which they are, and the count of unapproved
- * marks sits under the tiles, so nothing here is quoted as final when it isn't.
+ * marks sits under the strip, so nothing here is quoted as final when it isn't.
  */
 export function ResultsSummary({
   rows,
@@ -84,27 +110,21 @@ export function ResultsSummary({
 
   return (
     <>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile
-          label="Handed in"
-          value={handedIn}
-          sub={`of ${rows.length} student${rows.length === 1 ? "" : "s"}`}
-        />
-        <StatTile
-          label="Class average"
-          value={stats ? `${Math.round(stats.mean)}%` : null}
-          sub={stats ? `${stats.count} marked` : undefined}
-        />
-        <StatTile
-          label="Median"
-          value={stats ? `${Math.round(stats.median)}%` : null}
-          sub={stats ? "half the class above this" : undefined}
-        />
-        <StatTile
-          label="Range"
-          value={stats ? `${Math.round(stats.min)}–${Math.round(stats.max)}` : null}
-          sub={stats ? "lowest to highest, %" : undefined}
-        />
+      <div className="field">
+        <div className="box c12 statstrip">
+          <Stat
+            label="Handed in"
+            value={handedIn}
+            unit={`of ${rows.length}`}
+          />
+          <Stat label="Class average" value={stats ? `${Math.round(stats.mean)}%` : null} />
+          <Stat label="Median" value={stats ? `${Math.round(stats.median)}%` : null} />
+          <Stat
+            label="Range"
+            value={stats ? `${Math.round(stats.min)}–${Math.round(stats.max)}` : null}
+            unit="%"
+          />
+        </div>
       </div>
 
       {(provisional > 0 || waiting > 0) && (

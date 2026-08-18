@@ -41,7 +41,7 @@ describe("ResultsSummary", () => {
       row({ studentId: "a", name: "Aisha", marks: 10, pct: 100 }),
       row({ studentId: "b", name: "Bilal", state: "missing", marks: null, pct: null }),
     ]);
-    expect(container.textContent).toContain("of 2 students");
+    expect(container.textContent).toContain("of 2");
     expect(container.textContent).toContain("100%");
     expect(container.textContent).toContain("not submitted");
   });

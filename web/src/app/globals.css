@@ -739,6 +739,32 @@ body::after {
   .note { font-size: 0.83rem; color: var(--muted-foreground); }
   .trend { color: var(--ok); font-weight: 600; }
 
+  /* — the same figures, compressed into a single row —
+     Four `.box.c4` tiles stack below 800px, and four stacked tiles at
+     3.4rem each push everything under them off the screen. A strip keeps
+     its row at every width and shrinks the figures instead. */
+  .statstrip {
+    display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: auto auto;
+    gap: 0; padding: 0;
+  }
+  .statstrip:hover { background: var(--card); }
+  /* Subgrid so every figure sits on one line and every label on another, even
+     where a narrow column wraps its label onto two. Without it the cell that
+     wraps drops its figure below the other three. */
+  .statstrip > div {
+    min-width: 0; display: grid; grid-row: span 2; grid-template-rows: subgrid; gap: 7px;
+    padding: clamp(13px, 1.7vw, 19px) clamp(8px, 1.5vw, 22px);
+  }
+  .statstrip > div + div { border-left: 1px solid var(--border); }
+  .statstrip .label { font-size: 0.6rem; letter-spacing: 0.12em; }
+  .statstrip .v {
+    font-size: clamp(1.05rem, 4.4vw, 2.1rem); font-weight: 200;
+    letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums;
+  }
+  .statstrip .u { font-size: 0.78rem; font-weight: 400; color: var(--ink-3); margin-left: 5px; }
+  /* A range is two numbers and a dash — it must never break across lines. */
+  .statstrip .fig { white-space: nowrap; align-self: end; }
+
   /* — rows — */
   .rowlist { list-style: none; margin: 0; padding: 0; }
   /* Rows run to the panel's edges. The tint and the rule that separate rows
