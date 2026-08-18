@@ -52,24 +52,96 @@ const { createClient } = requireFromWeb("@supabase/supabase-js");
 
 /* ── what to build ───────────────────────────────────────────────────── */
 
-const HOMEWORK_NUMBER = 107; // TFP 7 — no submissions, ungraded: a safe sandbox
-const SURAH = 78; // An-Naba'
-const FROM_AYAH = 12;
-const TO_AYAH = 18;
-const RULE = "ikhfa";
-const POINTS = 4;
-const POSITION = 99; // last on the paper, so it never renumbers the real questions
+/**
+ * Every knob is a flag, so building the next one is a command rather than an
+ * edit. The four that matter are the ones a teacher actually decides: which
+ * rule to spot, which passage to spot it in, what the question says, and what
+ * it is worth.
+ */
+const arg = (name: string, fallback?: string): string => {
+  const i = process.argv.indexOf(`--${name}`);
+  const value = i >= 0 ? process.argv[i + 1] : undefined;
+  if (value === undefined || value.startsWith("--")) {
+    if (fallback !== undefined) return fallback;
+    throw new Error(`missing --${name}`);
+  }
+  return value;
+};
 
-const PROMPT =
-  "Tap every word where ikhfā’ happens in this passage (An-Naba’ 12–18). " +
-  "Ikhfā’ sits where a nūn sākin or tanwīn meets one of its fifteen letters — " +
-  "so when the two are in different words, tap BOTH of them.";
+const COMMIT = process.argv.includes("--commit");
+const DELETE = process.argv.includes("--delete");
+const HELP = process.argv.includes("--help") || process.argv.includes("-h");
+
+const HOMEWORK_NUMBER = Number(arg("homework", "107"));
+const SURAH = Number(arg("surah", "78"));
+const FROM_AYAH = Number(arg("from", "12"));
+const TO_AYAH = Number(arg("to", "18"));
+const RULE = arg("rule", "ikhfa");
+const POINTS = Number(arg("points", "4"));
+/** Last on the paper by default, so it never renumbers the real questions. */
+const POSITION = Number(arg("position", "99"));
+
+/** The 18 rules the annotation set knows, and what each one is called here. */
+const RULES: Record<string, string> = {
+  ikhfa: "ikhfā’",
+  ikhfa_shafawi: "ikhfā’ shafawī",
+  idghaam_ghunnah: "idghām with ghunna",
+  idghaam_no_ghunnah: "idghām without ghunna",
+  idghaam_shafawi: "idghām shafawī",
+  idghaam_mutajaanisain: "idghām mutajānisayn",
+  idghaam_mutaqaaribain: "idghām mutaqāribayn",
+  iqlab: "iqlāb",
+  ghunnah: "ghunna",
+  qalqalah: "qalqala",
+  madd_2: "madd of 2 ḥarakāt",
+  madd_246: "madd of 2, 4 or 6 ḥarakāt",
+  madd_muttasil: "madd muttaṣil",
+  madd_munfasil: "madd munfaṣil",
+  madd_6: "madd of 6 ḥarakāt",
+  hamzat_wasl: "hamzat al-waṣl",
+  lam_shamsiyyah: "lām shamsiyya",
+  silent: "a silent letter",
+};
+
+/**
+ * Said in the question when nothing better is given. It has to state the
+ * both-words convention: a rule routinely sits across a word boundary, and a
+ * student who does not know that is being marked on a convention rather than
+ * on tajweed.
+ */
+const defaultPrompt = () =>
+  `Tap every word where ${RULES[RULE] ?? RULE} happens in this passage ` +
+  `(${SURAH}:${FROM_AYAH}–${TO_AYAH}). When the rule sits across two words, ` +
+  `tap BOTH of them.`;
+
+const PROMPT = arg("prompt", defaultPrompt());
 
 const SOURCE =
   "https://raw.githubusercontent.com/cpfair/quran-tajweed/master/output/tajweed.hafs.uthmani-pause-sajdah.json";
 
 /** Tanzil prefixes the first ayah of a surah with the basmala. */
 const BASMALA = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
+
+if (HELP) {
+  console.log(`
+Build a "tap the rule" question from sourced tajweed annotations.
+
+  --homework N   homework NUMBER to attach to        (default 107)
+  --surah N      surah                               (default 78)
+  --from N       first ayah                          (default 12)
+  --to N         last ayah                           (default 18)
+  --rule NAME    one of: ${Object.keys(RULES).join(", ")}
+  --points N     marks for the question              (default 4)
+  --position N   position on the paper               (default 99)
+  --prompt "…"   the question text                   (default: generated)
+  --commit       write it (otherwise a dry run)
+  --delete       remove the question at --position from --homework
+
+Dry run prints the passage with the key marked, so the wording and the key can
+be checked before anything is written.
+`);
+  process.exit(0);
+}
 
 /* ── setup ───────────────────────────────────────────────────────────── */
 
@@ -81,9 +153,6 @@ for (const line of readFileSync(join(repoRoot, "web/.env.local"), "utf8").split(
 const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 });
-
-const COMMIT = process.argv.includes("--commit");
-const DELETE = process.argv.includes("--delete");
 
 type Annotation = { rule: string; start: number; end: number };
 type Record_ = { surah: number; ayah: number; annotations: Annotation[] };
