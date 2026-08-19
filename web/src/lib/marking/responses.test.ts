@@ -202,6 +202,41 @@ describe("questionStats", () => {
     const stats = questionStats([{ id: "task", points: 0 }], [ans("s1", "task", { final: 0 })]);
     expect(stats[0].pctOfMax).toBe(0);
   });
+
+  it("counts how many marked scripts dropped a mark, ignoring unmarked ones", () => {
+    const stats = questionStats(questions, [
+      ans("s1", "q1", { final: 4 }), // full marks
+      ans("s2", "q1", { final: 3 }), // dropped one
+      ans("s3", "q1", { auto: 0 }), // dropped the lot
+      ans("s4", "q1", {}), // not marked — not known to be wrong
+    ]);
+    expect(stats[0]).toMatchObject({ marked: 3, dropped: 2 });
+  });
+
+  it("counts nobody as dropping a mark on a question worth none", () => {
+    const stats = questionStats([{ id: "task", points: 0 }], [ans("s1", "task", { final: 0 })]);
+    expect(stats[0].dropped).toBe(0);
+  });
+
+  it("ranks the most-missed question by head, not by mean", () => {
+    // q1 is worth 4 and everybody took half of it; q2 is worth 2 and three of
+    // four missed it outright. q1 has the worse mean, q2 the worse headcount.
+    const stats = questionStats(questions, [
+      ans("s1", "q1", { final: 2 }),
+      ans("s2", "q1", { final: 2 }),
+      ans("s3", "q1", { final: 2 }),
+      ans("s4", "q1", { final: 2 }),
+      ans("s1", "q2", { final: 2 }),
+      ans("s2", "q2", { final: 0 }),
+      ans("s3", "q2", { final: 0 }),
+      ans("s4", "q2", { final: 0 }),
+    ]);
+    expect(stats[0]).toMatchObject({ dropped: 4, pctOfMax: 50 });
+    expect(stats[1]).toMatchObject({ dropped: 3, pctOfMax: 25 });
+    // ranked by mean q2 leads; ranked by head q1 does, and they disagree
+    expect(stats[1].pctOfMax).toBeLessThan(stats[0].pctOfMax);
+    expect(stats[1].dropped).toBeLessThan(stats[0].dropped);
+  });
 });
 
 // ─── tallyOptions ───────────────────────────────────────────────────────────

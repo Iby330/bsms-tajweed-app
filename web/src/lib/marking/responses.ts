@@ -156,6 +156,11 @@ export type QuestionStat = {
   blank: number;
   /** Of those, the ones carrying a mark. */
   marked: number;
+  /** Of the marked ones, how many did not take full marks — a headcount of
+   *  who got it wrong, which a mean cannot tell you. A 4-mark question the
+   *  whole class half-answered has a worse mean than a 1-mark question five
+   *  of six missed outright, and it is the second one that needs reteaching. */
+  dropped: number;
   /** Mean mark over the marked rows. */
   mean: number;
   /** That mean as a percentage of the question's own marks. */
@@ -186,6 +191,10 @@ export function questionStats(
       answered: rows.length,
       blank: rows.filter((a) => responseIsEmpty(a.response)).length,
       marked: marked.length,
+      // An unmarked script is not a wrong one, so `dropped` counts only rows
+      // that carry a mark. A question worth nothing can't be dropped either —
+      // `< 0` is false for every mark, which is the answer we want.
+      dropped: marked.filter((a) => Number(markOf(a) ?? 0) < points).length,
       mean,
       pctOfMax: points > 0 ? (mean / points) * 100 : 0,
     } satisfies QuestionStat;

@@ -24,6 +24,16 @@ export type HardQuestion = {
   points: number;
 };
 
+/** The question the most students got wrong, counted by head. */
+export type MissedQuestion = HardQuestion & {
+  /** Marked scripts that did not take full marks here. */
+  dropped: number;
+  /** Marked scripts in total — the denominator `dropped` is out of. */
+  marked: number;
+  /** Of the scripts that reached this question, how many left it empty. */
+  blank: number;
+};
+
 /** A chip: tinted ground, coloured text. */
 const toneClass = (pct: number) => {
   const tone = pctTone(pct);
@@ -91,12 +101,16 @@ export function ResultsSummary({
   rows,
   totalMarks,
   hardest,
+  mostMissed = null,
   questionHref,
 }: {
   rows: SummaryRow[];
   totalMarks: number;
   /** The questions the class scored worst on. Empty until something is marked. */
   hardest: HardQuestion[];
+  /** The one the most students got wrong, headlining the same section. Null
+   *  when nothing is marked yet, or when the class dropped no marks at all. */
+  mostMissed?: MissedQuestion | null;
   questionHref: string;
 }) {
   const scored = rows.filter((r) => r.pct !== null);
@@ -176,9 +190,41 @@ export function ResultsSummary({
         </>
       )}
 
-      {hardest.length > 0 && (
+      {(mostMissed || hardest.length > 0) && (
         <>
           <Rule label="Where the marks went" />
+
+          {mostMissed && (
+            <div className="field">
+              <Link href={questionHref} className="box c12 missed">
+                <span className="flex items-center justify-between gap-3">
+                  <span className="label">Most missed · Q{mostMissed.n}</span>
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-md px-2 py-0.5 text-xs font-medium tabular-nums",
+                      toneClass(mostMissed.pctOfMax),
+                    )}
+                  >
+                    {Math.round(mostMissed.pctOfMax)}%
+                  </span>
+                </span>
+                <MixedText text={mostMissed.prompt} className="line-clamp-3 text-sm" />
+                <p className="note">
+                  {mostMissed.dropped} of {mostMissed.marked} marked{" "}
+                  {mostMissed.marked === 1 ? "script" : "scripts"} dropped a mark here
+                  {mostMissed.blank > 0 && (
+                    <>
+                      , {mostMissed.blank} of them leaving it blank
+                    </>
+                  )}
+                  . The class took {Math.round(mostMissed.pctOfMax)}% of the{" "}
+                  {fmtMarks(mostMissed.points)} marks going.
+                </p>
+              </Link>
+            </div>
+          )}
+
+          {hardest.length > 0 && (
           <div className="field">
             <ul className="box c12 divide-y divide-line" style={{ padding: 0, gap: 0 }}>
               {hardest.map((q) => (
@@ -206,6 +252,7 @@ export function ResultsSummary({
               ))}
             </ul>
           </div>
+          )}
         </>
       )}
 

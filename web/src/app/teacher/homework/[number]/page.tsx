@@ -175,15 +175,40 @@ export default async function HomeworkResults({
     };
   });
 
-  // The questions that cost the class the most. Full marks all round is not a
-  // finding, so a question everyone got right drops out rather than heading a
-  // list called "where the marks went".
-  const hardest = questionStats(questions, answers)
+  // Questions worth marking a class against: answered, marked, and carrying
+  // marks of their own. A task is not a question and a zero-mark question
+  // cannot cost anybody anything.
+  const scoredQuestions = questionStats(questions, answers)
     .map((stat, i) => ({ stat, q: questions[i], n: i + 1 }))
-    .filter(
-      ({ stat, q }) =>
-        stat.marked > 0 && Number(q.points) > 0 && !q.is_task && stat.pctOfMax < 100,
-    )
+    .filter(({ stat, q }) => stat.marked > 0 && Number(q.points) > 0 && !q.is_task);
+
+  // The one the most students actually got wrong — a headcount, not a mean.
+  // The two disagree often enough to be worth asking separately: a 4-mark
+  // question everybody half-answered has the worse mean, while the 1-mark
+  // question five of six missed outright is the one to reteach. Ties go to
+  // the question that also kept the most marks.
+  const mostMissed =
+    scoredQuestions
+      .filter(({ stat }) => stat.dropped > 0)
+      .sort(
+        (a, b) => b.stat.dropped - a.stat.dropped || a.stat.pctOfMax - b.stat.pctOfMax,
+      )
+      .map(({ stat, q, n: position }) => ({
+        n: position,
+        prompt: q.prompt,
+        dropped: stat.dropped,
+        marked: stat.marked,
+        blank: stat.blank,
+        pctOfMax: stat.pctOfMax,
+        points: Number(q.points),
+      }))[0] ?? null;
+
+  // The questions that cost the class the most, ranked by the marks they kept.
+  // Full marks all round is not a finding, so a question everyone got right
+  // drops out rather than heading a list called "where the marks went" — and
+  // so does the one already named above it.
+  const hardest = scoredQuestions
+    .filter(({ stat, n }) => stat.pctOfMax < 100 && n !== mostMissed?.n)
     .sort((a, b) => a.stat.pctOfMax - b.stat.pctOfMax)
     .slice(0, 4)
     .map(({ stat, q, n: position }) => ({
@@ -341,6 +366,7 @@ export default async function HomeworkResults({
                 rows={rows}
                 totalMarks={totalMarks}
                 hardest={hardest}
+                mostMissed={mostMissed}
                 questionHref={tabHrefs.question}
               />
             )}
