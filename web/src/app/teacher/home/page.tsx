@@ -14,6 +14,11 @@ import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+/** Classes a board shows without collapsing. Above this the three-row window
+ *  comes back and the board offers "See all N classes" — the point at which a
+ *  list of classes stops being glanceable. */
+const CLASSES_SHOWN_IN_FULL = 8;
+
 export default async function TeacherHome() {
   const profile = (await currentProfile())!;
   const db = await supabaseServer();
@@ -257,6 +262,8 @@ export default async function TeacherHome() {
                 // Rows are classes here — highlight the teacher's own.
                 selfName: myClass?.name ?? "",
                 noun: "classes",
+                // A section has a handful of classes; show them all.
+                fullUpTo: CLASSES_SHOWN_IN_FULL,
               },
             ]}
           />

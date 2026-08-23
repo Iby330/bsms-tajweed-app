@@ -21,6 +21,9 @@ import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+/** Classes a board shows without collapsing — see the teacher home for why. */
+const CLASSES_SHOWN_IN_FULL = 8;
+
 export default async function StudentHome() {
   const profile = (await currentProfile())!;
   const now = new Date();
@@ -371,7 +374,9 @@ export default async function StudentHome() {
               selfName: profile.full_name, noun: "in my class" },
             { key: "classes", label: "All classes", rows: leaderboards.hifz.classes,
               // Rows are classes here, so "you" is the student's own class.
-              selfName: leaderboards.myClass ?? "", noun: "classes" },
+              // A section has a handful of classes; show them all.
+              selfName: leaderboards.myClass ?? "", noun: "classes",
+              fullUpTo: CLASSES_SHOWN_IN_FULL },
           ]}
         />
       </div>

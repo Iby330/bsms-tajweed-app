@@ -18,6 +18,14 @@ export type LbScope = {
   selfName: string;
   /** What a row is, for the empty state and the expand affordance. */
   noun: string;
+  /**
+   * Show the whole board, uncollapsed, up to this many rows. Defaults to the
+   * window size, because a board of PEOPLE can run to thirty and the window
+   * is what keeps it off the dashboard. A board of CLASSES is bounded by how
+   * many classes exist — four of them behind a "See all 4" button is a click
+   * that buys the reader one row — so those scopes raise it.
+   */
+  fullUpTo?: number;
 };
 
 /**
@@ -44,8 +52,9 @@ export function LeaderboardPanel({
   if (!scope) return null;
 
   const sorted = [...scope.rows].sort((a, b) => a.rank - b.rank);
-  const shown = expanded ? sorted : neighbours(scope.rows, scope.selfName);
-  const canExpand = sorted.length > shown.length || expanded;
+  const short = sorted.length <= (scope.fullUpTo ?? 3);
+  const shown = expanded || short ? sorted : neighbours(scope.rows, scope.selfName);
+  const canExpand = !short && (sorted.length > shown.length || expanded);
 
   return (
     <section className="box c6">

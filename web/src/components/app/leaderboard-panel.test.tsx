@@ -147,6 +147,51 @@ describe("LeaderboardPanel", () => {
     expect(container.querySelectorAll("li")).toHaveLength(0);
   });
 
+  it("shows all three classes whichever one is the teacher's own", () => {
+    // The complaint this fixes: a three-class board offered "See all 3" and
+    // hid a class behind it, because the window was centred on the teacher's
+    // class and clipped at whichever end it sat.
+    const classes = [row(1, "Hareer", 80), row(2, "Rayyan", 74), row(3, "Salsabeel", 61)];
+    for (const self of ["Hareer", "Rayyan", "Salsabeel"]) {
+      const { container, unmount } = render(
+        <LeaderboardPanel
+          title="Hifdh"
+          scopes={[{ key: "classes", label: "All classes", selfName: self, noun: "classes", rows: classes }]}
+        />,
+      );
+      expect(container.querySelectorAll("li")).toHaveLength(3);
+      expect(text(container)).not.toContain("See all");
+      unmount();
+    }
+  });
+
+  it("shows a whole class board in full, and collapses one that outgrows fullUpTo", () => {
+    const named = (n: number) =>
+      Array.from({ length: n }, (_, i) => row(i + 1, `Class ${i + 1}`, 90 - i));
+    const scope = (n: number): LbScope => ({
+      key: "classes", label: "All classes", selfName: "Class 1", noun: "classes",
+      fullUpTo: 8, rows: named(n),
+    });
+
+    // Four classes is what this section actually has — all four, no button.
+    const four = render(<LeaderboardPanel title="Hifdh" scopes={[scope(4)]} />);
+    expect(four.container.querySelectorAll("li")).toHaveLength(4);
+    expect(text(four.container)).not.toContain("See all");
+    four.unmount();
+
+    // Past the cap the window and the button both come back.
+    const nine = render(<LeaderboardPanel title="Hifdh" scopes={[scope(9)]} />);
+    expect(nine.container.querySelectorAll("li")).toHaveLength(3);
+    expect(text(nine.container)).toContain("See all 9 classes");
+  });
+
+  it("leaves a board of people collapsed — fullUpTo is opt-in", () => {
+    // classScope has six and sets no fullUpTo, so the window still applies.
+    const { container } = render(<LeaderboardPanel title="Homework" scopes={[classScope]} />);
+    expect(container.querySelectorAll("li")).toHaveLength(3);
+    expect(text(container)).toContain("See all 6");
+  });
+
   it("offers no expand affordance when the window already shows everything", () => {
     const scope: LbScope = { ...classScope, rows: classScope.rows.slice(0, 2) };
     const { container } = render(<LeaderboardPanel title="Homework" scopes={[scope]} />);
