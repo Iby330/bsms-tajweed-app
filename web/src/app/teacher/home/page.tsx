@@ -42,6 +42,17 @@ export default async function TeacherHome() {
     profile.section === "sisters" ? "sisters"
     : profile.section === "demo" ? "demo classes"
     : "brothers";
+  // The class-board equivalent: "All classes" used to mean this section's
+  // classes, so it is renamed to say so and the name is freed for the board
+  // that really does span the programme.
+  const cohortClassesLabel =
+    profile.section === "sisters" ? "Sisters' classes"
+    : profile.section === "demo" ? "Demo classes"
+    : "Brothers' classes";
+  // A demo viewer's "everyone" IS the demo cohort (migration 0020 isolates it
+  // in both directions), so the cross-section scope would duplicate the one
+  // above it. Offer it only where the two can differ.
+  const crossSection = profile.section !== "demo";
 
   // the queue is this teacher's own class — someone else's marking is not
   // their problem, and mixing it in buries their twenty students in a hundred
@@ -241,6 +252,17 @@ export default async function TeacherHome() {
                 selfName: "",
                 noun: cohortNoun,
               },
+              // Empty until migration 0021 lands, and an empty scope is not
+              // worth an option in the select.
+              ...(crossSection && leaderboards.homework.everyone.length
+                ? [{
+                    key: "everyone",
+                    label: "Everyone",
+                    rows: leaderboards.homework.everyone,
+                    selfName: "",
+                    noun: "students",
+                  }]
+                : []),
             ]}
           />
           <LeaderboardPanel
@@ -257,7 +279,7 @@ export default async function TeacherHome() {
                 : []),
               {
                 key: "classes",
-                label: "All classes",
+                label: cohortClassesLabel,
                 rows: leaderboards.hifz.classes,
                 // Rows are classes here — highlight the teacher's own.
                 selfName: myClass?.name ?? "",
@@ -265,6 +287,16 @@ export default async function TeacherHome() {
                 // A section has a handful of classes; show them all.
                 fullUpTo: CLASSES_SHOWN_IN_FULL,
               },
+              ...(crossSection && leaderboards.hifz.allClasses.length
+                ? [{
+                    key: "all-classes",
+                    label: "All classes",
+                    rows: leaderboards.hifz.allClasses,
+                    selfName: myClass?.name ?? "",
+                    noun: "classes",
+                    fullUpTo: CLASSES_SHOWN_IN_FULL,
+                  }]
+                : []),
             ]}
           />
       </div>

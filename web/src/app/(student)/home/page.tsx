@@ -53,6 +53,15 @@ export default async function StudentHome() {
     : profile.section === "demo" ? "demo classes"
     : "brothers";
   const cohortLabel = `All ${cohortNoun}`;
+  // "All classes" used to mean this section's classes; it is renamed to say so
+  // and the name goes to the board that really spans the programme (0021).
+  const cohortClassesLabel =
+    profile.section === "sisters" ? "Sisters' classes"
+    : profile.section === "demo" ? "Demo classes"
+    : "Brothers' classes";
+  // A demo viewer's "everyone" is the demo cohort either way (0020), so the
+  // cross-section scope would only repeat the one above it.
+  const crossSection = profile.section !== "demo";
 
   // A week can carry more than one course's homework — Term 3 week 1 has both
   // Tajweed 16 and TFP 1 — so `hws` is a list, not a single row.
@@ -365,6 +374,11 @@ export default async function StudentHome() {
               selfName: profile.full_name, noun: "in my class" },
             { key: "cohort", label: cohortLabel, rows: leaderboards.homework.cohort,
               selfName: profile.full_name, noun: cohortNoun },
+            // Empty until migration 0021 lands; an empty scope is no option.
+            ...(crossSection && leaderboards.homework.everyone.length
+              ? [{ key: "everyone", label: "Everyone", rows: leaderboards.homework.everyone,
+                   selfName: profile.full_name, noun: "students" }]
+              : []),
           ]}
         />
         <LeaderboardPanel
@@ -372,11 +386,16 @@ export default async function StudentHome() {
           scopes={[
             { key: "class", label: "My class", rows: leaderboards.hifz.mine,
               selfName: profile.full_name, noun: "in my class" },
-            { key: "classes", label: "All classes", rows: leaderboards.hifz.classes,
+            { key: "classes", label: cohortClassesLabel, rows: leaderboards.hifz.classes,
               // Rows are classes here, so "you" is the student's own class.
               // A section has a handful of classes; show them all.
               selfName: leaderboards.myClass ?? "", noun: "classes",
               fullUpTo: CLASSES_SHOWN_IN_FULL },
+            ...(crossSection && leaderboards.hifz.allClasses.length
+              ? [{ key: "all-classes", label: "All classes", rows: leaderboards.hifz.allClasses,
+                   selfName: leaderboards.myClass ?? "", noun: "classes",
+                   fullUpTo: CLASSES_SHOWN_IN_FULL }]
+              : []),
           ]}
         />
       </div>

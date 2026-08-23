@@ -1333,6 +1333,15 @@ export type Database = {
         }
         Relationships: []
       }
+      v_lb_hifz_class_all: {
+        Row: {
+          class_name: string | null
+          pct: number | null
+          rank: number | null
+          section: Database["public"]["Enums"]["section_t"] | null
+        }
+        Relationships: []
+      }
       v_lb_hifz_individual: {
         Row: {
           class_name: string | null
@@ -1350,6 +1359,16 @@ export type Database = {
           full_name: string | null
           pct: number | null
           rank: number | null
+        }
+        Relationships: []
+      }
+      v_lb_individual_all: {
+        Row: {
+          class_name: string | null
+          full_name: string | null
+          pct: number | null
+          rank: number | null
+          section: Database["public"]["Enums"]["section_t"] | null
         }
         Relationships: []
       }

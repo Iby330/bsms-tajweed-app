@@ -170,10 +170,16 @@ export type LbRow = { name: string; pct: number; rank: number };
  */
 export async function getHomeLeaderboards(className: string | null) {
   const db = await supabaseServer();
-  const [hwInd, hifzInd, hifzClass] = await Promise.all([
+  const [hwInd, hifzInd, hifzClass, hwAll, hifzClassAll] = await Promise.all([
     db.from("v_lb_individual").select("full_name, class_name, pct, rank, class_rank").order("rank"),
     db.from("v_lb_hifz_individual").select("full_name, class_name, pct, rank, class_rank").order("rank"),
     db.from("v_lb_hifz_class").select("class_name, pct, rank").order("rank"),
+    // Cross-section boards (migration 0021). Read defensively: this code ships
+    // ahead of the migration, and a missing view must cost the caller a scope,
+    // not a home page. `.error` is set rather than thrown, so an empty list is
+    // the whole failure mode and the callers already omit an empty scope.
+    db.from("v_lb_individual_all").select("full_name, class_name, pct, rank").order("rank"),
+    db.from("v_lb_hifz_class_all").select("class_name, pct, rank").order("rank"),
   ]);
 
   const myClass = className;
@@ -207,10 +213,14 @@ export async function getHomeLeaderboards(className: string | null) {
     homework: {
       mine: withinClass(hwInd.data),
       cohort: cohort(hwInd.data),
+      /** Both sections ranked together. Empty until 0021 is applied. */
+      everyone: hwAll.error ? [] : cohort(hwAll.data as IndRow[] | null),
     },
     hifz: {
       mine: withinClass(hifzInd.data),
       classes: classRows(hifzClass.data),
+      /** Every class in the programme, not just this section's. */
+      allClasses: hifzClassAll.error ? [] : classRows(hifzClassAll.data),
     },
   };
 }
