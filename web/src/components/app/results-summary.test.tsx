@@ -102,7 +102,7 @@ describe("ResultsSummary", () => {
     });
     expect(container.textContent).toContain("Most missed · Q5");
     expect(container.textContent).toContain("5 of 6 marked scripts dropped a mark here");
-    expect(container.textContent).toContain("2 of them leaving it blank");
+    expect(container.textContent).toContain("and 2 left it blank");
     expect(getByText("Name three masaa'il").closest("a")?.getAttribute("href")).toContain(
       "tab=question",
     );
@@ -118,7 +118,7 @@ describe("ResultsSummary", () => {
       pctOfMax: 40,
       points: 2,
     });
-    expect(container.textContent).toContain("dropped a mark here.");
+    expect(container.textContent).toContain("dropped a mark here \u2014 worth");
     expect(container.textContent).not.toContain("leaving it blank");
   });
 

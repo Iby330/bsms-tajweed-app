@@ -214,11 +214,10 @@ export function ResultsSummary({
                   {mostMissed.marked === 1 ? "script" : "scripts"} dropped a mark here
                   {mostMissed.blank > 0 && (
                     <>
-                      , {mostMissed.blank} of them leaving it blank
+                      , and {mostMissed.blank} left it blank
                     </>
                   )}
-                  . The class took {Math.round(mostMissed.pctOfMax)}% of the{" "}
-                  {fmtMarks(mostMissed.points)} marks going.
+                  {" "}— worth {fmtMarks(mostMissed.points)} marks.
                 </p>
               </Link>
             </div>

@@ -186,7 +186,7 @@ export default async function HomeworkResults({
   // The two disagree often enough to be worth asking separately: a 4-mark
   // question everybody half-answered has the worse mean, while the 1-mark
   // question five of six missed outright is the one to reteach. Ties go to
-  // the question that also kept the most marks.
+  // the question that kept the fewest of its marks — the harder of the two.
   const mostMissed =
     scoredQuestions
       .filter(({ stat }) => stat.dropped > 0)
