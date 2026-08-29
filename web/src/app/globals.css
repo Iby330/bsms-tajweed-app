@@ -711,6 +711,17 @@ body::after {
   .divider .r { flex: 1; height: 1px; background: var(--hair); }
   .divider .m { width: 5px; height: 5px; transform: rotate(45deg); background: var(--ok); flex: none; }
 
+  /* Every section on every screen is introduced by a `.divider`, which brings
+     its own top margin. The student home's overdue call-out is the one section
+     that is not — it is a bare `.field` straight after the masthead — so it
+     inherited no margin at all and sat flush against the student's name, while
+     the same screen for a teacher (whose first section IS a divider) had the
+     full gap. Give it the divider's margin so the two agree.
+
+     Only the overdue block can match: a masthead is followed by a `.divider`
+     everywhere else, and a caught-up student already reads correctly. */
+  .masthead + .field { margin-top: clamp(32px, 5vw, 54px); }
+
   /* — the hairline grid: panels share 1px rules, no floating cards — */
   .field {
     display: grid; grid-template-columns: repeat(12, 1fr); gap: 1px;
