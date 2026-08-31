@@ -243,8 +243,9 @@ body::after {
 .ar-quran.ar-panel { font-size: 2rem; line-height: 1.4; }
 
 /* The mushaf itself — KFGQPC Uthmanic Hafs, the King Fahd Complex face the
-   printed Madani page is set in. Only the review reader uses it; everything
-   else stays on Amiri Quran (--font-quran). */
+   printed Madani page is set in. The review reader, the tap
+   passage and the class verse use it; everything else stays on Amiri Quran
+   (--font-quran). */
 @font-face {
   font-family: "Uthmanic Hafs";
   src: url("/fonts/uthmanic_hafs_v22.ttf") format("truetype");
@@ -722,6 +723,34 @@ body::after {
      everywhere else, and a caught-up student already reads correctly. */
   .masthead + .field { margin-top: clamp(32px, 5vw, 54px); }
 
+  /* The passage a class is named after, under the class line in the masthead.
+     Both languages share one measure and one rag: the Arabic is dir=rtl so its
+     shaping and word order are right, but its line box is aligned left with
+     the English, because right-aligning it left the Arabic floating in the
+     middle of the column away from its own translation.
+
+     Set in Uthmanic Hafs, not Amiri: the Madani text carries U+06ED, the small
+     low meem that rides with a tanwīn, and Amiri has no glyph for it — the
+     browser substitutes and draws it as a loose meem beside the word. */
+  .classverse {
+    margin-top: 20px; max-width: 58ch;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .classverse .ar {
+    font-family: "Uthmanic Hafs", var(--font-quran), serif;
+    direction: rtl; text-align: left;
+    font-size: clamp(1.12rem, 1.55vw, 1.4rem); line-height: 2.15;
+    color: var(--foreground); text-wrap: pretty;
+  }
+  .classverse .en {
+    margin: 0; font-size: 0.92rem; line-height: 1.6;
+    color: var(--muted-foreground); text-wrap: pretty;
+  }
+  .classverse .src { display: block; }
+  /* the class's own word, in the accent the masthead already uses for `.hi` */
+  .classverse .w { color: var(--ok); }
+  @media (max-width: 900px) { .classverse { max-width: 100%; } }
+
   /* — the hairline grid: panels share 1px rules, no floating cards — */
   .field {
     display: grid; grid-template-columns: repeat(12, 1fr); gap: 1px;
@@ -1022,8 +1051,15 @@ body::after {
 /* — the class backdrop: photograph or geometry, always neutral, always
      fading into the page before it reaches the content — */
 @layer components {
-  :root { --photo-op: 0.30; --photo-filter: grayscale(0.32) brightness(1.16) contrast(0.76) sepia(0.10); }
-  .dark { --photo-op: 0.42; --photo-filter: grayscale(0.46) brightness(0.52) contrast(1.04); }
+  /* The class photograph keeps its own colour. It used to be drained by
+     grayscale(0.46) — which is why the Kaaba's kiswah band, An-Nabawi's sage
+     dome and Al-Aqsa's gilded one all read as grey, and why the four made
+     images looked alike. At a tenth of that the photograph carries the class's
+     colour by itself, so nothing here has to vary per class. The light-mode
+     sepia went with it: it was warming a picture that had had its warmth taken
+     out, and now it would only fight the image's own cast. */
+  :root { --photo-op: 0.38; --photo-filter: grayscale(0.06) brightness(1.12) contrast(0.80); }
+  .dark { --photo-op: 0.50; --photo-filter: grayscale(0.10) brightness(0.56) contrast(1.02); }
 
   .backdrop {
     position: fixed; top: 0; left: var(--rail-w, 0); right: 0; height: 72vh;
@@ -1047,7 +1083,11 @@ body::after {
     will-change: transform;
   }
   .backdrop-photo {
-    position: absolute; inset: 0; background-position: center bottom;
+    /* Centred, not bottom-anchored. The mosque photographs are wide enough to
+       have no vertical overflow at any width, so this changes nothing for
+       them; the made images are nearer the box's own shape and do overflow,
+       and anchoring those to the bottom cut the top off the subject. */
+    position: absolute; inset: 0; background-position: center center;
     background-size: cover; background-repeat: no-repeat;
     opacity: var(--photo-op); filter: var(--photo-filter);
   }

@@ -4,6 +4,7 @@ import { getTermsAndWeeks, currentTermId, getHomeLeaderboards, getClassProgress 
 import { StatTile } from "@/components/app/stat-tile";
 import { ClassProgress } from "@/components/app/class-progress";
 import { LeaderboardPanel } from "@/components/app/leaderboard-panel";
+import { ClassVerse } from "@/components/app/class-verse";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { MixedText } from "@/components/app/mixed-text";
 import { moduleTitle } from "@/lib/curriculum/tree";
@@ -130,6 +131,7 @@ export default async function TeacherHome() {
             </span>
           )}
         </div>
+        <ClassVerse className={myClass?.name ?? null} />
       </header>
 
       <div className="divider">

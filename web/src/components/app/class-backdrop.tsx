@@ -5,11 +5,17 @@ import { useEffect, useRef } from "react";
 /**
  * The class's own place, behind the page.
  *
- * Three of the seven classes are mosques and have a photograph. The other
- * four — Zukhruf, Hareer, Rayyan, Salsabeel — are Qur'anic names with no
- * building, so they get a geometric rosette instead. Everyone gets
- * something; nobody's screen looks like the unfinished version of someone
- * else's.
+ * All seven classes have a photograph. The three mosques are the buildings
+ * themselves; the four named from the Qur'an and the sunnah — Rayyan, Hareer,
+ * Salsabeel, Zukhruf — have an image made for the name: a gate, silk, a
+ * spring, gilded vessels. Each is composed for this slot, which hides its top
+ * quarter as parallax headroom and crops the sides, and each carries both a
+ * dark mass and a bright element so it survives on either page colour.
+ *
+ * The rosette below is no longer reached by any current class. It stays as
+ * the fallback for a class added before someone has made its picture —
+ * everyone gets something; nobody's screen looks like the unfinished version
+ * of someone else's.
  *
  * Whatever is shown, it is drawn in ONE neutral ink and sits behind a fade
  * to the page colour. Colour never varies by class — that was a deliberate
@@ -20,6 +26,10 @@ const PHOTOS: Record<string, string> = {
   "masjid an-nabawi": "/brand/classes/masjid-an-nabawi.jpg",
   "masjid al-haram": "/brand/classes/masjid-al-haram.jpg",
   "masjid al-aqsa": "/brand/classes/masjid-al-aqsa.jpg",
+  rayyan: "/brand/classes/rayyan.jpg",
+  hareer: "/brand/classes/hareer.jpg",
+  salsabeel: "/brand/classes/salsabeel.jpg",
+  zukhruf: "/brand/classes/zukhruf.jpg",
 };
 
 /** Fold count per class, for the four that aren't buildings. */

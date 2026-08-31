@@ -9,6 +9,7 @@ import { listHomework, bucketHomework, moduleTitle, weekContent } from "@/lib/cu
 import { expectedPassed } from "@/lib/hifz/pace";
 import { StrikeDots } from "@/components/app/strike-dots";
 import { LeaderboardPanel } from "@/components/app/leaderboard-panel";
+import { ClassVerse } from "@/components/app/class-verse";
 import { CountdownChip } from "@/components/app/countdown-chip";
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
@@ -166,6 +167,7 @@ export default async function StudentHome() {
             </span>
           )}
         </div>
+        <ClassVerse className={profile.classes?.name ?? null} />
       </header>
 
       {overdue.length > 0 && (
