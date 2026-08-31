@@ -248,7 +248,11 @@ body::after {
    (--font-quran). */
 @font-face {
   font-family: "Uthmanic Hafs";
-  src: url("/fonts/uthmanic_hafs_v22.ttf") format("truetype");
+  /* woff2 first — a third the size of the ttf, and now that the class verse
+     uses this face it is fetched on the home page, not only in the reader.
+     The ttf stays as the fallback. */
+  src: url("/fonts/uthmanic_hafs_v22.woff2") format("woff2"),
+       url("/fonts/uthmanic_hafs_v22.ttf") format("truetype");
   font-display: swap;
 }
 /* tap — a passage whose every word is a tap target ("find the ikhfā'").
