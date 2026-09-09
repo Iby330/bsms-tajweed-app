@@ -1,7 +1,8 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { getCachedSurahs } from "@/lib/reference/cached";
-import { scopeLabel, teacherRoster } from "@/lib/teacher/scope";
+import { scopeLabel, teacherClass, teacherRoster } from "@/lib/teacher/scope";
+import { timetableFor, weekdayNameFor } from "@/lib/attendance/calendar";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { HifzRegister, type RegisterRow } from "@/components/app/hifz-register";
 import { PairingPanel, type PairRow, type UnpairedStudent } from "@/components/app/pairing-panel";
@@ -13,11 +14,18 @@ export default async function TeacherHifz() {
 
   // The label and the roster both hang off the same cached class read, so
   // firing them together costs one class round trip rather than two.
-  const [{ weeks }, label, students] = await Promise.all([
+  const [{ weeks }, label, students, mine] = await Promise.all([
     getTermsAndWeeks(),
     scopeLabel(),
     teacherRoster(),
+    teacherClass(),
   ]);
+  // Which weekday hifdh falls on is a fact about the class, not the
+  // programme, and the sisters settle theirs each year.
+  const recitationDay = weekdayNameFor(
+    timetableFor(mine?.section ?? "brothers", mine?.name),
+    "hifdh",
+  );
   const ids = students.map((s) => s.id);
 
   const [{ data: progress }, surahs, { data: pairRows }] = await Promise.all([
@@ -69,7 +77,7 @@ export default async function TeacherHifz() {
       <header className="masthead">
         <h1><span>Hifdh register</span></h1>
         <p>
-          {label} · Thursday recitation. Colour shows each student against the calendar.
+          {label} · {recitationDay} recitation. Colour shows each student against the calendar.
           Select students to set their target.
         </p>
       </header>

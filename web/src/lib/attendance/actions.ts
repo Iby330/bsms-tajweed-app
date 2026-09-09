@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { supabaseServer, currentProfile } from "@/lib/supabase/server";
 import { sessionLabel, type SessionType } from "./session";
-import { isSessionDate, sessionTypeFor } from "./calendar";
+import { isSessionDate, sessionTypeFor, timetableFor, type Timetable } from "./calendar";
 
 async function requireTeacher() {
   const profile = await currentProfile();
@@ -12,15 +12,44 @@ async function requireTeacher() {
 }
 
 /**
+ * The timetable a class runs on, read from the class rather than taken from
+ * the caller.
+ *
+ * The timetable decides which weekdays are teaching days, so it is half of
+ * the validity check below — and a client that could name its own timetable
+ * could name one whose weekday happens to fit, which is the check defeated.
+ * It is an indexed primary-key lookup, so the cost is a round trip and
+ * nothing more.
+ */
+async function timetableOfClass(
+  db: Awaited<ReturnType<typeof supabaseServer>>,
+  classId: string,
+): Promise<Timetable | null> {
+  const { data } = await db
+    .from("classes").select("section, name").eq("id", classId).maybeSingle();
+  return data ? timetableFor(data.section, data.name) : null;
+}
+
+/**
  * The picker only offers taught dates, but a server action is a public
  * endpoint — nothing stops a crafted call writing a register for a Tuesday in
  * August. A row like that is invisible afterwards, since no date the UI can
  * reach would ever show it again.
+ *
+ * Both halves need the class's timetable now: a Wednesday is a tajweed
+ * session for the sisters and no session at all for the brothers, so "is this
+ * a lesson day" has no answer without knowing whose lesson.
  */
-function badSession(sessionDate: string, sessionType: SessionType): string | null {
-  if (!isSessionDate(sessionDate)) return `${sessionDate} is not a lesson day.`;
-  if (sessionTypeFor(sessionDate) !== sessionType) {
-    return `${sessionDate} is not a ${sessionLabel(sessionType)} session.`;
+function badSession(
+  sessionDate: string,
+  sessionType: SessionType,
+  timetable: Timetable,
+): string | null {
+  if (!isSessionDate(sessionDate, timetable)) {
+    return `${sessionDate} is not a lesson day for this class.`;
+  }
+  if (sessionTypeFor(sessionDate, timetable) !== sessionType) {
+    return `${sessionDate} is not a ${sessionLabel(sessionType)} session for this class.`;
   }
   return null;
 }
@@ -52,9 +81,12 @@ export async function setPresence({
   termId: number;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const teacher = await requireTeacher();
-  const invalid = badSession(sessionDate, sessionType);
-  if (invalid) return { ok: false, error: invalid };
   const db = await supabaseServer();
+
+  const timetable = await timetableOfClass(db, classId);
+  if (!timetable) return { ok: false, error: "That class no longer exists." };
+  const invalid = badSession(sessionDate, sessionType, timetable);
+  if (invalid) return { ok: false, error: invalid };
 
   const { data: existing } = await db
     .from("attendance")
@@ -126,9 +158,12 @@ export async function markAllPresent({
   sessionType: SessionType;
 }): Promise<{ ok: true; count: number } | { ok: false; error: string }> {
   const teacher = await requireTeacher();
-  const invalid = badSession(sessionDate, sessionType);
-  if (invalid) return { ok: false, error: invalid };
   const db = await supabaseServer();
+
+  const timetable = await timetableOfClass(db, classId);
+  if (!timetable) return { ok: false, error: "That class no longer exists." };
+  const invalid = badSession(sessionDate, sessionType, timetable);
+  if (invalid) return { ok: false, error: invalid };
   if (studentIds.length === 0) return { ok: true, count: 0 };
 
   // Don't silently wipe strikes already issued for this session — only fill in

@@ -1,7 +1,11 @@
 import { cache } from "react";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 
-export type TeacherClass = { id: string; name: string; section: string };
+import type { Section } from "@/lib/attendance/calendar";
+
+/** `section` is the enum, not a bare string: the teaching calendar keys off
+ *  it, and a widened string there was how a whole cohort got cast away. */
+export type TeacherClass = { id: string; name: string; section: Section };
 
 /**
  * A teacher's own class — what the teacher screens narrow down to.

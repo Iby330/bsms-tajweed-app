@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, fireEvent, cleanup, screen } from "@testing-library/react";
 import { SessionCalendar } from "./session-calendar";
+import { timetableFor } from "@/lib/attendance/calendar";
 
 // The grid is what's under test, not the router.
 const push = vi.hoisted(() => vi.fn());
@@ -20,8 +21,15 @@ beforeEach(() => push.mockClear());
 afterEach(cleanup);
 
 describe("SessionCalendar", () => {
-  const setup = (value = "2026-10-05") =>
-    render(<SessionCalendar value={value} today="2026-10-05" basePath="/teacher/attendance" />);
+  const setup = (value = "2026-10-05", section: "brothers" | "sisters" = "brothers") =>
+    render(
+      <SessionCalendar
+        value={value}
+        today="2026-10-05"
+        basePath="/teacher/attendance"
+        timetable={timetableFor(section)}
+      />,
+    );
 
   it("shows the whole month, not just the lesson days", () => {
     setup();
@@ -32,7 +40,7 @@ describe("SessionCalendar", () => {
     expect(days[30]).toBe("31");
   });
 
-  it("makes only Mondays and Thursdays selectable", () => {
+  it("makes only the brothers' Mondays and Thursdays selectable", () => {
     setup();
     const selectable = openGrid()
       .filter((el) => el.tagName === "BUTTON")
@@ -51,6 +59,28 @@ describe("SessionCalendar", () => {
     expect(inert).toContain(7); // Wednesday
     expect(inert).toContain(10); // Saturday
     expect(inert).toContain(1); // Thursday, but before the year starts
+  });
+
+  it("offers the sisters Wednesdays where the brothers get Thursdays", () => {
+    // The same October, drawn for the other section. This is the whole reason
+    // the calendar takes a section at all.
+    setup("2026-10-05", "sisters");
+    const selectable = openGrid()
+      .filter((el) => el.tagName === "BUTTON")
+      .map((el) => Number(el.textContent));
+    expect(selectable).toEqual([5, 7, 12, 14, 19, 21, 26, 28]);
+  });
+
+  it("closes the winter break to both sections", () => {
+    // December is inside the Term 1 -> Term 2 gap, so no day in it is a
+    // lesson day even though four Mondays fall there.
+    setup("2026-11-23");
+    fireEvent.click(screen.getByRole("button", { name: /Mon, 23 Nov 2026/ }));
+    fireEvent.click(screen.getByLabelText("Next month"));
+    const selectable = Array.from(document.querySelectorAll("button")).filter((el) =>
+      /^\d{1,2}$/.test(el.textContent ?? ""),
+    );
+    expect(selectable).toEqual([]);
   });
 
   it("navigates to the date that was picked", () => {

@@ -6,7 +6,7 @@
 export type IconName =
   | "home" | "video" | "clipboard" | "book" | "user"
   | "library" | "landmark" | "bell" | "check" | "users"
-  | "graduation" | "settings" | "calendar" | "wallet";
+  | "graduation" | "settings" | "calendar" | "calendar-range" | "wallet";
 
 export type NavItem = {
   href: string;
@@ -20,11 +20,15 @@ export const studentNav: NavItem[] = [
   { href: "/courses", label: "Courses", icon: "video" },
   { href: "/progress", label: "Progress", icon: "clipboard" },
   { href: "/hifz", label: "Hifdh", icon: "book" },
+  { href: "/calendar", label: "Calendar", icon: "calendar" },
   { href: "/coming-soon/resources", label: "Resources", icon: "library", comingSoon: true },
   { href: "/coming-soon/seerah", label: "Seerah", icon: "landmark", comingSoon: true },
   { href: "/coming-soon/notifications", label: "Notifications", icon: "bell", comingSoon: true },
 ];
-export const studentMobileNav: NavItem[] = studentNav.slice(0, 4);
+// Five, not four: the calendar answers "when is my next class", which is a
+// question asked on a phone more than anywhere else. The teacher bar has
+// carried five since the register joined it, so the shell already fits them.
+export const studentMobileNav: NavItem[] = studentNav.slice(0, 5);
 
 // Attendance sits inside the first five deliberately: the register is taken on
 // a phone, in the room, and the mobile tab bar only shows five.
@@ -41,6 +45,9 @@ export const teacherNav: NavItem[] = [
   // Sixth, not third: the first five are the mobile tab bar, and the register
   // is taken on a phone in the room.
   { href: "/teacher/curriculum", label: "Curriculum", icon: "video" },
+  // The year, not the register: this one is the term dates and the breaks,
+  // which is a different question from "who is in the room today".
+  { href: "/teacher/calendar", label: "Calendar", icon: "calendar-range" },
   { href: "/teacher/classes", label: "Classes", icon: "graduation" },
   { href: "/teacher/deposits", label: "Deposits", icon: "wallet" },
   { href: "/coming-soon/notifications", label: "Notifications", icon: "bell", comingSoon: true },

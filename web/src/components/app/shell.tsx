@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import {
   Moon, Sun, Home, PlaySquare, ClipboardList, BookOpenCheck, User, Library,
   Landmark, Bell, CheckSquare, Users, GraduationCap, Settings2, CalendarDays,
+  CalendarRange,
   LogOut, PanelLeftClose, Wallet, type LucideIcon,
 } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -20,7 +21,8 @@ const ICONS: Record<IconName, LucideIcon> = {
   home: Home, video: PlaySquare, clipboard: ClipboardList, book: BookOpenCheck,
   user: User, library: Library, landmark: Landmark, bell: Bell,
   check: CheckSquare, users: Users, graduation: GraduationCap,
-  settings: Settings2, calendar: CalendarDays, wallet: Wallet,
+  settings: Settings2, calendar: CalendarDays, "calendar-range": CalendarRange,
+  wallet: Wallet,
 };
 
 /**

@@ -288,17 +288,29 @@ async function main() {
   }
   console.log(`  ${strikeSpec.length} strikes`);
 
-  // ── attendance: last two Mondays + Thursdays ────────────────────────
-  const dates: [string, "monday" | "thursday"][] = [
-    ["2026-10-12", "monday"], ["2026-10-15", "thursday"],
-    ["2026-10-19", "monday"], ["2026-10-22", "thursday"],
-  ];
+  // ── attendance: two weeks of both classes ───────────────────────────
+  //
+  // The two sections are NOT on the same days. Tajweed is Monday for both,
+  // but hifdh is Thursday for the brothers and Wednesday for the sisters, so
+  // seeding a Thursday row for a sisters' class would be a register that the
+  // app itself considers impossible (see lib/attendance/calendar.ts).
+  const dates: Record<"brothers" | "sisters", [string, "tajweed" | "hifdh"][]> = {
+    brothers: [
+      ["2026-10-12", "tajweed"], ["2026-10-15", "hifdh"],
+      ["2026-10-19", "tajweed"], ["2026-10-22", "hifdh"],
+    ],
+    sisters: [
+      ["2026-10-12", "tajweed"], ["2026-10-14", "hifdh"],
+      ["2026-10-19", "tajweed"], ["2026-10-21", "hifdh"],
+    ],
+  };
   const attRows = [];
-  for (const [date, type] of dates) {
-    for (const s of STUDENTS) {
+  for (const s of STUDENTS) {
+    const cls = classByName.get(s.className)!;
+    for (const [date, type] of dates[cls.section as "brothers" | "sisters"]) {
       const present = rand() > 0.12;
       attRows.push({
-        class_id: classByName.get(s.className)!.id,
+        class_id: cls.id,
         student_id: studentIds.get(s.name)!,
         session_date: date,
         session_type: type,

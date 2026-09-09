@@ -11,6 +11,7 @@ import { HifzTabs } from "@/components/app/hifz-tabs";
 import { ReviewFeedback } from "@/components/app/review-feedback";
 import { Rule } from "@/components/app/rule";
 import { teacherClass } from "@/lib/teacher/scope";
+import { timetableFor, weekdayNameFor } from "@/lib/attendance/calendar";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +44,7 @@ export default async function StudentHifzDetail({
     teacherClass(),
     db
       .from("profiles")
-      .select("full_name, class_id, classes!profiles_class_id_fkey(name)")
+      .select("full_name, class_id, section, classes!profiles_class_id_fkey(name)")
       .eq("id", studentId)
       .maybeSingle(),
     db.from("hifz_profiles").select("start_surah, target_count").eq("student_id", studentId).maybeSingle(),
@@ -63,6 +64,12 @@ export default async function StudentHifzDetail({
 
   const review = tab === "review";
   const className = student.classes?.name ?? null;
+  // The recitation day is the class's, not the programme's, so it comes off
+  // the timetable rather than being spelled into the sentence.
+  const recitationDay = weekdayNameFor(
+    timetableFor(mine?.section ?? student.section, className),
+    "hifdh",
+  );
 
   // The masthead and the tabs stay identical across both tabs, so Review is
   // reachable — and looks like the same page — before a target exists.
@@ -76,7 +83,11 @@ export default async function StudentHifzDetail({
         <h1>
           <b>{student.full_name}</b>
         </h1>
-        <p>{className ? `${className} · Thursday recitation` : "Thursday recitation"}</p>
+        <p>
+          {className
+            ? `${className} · ${recitationDay} recitation`
+            : `${recitationDay} recitation`}
+        </p>
       </header>
 
       <HifzTabs basePath={`/teacher/hifz/${studentId}`} active={review ? "review" : "overview"} />

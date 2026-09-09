@@ -8,7 +8,9 @@ import {
   nextSessionDate,
   previousSessionDate,
   sessionTypeFor,
+  timetableFor,
 } from "@/lib/attendance/calendar";
+import { sessionLabel } from "@/lib/attendance/session";
 import { AttendanceRegister } from "@/components/app/attendance-register";
 import { SessionCalendar } from "@/components/app/session-calendar";
 
@@ -33,19 +35,21 @@ export default async function Attendance({
   // Two different questions, so two different resolvers.
   //
   // With no date asked for, the register opens on the lesson about to be
-  // taught: a Tuesday or Wednesday resolves forward to Thursday, a Friday
-  // through Sunday to Monday, and a lesson day is itself. That is the register
-  // the teacher is walking into a room to take.
+  // taught: an off day resolves forward to the section's next teaching day —
+  // and across a whole break, if that is where the next lesson is — while a
+  // lesson day is itself. That is the register the teacher is walking into a
+  // room to take.
   //
   // A hand-typed ?date= is snapped BACKWARDS to a real lesson day instead —
   // it is a date they chose, and resolving it forward would answer a question
   // they did not ask by quietly moving them to the following session.
   const today = isoDate(new Date());
-  const sessionDate = dateParam ? nearestSessionDate(dateParam) : nextSessionDate(today);
-  const sessionType = sessionTypeFor(sessionDate)!;
 
+  // The class has to be known BEFORE any date can be resolved: which weekdays
+  // are lesson days is a property of the class, so a sisters' register and a
+  // brothers' register opened on the same Monday disagree about which subject
+  // is being taught — and on a Wednesday, about whether there is a lesson.
   const [{ terms }, mine] = await Promise.all([getTermsAndWeeks(), teacherClass()]);
-  const termId = currentTermId(terms, new Date(`${sessionDate}T12:00:00`));
 
   if (!mine) {
     return (
@@ -55,12 +59,19 @@ export default async function Attendance({
     );
   }
 
+  const timetable = timetableFor(mine.section, mine.name);
+  const sessionDate = dateParam
+    ? nearestSessionDate(dateParam, timetable)
+    : nextSessionDate(today, timetable);
+  const sessionType = sessionTypeFor(sessionDate, timetable)!;
+  const termId = currentTermId(terms, new Date(`${sessionDate}T12:00:00`));
+
   // Opening on the NEXT lesson means the last one is off screen, and a
   // register nobody filled in is silent on its own — the failure mode is a
-  // Monday that quietly never got taken. Only a session that has actually
+  // session that quietly never got taken. Only a session that has actually
   // happened is worth asking about, so anything still in the future is
   // skipped, as is the year's first session, which has nothing behind it.
-  const prev = previousSessionDate(sessionDate);
+  const prev = previousSessionDate(sessionDate, timetable);
   const prevDue = prev && prev <= today ? prev : null;
 
   // The register stamps every row it writes with this class, so the session
@@ -82,7 +93,7 @@ export default async function Attendance({
           .select("student_id", { count: "exact", head: true })
           .eq("class_id", mine.id)
           .eq("session_date", prevDue)
-          .eq("session_type", sessionTypeFor(prevDue)!)
+          .eq("session_type", sessionTypeFor(prevDue, timetable)!)
       : Promise.resolve({ count: null }),
   ]);
 
@@ -93,15 +104,22 @@ export default async function Attendance({
       <header className="masthead">
         <div>
           <h1><span>Attendance</span></h1>
-          {/* The weekday names the session — there is no separate Monday /
-              Thursday choice to make once the date is a lesson date. */}
+          {/* The date names the session — once the class and the date are
+              known there is no separate tajweed / hifdh choice to make. The
+              subject is spelled out because the weekday no longer implies it:
+              a Monday is tajweed for the brothers and hifdh for the sisters. */}
           <p>
-            {mine.name} · {longDate(sessionDate)}
+            {mine.name} · {sessionLabel(sessionType)} · {longDate(sessionDate)}
             {sessionDate === today ? " · today" : sessionDate > today ? " · next lesson" : ""}
           </p>
         </div>
 
-        <SessionCalendar value={sessionDate} today={today} basePath="/teacher/attendance" />
+        <SessionCalendar
+          value={sessionDate}
+          today={today}
+          basePath="/teacher/attendance"
+          timetable={timetable}
+        />
       </header>
 
       {prevUnmarked && (

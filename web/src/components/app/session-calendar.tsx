@@ -5,48 +5,25 @@ import { useRouter } from "next/navigation";
 import { Popover } from "@base-ui/react/popover";
 import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import {
+  breakContaining,
   holidayReason,
   isSessionDate,
   nearestSessionDate,
   sessionDates,
+  sessionTypeFor,
+  teachingDaysLabel,
+  type Timetable,
 } from "@/lib/attendance/calendar";
-import { isoDate } from "@/lib/attendance/session";
+import { sessionLabel } from "@/lib/attendance/session";
+import {
+  WEEKDAY_INITIALS,
+  monthGrid,
+  monthLabel,
+  monthOf,
+  shiftMonth,
+  type Month,
+} from "@/lib/attendance/month";
 import { cn } from "@/lib/utils";
-
-const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
-
-/** "2026-10" — a month is identified by the prefix of any date inside it. */
-type Month = string;
-
-function monthOf(iso: string): Month {
-  return iso.slice(0, 7);
-}
-
-function shiftMonth(month: Month, by: number): Month {
-  const [y, m] = month.split("-").map(Number);
-  const d = new Date(y, m - 1 + by, 1, 12);
-  return monthOf(isoDate(d));
-}
-
-/**
- * The days of a month laid out Monday-first, padded with nulls so the grid
- * starts on the right weekday and ends on a whole row.
- */
-function monthGrid(month: Month): (string | null)[] {
-  const [y, m] = month.split("-").map(Number);
-  const lead = (new Date(y, m - 1, 1, 12).getDay() + 6) % 7; // Sunday is 0
-  const days = new Date(y, m, 0).getDate();
-  const cells: (string | null)[] = Array(lead).fill(null);
-  for (let d = 1; d <= days; d++) cells.push(isoDate(new Date(y, m - 1, d, 12)));
-  while (cells.length % 7) cells.push(null);
-  return cells;
-}
-
-const monthLabel = (month: Month) =>
-  new Date(`${month}-01T12:00:00`).toLocaleDateString("en-GB", {
-    month: "long",
-    year: "numeric",
-  });
 
 const dateLabel = (iso: string) =>
   new Date(`${iso}T12:00:00`).toLocaleDateString("en-GB", {
@@ -67,11 +44,17 @@ const dateLabel = (iso: string) =>
  *
  * Native `<input type="date">` can't express any of this: its only constraints
  * are min and max, so it would happily hand back a Tuesday in February.
+ *
+ * Which days those are depends on the CLASS — the brothers do tajweed on
+ * Monday and hifdh on Thursday, the sisters the other way about, and the
+ * sisters settle their hifdh day per class — so the picker is drawn for one
+ * timetable and cannot be drawn without one.
  */
 export function SessionCalendar({
   value,
   today,
   basePath,
+  timetable,
 }: {
   value: string;
   /** Passed in rather than read from the clock here: this renders on the
@@ -79,18 +62,19 @@ export function SessionCalendar({
    *  what "today" is would be a hydration mismatch. */
   today: string;
   basePath: string;
+  timetable: Timetable;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState<Month>(() => monthOf(value));
   const [pending, startTransition] = useTransition();
 
-  const dates = sessionDates();
+  const dates = sessionDates(timetable);
   const firstMonth = monthOf(dates[0]);
   const lastMonth = monthOf(dates[dates.length - 1]);
   const cells = useMemo(() => monthGrid(month), [month]);
 
-  const latest = nearestSessionDate(today);
+  const latest = nearestSessionDate(today, timetable);
 
   const go = (iso: string) => {
     setOpen(false);
@@ -143,7 +127,7 @@ export function SessionCalendar({
             </div>
 
             <div className="grid grid-cols-7 gap-0.5 text-center">
-              {WEEKDAYS.map((d, i) => (
+              {WEEKDAY_INITIALS.map((d, i) => (
                 <span key={i} className="pb-1 text-[10px] uppercase text-muted-foreground">
                   {d}
                 </span>
@@ -154,15 +138,21 @@ export function SessionCalendar({
 
                 const day = new Date(`${iso}T12:00:00`).getDate();
                 const holiday = holidayReason(iso);
+                const term = breakContaining(iso);
 
-                if (!isSessionDate(iso)) {
+                if (!isSessionDate(iso, timetable)) {
+                  // Three different silences, and only the first two have a
+                  // reason worth giving: a day off inside term, a whole break
+                  // between terms, and an ordinary Tuesday.
                   return (
                     <span
                       key={iso}
-                      title={holiday ?? undefined}
+                      title={holiday ?? term?.label ?? undefined}
                       className={cn(
                         "flex size-8 items-center justify-center rounded-md text-xs tabular-nums",
-                        holiday ? "text-muted-foreground line-through" : "text-muted-foreground/40",
+                        holiday
+                          ? "text-muted-foreground line-through"
+                          : "text-muted-foreground/40",
                       )}
                     >
                       {day}
@@ -171,11 +161,13 @@ export function SessionCalendar({
                 }
 
                 const selected = iso === value;
+                const type = sessionTypeFor(iso, timetable);
                 return (
                   <button
                     key={iso}
                     type="button"
                     onClick={() => go(iso)}
+                    title={type ? `${sessionLabel(type)} session` : undefined}
                     aria-current={selected ? "date" : undefined}
                     className={cn(
                       "flex size-8 items-center justify-center rounded-md text-xs font-medium tabular-nums transition-colors",
@@ -193,7 +185,7 @@ export function SessionCalendar({
 
             <div className="mt-2 flex items-center justify-between gap-3 border-t border-line pt-2">
               <span className="text-[10px] text-muted-foreground">
-                Mondays &amp; Thursdays only
+                {teachingDaysLabel(timetable)} only
               </span>
               <button
                 type="button"

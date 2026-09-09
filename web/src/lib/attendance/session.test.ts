@@ -13,8 +13,8 @@ describe("isoDate", () => {
 });
 
 describe("sessionLabel", () => {
-  it("names each session", () => {
-    expect(sessionLabel("monday")).toBe("Monday");
-    expect(sessionLabel("thursday")).toBe("Thursday");
+  it("names each session by its subject, not its weekday", () => {
+    expect(sessionLabel("tajweed")).toBe("Tajweed");
+    expect(sessionLabel("hifdh")).toBe("Hifdh");
   });
 });

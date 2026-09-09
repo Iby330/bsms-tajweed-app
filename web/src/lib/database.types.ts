@@ -1444,7 +1444,7 @@ export type Database = {
       scoring_t: "exact" | "per_option" | "manual"
       section_t: "brothers" | "sisters" | "demo"
       series_t: "tajweed" | "umm_al_kitab" | "tfp" | "seerah"
-      session_t: "monday" | "thursday"
+      session_t: "tajweed" | "hifdh"
       strike_reason: "absence" | "homework" | "conduct"
       sub_status: "draft" | "submitted" | "auto_marked" | "approved"
       user_role: "student" | "teacher"
@@ -1579,7 +1579,7 @@ export const Constants = {
       scoring_t: ["exact", "per_option", "manual"],
       section_t: ["brothers", "sisters", "demo"],
       series_t: ["tajweed", "umm_al_kitab", "tfp", "seerah"],
-      session_t: ["monday", "thursday"],
+      session_t: ["tajweed", "hifdh"],
       strike_reason: ["absence", "homework", "conduct"],
       sub_status: ["draft", "submitted", "auto_marked", "approved"],
       user_role: ["student", "teacher"],

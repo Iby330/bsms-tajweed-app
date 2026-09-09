@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { canOpenSection, scopedHref, type HomeworkScope } from "./scope";
 
-const cls = (id: string, name: string) => ({ id, name, section: "sisters" });
+const cls = (id: string, name: string) => ({ id, name, section: "sisters" as const });
 
 const scope = (over: Partial<HomeworkScope> = {}): HomeworkScope => ({
   classes: [cls("hareer", "Hareer"), cls("rayyan", "Rayyan")],
