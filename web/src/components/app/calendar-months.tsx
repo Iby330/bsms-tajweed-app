@@ -102,10 +102,22 @@ export function CalendarMonths({
                 const n = new Date(`${iso}T12:00:00`).getDate();
                 const opens = !!day && (!!day.type || day.events.length > 0);
 
+                const isToday = iso === today;
                 const face = (
                   <>
-                    <span>
+                    {/* Today is a filled disc, not a hairline ring. The point
+                        of it is to be found at a glance from across the term,
+                        so that the next class can be read as a distance from
+                        here — a 1px ring at this size disappears. */}
+                    <span
+                      data-today={isToday || undefined}
+                      className={cn(
+                        "flex size-[1.35rem] items-center justify-center rounded-full",
+                        isToday && "bg-ink font-semibold text-primary-foreground",
+                      )}
+                    >
                       {n}
+                      {isToday && <span className="sr-only"> — today</span>}
                       {day?.type && (
                         <span className="sr-only"> — {sessionLabel(day.type)} class</span>
                       )}
@@ -140,7 +152,6 @@ export function CalendarMonths({
                       className={cn(
                         shape,
                         "font-medium transition-colors hover:bg-muted",
-                        iso === today && "ring-1 ring-line",
                       )}
                     >
                       {face}
@@ -151,6 +162,7 @@ export function CalendarMonths({
                 return (
                   <span
                     key={iso}
+                    data-day={iso}
                     data-tip={day?.type ? `${sessionLabel(day.type)} class` : (day?.holiday ?? undefined)}
                     data-tip-meta={day?.type ? long(iso) : undefined}
                     title={day?.holiday ?? undefined}
@@ -158,7 +170,6 @@ export function CalendarMonths({
                       shape,
                       day?.type ? "font-medium" : "text-muted-foreground/40",
                       day?.holiday && "text-muted-foreground line-through",
-                      iso === today && "ring-1 ring-line",
                     )}
                   >
                     {face}

@@ -171,8 +171,10 @@ export function YearCalendar({
       dayFor(event.date).events.push({ title: event.title, detail: event.detail });
 
   // The upcoming class names its rules too, so the commonest question — what
-  // is on on Monday — is answered without opening anything.
-  const upcomingTopics = days[upcoming]?.lessons.map((l) => l.label).join(" · ");
+  // is on on Monday — is answered without opening anything. Joined with "+"
+  // rather than a middot: two courses run alongside each other that week, and
+  // a middot reads as a separator between equals in a list.
+  const upcomingTopics = days[upcoming]?.lessons.map((l) => l.label).join(" + ");
 
   return (
     <>
@@ -180,22 +182,27 @@ export function YearCalendar({
         <section className="box c12">
           <span className="label">{yearOver ? "The year has finished" : "Next class"}</span>
           {!yearOver && (
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <span className="text-lg font-medium">
-                {upcoming === today ? "Today" : long(upcoming)}
-              </span>
-              {upcomingType && (
-                <span className="label hi">{sessionLabel(upcomingType)}</span>
-              )}
+            // Two lines, not one. Date, subject and both lesson names on a
+            // single baseline ran the width of the panel and read as one long
+            // run-on; the date is the answer, the rest is the detail under it.
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                <span className="text-lg font-medium">
+                  {upcoming === today ? "Today" : long(upcoming)}
+                </span>
+                {upcomingType && (
+                  <span className="label hi">{sessionLabel(upcomingType)}</span>
+                )}
+              </div>
               {upcomingTopics && (
-                <span className="text-sm text-muted-foreground">{upcomingTopics}</span>
+                <div className="text-sm text-muted-foreground">{upcomingTopics}</div>
               )}
             </div>
           )}
+
+          {/* The break panels between the terms already say where the year
+              stops, so there is no line here saying it again. */}
           <Legend timetable={timetable} />
-          {/* The legend above already names the days, so this says only the
-              thing it cannot: the year has holes in it. */}
-          <div className="note">Nothing is taught between the terms.</div>
         </section>
       </div>
 
@@ -212,7 +219,17 @@ export function YearCalendar({
           {gaps[i] && (
             <div className="field">
               <section className="box c12">
-                <span className="label">{gaps[i].label}</span>
+                <div className="flex flex-wrap items-baseline gap-x-3">
+                  <span className="label">{gaps[i].label}</span>
+                  {/* The grids only draw the months the terms run through, so
+                      December belongs to neither and the "today" disc has
+                      nowhere to land during the winter break. This is where it
+                      lands instead — otherwise the calendar would lose track
+                      of the reader for a month. */}
+                  {today >= gaps[i].startsOn && today <= gaps[i].endsOn && (
+                    <span className="label hi">You are here</span>
+                  )}
+                </div>
                 <div className="text-sm">
                   {short(gaps[i].startsOn)} – {short(gaps[i].endsOn)} · no classes
                 </div>
