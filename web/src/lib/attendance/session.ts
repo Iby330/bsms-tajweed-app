@@ -8,7 +8,7 @@
  * date alone is not enough to say which session it is — you need the section
  * too. See `TEACHING_DAYS` in ./calendar.
  *
- * The database enum was renamed in step with this (migration 0022), so stored
+ * The database enum was renamed in step with this (migration 0023), so stored
  * attendance rows carry the same two values.
  */
 export type SessionType = "tajweed" | "hifdh";

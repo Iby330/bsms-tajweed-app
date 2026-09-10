@@ -20,6 +20,12 @@
 -- hifdh one), and no row is rewritten. `alter type ... rename value` is
 -- metadata only, so there is no table scan and no lock worth naming.
 --
+-- Numbered 0023, not 0022: two migrations named `ayah_scope_mistakes` were
+-- applied to production on 27 Aug as 0021 and 0022, and neither was ever
+-- committed to this repo. The ledger is keyed by filename so there was no
+-- technical clash, but two different 0022s would have been a trap for whoever
+-- read this next.
+--
 -- Every statement is idempotent so a half-applied batch can be re-run.
 -- ═══════════════════════════════════════════════════════════════════════
 

@@ -35,6 +35,22 @@ import { basename, resolve } from "node:path";
 const ROOT = resolve(import.meta.dirname, "..");
 const PROJECT_REF = "ssqeakiutclbiwizrchh";
 
+/**
+ * Read .env into a map.
+ *
+ * The value has to be cleaned, not just trimmed. A line like
+ *
+ *   SUPABASE_ACCESS_TOKEN=sbp_abc123  # personal access token, rotate yearly
+ *
+ * is ordinary dotenv, and taking everything after the "=" sends the comment
+ * as part of the token. The Management API then answers 401 with "Format is
+ * Authorization: Bearer [token]", which reads like an expired credential and
+ * sent a whole session looking at the wrong thing. Only lines STARTING with
+ * "#" were being skipped; inline comments were not.
+ *
+ * Rules, matching dotenv: a quoted value is taken whole, an unquoted one ends
+ * at the first whitespace-preceded "#".
+ */
 function loadEnv(): Record<string, string> {
   return Object.fromEntries(
     readFileSync(resolve(ROOT, ".env"), "utf8")
@@ -42,7 +58,10 @@ function loadEnv(): Record<string, string> {
       .filter((l) => l.includes("=") && !l.trim().startsWith("#"))
       .map((l) => {
         const i = l.indexOf("=");
-        return [l.slice(0, i).trim(), l.slice(i + 1).trim()];
+        const key = l.slice(0, i).trim();
+        const raw = l.slice(i + 1).trim();
+        const quoted = /^(["'])(.*)\1$/.exec(raw);
+        return [key, quoted ? quoted[2] : raw.split(/\s+#/)[0].trim()];
       }),
   );
 }
