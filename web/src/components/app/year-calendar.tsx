@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import Link from "next/link";
 import {
   EVENTS,
   TERMS,
@@ -19,6 +20,7 @@ import {
   monthLabel,
   monthsBetween,
 } from "@/lib/attendance/month";
+import type { PlannedWeek } from "@/lib/curriculum/plan";
 import { Rule } from "./rule";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +41,8 @@ import { cn } from "@/lib/utils";
  *    the same section can differ.
  *  · `section` — which cohort the reader is in. Only used to decide whose
  *    events are theirs, since an exam or a speaker can be for one section.
+ *  · `plans` — what this class studies on each of its tajweed Mondays, or
+ *    nothing at all for a class with no syllabus yet. See lib/curriculum/plan.
  *
  * Both the student and teacher screens render this; the only difference
  * between them is whose class gets passed in.
@@ -89,11 +93,13 @@ function MonthGrid({
   timetable,
   section,
   today,
+  topicByDate,
 }: {
   month: string;
   timetable: Timetable;
   section: Section;
   today: string;
+  topicByDate: Map<string, string>;
 }) {
   return (
     <div className="min-w-[13.5rem] flex-1">
@@ -117,6 +123,7 @@ function MonthGrid({
               key={iso}
               data-tip={type ? `${sessionLabel(type)} class` : (holiday ?? undefined)}
               data-tip-meta={type ? long(iso) : undefined}
+              data-tip-value={topicByDate.get(iso)}
               title={holiday ?? undefined}
               className={cn(
                 "flex h-9 flex-col items-center justify-center gap-1 rounded-md text-xs tabular-nums",
@@ -144,16 +151,68 @@ function MonthGrid({
   );
 }
 
+/** One course on one Monday: a link when following it works and there is
+ *  something to watch, and plain text every other time. */
+function Planned({ lesson }: { lesson: PlannedWeek["lessons"][number] }) {
+  const name = `${lesson.courseLabel} ${lesson.index}`;
+  if (lesson.href) {
+    return (
+      <Link href={lesson.href} className="underline underline-offset-2 hover:text-ok">
+        {name}
+      </Link>
+    );
+  }
+  return (
+    <span
+      className={lesson.missing ? "text-muted-foreground/60" : undefined}
+      // The title is only ever known once the week is open; before that the
+      // topic name is all a student is told.
+      title={lesson.title ?? undefined}
+    >
+      {name}
+    </span>
+  );
+}
+
+function TermPlan({ plan }: { plan: PlannedWeek[] }) {
+  return (
+    <div className="space-y-1.5 border-t border-line pt-3">
+      <span className="label">Mondays this term</span>
+      <ul className="space-y-1">
+        {plan.map((week) => (
+          <li key={week.date} className="flex flex-wrap items-baseline gap-x-3 text-sm">
+            <span className="w-[8.5rem] shrink-0 text-muted-foreground tabular-nums">
+              Week {week.number} · {short(week.date)}
+            </span>
+            <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              {week.lessons.map((l, i) => (
+                <Fragment key={`${l.courseLabel}-${l.index}`}>
+                  {i > 0 && <span aria-hidden className="text-muted-foreground/40">·</span>}
+                  <Planned lesson={l} />
+                </Fragment>
+              ))}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function TermBlock({
   term,
   timetable,
   section,
   today,
+  plan,
+  topicByDate,
 }: {
   term: Term;
   timetable: Timetable;
   section: Section;
   today: string;
+  plan?: PlannedWeek[];
+  topicByDate: Map<string, string>;
 }) {
   // Counted, never derived from the span: Term 2 opens on a Tuesday, so it is
   // not a whole number of weeks for either subject, and the two sections do
@@ -184,9 +243,12 @@ function TermBlock({
               timetable={timetable}
               section={section}
               today={today}
+              topicByDate={topicByDate}
             />
           ))}
         </div>
+
+        {plan && plan.length > 0 && <TermPlan plan={plan} />}
 
         {events.length > 0 && (
           <ul className="space-y-1 border-t border-line pt-3">
@@ -208,15 +270,28 @@ export function YearCalendar({
   timetable,
   section,
   today,
+  plans = {},
 }: {
   timetable: Timetable;
   section: Section;
   today: string;
+  /** Keyed by term id. Absent for a class with no syllabus. */
+  plans?: Record<number, PlannedWeek[]>;
 }) {
   const upcoming = nextSessionDate(today, timetable);
   const upcomingType = sessionTypeFor(upcoming, timetable);
   const gaps = breaks();
   const yearOver = today > TERMS[TERMS.length - 1].endsOn;
+
+  // Date → "Ghunna 1 · Mudūd 1", so a day in the grid can say what it holds
+  // without the reader hunting for it in the list below.
+  const topicByDate = new Map<string, string>();
+  for (const weeks of Object.values(plans))
+    for (const week of weeks)
+      topicByDate.set(
+        week.date,
+        week.lessons.map((l) => `${l.courseLabel} ${l.index}`).join(" · "),
+      );
 
   return (
     <>
@@ -231,6 +306,11 @@ export function YearCalendar({
               {upcomingType && (
                 <span className="label hi">{sessionLabel(upcomingType)}</span>
               )}
+              {topicByDate.has(upcoming) && (
+                <span className="text-sm text-muted-foreground">
+                  {topicByDate.get(upcoming)}
+                </span>
+              )}
             </div>
           )}
           <Legend timetable={timetable} />
@@ -243,7 +323,14 @@ export function YearCalendar({
       {TERMS.map((term, i) => (
         <Fragment key={term.id}>
           <Rule label={`Term ${term.id}`} />
-          <TermBlock term={term} timetable={timetable} section={section} today={today} />
+          <TermBlock
+            term={term}
+            timetable={timetable}
+            section={section}
+            today={today}
+            plan={plans[term.id]}
+            topicByDate={topicByDate}
+          />
           {gaps[i] && (
             <div className="field">
               <section className="box c12">

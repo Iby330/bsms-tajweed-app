@@ -3,6 +3,7 @@ import { teacherClass } from "@/lib/teacher/scope";
 import { isoDate } from "@/lib/attendance/session";
 import { YearCalendar } from "@/components/app/year-calendar";
 import { teachingDaysLabel, timetableFor } from "@/lib/attendance/calendar";
+import { getTermPlans } from "@/lib/curriculum/plan";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default async function TeacherCalendar() {
   const [profile, mine] = await Promise.all([currentProfile(), teacherClass()]);
   const section = mine?.section ?? profile?.section ?? "brothers";
   const timetable = timetableFor(section, mine?.name);
+  const plans = await getTermPlans(mine?.name, timetable);
 
   return (
     <>
@@ -37,7 +39,12 @@ export default async function TeacherCalendar() {
         </div>
       </header>
 
-      <YearCalendar timetable={timetable} section={section} today={isoDate(new Date())} />
+      <YearCalendar
+        timetable={timetable}
+        section={section}
+        today={isoDate(new Date())}
+        plans={plans}
+      />
     </>
   );
 }

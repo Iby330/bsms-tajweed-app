@@ -2,6 +2,7 @@ import { currentProfile } from "@/lib/supabase/server";
 import { isoDate } from "@/lib/attendance/session";
 import { YearCalendar } from "@/components/app/year-calendar";
 import { teachingDaysLabel, timetableFor } from "@/lib/attendance/calendar";
+import { getTermPlans } from "@/lib/curriculum/plan";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,8 @@ export default async function Calendar() {
   // The class first, its section only as the fallback: the sisters settle
   // their hifdh day class by class, so two sisters' classes can differ.
   const timetable = timetableFor(profile.section, profile.classes?.name);
+  // Empty for a class with no syllabus — the sisters, until theirs is set.
+  const plans = await getTermPlans(profile.classes?.name, timetable);
 
   return (
     <>
@@ -29,7 +32,12 @@ export default async function Calendar() {
         </div>
       </header>
 
-      <YearCalendar timetable={timetable} section={profile.section} today={isoDate(new Date())} />
+      <YearCalendar
+        timetable={timetable}
+        section={profile.section}
+        today={isoDate(new Date())}
+        plans={plans}
+      />
     </>
   );
 }
