@@ -9,22 +9,27 @@
 --     every boundary. Both now say the same thing.
 --
 --  2. `session_t` stops meaning a weekday and starts meaning a subject.
---     Tajweed is Monday for both sections, but hifdh is Thursday for the
---     brothers and Wednesday for the sisters — so 'monday' and 'thursday'
---     cannot name the two weekly sessions any more. The weekday moved into
---     TEACHING_DAYS in the app; the enum keeps the part that is actually
---     invariant, which is what is being taught.
+--     The brothers run Monday tajweed and Thursday hifdh; the sisters run
+--     Wednesday tajweed and Monday hifdh. Both teach on a Monday and it is a
+--     different subject each time, so 'monday' and 'thursday' cannot name the
+--     two weekly sessions any more. The weekday moved into the app, where it
+--     is now per class (SECTION_TIMETABLES / CLASS_TIMETABLES); the enum keeps
+--     the part that is actually invariant, which is what is being taught.
 --
--- The rename is in place: every existing attendance row keeps its meaning
--- (a Monday register was always the tajweed one, a Thursday register the
--- hifdh one), and no row is rewritten. `alter type ... rename value` is
--- metadata only, so there is no table scan and no lock worth naming.
+-- The rename is in place: every existing attendance row keeps its meaning and
+-- no row is rewritten. The backfill is exact because the OLD arrangement had
+-- every class on the same two days — a Monday register was the tajweed one
+-- and a Thursday register the hifdh one, for both sections — so the labels
+-- map one-to-one onto history. `alter type ... rename value` is metadata
+-- only, so there is no table scan and no lock worth naming.
 --
 -- Numbered 0023, not 0022: two migrations named `ayah_scope_mistakes` were
--- applied to production on 27 Aug as 0021 and 0022, and neither was ever
--- committed to this repo. The ledger is keyed by filename so there was no
--- technical clash, but two different 0022s would have been a trap for whoever
--- read this next.
+-- applied to production on 27 Aug as 0021 and 0022 — the revision tracker's
+-- ayah-level mistakes, which made revision_mistakes.word_position nullable.
+-- They are not in this repo, so a rebuild from these files would not
+-- reproduce them. The ledger is keyed by filename so two different 0022s
+-- would not have clashed technically, but they would have been a trap for
+-- whoever read this directory next.
 --
 -- Every statement is idempotent so a half-applied batch can be re-run.
 -- ═══════════════════════════════════════════════════════════════════════
@@ -88,9 +93,10 @@ end $$;
 
 comment on type session_t is
   'Which of the two weekly classes a register belongs to. The WEEKDAY is not '
-  'part of this: tajweed is Monday for both sections, hifdh is Thursday for '
-  'the brothers and Wednesday for the sisters. See TEACHING_DAYS in '
-  'src/lib/attendance/calendar.ts.';
+  'part of this and is not even fixed per section: the brothers run Monday '
+  'tajweed and Thursday hifdh, the sisters Wednesday tajweed and Monday '
+  'hifdh, and the sisters settle their hifdh day per class each year. See '
+  'SECTION_TIMETABLES and CLASS_TIMETABLES in src/lib/attendance/calendar.ts.';
 
 comment on table terms is
   'Faculty term dates for 2026/27. Kept in step by hand with TERMS in '
