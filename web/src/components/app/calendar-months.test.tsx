@@ -48,6 +48,19 @@ describe("CalendarMonths", () => {
     expect(cell("2026-10-08")?.tagName).toBe("BUTTON"); // hifdh, none
   });
 
+  it("colours each class day's dot by its subject", () => {
+    // Guards a silent failure mode: the colour map once lived in this
+    // "use client" module and was imported by a SERVER component, which gets
+    // a client reference rather than the object — so the class came back
+    // undefined and the dots rendered with no colour at all. Types are
+    // satisfied either way, so only a rendered assertion catches it.
+    setup();
+    const dotOf = (iso: string) =>
+      document.querySelector(`[data-day="${iso}"] [data-dot]`)?.className ?? "";
+    expect(dotOf("2026-10-05")).toContain("bg-ink"); // tajweed
+    expect(dotOf("2026-10-08")).toContain("bg-ok"); // hifdh
+  });
+
   it("leaves a day that is not a class inert", () => {
     setup();
     expect(cell("2026-10-06")?.tagName).toBe("SPAN"); // an ordinary Tuesday

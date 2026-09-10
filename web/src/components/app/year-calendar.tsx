@@ -12,9 +12,9 @@ import {
   type Term,
   type Timetable,
 } from "@/lib/attendance/calendar";
-import { sessionLabel } from "@/lib/attendance/session";
+import { SESSION_DOT, sessionLabel } from "@/lib/attendance/session";
 import { monthsBetween } from "@/lib/attendance/month";
-import { CalendarMonths, SESSION_DOT, type CalendarDay } from "./calendar-months";
+import { CalendarMonths, type CalendarDay } from "./calendar-months";
 import type { PlannedWeek } from "@/lib/curriculum/plan";
 import { Rule } from "./rule";
 import { cn } from "@/lib/utils";
@@ -62,9 +62,18 @@ const eventsFor = (section: Section, from: string, to = from) =>
     (e) => e.date >= from && e.date <= to && (!e.section || e.section === section),
   );
 
+/**
+ * The colour key for the grid's dots.
+ *
+ * The swatches HANG. A dot (0.5rem) plus its gap (0.5rem) would otherwise set
+ * "Tajweed" a whole rem to the right of every other line in the panel, so the
+ * legend alone looked indented. Pulling the row back by exactly that much puts
+ * the TEXT on the panel's left edge, with the dots hanging into the padding —
+ * which is 18px at its narrowest, so they never clip the box.
+ */
 function Legend({ timetable }: { timetable: Timetable }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+    <div className="-ml-4 flex flex-wrap items-center gap-x-5 gap-y-2">
       {(["tajweed", "hifdh"] as const).map((type) => (
         <span key={type} className="flex items-center gap-2 text-xs">
           <span className={cn("size-2 rounded-full", SESSION_DOT[type])} aria-hidden />

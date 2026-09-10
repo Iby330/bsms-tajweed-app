@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { WEEKDAY_INITIALS, monthGrid, monthLabel } from "@/lib/attendance/month";
-import { sessionLabel, type SessionType } from "@/lib/attendance/session";
+import { SESSION_DOT, sessionLabel, type SessionType } from "@/lib/attendance/session";
 import { cn } from "@/lib/utils";
 
 /**
@@ -50,19 +50,6 @@ const long = (iso: string) =>
     day: "numeric",
     month: "long",
   });
-
-/**
- * Tajweed carries the page's ink, hifdh the ochre accent — the same two
- * weights the rest of the app uses for "the main thing" and "the other
- * thing", so the legend is the only place they need explaining.
- *
- * Exported because the legend on the year calendar has to agree with the dots
- * in the grid, and two copies of that decision would drift.
- */
-export const SESSION_DOT: Record<SessionType, string> = {
-  tajweed: "bg-ink",
-  hifdh: "bg-ok",
-};
 
 function summarise(day: CalendarDay): string | undefined {
   // `label` already falls back to "<course> <n>" when there is no rule to
@@ -124,7 +111,11 @@ export function CalendarMonths({
                     </span>
                     <span className="flex h-1.5 items-center gap-0.5">
                       {day?.type && (
-                        <span className={cn("size-1.5 rounded-full", SESSION_DOT[day.type])} aria-hidden />
+                        <span
+                          data-dot={day.type}
+                          className={cn("size-1.5 rounded-full", SESSION_DOT[day.type])}
+                          aria-hidden
+                        />
                       )}
                       {day?.events.length ? (
                         <span className="size-1.5 rounded-full bg-warn" aria-hidden />

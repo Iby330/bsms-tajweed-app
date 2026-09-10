@@ -25,3 +25,20 @@ export function isoDate(d: Date): string {
 export function sessionLabel(session: SessionType): string {
   return session === "tajweed" ? "Tajweed" : "Hifdh";
 }
+
+/**
+ * The colour each session is drawn in: tajweed the page's ink, hifdh the
+ * ochre accent — the same two weights the rest of the app uses for "the main
+ * thing" and "the other thing".
+ *
+ * It lives HERE, in a plain module, rather than beside the grid that uses it.
+ * It was briefly exported from the grid's own file, which carries "use
+ * client"; a server component importing a value across that boundary gets a
+ * client reference rather than the object, so `SESSION_DOT[type]` came back
+ * undefined and the legend rendered dots with no colour at all. Nothing
+ * catches that — the types are satisfied and the class simply goes missing.
+ */
+export const SESSION_DOT: Record<SessionType, string> = {
+  tajweed: "bg-ink",
+  hifdh: "bg-ok",
+};
