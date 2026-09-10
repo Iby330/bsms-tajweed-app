@@ -23,8 +23,19 @@ import { COURSES, coursesForTerm, hasSyllabus } from "./syllabus";
  * reading "Mudūd 3" for a term. The gate that matters is the LINK.)
  *
  * A link is offered only when following it will work AND there is something
- * to watch — the week is open and the lesson has a video. Everything else is
- * plain text, so the calendar never hands anyone a dead link.
+ * to watch. What "will work" means depends on who is reading, so the plan is
+ * built per audience:
+ *
+ *   · A STUDENT goes to /lessons/<id>, which 404s a week that has not opened
+ *     yet — so their link waits for the unlock.
+ *   · A TEACHER goes to /teacher/lessons/<id>, which deliberately locks
+ *     nothing, because preparing an unopened week is the job. Their link only
+ *     waits for the video.
+ *
+ * Getting this wrong is not a dead link but a worse one: the student layout
+ * redirects any teacher who lands on /lessons/<id> to /teacher/home, so a
+ * teacher clicking a lesson would be bounced to their own homepage with no
+ * explanation.
  *
  * The read goes through the service-role client because a locked lesson is
  * invisible to the student who is about to be told they are studying it. It
@@ -48,6 +59,8 @@ export type PlannedLesson = {
   /** True when the syllabus asks for a lesson the app does not hold. */
   missing: boolean;
 };
+
+export type PlanAudience = "student" | "teacher";
 
 export type PlannedWeek = {
   date: string;
@@ -81,8 +94,11 @@ export function planFromLessons(
   className: string | null | undefined,
   timetable: Timetable,
   now: Date,
+  audience: PlanAudience = "student",
 ): Record<number, PlannedWeek[]> {
   if (!hasSyllabus(className)) return {};
+
+  const base = audience === "teacher" ? "/teacher/lessons" : "/lessons";
 
   // One pass per course, not per week: the same course is asked for by up to
   // ten Mondays and the sort would otherwise be repeated for each.
@@ -114,12 +130,13 @@ export function planFromLessons(
           ? lessonsOf(course.source.series, course.source.termId)[i]
           : undefined;
         const open = !!lesson && Date.parse(lesson.weeks!.unlock_at) <= nowMs;
+        const reachable = audience === "teacher" ? !!lesson : open;
         const rule = lesson ? ruleName(lesson.title) : null;
         return {
           courseLabel: course.label,
           index: i + 1,
           label: rule ?? `${course.label} ${i + 1}`,
-          href: open && lesson?.youtube_id ? `/lessons/${lesson.id}` : null,
+          href: reachable && lesson?.youtube_id ? `${base}/${lesson.id}` : null,
           missing: !lesson,
         };
       }),
@@ -136,7 +153,7 @@ export function planFromLessons(
 export async function getTermPlans(
   className: string | null | undefined,
   timetable: Timetable,
-  now: Date = new Date(),
+  { now = new Date(), audience = "student" }: { now?: Date; audience?: PlanAudience } = {},
 ): Promise<Record<number, PlannedWeek[]>> {
   if (!hasSyllabus(className)) return {};
 
@@ -144,5 +161,5 @@ export async function getTermPlans(
     .from("lessons")
     .select("id, title, series, position, youtube_id, weeks(term_id, number, unlock_at)");
 
-  return planFromLessons((data ?? []) as LessonRow[], className, timetable, now);
+  return planFromLessons((data ?? []) as LessonRow[], className, timetable, now, audience);
 }

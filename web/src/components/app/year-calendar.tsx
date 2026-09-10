@@ -1,5 +1,4 @@
 import { Fragment } from "react";
-import Link from "next/link";
 import {
   EVENTS,
   TERMS,
@@ -13,13 +12,9 @@ import {
   type Term,
   type Timetable,
 } from "@/lib/attendance/calendar";
-import { sessionLabel, type SessionType } from "@/lib/attendance/session";
-import {
-  WEEKDAY_INITIALS,
-  monthGrid,
-  monthLabel,
-  monthsBetween,
-} from "@/lib/attendance/month";
+import { sessionLabel } from "@/lib/attendance/session";
+import { monthsBetween } from "@/lib/attendance/month";
+import { CalendarMonths, SESSION_DOT, type CalendarDay } from "./calendar-months";
 import type { PlannedWeek } from "@/lib/curriculum/plan";
 import { Rule } from "./rule";
 import { cn } from "@/lib/utils";
@@ -27,10 +22,11 @@ import { cn } from "@/lib/utils";
 /**
  * The teaching year, drawn for one class.
  *
- * It answers one question and deliberately not more: on which days do I have
- * a class, and which class is it. There is no lesson title, no homework and
- * no progress on here — the curriculum for each day is still being decided,
- * and a calendar that promised a topic per date would be wrong within a week.
+ * The grid carries the shape of the year — which days are classes, which
+ * subject each is, where the terms stop. The detail lives behind the day:
+ * tap one and it opens onto the rules being taught and a link to each video.
+ * That split is deliberate. The plan used to sit under each term as a list of
+ * every Monday and its rules, which was accurate and unreadable.
  *
  * It takes two things, and they are not the same thing:
  *
@@ -66,143 +62,16 @@ const eventsFor = (section: Section, from: string, to = from) =>
     (e) => e.date >= from && e.date <= to && (!e.section || e.section === section),
   );
 
-/** Tajweed carries the page's ink, hifdh the ochre accent — the same two
- *  weights the rest of the app uses for "the main thing" and "the other
- *  thing", so the legend is the only place they need explaining. */
-const DOT: Record<SessionType, string> = {
-  tajweed: "bg-ink",
-  hifdh: "bg-ok",
-};
-
 function Legend({ timetable }: { timetable: Timetable }) {
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
       {(["tajweed", "hifdh"] as const).map((type) => (
         <span key={type} className="flex items-center gap-2 text-xs">
-          <span className={cn("size-2 rounded-full", DOT[type])} aria-hidden />
+          <span className={cn("size-2 rounded-full", SESSION_DOT[type])} aria-hidden />
           <span className="font-medium">{sessionLabel(type)}</span>
           <span className="text-muted-foreground">{weekdayNameFor(timetable, type)}s</span>
         </span>
       ))}
-    </div>
-  );
-}
-
-function MonthGrid({
-  month,
-  timetable,
-  section,
-  today,
-  topicByDate,
-}: {
-  month: string;
-  timetable: Timetable;
-  section: Section;
-  today: string;
-  topicByDate: Map<string, string>;
-}) {
-  return (
-    <div className="min-w-[13.5rem] flex-1">
-      <div className="mb-2 text-xs font-medium">{monthLabel(month)}</div>
-      <div className="grid grid-cols-7 gap-0.5 text-center">
-        {WEEKDAY_INITIALS.map((d, i) => (
-          <span key={i} className="pb-1 text-[10px] uppercase text-muted-foreground">
-            {d}
-          </span>
-        ))}
-
-        {monthGrid(month).map((iso, i) => {
-          if (!iso) return <span key={i} />;
-          const day = new Date(`${iso}T12:00:00`).getDate();
-          const type = sessionTypeFor(iso, timetable);
-          const holiday = holidayReason(iso);
-          const events = eventsFor(section, iso);
-
-          return (
-            <span
-              key={iso}
-              data-tip={type ? `${sessionLabel(type)} class` : (holiday ?? undefined)}
-              data-tip-meta={type ? long(iso) : undefined}
-              data-tip-value={topicByDate.get(iso)}
-              title={holiday ?? undefined}
-              className={cn(
-                "flex h-9 flex-col items-center justify-center gap-1 rounded-md text-xs tabular-nums",
-                type ? "font-medium" : "text-muted-foreground/40",
-                holiday && "text-muted-foreground line-through",
-                iso === today && "ring-1 ring-line",
-              )}
-            >
-              <span>
-                {day}
-                {type && <span className="sr-only"> — {sessionLabel(type)} class</span>}
-                {events.length > 0 && <span className="sr-only"> — {events[0].title}</span>}
-              </span>
-              <span className="flex h-1.5 items-center gap-0.5">
-                {type && <span className={cn("size-1.5 rounded-full", DOT[type])} aria-hidden />}
-                {events.length > 0 && (
-                  <span className="size-1.5 rounded-full bg-warn" aria-hidden />
-                )}
-              </span>
-            </span>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/**
- * One course on one Monday: the rule being taught, linked when following it
- * works and there is something to watch.
- *
- * No underline on the link. With two courses a week the list is already busy,
- * and underlining half the rules turned it into a thicket — the colour shift
- * on hover carries the affordance instead, and the course name beside each
- * rule keeps the pair readable.
- */
-function Planned({ lesson }: { lesson: PlannedWeek["lessons"][number] }) {
-  const course = (
-    <span className="w-[6.5rem] shrink-0 text-xs text-muted-foreground">
-      {lesson.courseLabel}
-    </span>
-  );
-
-  return (
-    <span className="flex items-baseline gap-2">
-      {course}
-      {lesson.href ? (
-        <Link href={lesson.href} className="transition-colors hover:text-ok">
-          {lesson.label}
-        </Link>
-      ) : (
-        <span className={lesson.missing ? "text-muted-foreground/50" : undefined}>
-          {lesson.missing ? `${lesson.courseLabel} ${lesson.index}` : lesson.label}
-        </span>
-      )}
-    </span>
-  );
-}
-
-function TermPlan({ plan }: { plan: PlannedWeek[] }) {
-  return (
-    <div className="space-y-1.5 border-t border-line pt-3">
-      <span className="label">Mondays this term</span>
-      <ul className="space-y-2">
-        {plan.map((week) => (
-          <li key={week.date} className="flex flex-wrap gap-x-3 text-sm">
-            <span className="w-[8.5rem] shrink-0 pt-px text-muted-foreground tabular-nums">
-              Week {week.number} · {short(week.date)}
-            </span>
-            {/* A column, not a row: two rules on one line read as one long
-                phrase, and neither says which course it belongs to. */}
-            <span className="flex min-w-0 flex-col gap-0.5">
-              {week.lessons.map((l) => (
-                <Planned key={`${l.courseLabel}-${l.index}`} lesson={l} />
-              ))}
-            </span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
@@ -212,15 +81,13 @@ function TermBlock({
   timetable,
   section,
   today,
-  plan,
-  topicByDate,
+  days,
 }: {
   term: Term;
   timetable: Timetable;
   section: Section;
   today: string;
-  plan?: PlannedWeek[];
-  topicByDate: Map<string, string>;
+  days: Record<string, CalendarDay>;
 }) {
   // Counted, never derived from the span: Term 2 opens on a Tuesday, so it is
   // not a whole number of weeks for either subject, and the two sections do
@@ -243,20 +110,11 @@ function TermBlock({
           </span>
         </div>
 
-        <div className="flex flex-wrap gap-x-8 gap-y-6">
-          {monthsBetween(term.startsOn, term.endsOn).map((month) => (
-            <MonthGrid
-              key={month}
-              month={month}
-              timetable={timetable}
-              section={section}
-              today={today}
-              topicByDate={topicByDate}
-            />
-          ))}
-        </div>
-
-        {plan && plan.length > 0 && <TermPlan plan={plan} />}
+        <CalendarMonths
+          months={monthsBetween(term.startsOn, term.endsOn)}
+          days={days}
+          today={today}
+        />
 
         {events.length > 0 && (
           <ul className="space-y-1 border-t border-line pt-3">
@@ -291,17 +149,30 @@ export function YearCalendar({
   const gaps = breaks();
   const yearOver = today > TERMS[TERMS.length - 1].endsOn;
 
-  // Date → "Ghunna 1 · Mudūd 1", so a day in the grid can say what it holds
-  // without the reader hunting for it in the list below.
-  const topicByDate = new Map<string, string>();
+  // Everything the grid needs, keyed by date and flattened into plain data —
+  // the grid is a client component, so what crosses to it has to serialize.
+  // Built once for the year rather than per term: it is about seventy entries
+  // and rebuilding it three times would only be harder to follow.
+  const days: Record<string, CalendarDay> = {};
+  const dayFor = (iso: string): CalendarDay =>
+    (days[iso] ??= { type: null, holiday: null, events: [], lessons: [] });
+
+  for (const term of TERMS) {
+    for (const date of termSessions(term.id, timetable)) {
+      const day = dayFor(date);
+      day.type = sessionTypeFor(date, timetable);
+      day.holiday = holidayReason(date);
+    }
+  }
   for (const weeks of Object.values(plans))
-    for (const week of weeks)
-      topicByDate.set(
-        week.date,
-        week.lessons
-          .map((l) => (l.missing ? `${l.courseLabel} ${l.index}` : l.label))
-          .join(" · "),
-      );
+    for (const week of weeks) dayFor(week.date).lessons = week.lessons;
+  for (const event of EVENTS)
+    if (!event.section || event.section === section)
+      dayFor(event.date).events.push({ title: event.title, detail: event.detail });
+
+  // The upcoming class names its rules too, so the commonest question — what
+  // is on on Monday — is answered without opening anything.
+  const upcomingTopics = days[upcoming]?.lessons.map((l) => l.label).join(" · ");
 
   return (
     <>
@@ -316,10 +187,8 @@ export function YearCalendar({
               {upcomingType && (
                 <span className="label hi">{sessionLabel(upcomingType)}</span>
               )}
-              {topicByDate.has(upcoming) && (
-                <span className="text-sm text-muted-foreground">
-                  {topicByDate.get(upcoming)}
-                </span>
+              {upcomingTopics && (
+                <span className="text-sm text-muted-foreground">{upcomingTopics}</span>
               )}
             </div>
           )}
@@ -338,8 +207,7 @@ export function YearCalendar({
             timetable={timetable}
             section={section}
             today={today}
-            plan={plans[term.id]}
-            topicByDate={topicByDate}
+            days={days}
           />
           {gaps[i] && (
             <div className="field">

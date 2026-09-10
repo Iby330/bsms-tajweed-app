@@ -22,7 +22,8 @@ export default async function TeacherCalendar() {
   const [profile, mine] = await Promise.all([currentProfile(), teacherClass()]);
   const section = mine?.section ?? profile?.section ?? "brothers";
   const timetable = timetableFor(section, mine?.name);
-  const plans = await getTermPlans(mine?.name, timetable);
+  // Teacher links go to /teacher/lessons, which locks nothing.
+  const plans = await getTermPlans(mine?.name, timetable, { audience: "teacher" });
 
   return (
     <>

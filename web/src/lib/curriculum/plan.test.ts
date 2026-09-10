@@ -65,6 +65,29 @@ describe("planFromLessons", () => {
     expect(term1[0].lessons[0].href).toBe("/lessons/tajweed-1-1");
   });
 
+  it("sends teachers to their own lesson route, not the students'", () => {
+    // The student layout redirects any teacher landing on /lessons/<id> to
+    // /teacher/home, so getting this wrong looks like the link doing nothing
+    // rather than like a broken link.
+    const term1 = planFromLessons(ROWS, "Demo — Abdallah", tt, NOW, "teacher")[1];
+    expect(term1[0].lessons[0].href).toBe("/teacher/lessons/tajweed-1-1");
+  });
+
+  it("does not make a teacher wait for a week to unlock", () => {
+    // /teacher/lessons locks nothing — preparing an unopened week is the job.
+    // Mudood's weeks are shut, and a teacher still gets the link.
+    const withVideos = [
+      ...series("tajweed", 3, 6, { unlock: SHUT }),
+      ...series("tajweed", 1, 8),
+    ];
+    const week1 = planFromLessons(withVideos, "Masjid An-Nabawi", tt, NOW, "teacher")[1][0];
+    expect(week1.lessons[1].href).toBe("/teacher/lessons/tajweed-3-1");
+
+    // The same row, for a student, still waits.
+    const forStudent = planFromLessons(withVideos, "Masjid An-Nabawi", tt, NOW)[1][0];
+    expect(forStudent.lessons[1].href).toBeNull();
+  });
+
   it("withholds the title and the link while the week is shut", () => {
     // Group 1 studies mudood in Term 1, but the lessons live in Term 3's
     // weeks and do not open until then. The topic is still named.
