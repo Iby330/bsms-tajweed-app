@@ -151,25 +151,34 @@ function MonthGrid({
   );
 }
 
-/** One course on one Monday: a link when following it works and there is
- *  something to watch, and plain text every other time. */
+/**
+ * One course on one Monday: the rule being taught, linked when following it
+ * works and there is something to watch.
+ *
+ * No underline on the link. With two courses a week the list is already busy,
+ * and underlining half the rules turned it into a thicket — the colour shift
+ * on hover carries the affordance instead, and the course name beside each
+ * rule keeps the pair readable.
+ */
 function Planned({ lesson }: { lesson: PlannedWeek["lessons"][number] }) {
-  const name = `${lesson.courseLabel} ${lesson.index}`;
-  if (lesson.href) {
-    return (
-      <Link href={lesson.href} className="underline underline-offset-2 hover:text-ok">
-        {name}
-      </Link>
-    );
-  }
+  const course = (
+    <span className="w-[6.5rem] shrink-0 text-xs text-muted-foreground">
+      {lesson.courseLabel}
+    </span>
+  );
+
   return (
-    <span
-      className={lesson.missing ? "text-muted-foreground/60" : undefined}
-      // The title is only ever known once the week is open; before that the
-      // topic name is all a student is told.
-      title={lesson.title ?? undefined}
-    >
-      {name}
+    <span className="flex items-baseline gap-2">
+      {course}
+      {lesson.href ? (
+        <Link href={lesson.href} className="transition-colors hover:text-ok">
+          {lesson.label}
+        </Link>
+      ) : (
+        <span className={lesson.missing ? "text-muted-foreground/50" : undefined}>
+          {lesson.missing ? `${lesson.courseLabel} ${lesson.index}` : lesson.label}
+        </span>
+      )}
     </span>
   );
 }
@@ -178,18 +187,17 @@ function TermPlan({ plan }: { plan: PlannedWeek[] }) {
   return (
     <div className="space-y-1.5 border-t border-line pt-3">
       <span className="label">Mondays this term</span>
-      <ul className="space-y-1">
+      <ul className="space-y-2">
         {plan.map((week) => (
-          <li key={week.date} className="flex flex-wrap items-baseline gap-x-3 text-sm">
-            <span className="w-[8.5rem] shrink-0 text-muted-foreground tabular-nums">
+          <li key={week.date} className="flex flex-wrap gap-x-3 text-sm">
+            <span className="w-[8.5rem] shrink-0 pt-px text-muted-foreground tabular-nums">
               Week {week.number} · {short(week.date)}
             </span>
-            <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              {week.lessons.map((l, i) => (
-                <Fragment key={`${l.courseLabel}-${l.index}`}>
-                  {i > 0 && <span aria-hidden className="text-muted-foreground/40">·</span>}
-                  <Planned lesson={l} />
-                </Fragment>
+            {/* A column, not a row: two rules on one line read as one long
+                phrase, and neither says which course it belongs to. */}
+            <span className="flex min-w-0 flex-col gap-0.5">
+              {week.lessons.map((l) => (
+                <Planned key={`${l.courseLabel}-${l.index}`} lesson={l} />
               ))}
             </span>
           </li>
@@ -290,7 +298,9 @@ export function YearCalendar({
     for (const week of weeks)
       topicByDate.set(
         week.date,
-        week.lessons.map((l) => `${l.courseLabel} ${l.index}`).join(" · "),
+        week.lessons
+          .map((l) => (l.missing ? `${l.courseLabel} ${l.index}` : l.label))
+          .join(" · "),
       );
 
   return (

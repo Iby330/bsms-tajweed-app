@@ -58,6 +58,30 @@ update lessons l
    and l.week_id = (select id from weeks where term_id = 3 and number = v.week_number)
    and l.youtube_id is distinct from v.youtube_id;
 
+-- ── Mabādi' titles: "HW 1" names no rule ─────────────────────────────────
+--
+-- The Ten Fundamental Principles came in from the spreadsheet as "HW 1"
+-- through "HW 7", which is a slot number and not a topic. Every other series
+-- carries its rule in the title, and the calendar reads it from there
+-- (lib/lessons/rule-name.ts) to tell a student what they will be taught.
+-- These are the seven episode titles from the playlist, kept in the same
+-- "<course>: <rule>" shape the rest of the import uses so the same reader
+-- strips the prefix.
+update lessons l
+   set title = v.title
+  from (values
+    (1, 'The 10 Fundamental Principles: Introduction to Mutoon'),
+    (2, 'The 10 Fundamental Principles: The contents of this text'),
+    (3, 'The 10 Fundamental Principles: The definition and structured contents of Tajweed'),
+    (4, 'The 10 Fundamental Principles: The fruits of mastering Tajweed'),
+    (5, 'The 10 Fundamental Principles: The relationship of Tajweed to other sciences and its virtues'),
+    (6, 'The 10 Fundamental Principles: The founder, name and sources of Tajweed'),
+    (7, 'The 10 Fundamental Principles: The legal status of learning Tajweed and its specific issues')
+  ) as v(week_number, title)
+ where l.series = 'tfp'
+   and l.week_id = (select id from weeks where term_id = 3 and number = v.week_number)
+   and l.title is distinct from v.title;
+
 -- Proof the batch did something: 13 rows, none of them null.
 select l.series, w.number as week, l.youtube_id, l.title
   from lessons l

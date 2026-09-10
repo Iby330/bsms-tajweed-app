@@ -1,6 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { TERMS, termSessions, type TermId, type Timetable } from "@/lib/attendance/calendar";
+import { ruleName } from "@/lib/lessons/rule-name";
 import { COURSES, coursesForTerm, hasSyllabus } from "./syllabus";
 
 /**
@@ -12,18 +13,17 @@ import { COURSES, coursesForTerm, hasSyllabus } from "./syllabus";
  *
  * ── What a student is allowed to see ─────────────────────────────────────
  *
- * Two different things, deliberately kept apart:
+ * The RULE is always named — "Madd Lāzim", not "Mudūd 3". A slot number tells
+ * a student which week they are in but not what they will be taught, which is
+ * the question a calendar is actually being asked. A syllabus is not secret,
+ * and this is the class's own.
  *
- *   · The TOPIC — "Mudūd 3" — is always shown. It is the class's own
- *     curriculum, and knowing what you will be taught in week 6 is the point
- *     of publishing a calendar at all.
- *   · The lesson TITLE and the link are shown only once the lesson's week has
- *     unlocked. Titles are content, and `s_lessons_unlocked` exists to keep a
- *     locked week's contents out of a student's hands. Naming the topic does
- *     not breach that; naming "Madd Lāzim" three months early would.
+ * (An earlier pass here withheld the rule until the week unlocked, on the
+ * grounds that a title is content. That was the wrong line: it left students
+ * reading "Mudūd 3" for a term. The gate that matters is the LINK.)
  *
- * A link is offered only when following it will work AND there is something to
- * watch — the week is open and the lesson has a video. Everything else is
+ * A link is offered only when following it will work AND there is something
+ * to watch — the week is open and the lesson has a video. Everything else is
  * plain text, so the calendar never hands anyone a dead link.
  *
  * The read goes through the service-role client because a locked lesson is
@@ -33,11 +33,16 @@ import { COURSES, coursesForTerm, hasSyllabus } from "./syllabus";
  */
 
 export type PlannedLesson = {
-  /** Always present: the course and its position, e.g. "Mudūd" + 3. */
+  /** The course this belongs to, e.g. "Mudūd", and its position in it. */
   courseLabel: string;
   index: number;
-  /** The real lesson title — only once its week is open. */
-  title: string | null;
+  /**
+   * What is taught: the rule the lesson names — "Madd Lāzim" — falling back
+   * to the course and its number when the stored title carries no rule (the
+   * Ten Fundamental Principles are filed as "HW 1"…"HW 7") or when the app
+   * holds no lesson for that slot at all.
+   */
+  label: string;
   /** Only when the lesson page will render and has a video to play. */
   href: string | null;
   /** True when the syllabus asks for a lesson the app does not hold. */
@@ -109,11 +114,12 @@ export function planFromLessons(
           ? lessonsOf(course.source.series, course.source.termId)[i]
           : undefined;
         const open = !!lesson && Date.parse(lesson.weeks!.unlock_at) <= nowMs;
+        const rule = lesson ? ruleName(lesson.title) : null;
         return {
           courseLabel: course.label,
           index: i + 1,
-          title: open ? lesson.title : null,
-          href: open && lesson.youtube_id ? `/lessons/${lesson.id}` : null,
+          label: rule ?? `${course.label} ${i + 1}`,
+          href: open && lesson?.youtube_id ? `/lessons/${lesson.id}` : null,
           missing: !lesson,
         };
       }),

@@ -7,9 +7,16 @@ import "./globals.css";
 // runs from 200 (display figures, the masthead) to 700 (emphasis). Omitting
 // it ships the variable axis, so every weight in between actually renders
 // instead of silently snapping to the nearest cut that was downloaded.
+// `latin-ext` is not optional here. The plain `latin` subset stops at U+00FF,
+// and the curriculum is full of transliteration above it — Ṣifāt (U+1E62),
+// Mudūd (U+016B), Mabādi', Ḥurūf. Without it those characters fall back to a
+// system font mid-word, which reads as a rendering fault rather than a
+// different typeface. `latin-ext` covers U+0100–02BA and U+1E00–1E9F, which
+// is all of them. next/font emits it as a separate file behind a
+// unicode-range, so pages with no such character never download it.
 const archivo = Archivo({
   variable: "--font-archivo",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
 });
 
 const plexArabic = IBM_Plex_Sans_Arabic({

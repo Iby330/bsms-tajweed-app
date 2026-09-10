@@ -47,12 +47,17 @@ describe("planFromLessons", () => {
       "Ghunna 1",
       "Umm al-Kitāb 1",
     ]);
+    // And each is labelled by the rule it teaches, not by its slot.
+    expect(week1.lessons.map((l) => l.label)).toEqual([
+      "tajweed lesson 1",
+      "umm_al_kitab lesson 1",
+    ]);
   });
 
   it("walks each course forward a lesson per week", () => {
     const term1 = planFromLessons(ROWS, "Demo — Abdallah", tt, NOW)[1];
     expect(term1[3].lessons.map((l) => l.index)).toEqual([4, 4]);
-    expect(term1[3].lessons[0].title).toBe("tajweed lesson 4");
+    expect(term1[3].lessons[0].label).toBe("tajweed lesson 4");
   });
 
   it("links a lesson only when its week is open and it has a video", () => {
@@ -67,7 +72,8 @@ describe("planFromLessons", () => {
     const mudood = week1.lessons[1];
     expect(mudood.courseLabel).toBe("Mudūd");
     expect(mudood.index).toBe(1);
-    expect(mudood.title).toBeNull();
+    // The rule is still named — only the link waits for the week to open.
+    expect(mudood.label).toBe("tajweed lesson 1");
     expect(mudood.href).toBeNull();
     expect(mudood.missing).toBe(false);
   });
@@ -75,7 +81,7 @@ describe("planFromLessons", () => {
   it("offers no link for an open lesson that has no video yet", () => {
     const openNoVideo = [...series("tajweed", 1, 8, { video: false })];
     const week1 = planFromLessons(openNoVideo, "Demo — Abdallah", tt, NOW)[1][0];
-    expect(week1.lessons[0].title).toBe("tajweed lesson 1");
+    expect(week1.lessons[0].label).toBe("tajweed lesson 1");
     expect(week1.lessons[0].href).toBeNull();
   });
 
