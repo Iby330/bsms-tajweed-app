@@ -46,11 +46,17 @@ export const metadata: Metadata = {
  * The browser chrome around the page — the address bar on mobile, the title
  * bar of an installed window. Two values so it follows the theme rather than
  * leaving a pale strip above a dark page.
+ *
+ * This is the one part of the scheme that CANNOT key off data-brand: it is
+ * static metadata, read before any CSS runs. So unlike globals.css these are
+ * edited in place, and the cream values are kept here to switch back to:
+ *
+ *   cream light  #f4f1df      cream dark  #0a0a08
  */
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f1df" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a08" },
+    { media: "(prefers-color-scheme: light)", color: "#ededfc" },
+    { media: "(prefers-color-scheme: dark)", color: "#00004d" },
   ],
 };
 
@@ -65,8 +71,13 @@ export default function RootLayout({
     // faces are only defined from <body> down, every one of those references
     // is invalid at :root and font-family falls back to the browser default.
     // That is the whole app silently rendering in Times.
+    // `data-brand` picks the palette. Remove the attribute and the whole app
+    // returns to cream — the cream declarations in globals.css were never
+    // edited, so there is nothing to restore. See the navy section there, and
+    // the frozen values in lib/theme/cream.ts.
     <html
       lang="en"
+      data-brand="navy"
       className={`${archivo.variable} ${plexArabic.variable} ${amiriQuran.variable} ${geistMono.variable} h-full`}
       suppressHydrationWarning
     >

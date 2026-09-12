@@ -2,12 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { BRAND_LOGO } from "@/lib/theme/brand";
 
 export default function Landing() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-8 px-6">
       <Image
-        src="/brand/logo.png"
+        src={BRAND_LOGO}
         alt="BSMS Tajweed"
         width={160}
         height={160}

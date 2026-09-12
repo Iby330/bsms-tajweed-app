@@ -7,6 +7,7 @@ import { RECOVERY_COOKIE } from "@/lib/account/recovery";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { BRAND_LOGO } from "@/lib/theme/brand";
 
 export const metadata: Metadata = { title: "Choose a new password" };
 
@@ -22,7 +23,7 @@ export default async function ResetPasswordPage() {
     <div className="flex min-h-dvh items-center justify-center px-4">
       <Card className="w-full max-w-sm border-line">
         <CardHeader className="items-center text-center">
-          <Image src="/brand/logo.png" alt="BSMS Tajweed" width={72} height={72}
+          <Image src={BRAND_LOGO} alt="BSMS Tajweed" width={72} height={72}
             className="mx-auto mb-2 rounded-xl" priority />
           <CardTitle className="font-heading text-xl">
             {recovering ? "Choose a new password" : "Link expired"}

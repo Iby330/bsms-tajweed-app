@@ -2,6 +2,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { currentProfile } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/app/sign-out-button";
+import { BRAND_LOGO } from "@/lib/theme/brand";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export default async function Locked() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-6 text-center">
       <Image
-        src="/brand/logo.png"
+        src={BRAND_LOGO}
         alt="BSMS Tajweed"
         width={88}
         height={88}

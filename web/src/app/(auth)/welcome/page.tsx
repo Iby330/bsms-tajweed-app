@@ -6,6 +6,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { BRAND_LOGO } from "@/lib/theme/brand";
 
 export const metadata: Metadata = { title: "Set up your account" };
 
@@ -28,7 +29,7 @@ export default async function Welcome() {
     <div className="flex min-h-dvh items-center justify-center px-4 py-10">
       <Card className="w-full max-w-md border-line">
         <CardHeader className="items-center text-center">
-          <Image src="/brand/logo.png" alt="BSMS Tajweed" width={64} height={64}
+          <Image src={BRAND_LOGO} alt="BSMS Tajweed" width={64} height={64}
                  className="mx-auto mb-2 rounded-xl" priority />
           <CardTitle className="font-heading text-xl">
             {email ? "Set up your account" : "Invitation expired"}
