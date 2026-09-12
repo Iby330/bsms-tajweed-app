@@ -8,6 +8,9 @@ import { HifzHero } from "@/components/app/hifz-hero";
 import { HifzJourney } from "@/components/app/hifz-journey";
 import { HifzTabs } from "@/components/app/hifz-tabs";
 import { ReviewTab } from "@/components/app/review-tab";
+import { RevisionHeatmap } from "@/components/app/revision-heatmap";
+import { revisionActivityFor } from "@/lib/hifz/activity-queries";
+import { dayKey } from "@/lib/hifz/revision-activity";
 
 export const dynamic = "force-dynamic";
 
@@ -45,11 +48,16 @@ export default async function StudentHifz({
   const db = await supabaseServer();
   const { weeks } = await getTermsAndWeeks();
 
-  const [{ data: hp }, surahs, { data: records }] = await Promise.all([
+  const [{ data: hp }, surahs, { data: records }, activity] = await Promise.all([
     db.from("hifz_profiles").select("start_surah, target_count").eq("student_id", profile.id).maybeSingle(),
     getCachedSurahs(),
     db.from("hifz_records").select("surah_number, passed_at, teacher_comment").eq("student_id", profile.id),
+    revisionActivityFor(profile.id),
   ]);
+  // The grid's last column is "today". Resolve it here and hand the client a
+  // plain ISO day: if each side called new Date() the server's timezone and
+  // the browser's could disagree and React would flag a hydration mismatch.
+  const today = dayKey(new Date());
 
   // Empty states keep the masthead and tabs — a student with no target of
   // their own still reaches Review to log their partner's recitation.
@@ -152,6 +160,16 @@ export default async function StudentHifz({
           complete={complete}
           check={check}
         />
+      </div>
+
+      <div className="divider">
+        <span className="label">Your revision</span>
+        <span className="r" />
+        <span className="m" />
+      </div>
+
+      <div className="field">
+        <RevisionHeatmap days={activity} end={today} />
       </div>
 
       <div className="divider">
