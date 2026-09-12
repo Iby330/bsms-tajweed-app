@@ -26,6 +26,17 @@ Run:  python3 execution/audit_mushaf_measure.py
 Output: a TS table on stdout, ready to paste into web/src/lib/quran/mushaf.ts
 Read-only: touches the DB for line data and the fonts for metrics. Writes
 nothing.
+
+Validate before trusting: cross-check at least one page's number (e.g. the
+widest line on p585) against a live browser measurement before pasting the
+table in — this script's own first pass silently scored the 95 multi-glyph
+ayah markers as zero width (summed per WORD against a map keyed by
+CHARACTER) and was wrong on 6 pages. The output looked like a clean table,
+not an error; only a browser cross-check caught it. If you probe widths by
+cloning a DOM node in DevTools, copy individual style properties onto the
+clone rather than setting `probe.style.cssText` — that wipes React's inline
+`font-family` and the page font falls back silently, understating widths by
+~40%.
 """
 from fontTools.ttLib import TTFont
 from pathlib import Path

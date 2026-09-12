@@ -37,6 +37,17 @@ export function contributionLevel(pages: number): number {
   return 4;
 }
 
+/**
+ * The level a cell is drawn at. Pages set the intensity, but a day with a
+ * revision session and no sign-off is still a day the student revised — it
+ * must light up, not sit empty under a tooltip that says "1 session". Until
+ * timed sessions record their own pages, a session is worth the first band.
+ */
+export function dayLevel(day: RevisionDay | null | undefined): number {
+  if (!day) return 0;
+  return Math.max(contributionLevel(day.pages), day.sessions > 0 ? 1 : 0);
+}
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** YYYY-MM-DD in LOCAL time. `toISOString` would shift the day backwards for
@@ -77,7 +88,7 @@ export function buildActivityGrid(
       const date = new Date(first.getTime() + (w * 7 + row) * DAY_MS);
       if (date.getTime() > last.getTime()) break;   // don't render the future
       const day = byDate.get(dayKey(date)) ?? null;
-      bins.push({ bin: row, count: contributionLevel(day?.pages ?? 0), date, day });
+      bins.push({ bin: row, count: dayLevel(day), date, day });
     }
     if (bins.length) columns.push({ bin: w, bins });
   }

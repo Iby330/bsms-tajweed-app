@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  buildActivityGrid, collectDays, contributionLevel, dayKey, longestStreak, summarise,
+  buildActivityGrid, collectDays, contributionLevel, dayKey, dayLevel, longestStreak, summarise,
   type RevisionDay,
 } from "./revision-activity";
 
@@ -14,6 +14,17 @@ describe("contributionLevel", () => {
     expect(contributionLevel(2)).toBe(2);
     expect(contributionLevel(4)).toBe(3);
     expect(contributionLevel(9)).toBe(4);
+  });
+});
+
+describe("dayLevel", () => {
+  it("lights a session-only day at the first band instead of leaving it empty", () => {
+    expect(dayLevel(day("2026-08-10", { sessions: 1 }))).toBe(1);
+    expect(dayLevel(day("2026-08-10"))).toBe(0);
+    expect(dayLevel(null)).toBe(0);
+  });
+  it("lets pages set the intensity when both are present", () => {
+    expect(dayLevel(day("2026-08-10", { sessions: 1, pages: 5 }))).toBe(4);
   });
 });
 
@@ -81,6 +92,11 @@ describe("buildActivityGrid", () => {
     expect(hits).toHaveLength(1);
     expect(dayKey(hits[0].date)).toBe("2026-08-25");
     expect(hits[0].count).toBe(contributionLevel(3));
+    // a session with no pages still shows as a lit cell
+    const lit = buildActivityGrid([day("2026-08-24", { sessions: 1 })], { end, weeks: 2 })
+      .flatMap((c) => c.bins).filter((b) => b.count > 0);
+    expect(lit).toHaveLength(1);
+    expect(lit[0].count).toBe(1);
     expect(hits[0].day?.surahs).toBe(1);
   });
 });
