@@ -1931,3 +1931,22 @@ body::after {
      reading style uses. */
   .classrow .ar-quran { font-size: 1.05rem; line-height: 1.4; }
 }
+
+/* ─── Bklit charts ────────────────────────────────────────────────────
+   The heatmap reads a five-step sequential scale plus a tooltip ground
+   from these tokens and ships none of its own. Cut from --ok, the same
+   green a passed surah wears in the hifdh index, so the grid reads as
+   part of this app rather than a chart dropped into it; built on tokens
+   that already flip with the theme, so dark mode needs no second block.
+   Level 0 is a tint of the foreground, not a grey, so it holds in both.
+   (Do not let `shadcn add` write here: its cssVars pass emitted a
+   duplicate :root and `var(----…)` names — reverted, this block re-added.) */
+:root {
+  --chart-scale-01: color-mix(in oklab, var(--foreground) 7%, var(--card));
+  --chart-scale-02: color-mix(in oklab, var(--ok) 22%, var(--card));
+  --chart-scale-03: color-mix(in oklab, var(--ok) 45%, var(--card));
+  --chart-scale-04: color-mix(in oklab, var(--ok) 70%, var(--card));
+  --chart-scale-05: var(--ok);
+  --chart-scale-pattern-color: color-mix(in oklab, var(--ok) 12%, var(--card));
+  --chart-tooltip-background: var(--card);
+}
