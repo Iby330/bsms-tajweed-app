@@ -36,8 +36,14 @@ const VERSES: Record<string, ClassVerse> = {
     enWord: "Rayyān",
     source: "Ṣaḥīḥ Muslim 1152",
   },
+  // Fāṭir 35:33. The text carried two spurious small high meems (U+06E2) —
+  // the iqlāb mark — one before yā' and one before wāw. Iqlāb only occurs
+  // before bā'; both of those positions are idghām with ghunna, so the mark
+  // was wrong in each. They came in with the text, which was taken from
+  // quran.com rather than the app's own quran_words (that table holds
+  // surahs 67–114 only, so Fāṭir is not in it to check against).
   hareer: {
-    ar: "جَنَّـٰتُ عَدْنٍۢ يَدْخُلُونَهَا يُحَلَّوْنَ فِيهَا مِنْ أَسَاوِرَ مِن ذَهَبٍۢ وَلُؤْلُؤًۭا ۖ وَلِبَاسُهُمْ فِيهَا حَرِيرٌۭ",
+    ar: "جَنَّـٰتُ عَدْنٍ يَدْخُلُونَهَا يُحَلَّوْنَ فِيهَا مِنْ أَسَاوِرَ مِن ذَهَبٍ وَلُؤْلُؤًۭا ۖ وَلِبَاسُهُمْ فِيهَا حَرِيرٌۭ",
     arWord: "حَرِيرٌۭ",
     en: "They will enter the Gardens of Eternity, where they will be adorned with bracelets of gold and pearls, and their clothing will be silk.",
     enWord: "silk",

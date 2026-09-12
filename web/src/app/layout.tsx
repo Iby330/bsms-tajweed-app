@@ -31,6 +31,16 @@ const amiriQuran = Amiri_Quran({
   weight: "400",
 });
 
+// Geist Mono has NO Latin Extended at all — not ā, not ū, not ṣ, not ṭ. A
+// `latin-ext` subset does not help, because Google cannot serve a subset the
+// face does not contain. The labels are exactly where this programme's
+// vocabulary lands — FĀṬIR 35:33, ṢIFĀT, MUDŪD — so those glyphs have to come
+// from somewhere else, and --font-mono names Archivo next (see globals.css).
+//
+// globals.css therefore names "Geist Mono" directly rather than reading this
+// variable: next/font packs a metric-matched "Geist Mono Fallback" inside it,
+// which is local Arial with no unicode-range, and it answers for every missing
+// glyph before any later family is reached. That is what set the Ṭ in Arial.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],

@@ -8,7 +8,16 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-archivo);
-  --font-mono: var(--font-geist-mono);
+  /* "Geist Mono" by name, NOT var(--font-geist-mono).
+     Geist Mono carries no Latin Extended — not ā, not ū, not ṣ, not ṭ — and
+     this programme's vocabulary is full of them, in exactly the uppercase
+     labels this token sets: FĀṬIR 35:33, ṢIFĀT, MUDŪD. Archivo has them all,
+     so it is named next.
+     The variable cannot be used here: next/font packs a metric-matched
+     "Geist Mono Fallback" inside it, which is local Arial carrying no
+     unicode-range, so it answers for every missing glyph before Archivo is
+     ever consulted. That is what set the Ṭ in Arial mid-label. */
+  --font-mono: "Geist Mono", var(--font-archivo), ui-monospace, monospace;
   --font-heading: var(--font-archivo);
   --font-arabic: var(--font-plex-arabic);
   --font-quran: var(--font-amiri-quran);
