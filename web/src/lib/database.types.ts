@@ -766,7 +766,7 @@ export type Database = {
           note: string | null
           session_id: string
           surah_number: number
-          word_position: number
+          word_position: number | null
         }
         Insert: {
           ayah_number: number
@@ -777,7 +777,7 @@ export type Database = {
           note?: string | null
           session_id: string
           surah_number: number
-          word_position: number
+          word_position: number | null
         }
         Update: {
           ayah_number?: number
@@ -788,7 +788,7 @@ export type Database = {
           note?: string | null
           session_id?: string
           surah_number?: number
-          word_position?: number
+          word_position?: number | null
         }
         Relationships: [
           {

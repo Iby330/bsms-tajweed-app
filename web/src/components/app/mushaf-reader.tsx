@@ -2,7 +2,8 @@
 
 import { Fragment } from "react";
 import {
-  isCenteredLine, pageSlots, wordKey,
+  DEFAULT_MEASURE, PAGE_MEASURE,
+  ayahKey, isCenteredLine, pageSlots, wordKey,
   type MushafLine, type MushafPage, type QuranWord,
 } from "@/lib/quran/mushaf";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,11 @@ const BASMALA = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَ
 
 // the 1405H print's per-page fonts (QCF v1)
 const pageFont = (page: number) => `QCF_P${String(page).padStart(3, "0")}`;
+
+// The QUL surah-name fonts carry 116 glyphs for 114 surahs: U+E001..U+E072
+// are the names, and U+E000 is the word سُورَةُ in the same cut. The print
+// heads each surah with both, so the band renders the pair.
+const SURAH_WORD = "\uE000";
 
 /** A surah opens at this line when its first word sits on it. */
 const surahStart = (ln: MushafLine): QuranWord | null => {
@@ -36,8 +42,10 @@ export function MushafReader({
   onWordTap,
 }: {
   pages: MushafPage[];
-  marks?: Record<string, WordMark>;   // wordKey → logged mistake (uniform tint)
-  heat?: Record<string, string>;      // wordKey → precomputed tint class
+  // Keyed by wordKey OR ayahKey: an ayah-scoped mistake (the reviewer tapped
+  // the end marker) is one entry that tints the whole ayah, marker included.
+  marks?: Record<string, WordMark>;   // → logged mistake (uniform tint)
+  heat?: Record<string, string>;      // → precomputed tint class
   surahNames?: SurahNames;            // enables the name band at surah starts
   onWordTap?: (word: QuranWord) => void;
 }) {
@@ -48,19 +56,20 @@ export function MushafReader({
 
   const renderWord = (word: QuranWord, text: string) => {
     const key = wordKey(word);
-    if (word.isEnd) {
-      // Glyph rosettes carry their number; the Hafs face draws a bare
-      // numeral as the enclosed rosette too. Never tappable.
-      return (
-        <Fragment key={key}>
-          <span className="text-ink-2">{text}</span>{" "}
-        </Fragment>
-      );
-    }
+    // A mark on the ayah covers every word in it, so fall back to the ayah's
+    // key. Word first: an ayah can be forgotten AND one word inside it
+    // mis-read, and the more specific classification is the one to show.
+    const mark = marks[key] ?? marks[ayahKey(word)];
+    const tint = heat[key] ?? heat[ayahKey(word)];
+    // Glyph rosettes carry their number; the Hafs face draws a bare numeral
+    // as the enclosed rosette too. The marker IS the ayah's tap target —
+    // forgetting a whole ayah is commoner than fumbling a single word, and
+    // the marker is the one token that means "this ayah" rather than a word.
+    const label = word.isEnd ? `Ayah ${word.ayah}` : undefined;
     if (!onWordTap) {
       return (
         <Fragment key={key}>
-          <span className={cn("rounded-md", marks[key] && "bg-danger/25", heat[key])}>
+          <span className={cn("rounded-md", word.isEnd && "text-ink-2", mark && "bg-danger/25", tint)}>
             {text}
           </span>{" "}
         </Fragment>
@@ -71,10 +80,12 @@ export function MushafReader({
         <button
           type="button"
           onClick={() => onWordTap(word)}
+          aria-label={label}
           className={cn(
             "rounded-md transition-colors hover:bg-muted",
-            marks[key] && "bg-danger/25",
-            heat[key],
+            word.isEnd && "text-ink-2",
+            mark && "bg-danger/25",
+            tint,
           )}
         >
           {text}
@@ -96,7 +107,14 @@ export function MushafReader({
         </style>
       )}
       {pages.map((p) => (
-        <section key={p.page} className={cn(glyphMode ? "mushaf-page" : "glass rounded-2xl px-5 py-6")}>
+        <section
+          key={p.page}
+          className={cn(glyphMode ? "mushaf-page" : "glass rounded-2xl px-5 py-6")}
+          // This page's own natural measure. Each QCF v1 page font is cut to
+          // its own engraving, so the text block's width is a per-page fact
+          // (14.25em–15.55em) — the band's stretch has to follow it.
+          style={glyphMode ? ({ "--measure": PAGE_MEASURE[p.page] ?? DEFAULT_MEASURE } as React.CSSProperties) : undefined}
+        >
           {glyphMode ? (
             <div className="mushaf-frame">
               <div className="mushaf-body">
@@ -105,9 +123,22 @@ export function MushafReader({
                     const name = surahNames?.[slot.surah];
                     return (
                       <div key={`slot-${i}`} className="mushaf-slot">
-                        <div className="mushaf-header" aria-label={name?.en}>
+                        {/* role="img" so the label is actually announced —
+                            the glyphs inside are decorative PUA codepoints
+                            that read as gibberish, so they stay hidden. */}
+                        <div
+                          className="mushaf-header"
+                          role="img"
+                          aria-label={name ? `Surah ${name.en}` : undefined}
+                        >
                           <span className="band" aria-hidden>header</span>
-                          <span className="name">{`surah${String(slot.surah).padStart(3, "0")}`}</span>
+                          {/* two glyphs, not one: the flex row inherits the
+                              body's RTL, so the first child lands on the
+                              right — سُورَةُ, then the name to its left. */}
+                          <span className="name" aria-hidden>
+                            <span>{SURAH_WORD}</span>
+                            <span>{`surah${String(slot.surah).padStart(3, "0")}`}</span>
+                          </span>
                         </div>
                       </div>
                     );

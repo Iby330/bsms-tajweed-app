@@ -4,16 +4,21 @@ import {
 } from "./mistake-taxonomy";
 
 describe("taxonomy shape", () => {
-  it("has the four categories", () => {
-    expect(CATEGORIES.map((c) => c.id)).toEqual(["hifz", "tajweed", "makhraj", "fluency"]);
+  it("has the three selectable categories", () => {
+    expect(CATEGORIES.map((c) => c.id)).toEqual(["hifz", "tajweed", "makhraj"]);
   });
   it("gives every non-makhraj category a detail list", () => {
     expect(DETAILS.hifz.length).toBeGreaterThan(0);
     expect(DETAILS.tajweed.map((d) => d.id)).toContain("ikhfa");
-    expect(DETAILS.fluency.length).toBeGreaterThan(0);
   });
   it("has session flags including weak hifz", () => {
     expect(SESSION_FLAGS.map((f) => f.id)).toContain("weak_hifz");
+  });
+  // Fluency was retired from the picker; rows already logged under it must
+  // still read properly rather than showing the raw slug to a student.
+  it("still labels a retired category's rows", () => {
+    expect(CATEGORIES.map((c) => c.id)).not.toContain("fluency");
+    expect(detailLabel("fluency", "hesitation")).toBe("Fluency — Hesitation");
   });
 });
 

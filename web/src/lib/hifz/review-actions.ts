@@ -79,10 +79,14 @@ export async function startSession(reciterId: string): Promise<string> {
   return data.id;
 }
 
-export type MistakeLocation = { surah: number; ayah: number; position: number };
+/** `position: null` means the whole ayah — the reviewer tapped its end
+ *  marker. One row either way: an ayah forgotten is one mistake, not one
+ *  per word, or a single lapse would swamp the pattern tracker. */
+export type MistakeLocation = { surah: number; ayah: number; position: number | null };
 
-/** One mistake per word per session: logging replaces any earlier
- *  classification of the same word. RLS (reviewer + draft) guards both
+/** One mistake per target per session: logging replaces any earlier
+ *  classification of the same word — or of the same ayah, which is tracked
+ *  separately from the words inside it. RLS (reviewer + draft) guards both
  *  statements. Returns the new row id so the client can undo it. */
 export async function logMistake(
   sessionId: string,
@@ -95,10 +99,22 @@ export async function logMistake(
   if (!CATEGORY_IDS.includes(category)) throw new Error("Unknown category.");
   const db = await supabaseServer();
 
-  const { error: delErr } = await db
+  if (loc.position === null && category === "makhraj") {
+    // Its detail is a letter of one word; there is no such thing as the
+    // makhraj of a whole ayah. The DB has the same check.
+    throw new Error("Makhraj applies to a word, not a whole ayah.");
+  }
+
+  // `.eq` never matches NULL in Postgres, so the ayah-scoped row has to be
+  // matched with `.is` — using `.eq` here would silently skip the delete and
+  // let duplicates pile up on every re-classification.
+  const dup = db
     .from("revision_mistakes").delete()
     .eq("session_id", sessionId)
-    .eq("surah_number", loc.surah).eq("ayah_number", loc.ayah).eq("word_position", loc.position);
+    .eq("surah_number", loc.surah).eq("ayah_number", loc.ayah);
+  const { error: delErr } = await (loc.position === null
+    ? dup.is("word_position", null)
+    : dup.eq("word_position", loc.position));
   if (delErr) throw new Error(delErr.message);
 
   const { data, error } = await db

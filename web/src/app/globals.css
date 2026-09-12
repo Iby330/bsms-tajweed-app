@@ -363,15 +363,23 @@ body::after {
    to em against a 30px reference (qul.tarteel.ai/resources/mushaf-layout/15;
    the platform is MIT-licensed). Page: 563.28px wide, 55.5px leading,
    69.5px fixed line slots, text-align-last justification, layered
-   quran-icon + surah-name-v4 headers, the ﷽ ligature basmala. */
+   quran-icon + surah-name headers, the ﷽ ligature basmala. (QUL's preview
+   layers the v4 name font; this reader uses v1 — see the @font-face below
+   for why. The proportions it contributes are unaffected.) */
 @font-face {
   font-family: "quran-icon";
   src: url("/fonts/qul/quran-common.woff2") format("woff2");
   font-display: block;
 }
+/* v1, not v4, and the reason is measurable. The band renders سُورَةُ (U+E000)
+   next to the name, and in v4 that one glyph is cut nearly twice as heavy as
+   the names it sits beside — ink density 0.4838 against a median 0.2535, so
+   it reads as bold set in a different face. v1 draws the pair from one hand:
+   0.2836 against 0.2471, a ratio of 1.15. v1 is also the cut that belongs to
+   this edition — the page fonts are QCF v1 and the print is the 1405H. */
 @font-face {
-  font-family: "surah-name-v4";
-  src: url("/fonts/qul/surah-name-v4.woff2") format("woff2");
+  font-family: "surah-name-v1";
+  src: url("/fonts/qul/surah-name-v1.woff2") format("woff2");
   font-display: block;
 }
 @font-face {
@@ -384,7 +392,18 @@ body::after {
   /* the measure: audited across every seeded line (549 of them) by summing
      glyph advances straight from the page fonts — the widest natural line
      is 15.549em INCLUDING inter-word space advances (page 585). Anything
-     narrower WRAPPED (or now overflows); the measure must clear the max. */
+     narrower WRAPPED (or now overflows); the measure must clear the max.
+
+     It stays a MAX, and the block shrink-wraps inside `.mushaf-page`'s
+     `fit-content` to the page's own widest line. That is deliberate, and
+     setting it as a fixed `inline-size` is a mistake worth naming: QCF v1
+     is one font per page, each cut to its own engraving, so the natural
+     measure is a per-page fact — 14.25em on 604, 15.55em on 585 (see
+     execution/audit_mushaf_measure.py, which regenerates PAGE_MEASURE).
+     Pin every page to one width and justification has to invent the
+     difference as inter-word space: ~0.9em a line on 594, which reads as
+     bloated gaps around the ayah markers. Let each page fill naturally
+     and the only stretch left is the ~1% spread within a single page. */
   max-inline-size: 15.6em;
   margin-inline: auto;
   direction: rtl;
@@ -421,7 +440,14 @@ body::after {
   justify-content: center;
   height: 100%;
   font-family: "quran-icon";
-  font-size: 1.55em; /* the band fills its 1.59em slot, never its neighbours */
+  /* One line slot, filled — the print gives the cartouche a whole line, so
+     it takes the whole 1.7em. At 1.55em it left 0.15em of slack that read
+     as a gap above a page-opening cartouche (An-Naba on 582) and below a
+     page-closing one. Its ink is 0.9922em of the em box, so a 1.7em slot
+     holds it with 0.013em to spare; measured against its neighbours it
+     clears the line above by 0.079em where two text lines interleave by
+     0.223em, so it cannot bleed. */
+  font-size: 1.7em;
   line-height: 1;
   font-feature-settings: "liga";
   font-variant-ligatures: discretionary-ligatures;
@@ -430,9 +456,13 @@ body::after {
   display: block;
   /* the band spans the full measure — the widest ink on the page, so a
      plumb line from its ends clears every ayah. Its glyph's natural aspect
-     is 8.047 (measured from the font): 1.55em tall → 12.47em wide, and the
-     measure is 14.6em → scaleX 1.171. Same slight ovalising Tarteel shows. */
-  transform: scaleX(1.251); /* 15.6em measure / 12.47em natural band */
+     is 8.047 (measured from the font), so at 1.7em it is 13.68em wide and
+     has to be stretched to the text block. The text block is NOT a
+     constant, so neither is the stretch: `--measure` is this page's own
+     natural width, set by the reader from PAGE_MEASURE. A hard-coded
+     stretch sized for the widest page (585) overshot page 604 by 9% and
+     pushed the cartouche's ends past the frame's side rules. */
+  transform: scaleX(calc(var(--measure) / 13.68));
   transform-origin: center;
 }
 .mushaf-header .name {
@@ -443,12 +473,34 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "surah-name-v4";
+  /* سُورَةُ and the name are separate glyphs. The row inherits the body's
+     RTL, so the first child sits on the right, as the phrase reads. */
+  gap: 0.28em;
+  font-family: "surah-name-v1";
   font-size: 0.715em; /* 50px / 70px */
   line-height: 1;
-  /* the v4 name ligatures carry a small baked-in downward offset (they're
-     cut for the v4 band); calibrated against the band window visually */
-  transform: translateY(-0.12em);
+  /* scaleX matches the band's: the cartouche and the name it encloses are
+     ONE engraved unit in the print, so a stretch applied to the band alone
+     leaves the name narrow inside a window widened around it. Measured off
+     the fonts (upem 1024, band ink 8240×1016, name ink at 50/70 of band):
+     QUL's own layout puts the name's ink at 0.1182 of the band's width;
+     stretching the band alone gave 0.0946 — exactly 1/1.251 of reference,
+     20% narrow. Stretching both restores it.
+
+     translateY is DERIVED, not eyeballed — an earlier -0.12em was a visual
+     calibration against v4 and it was 2.1x too far, which is why the name
+     floated high. Both fonts have upem 1024 and a 1em content box:
+       band    hhea 819/-205 → box centre 307 above baseline, ink centre
+               320 → the band's ink sits 0.0127em ABOVE its box centre
+       name v1 hhea 819/-205 → box centre 307, and the median ink centre
+               of the 114 سُورَةُ+name pairs is 447.5 → the pair's ink sits
+               0.1372em ABOVE its box centre
+     Both boxes are centred in the 1.7em slot, so the pair's ink lands
+     0.1372*(0.715*1.7) - 0.0127*1.7 = 0.1452em HIGH in page em, which is
+     0.1195em of the name's own font-size — hence a positive (downward)
+     shift here where v4 needed a negative one. Scale-invariant: every
+     term scales with the band, so this holds at any slot height. */
+  transform: translateY(0.119em) scaleX(calc(var(--measure) / 13.68));
   font-feature-settings: "liga";
   font-variant-ligatures: discretionary-ligatures;
 }
@@ -1470,13 +1522,22 @@ body::after {
      the hizb captions sitting nearly on the grid above them. One gap here
      rather than a margin as well, so the two can never stack. */
   .hifzindex { gap: 26px; }
-  .band { display: flex; align-items: center; gap: 12px; margin: 0 0 10px; }
-  .band .t { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.15em;
+  /* Scoped to `.hifzindex`, and it must stay scoped: a bare `.band` also
+     matched the mushaf cartouche's own `.band` span in the reader, handing
+     it this rule's `margin-bottom: 10px`. The header centres its band as a
+     flex item, so a bottom margin centres the MARGIN box — the cartouche
+     rode 5px high in its 1.7em slot with 5px of dead space beneath it.
+     Mid-page the basmala line closed the gap and hid it; as the last line
+     of a page there was nothing below, so it read as a bad bottom margin
+     against the frame. Both `.band`s here are inside a `.hifzindex`
+     section (hifz-grid.tsx, hifz-journey.tsx), so the scope costs nothing. */
+  .hifzindex .band { display: flex; align-items: center; gap: 12px; margin: 0 0 10px; }
+  .hifzindex .band .t { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.15em;
              text-transform: uppercase; color: var(--muted-foreground); }
-  .band .r { flex: 1; height: 1px; background: var(--hair); }
-  .band .st { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em;
+  .hifzindex .band .r { flex: 1; height: 1px; background: var(--hair); }
+  .hifzindex .band .st { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em;
               text-transform: uppercase; color: var(--ok); }
-  .band .st.wait { color: var(--ink-3); }
+  .hifzindex .band .st.wait { color: var(--ink-3); }
 
   .index { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
            gap: 1px; background: var(--border); border: 1px solid var(--border); }

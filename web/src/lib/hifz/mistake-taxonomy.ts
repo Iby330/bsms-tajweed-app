@@ -8,16 +8,18 @@ export const CATEGORIES = [
   { id: "hifz", label: "Hifdh" },
   { id: "tajweed", label: "Tajweed" },
   { id: "makhraj", label: "Makhraj" },
-  { id: "fluency", label: "Fluency" },
 ] as const;
 export type Category = (typeof CATEGORIES)[number]["id"];
 export const CATEGORY_IDS: readonly string[] = CATEGORIES.map((c) => c.id);
 
 export const DETAILS: Record<Exclude<Category, "makhraj">, { id: string; label: string }[]> = {
+  // Scope-neutral wording on purpose: the same detail describes one word or
+  // a whole ayah (tapping the end marker), and patterns aggregate across
+  // both, so "Forgot the word" would misname half of what it counts.
   hifz: [
-    { id: "forgot", label: "Forgot the word" },
-    { id: "swapped", label: "Swapped / wrong word" },
-    { id: "added", label: "Added a word" },
+    { id: "forgot", label: "Forgot it" },
+    { id: "swapped", label: "Swapped / wrong" },
+    { id: "added", label: "Added extra" },
   ],
   tajweed: [
     { id: "ikhfa", label: "Ikhfa" },
@@ -29,6 +31,20 @@ export const DETAILS: Record<Exclude<Category, "makhraj">, { id: string; label: 
     { id: "ghunnah", label: "Ghunnah" },
     { id: "tafkhim", label: "Heavy / light (tafkhim–tarqiq)" },
   ],
+};
+
+/**
+ * Retired from the picker but still rendered. The DB check constraint on
+ * revision_mistakes.category is deliberately NOT narrowed to match this
+ * list: narrowing it would fail validation against rows already logged, and
+ * silently dropping a category would surface a raw slug like "fluency" in a
+ * student's feedback. Selection reads CATEGORIES / DETAILS; display reads
+ * these too. Retire by moving an entry here — never by deleting it.
+ */
+const RETIRED_CATEGORIES: { id: string; label: string }[] = [
+  { id: "fluency", label: "Fluency" },
+];
+const RETIRED_DETAILS: Record<string, { id: string; label: string }[]> = {
   fluency: [
     { id: "hesitation", label: "Hesitation" },
     { id: "repetition", label: "Repetition" },
@@ -60,12 +76,18 @@ export function lettersOf(text: string): string[] {
   return out;
 }
 
-/** Human label for a stored (category, detail) pair. */
-export function detailLabel(category: Category, detail: string | null): string {
-  const cat = CATEGORIES.find((c) => c.id === category)?.label ?? category;
+/** Human label for a stored (category, detail) pair. Accepts retired
+ *  categories so old rows keep reading properly. */
+export function detailLabel(category: Category | string, detail: string | null): string {
+  const cat =
+    CATEGORIES.find((c) => c.id === category)?.label
+    ?? RETIRED_CATEGORIES.find((c) => c.id === category)?.label
+    ?? category;
   if (!detail) return cat;
   if (category === "makhraj") return `Makhraj of ${detail}`;
-  const d = DETAILS[category as Exclude<Category, "makhraj">]?.find((x) => x.id === detail);
+  const list =
+    DETAILS[category as Exclude<Category, "makhraj">] ?? RETIRED_DETAILS[category];
+  const d = list?.find((x) => x.id === detail);
   return d ? `${cat} — ${d.label}` : cat;
 }
 

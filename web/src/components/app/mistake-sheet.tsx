@@ -13,9 +13,15 @@ import { cn } from "@/lib/utils";
 export type SheetResult = { category: Category; detail: string | null; note: string };
 
 /**
- * The two-level quick pick for one tapped word: category → specific (rule /
- * letter / slip) → optional note. Mount with key={wordKey(word)} so state
- * resets per word.
+ * The two-level quick pick for one tap: category → specific (rule / letter /
+ * slip) → optional note. Mount with key={markKey(...)} so state resets per
+ * target.
+ *
+ * Tapping an ayah's END MARKER classifies the whole ayah rather than a word
+ * — forgetting an ayah outright is commoner than fumbling one word in it.
+ * Makhraj is withheld in that mode by construction: its detail is a letter
+ * of a particular word, so it cannot describe an ayah. The DB agrees
+ * (revision_mistakes_ayah_scope_not_makhraj).
  */
 export function MistakeSheet({
   word,
@@ -34,6 +40,10 @@ export function MistakeSheet({
   const [detail, setDetail] = useState<string | null>(existing?.detail ?? null);
   const [note, setNote] = useState(existing?.note ?? "");
 
+  // The end marker means "this whole ayah", not the marker glyph itself.
+  const wholeAyah = word?.isEnd ?? false;
+  const categories = wholeAyah ? CATEGORIES.filter((c) => c.id !== "makhraj") : CATEGORIES;
+
   const details =
     category === "makhraj"
       ? (word ? lettersOf(word.text).map((l) => ({ id: l, label: l })) : [])
@@ -45,12 +55,23 @@ export function MistakeSheet({
     <Dialog open={word !== null} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-sm space-y-3">
         <DialogHeader>
-          <DialogTitle dir="rtl" lang="ar" className="ar-quran text-center">
-            {word?.text}
-          </DialogTitle>
+          {wholeAyah ? (
+            <DialogTitle className="text-center text-base">
+              Whole ayah
+              <span className="ml-2 text-sm font-normal text-muted-foreground tabular-nums">
+                {word!.surah}:{word!.ayah}
+              </span>
+            </DialogTitle>
+          ) : (
+            <DialogTitle dir="rtl" lang="ar" className="ar-quran text-center">
+              {word?.text}
+            </DialogTitle>
+          )}
         </DialogHeader>
-        <div className="grid grid-cols-2 gap-1.5">
-          {CATEGORIES.map((c) => (
+        {/* Fits the count: three categories on one row, two side by side.
+            A fixed 2-col grid left Makhraj stranded alone on a second row. */}
+        <div className={cn("grid gap-1.5", categories.length === 3 ? "grid-cols-3" : "grid-cols-2")}>
+          {categories.map((c) => (
             <Button key={c.id} size="sm" variant={category === c.id ? "default" : "outline"}
               onClick={() => { setCategory(c.id); setDetail(null); }}>
               {c.label}
@@ -58,7 +79,14 @@ export function MistakeSheet({
           ))}
         </div>
         {details.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
+          // Makhraj chips are Arabic letters, so the row runs RTL: lettersOf
+          // returns them in reading order, and an LTR row put the word's
+          // FIRST letter on the left — reading backwards, and starting from
+          // the wrong edge. The rule chips stay LTR; their labels are English.
+          <div
+            dir={category === "makhraj" ? "rtl" : undefined}
+            className="flex flex-wrap gap-1.5"
+          >
             {details.map((d) => (
               <button key={d.id} type="button"
                 onClick={() => setDetail(detail === d.id ? null : d.id)}

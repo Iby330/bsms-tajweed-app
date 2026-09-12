@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { fromRow, groupIntoPages, isCenteredLine, pageSlots, wordKey, type QuranWord } from "./mushaf";
+import { ayahKey, fromRow, groupIntoPages, isCenteredLine, markKey, pageSlots, wordKey, type QuranWord } from "./mushaf";
 
 describe("isCenteredLine", () => {
   it("centres the print's closing lines", () => {
@@ -10,6 +10,14 @@ describe("isCenteredLine", () => {
     expect(isCenteredLine(604, 5)).toBe(false);
     expect(isCenteredLine(583, 7)).toBe(false);
   });
+  // Al-Qari'ah's close, checked against the physical 1405 copy. The
+  // inherited table said line 10, which carries no words on that page, so
+  // the entry never fired and the line was justified — the worst-stretched
+  // line in the range at 13.1%.
+  it("centres Al-Qari'ah's close on 600 — line 9, not the wordless 10", () => {
+    expect(isCenteredLine(600, 9)).toBe(true);
+    expect(isCenteredLine(600, 10)).toBe(false);
+  });
 });
 
 const w = (over: Partial<QuranWord>): QuranWord => ({
@@ -19,6 +27,17 @@ const w = (over: Partial<QuranWord>): QuranWord => ({
 describe("wordKey", () => {
   it("is surah:ayah:position", () => {
     expect(wordKey({ surah: 114, ayah: 2, position: 3 })).toBe("114:2:3");
+  });
+});
+
+describe("ayahKey / markKey", () => {
+  it("ayahKey is surah:ayah and cannot collide with a wordKey", () => {
+    expect(ayahKey({ surah: 114, ayah: 2 })).toBe("114:2");
+    expect(ayahKey({ surah: 114, ayah: 2 })).not.toBe(wordKey({ surah: 114, ayah: 2, position: 3 }));
+  });
+  it("markKey scopes to the ayah when position is null, the word otherwise", () => {
+    expect(markKey({ surah: 91, ayah: 4, position: null })).toBe("91:4");
+    expect(markKey({ surah: 91, ayah: 4, position: 2 })).toBe("91:4:2");
   });
 });
 

@@ -57,6 +57,14 @@ describe("wordHeat", () => {
     const heat = wordHeat([m({}), m({ id: "old2", created_at: "2026-01-01T00:00:00Z" })], NOW);
     expect(heat["114:1:2"]).toBe(3); // 2 recent + 1 old
   });
+  it("keys a whole-ayah mistake on the ayah, apart from the words in it", () => {
+    const heat = wordHeat(
+      [m({}), m({ id: "ayah", word_position: null, category: "hifz", detail: "forgot" })],
+      NOW,
+    );
+    expect(heat["114:1"]).toBe(2);    // the ayah
+    expect(heat["114:1:2"]).toBe(2);  // the word, still its own
+  });
 });
 
 describe("heatClass", () => {

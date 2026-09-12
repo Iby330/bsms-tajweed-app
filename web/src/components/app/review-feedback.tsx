@@ -7,7 +7,7 @@ import { detailLabel } from "@/lib/hifz/mistake-taxonomy";
 import {
   getCachedPageWords, getCachedSurahs, getCachedSurahStartPages,
 } from "@/lib/reference/cached";
-import { fromRow, groupIntoPages, wordKey } from "@/lib/quran/mushaf";
+import { ayahKey, fromRow, groupIntoPages, markKey, wordKey } from "@/lib/quran/mushaf";
 import { PatternTracker } from "./pattern-tracker";
 import { HeatViewer, type WordHistoryEntry } from "./heat-viewer";
 import { MushafPager } from "./mushaf-pager";
@@ -67,17 +67,39 @@ export async function ReviewFeedback({
           : startPages[heatSurahs[0]] ?? firstPage;
 
     const rows = await getCachedPageWords(page);
-    const pages = groupIntoPages(rows.map(fromRow));
+    const words = rows.map(fromRow);
+    const pages = groupIntoPages(words);
     const onPage = new Set(rows.map((r) => r.surah_number));
-    const heatValues = Object.fromEntries(
-      Object.entries(wordHeat(mistakes, now)).map(([k, v]) => [k, heatClass(v)]),
-    );
-    const history: Record<string, WordHistoryEntry[]> = {};
-    for (const m of [...mistakes].sort((a, b) => b.created_at.localeCompare(a.created_at))) {
-      const k = wordKey({ surah: m.surah_number, ayah: m.ayah_number, position: m.word_position });
-      (history[k] ??= []).push({
-        label: detailLabel(m.category, m.detail), note: m.note, date: m.created_at,
+
+    // wordHeat keys by markKey, so an ayah-scoped mistake lands on the ayah.
+    // Spread it back over the words of this page and ADD the two: a word
+    // mis-read inside an ayah that was also forgotten is hotter than either
+    // on its own, which a `??` fallback in the reader would quietly hide.
+    const raw = wordHeat(mistakes, now);
+    const heatValues: Record<string, string> = {};
+    for (const w of words) {
+      const total = (raw[wordKey(w)] ?? 0) + (raw[ayahKey(w)] ?? 0);
+      if (total > 0) heatValues[wordKey(w)] = heatClass(total);
+    }
+
+    // Same spread for the tap-through history, so tapping any word of a
+    // forgotten ayah explains why it is hot — including the end marker.
+    const byTarget: Record<string, WordHistoryEntry[]> = {};
+    for (const m of mistakes) {
+      const k = markKey({ surah: m.surah_number, ayah: m.ayah_number, position: m.word_position });
+      (byTarget[k] ??= []).push({
+        label: detailLabel(m.category, m.detail)
+          + (m.word_position === null ? " · whole ayah" : ""),
+        note: m.note,
+        date: m.created_at,
       });
+    }
+    const history: Record<string, WordHistoryEntry[]> = {};
+    for (const w of words) {
+      const entries = [...(byTarget[wordKey(w)] ?? []), ...(byTarget[ayahKey(w)] ?? [])];
+      if (entries.length) {
+        history[wordKey(w)] = entries.sort((a, b) => b.date.localeCompare(a.date));
+      }
     }
     heatBlock = (
       <div className="space-y-2">

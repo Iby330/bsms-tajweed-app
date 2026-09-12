@@ -22,13 +22,23 @@ describe("MushafReader", () => {
     // two printed lines + the basmala (the fixture starts at ayah 1, word 1)
     expect(container.querySelectorAll("[dir='rtl']")).toHaveLength(3);
   });
-  it("end markers are not tappable; words are when onWordTap given", () => {
+  it("every token is tappable when onWordTap given, end markers included", () => {
     const onTap = vi.fn();
     const { container } = render(<MushafReader pages={groupIntoPages(line)} onWordTap={onTap} />);
     const buttons = container.querySelectorAll("button");
-    expect(buttons).toHaveLength(5); // 6 tokens minus the end marker
+    expect(buttons).toHaveLength(6); // all 6 tokens — the marker selects its ayah
     fireEvent.click(buttons[0]);
     expect(onTap).toHaveBeenCalledWith(expect.objectContaining({ ayah: 1, position: 1 }));
+  });
+  // Scoped to `container`: this suite has no auto-cleanup, so document-wide
+  // queries would also see the trees mounted by the tests above.
+  it("hands the end marker back so the caller can scope to the ayah", () => {
+    const onTap = vi.fn();
+    const { container } = render(<MushafReader pages={groupIntoPages(line)} onWordTap={onTap} />);
+    const marker = container.querySelector<HTMLElement>('[aria-label="Ayah 1"]')!;
+    expect(marker.textContent).toBe("١");
+    fireEvent.click(marker);
+    expect(onTap).toHaveBeenCalledWith(expect.objectContaining({ ayah: 1, isEnd: true }));
   });
   it("applies mark and heat tints by word key", () => {
     const { container } = render(
@@ -38,5 +48,13 @@ describe("MushafReader", () => {
     );
     expect(container.querySelector(".bg-danger\\/25")?.textContent).toBe("أَعُوذُ");
     expect(container.querySelector(".bg-warn\\/40")?.textContent).toBe("مَلِكِ");
+  });
+  it("an ayah-keyed mark tints every word of that ayah, marker included", () => {
+    const { container } = render(
+      <MushafReader pages={groupIntoPages(line)} marks={{ "114:1": { category: "hifz" } }} />,
+    );
+    const tinted = [...container.querySelectorAll(".bg-danger\\/25")].map((e) => e.textContent);
+    // ayah 1 is قُل أعوذ برب الناس + its marker; ayah 2's مَلِكِ stays cold
+    expect(tinted).toEqual(["قُلْ", "أَعُوذُ", "بِرَبِّ", "ٱلنَّاسِ", "١"]);
   });
 });

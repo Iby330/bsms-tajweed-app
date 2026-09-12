@@ -10,15 +10,23 @@ import { MushafPager } from "./mushaf-pager";
 import { MistakeSheet, type SheetResult } from "./mistake-sheet";
 import { logMistake, removeMistake, submitSession } from "@/lib/hifz/review-actions";
 import { SESSION_FLAGS, type Category } from "@/lib/hifz/mistake-taxonomy";
-import { wordKey, type MushafPage, type QuranWord } from "@/lib/quran/mushaf";
+import { markKey, type MushafPage, type QuranWord } from "@/lib/quran/mushaf";
 import type { MistakeRow } from "@/lib/hifz/mistakes";
 
 type Mark = { id?: string; category: Category; detail: string | null; note: string | null };
 
+/** The tapped token's target: an ayah end marker classifies the whole ayah,
+ *  anything else the single word. */
+const targetOf = (w: QuranWord) => ({
+  surah: w.surah, ayah: w.ayah, position: w.isEnd ? null : w.position,
+});
+
 /**
- * The live logging island: tap a word → classify → it tints. State is local
- * (each tap is one server action, no refresh); submit refreshes the page so
- * the server swaps this for the feedback view.
+ * The live logging island: tap a word → classify → it tints. Tapping an
+ * ayah's END MARKER classifies the whole ayah instead, which is the commoner
+ * slip — one row, tinting every word in it. State is local (each tap is one
+ * server action, no refresh); submit refreshes the page so the server swaps
+ * this for the feedback view.
  */
 export function ReviewLogger({
   sessionId,
@@ -39,7 +47,7 @@ export function ReviewLogger({
   const [marks, setMarks] = useState<Record<string, Mark>>(() =>
     Object.fromEntries(
       initialMistakes.map((m) => [
-        wordKey({ surah: m.surah_number, ayah: m.ayah_number, position: m.word_position }),
+        markKey({ surah: m.surah_number, ayah: m.ayah_number, position: m.word_position }),
         { id: m.id, category: m.category, detail: m.detail, note: m.note },
       ]),
     ),
@@ -55,16 +63,13 @@ export function ReviewLogger({
     if (!word) return;
     setTapped(null);
     startTransition(async () => {
+      const target = targetOf(word);
       const id = await logMistake(
-        sessionId,
-        { surah: word.surah, ayah: word.ayah, position: word.position },
-        r.category,
-        r.detail ?? undefined,
-        r.note,
+        sessionId, target, r.category, r.detail ?? undefined, r.note,
       );
       setMarks((m) => ({
         ...m,
-        [wordKey(word)]: { id, category: r.category, detail: r.detail, note: r.note },
+        [markKey(target)]: { id, category: r.category, detail: r.detail, note: r.note },
       }));
     });
   };
@@ -72,14 +77,15 @@ export function ReviewLogger({
   const remove = () => {
     const word = tapped;
     if (!word) return;
-    const mark = marks[wordKey(word)];
+    const key = markKey(targetOf(word));
+    const mark = marks[key];
     setTapped(null);
     if (!mark?.id) return;
     startTransition(async () => {
       await removeMistake(mark.id!);
       setMarks((m) => {
         const next = { ...m };
-        delete next[wordKey(word)];
+        delete next[key];
         return next;
       });
     });
@@ -94,7 +100,7 @@ export function ReviewLogger({
 
   const count = Object.keys(marks).length;
   const plural = count === 1 ? "mistake" : "mistakes";
-  const existing = tapped ? marks[wordKey(tapped)] : undefined;
+  const existing = tapped ? marks[markKey(targetOf(tapped))] : undefined;
 
   return (
     <div className="space-y-3">
@@ -117,7 +123,7 @@ export function ReviewLogger({
       )}
 
       <MistakeSheet
-        key={tapped ? wordKey(tapped) : "closed"}
+        key={tapped ? markKey(targetOf(tapped)) : "closed"}
         word={tapped}
         existing={existing}
         onSave={save}

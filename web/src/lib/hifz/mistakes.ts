@@ -1,4 +1,4 @@
-import { wordKey } from "@/lib/quran/mushaf";
+import { markKey } from "@/lib/quran/mushaf";
 import { detailLabel, flagLabel, type Category } from "./mistake-taxonomy";
 
 export type MistakeRow = {
@@ -6,7 +6,7 @@ export type MistakeRow = {
   session_id: string;
   surah_number: number;
   ayah_number: number;
-  word_position: number;
+  word_position: number | null;   // null = the whole ayah
   category: Category;
   detail: string | null;
   note: string | null;
@@ -74,11 +74,15 @@ export function aggregateFlags(sessions: SessionRow[]): FlagPattern[] {
     .sort((a, b) => b.count - a.count);
 }
 
-/** Per-word heat: 2 per mistake in the last 28 days, 1 for older ones. */
+/** Per-target heat: 2 per mistake in the last 28 days, 1 for older ones.
+ *  Keys are markKey — a wordKey, or an ayahKey for an ayah-scoped mistake.
+ *  Callers that paint words must add the two together (see ReviewFeedback):
+ *  a word mis-read inside an ayah that was also forgotten is hotter than
+ *  either alone, and `??` would hide that. */
 export function wordHeat(mistakes: MistakeRow[], now: Date): Record<string, number> {
   const heat: Record<string, number> = {};
   for (const m of mistakes) {
-    const key = wordKey({ surah: m.surah_number, ayah: m.ayah_number, position: m.word_position });
+    const key = markKey({ surah: m.surah_number, ayah: m.ayah_number, position: m.word_position });
     heat[key] = (heat[key] ?? 0) + (isRecent(m.created_at, now) ? 2 : 1);
   }
   return heat;
