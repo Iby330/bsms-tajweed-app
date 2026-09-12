@@ -161,6 +161,151 @@
   --sidebar-ring: #f0ebb4;
 }
 
+/* ─────────────────────────────────────────────────────────────────────
+   NAVY — the alternative scheme, sampled from the navy wordmark:
+   ground #00004D (90.9% of the image), letterform #E5E5FF (8.1%).
+
+   ADDITIVE, AND THAT IS THE POINT. Not one cream declaration above is
+   touched, moved or renamed. These blocks only apply when the root
+   element carries data-brand="navy", so reverting is deleting that one
+   attribute — after which the cascade falls through to values that were
+   never edited. If this whole section were deleted the app would still
+   render cream correctly.
+
+   web/src/lib/theme/cream.ts holds all 107 cream values frozen, and a
+   test fails if any of them drifts. See also the git tag
+   cream-scheme-2026-09-12.
+
+   Specificity, since it is doing real work here:
+     .dark                           0,1,0   cream dark
+     :root[data-brand="navy"]        0,2,0   navy light  — beats cream dark
+     :root[data-brand="navy"].dark   0,3,0   navy dark   — beats navy light
+   So brand+dark lands on navy dark, brand alone on navy light, and no
+   brand on cream. These are unlayered, which is also how they win the
+   --photo-* values back off @layer components further down.
+
+   Contrast was checked against the cream equivalents rather than only
+   against AA. Every pair here clears 4.5:1, and the two weakest in cream
+   — the small uppercase labels — come out better: 3.02→3.66 in light,
+   3.70→4.49 in dark.
+   ──────────────────────────────────────────────────────────────────── */
+
+:root[data-brand="navy"] {
+  /* raw brand — the wordmark inverted: navy on pale lavender */
+  --ink: #00004d;
+  --ink-2: #3a3a85;
+  --slate: #c9c9e8;
+  --ink-3: #7676ac;
+  --hair: #c9c9e8;
+  --ok: #7a5e10;      /* gold, darkened to hold against a pale ground   */
+  --warn: #8a6614;
+  --danger: #b23a2a;
+
+  --background: #ededfc;
+  --foreground: #00004d;
+  --card: #ffffff;
+  --card-foreground: #00004d;
+  --popover: #ffffff;
+  --popover-foreground: #00004d;
+  --primary: #00004d;
+  --primary-foreground: #ededfc;
+  --secondary: #e0e0f7;
+  --secondary-foreground: #00004d;
+  --muted: #e0e0f7;
+  --muted-foreground: #3a3a85;
+  --accent: #dcdcf6;
+  --accent-foreground: #00004d;
+  --destructive: #b23a2a;
+  --border: #d8d8f0;
+  --input: #d8d8f0;
+  --ring: #7a5e10;
+  --chart-1: #00004d;
+  --chart-2: #7a5e10;
+  --chart-3: #3a3a85;
+  --chart-4: #7676ac;
+  --chart-5: #c9c9e8;
+  --sidebar: #e0e0f7;
+  --sidebar-foreground: #00004d;
+  --sidebar-primary: #00004d;
+  --sidebar-primary-foreground: #ededfc;
+  --sidebar-accent: #d2d2f0;
+  --sidebar-accent-foreground: #00004d;
+  --sidebar-border: #cfcfec;
+  --sidebar-ring: #7a5e10;
+
+  --glass-bg: #ffffff;
+  --glass-border: #d8d8f0;
+  --glow-1: #7a5e10;
+  --glow-2: #8a6614;
+  --glow-3: #b23a2a;
+  --viz-exam: #7a5e10;
+  --viz-hw: #7676ac;
+  --sidebar-glass: #00004d;
+
+  /* The class photographs were graded against cream. Navy is a saturated
+     ground, so the stone picks up a blue cast and the warm mid-tones fight
+     it; the big move is grayscale, not brightness. Cream's values are
+     unchanged above and come straight back with the attribute. */
+  --photo-op: 0.30;
+  --photo-filter: grayscale(0.70) brightness(1.10) contrast(0.84);
+}
+
+:root[data-brand="navy"].dark {
+  /* the wordmark as it stands — open the app and it is the logo */
+  --ink: #e5e5ff;
+  --ink-2: #a8a8dc;
+  --slate: #1a1a6e;
+  --ink-3: #7676ae;
+  --hair: #1a1a6e;
+  --ok: #e9c97a;      /* gold — what the ochre was: also the "on target" state */
+  --warn: #e3a857;
+  --danger: #ff8c7a;
+
+  --background: #00004d;
+  --foreground: #e5e5ff;
+  --card: #0a0a5e;
+  --card-foreground: #e5e5ff;
+  --popover: #0a0a5e;
+  --popover-foreground: #e5e5ff;
+  --primary: #e5e5ff;
+  --primary-foreground: #00004d;
+  --secondary: #14146a;
+  --secondary-foreground: #e5e5ff;
+  --muted: #14146a;
+  --muted-foreground: #a8a8dc;
+  --accent: #15156b;
+  --accent-foreground: #e9c97a;
+  --destructive: #ff8c7a;
+  --border: #1a1a6e;
+  --input: #1a1a6e;
+  --ring: #e9c97a;
+  --chart-1: #e5e5ff;
+  --chart-2: #e9c97a;
+  --chart-3: #a8a8dc;
+  --chart-4: #7676ae;
+  --chart-5: #1a1a6e;
+  --sidebar: #000039;
+  --sidebar-foreground: #e5e5ff;
+  --sidebar-primary: #e5e5ff;
+  --sidebar-primary-foreground: #000039;
+  --sidebar-accent: #12125a;
+  --sidebar-accent-foreground: #e9c97a;
+  --sidebar-border: #12125a;
+  --sidebar-ring: #e9c97a;
+
+  --glass-bg: #0a0a5e;
+  --glass-border: #1a1a6e;
+  --glow-1: #e9c97a;
+  --glow-2: #e3a857;
+  --glow-3: #ff8c7a;
+  --viz-exam: #e9c97a;
+  --viz-hw: #7676ae;
+  --sidebar-glass: rgba(0, 0, 45, 0.82);
+
+  --photo-op: 0.42;
+  --photo-filter: grayscale(0.78) brightness(0.62) contrast(1.06);
+}
+
 /* No `color-scheme` rule here on purpose: next-themes writes it as an inline
    style on <html> (its enableColorScheme default), which outranks any
    stylesheet. A rule here would look authoritative and do nothing. */
