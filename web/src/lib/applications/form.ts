@@ -91,6 +91,40 @@ export const HEARD_FROM = [
 /** Replaces "What are you hoping to gain from this course?" */
 export const MOTIVATION_QUESTION = "What made you want to join?";
 
+/* ── When applications close ──────────────────────────────────────────── */
+
+/**
+ * Wednesday 30 September 2026, 2pm.
+ *
+ * Held as a UTC INSTANT rather than a local date string, because a server in
+ * one zone and an applicant in another have to agree on the moment to the
+ * minute — a naive "2026-09-30T14:00" is parsed as local time and would close
+ * the form an hour early or late depending on where it is read. 2pm in London
+ * on 30 September is still British Summer Time (BST does not end until the
+ * last Sunday of October), so 14:00 BST is 13:00Z.
+ *
+ * `CLOSES_LABEL` is written out rather than formatted at runtime so that the
+ * words an applicant reads cannot drift with the viewer's locale — an
+ * American browser would otherwise be told "9/30/2026". There is a test
+ * holding the two to each other, so changing the date and forgetting the
+ * label, or getting the offset wrong, fails the build rather than the intake.
+ */
+export const SIGNUPS_CLOSE = new Date("2026-09-30T13:00:00Z");
+
+export const CLOSES_LABEL = "Wednesday 30 September at 2pm";
+
+/**
+ * Whether the form is still taking applications.
+ *
+ * Takes `now` so it can be tested, and so the page and the server action ask
+ * the same question of the same clock. The server's answer is the one that
+ * counts: the page can be cached or left open in a tab, and a browser's
+ * clock is the applicant's to set.
+ */
+export function signupsOpen(now: Date = new Date()): boolean {
+  return now.getTime() < SIGNUPS_CLOSE.getTime();
+}
+
 /**
  * Which year of the programme this intake is.
  *

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { validateApplication, type ApplicationInput } from "./validate";
-import { FEE_PENCE, OPENING_VERSE, TAJWEED_LEVELS, UNIVERSITIES, HEARD_FROM, YEARS, OTHER, termsFor } from "./form";
+import {
+  CLOSES_LABEL, FEE_PENCE, HEARD_FROM, OPENING_VERSE, OTHER, SIGNUPS_CLOSE,
+  TAJWEED_LEVELS, UNIVERSITIES, YEARS, signupsOpen, termsFor,
+} from "./form";
 import { SISTERS_HIFDH_DAY_PROVISIONAL } from "@/lib/attendance/calendar";
 
 /**
@@ -219,5 +222,35 @@ describe("the opening verse", () => {
   it("carries no tatweel, and keeps all three dagger alifs", () => {
     expect(OPENING_VERSE.ar).not.toContain("ـ");
     expect(OPENING_VERSE.ar.split("ٰ").length - 1).toBe(3);
+  });
+});
+
+describe("the closing deadline", () => {
+  /**
+   * The instant and the words shown to applicants are written separately —
+   * the instant so a server and a phone in another zone agree to the minute,
+   * the words so an American browser is not told "9/30/2026". This holds the
+   * two to each other, so changing the date and forgetting the label, or
+   * getting the BST offset wrong, fails here rather than in the intake.
+   */
+  it("is the Wednesday and the time the label says, in London", () => {
+    const london = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/London",
+      weekday: "long", day: "numeric", month: "long", year: "numeric",
+      hour: "2-digit", minute: "2-digit", hour12: false,
+    }).format(SIGNUPS_CLOSE);
+    expect(london).toContain("Wednesday");
+    expect(london).toContain("30 September 2026");
+    expect(london).toContain("14:00");
+    expect(CLOSES_LABEL).toBe("Wednesday 30 September at 2pm");
+  });
+
+  it("is open a minute before and shut on the minute", () => {
+    const t = SIGNUPS_CLOSE.getTime();
+    expect(signupsOpen(new Date(t - 60_000))).toBe(true);
+    // Shut AT the deadline, not a millisecond after: "closes at 2pm" means
+    // 2pm is too late, which is how anybody reading it would take it.
+    expect(signupsOpen(new Date(t))).toBe(false);
+    expect(signupsOpen(new Date(t + 60_000))).toBe(false);
   });
 });

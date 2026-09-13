@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseServer, currentProfile } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
-import { PAYMENT_LINK } from "./form";
+import { CLOSES_LABEL, PAYMENT_LINK, signupsOpen } from "./form";
 import { MAX, clean, validateApplication, type ApplicationInput } from "./validate";
 
 export type Status = Database["public"]["Enums"]["application_status_t"];
@@ -27,6 +27,17 @@ const TEACHER_PATH = "/teacher/applications";
  * `status`, `class_id`, `notes` or `fee_settled`. See validate.ts.
  */
 export async function submitApplication(input: ApplicationInput): Promise<Result> {
+  // The deadline is enforced HERE, not on the page. /apply can be sitting
+  // open in a tab from before it passed, or held in a CDN cache, and the
+  // clock it would consult is the applicant's own to set — so the only check
+  // that means anything is this one, on the server, at the moment of writing.
+  if (!signupsOpen()) {
+    return {
+      ok: false,
+      error: `Applications closed on ${CLOSES_LABEL}. Please refresh the page.`,
+    };
+  }
+
   // The tick is only asked for when there is a link to have paid through.
   const checked = validateApplication(input, Boolean(PAYMENT_LINK));
   if (!checked.ok) return { ok: false, error: checked.error };
