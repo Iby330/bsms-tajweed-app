@@ -43,22 +43,22 @@ const VERSES: Record<string, ClassVerse> = {
   // quran.com rather than the app's own quran_words (that table holds
   // surahs 67–114 only, so Fāṭir is not in it to check against).
   hareer: {
-    ar: "جَنَّـٰتُ عَدْنٍ يَدْخُلُونَهَا يُحَلَّوْنَ فِيهَا مِنْ أَسَاوِرَ مِن ذَهَبٍ وَلُؤْلُؤًۭا ۖ وَلِبَاسُهُمْ فِيهَا حَرِيرٌۭ",
-    arWord: "حَرِيرٌۭ",
+    ar: "جَنَّـٰتُ عَدْنٍ يَدْخُلُونَهَا يُحَلَّوْنَ فِيهَا مِنْ أَسَاوِرَ مِن ذَهَبٍ وَلُؤْلُؤًا ۖ وَلِبَاسُهُمْ فِيهَا حَرِيرٌ",
+    arWord: "حَرِيرٌ",
     en: "They will enter the Gardens of Eternity, where they will be adorned with bracelets of gold and pearls, and their clothing will be silk.",
     enWord: "silk",
     source: "Fāṭir 35:33",
   },
   salsabeel: {
-    ar: "وَيُسْقَوْنَ فِيهَا كَأْسًۭا كَانَ مِزَاجُهَا زَنجَبِيلًا ۝ عَيْنًۭا فِيهَا تُسَمَّىٰ سَلْسَبِيلًۭا",
-    arWord: "سَلْسَبِيلًۭا",
+    ar: "وَيُسْقَوْنَ فِيهَا كَأْسًا كَانَ مِزَاجُهَا زَنجَبِيلًا ۝ عَيْنًا فِيهَا تُسَمَّىٰ سَلْسَبِيلًا",
+    arWord: "سَلْسَبِيلًا",
     en: "And they will be given a drink ˹of pure wine˺ flavoured with ginger from a spring there, called Salsabīl.",
     enWord: "Salsabīl",
     source: "Al-Insān 76:17–18",
   },
   zukhruf: {
     // The surah's own name is not in the ayah; the word carrying it is ذَهَب.
-    ar: "يُطَافُ عَلَيْهِم بِصِحَافٍ مِّن ذَهَبٍ وَأَكْوَابٍ ۖ وَفِيهَا مَا تَشْتَهِيهِ ٱلْأَنفُسُ وَتَلَذُّ ٱلْأَعْيُنُ ۖ وَأَنتُمْ فِيهَا خَـٰلِدُونَ",
+    ar: "يُطَافُ عَلَيْهِم بِصِحَافٍ مِّن ذَهَبٍ وَأَكْوَابٍ ۖ وَفِيهَا مَا تَشْتَهِيهِ ٱلْأَنفُسُ وَتَلَذُّ ٱلْأَعْيُنُ ۖ وَأَنتُمْ فِيهَا خَـٰلِدُونَ",
     arWord: "ذَهَبٍ",
     en: "Golden trays and cups will be passed around to them. There will be whatever the souls desire and the eyes delight in. And you will be there forever.",
     enWord: "Golden",
