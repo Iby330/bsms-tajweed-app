@@ -233,14 +233,19 @@
   --chart-3: #3a3a85;
   --chart-4: #7676ac;
   --chart-5: #c9c9e8;
-  --sidebar: #e0e0f7;
-  --sidebar-foreground: #00004d;
-  --sidebar-primary: #00004d;
-  --sidebar-primary-foreground: #ededfc;
-  --sidebar-accent: #d2d2f0;
-  --sidebar-accent-foreground: #00004d;
-  --sidebar-border: #cfcfec;
-  --sidebar-ring: #7a5e10;
+  /* The rail is navy in daylight too, so the wordmark sits in its own
+     ground rather than being inverted onto lavender. Same two colours as
+     the page, swapped: navy behind, the letterform colour in front. Hover
+     tint, hairline and ring come from the navy dark block for the same
+     reason — they are drawn against navy either way. */
+  --sidebar: #00004d;
+  --sidebar-foreground: #e0e0f7;
+  --sidebar-primary: #e0e0f7;
+  --sidebar-primary-foreground: #00004d;
+  --sidebar-accent: #12125a;
+  --sidebar-accent-foreground: #e0e0f7;
+  --sidebar-border: #12125a;
+  --sidebar-ring: #e9c97a;
 
   --glass-bg: #ffffff;
   --glass-border: #d8d8f0;
