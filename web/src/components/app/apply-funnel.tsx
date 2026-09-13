@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { CountrySelect } from "@/components/app/country-select";
+import { DEFAULT_COUNTRY } from "@/lib/applications/countries";
 import { BRAND_LOGO } from "@/lib/theme/brand";
 import { fmtDay } from "@/lib/format";
 import { TERMS } from "@/lib/attendance/calendar";
@@ -103,8 +105,16 @@ const STEPS: Step[] = [
   {
     id: "phone",
     title: "And your phone number?",
-    hint: "So we can reach you on WhatsApp about the session.",
-    validate: (f) => need(f.phone, "Please put your phone number."),
+    hint: "Pick your country's code, then the rest of the number. This is how we reach you on WhatsApp about the session.",
+    validate: (f) => {
+      if (!f.phone.trim()) return "Please put your phone number.";
+      // Counted rather than length-checked, because people type spaces,
+      // dashes and brackets and none of those are the number.
+      const digits = f.phone.replace(/[^0-9]/g, "");
+      if (digits.length < 5) return "That number looks too short.";
+      if (digits.length > 15) return "That number looks too long.";
+      return null;
+    },
   },
   {
     id: "university",
@@ -164,7 +174,7 @@ const STEPS: Step[] = [
 ];
 
 const EMPTY: ApplicationInput = {
-  firstName: "", surname: "", email: "", phone: "", gender: "",
+  firstName: "", surname: "", email: "", phone: "", phoneCountry: DEFAULT_COUNTRY, gender: "",
   university: "", universityOther: "", year: "", yearOther: "",
   enrolledBefore: "", memorised: "", arabicReading: "", tajweedLevel: "",
   heardFrom: "", heardFromOther: "", motivation: "",
@@ -539,11 +549,19 @@ export function ApplyFunnel() {
           )}
 
           {step!.id === "phone" && (
-            <Input
-              type="tel" autoComplete="tel" maxLength={32} autoFocus
-              aria-label="Phone number"
-              value={form.phone} onChange={(e) => set("phone", e.target.value)}
-            />
+            <div className="flex items-start gap-2">
+              <CountrySelect
+                value={form.phoneCountry}
+                onChange={(cc) => set("phoneCountry", cc)}
+              />
+              <Input
+                type="tel" inputMode="tel" autoComplete="tel-national"
+                maxLength={32} autoFocus className="flex-1"
+                aria-label="Phone number, without the country code"
+                placeholder="7700 900123"
+                value={form.phone} onChange={(e) => set("phone", e.target.value)}
+              />
+            </div>
           )}
 
           {step!.id === "university" && (

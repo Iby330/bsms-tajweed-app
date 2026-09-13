@@ -5,6 +5,7 @@ import {
   TAJWEED_LEVELS, UNIVERSITIES, YEARS, signupsOpen, termsFor,
 } from "./form";
 import { SISTERS_HIFDH_DAY_PROVISIONAL } from "@/lib/attendance/calendar";
+import { COUNTRIES, DEFAULT_COUNTRY, countryByCode, flagFor } from "./countries";
 
 /**
  * The public form's input is checked here and nowhere else that matters.
@@ -21,6 +22,7 @@ const GOOD: ApplicationInput = {
   surname: "Ahmed",
   email: "Bilal.Ahmed@Sussex.ac.uk",
   phone: "07700 900123",
+  phoneCountry: "GB",
   gender: "male",
   university: "Sussex",
   universityOther: "",
@@ -124,6 +126,7 @@ describe("required answers", () => {
     ["firstName", ""],
     ["surname", "   "],
     ["phone", ""],
+    ["phoneCountry", "ZZ"],
     ["memorised", ""],
     ["motivation", ""],
     ["arabicReading", ""],
@@ -252,5 +255,95 @@ describe("the closing deadline", () => {
     // 2pm is too late, which is how anybody reading it would take it.
     expect(signupsOpen(new Date(t))).toBe(false);
     expect(signupsOpen(new Date(t + 60_000))).toBe(false);
+  });
+});
+
+describe("the phone number", () => {
+  const phoneOf = (phone: string, phoneCountry = "GB") => {
+    const r = validateApplication({ ...GOOD, phone, phoneCountry }, true);
+    if (!r.ok) return `ERROR: ${r.error}`;
+    return r.row?.phone;
+  };
+
+  /**
+   * The whole reason the country is asked separately: the old form took free
+   * text, and a number typed the way it is dialled at home is not a number
+   * anyone here can ring.
+   */
+  it("drops the domestic trunk zero and puts the code in front", () => {
+    expect(phoneOf("07700 900123")).toBe("+44 7700900123");
+  });
+
+  it("strips whatever people type between the digits", () => {
+    expect(phoneOf("(07700) 900-123")).toBe("+44 7700900123");
+    expect(phoneOf("07700.900.123")).toBe("+44 7700900123");
+  });
+
+  it("ignores a + the applicant typed themselves", () => {
+    expect(phoneOf("+7700900123")).toBe("+44 7700900123");
+  });
+
+  it("uses the chosen country's code, not the default", () => {
+    expect(phoneOf("3001234567", "PK")).toBe("+92 3001234567");
+    expect(phoneOf("5551234", "US")).toBe("+1 5551234");
+  });
+
+  /**
+   * Italy keeps its trunk zero in international form — an Italian landline
+   * really is +39 0…, and stripping it would break the number.
+   */
+  it("keeps the leading zero for Italy", () => {
+    expect(phoneOf("0612345678", "IT")).toBe("+39 0612345678");
+  });
+
+  it("refuses a country that does not exist", () => {
+    expect(phoneOf("7700900123", "ZZ")).toMatch(/^ERROR/);
+  });
+
+  it("refuses numbers that are obviously too short or too long", () => {
+    expect(phoneOf("123")).toMatch(/^ERROR/);
+    expect(phoneOf("1".repeat(16))).toMatch(/^ERROR/);
+  });
+
+  it("refuses a number that is nothing but zeros", () => {
+    expect(phoneOf("000000")).toMatch(/^ERROR/);
+  });
+});
+
+describe("the country list", () => {
+  it("covers every country with a plausible dialling code", () => {
+    expect(COUNTRIES.length).toBeGreaterThan(200);
+    for (const c of COUNTRIES) {
+      expect(c.cc).toMatch(/^[A-Z]{2}$/);
+      // Up to five digits, not four: the Åland Islands are reached on
+      // Finland's +358 plus the area code 18, so "+35818" is the real prefix
+      // and the only one this long.
+      expect(c.dial).toMatch(/^\+[0-9]{1,5}$/);
+      expect(c.name.length).toBeGreaterThan(1);
+    }
+  });
+
+  it("has the codes people here will actually pick", () => {
+    const dial = (cc: string) => countryByCode(cc)?.dial;
+    expect(dial("GB")).toBe("+44");
+    expect(dial("IE")).toBe("+353");
+    expect(dial("PK")).toBe("+92");
+    expect(dial("IN")).toBe("+91");
+    expect(dial("BD")).toBe("+880");
+    expect(dial("NG")).toBe("+234");
+    expect(dial("SA")).toBe("+966");
+    expect(dial("AE")).toBe("+971");
+    expect(dial("EG")).toBe("+20");
+    expect(dial("US")).toBe("+1");
+  });
+
+  it("has no duplicate country codes, and opens on the UK", () => {
+    expect(new Set(COUNTRIES.map((c) => c.cc)).size).toBe(COUNTRIES.length);
+    expect(DEFAULT_COUNTRY).toBe("GB");
+  });
+
+  it("turns an ISO code into the right flag emoji", () => {
+    expect(flagFor("GB")).toBe("\u{1F1EC}\u{1F1E7}");
+    expect(flagFor("PK")).toBe("\u{1F1F5}\u{1F1F0}");
   });
 });

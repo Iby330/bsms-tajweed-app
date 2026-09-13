@@ -115,7 +115,12 @@ function ApplicationCard({ row, classes }: { row: ApplicationRow; classes: Class
               </a>
             </Answer>
             <Answer label="Phone">
-              <a href={`tel:${row.phone}`} className="underline underline-offset-2">
+              {/* The stored number reads "+44 7700900123"; a tel: URI wants no
+                  spaces, so the link strips them while the text keeps them. */}
+              <a
+                href={`tel:${row.phone.replace(/\s+/g, "")}`}
+                className="underline underline-offset-2"
+              >
                 {row.phone}
               </a>
             </Answer>

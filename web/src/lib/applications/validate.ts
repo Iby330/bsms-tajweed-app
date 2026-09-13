@@ -2,6 +2,7 @@ import {
   ARABIC_READING, FEE_PENCE, HEARD_FROM, OTHER, TAJWEED_LEVELS, UNIVERSITIES, YEARS,
   sectionForGender,
 } from "./form";
+import { DEFAULT_COUNTRY, countryByCode } from "./countries";
 import type { Database } from "@/lib/database.types";
 
 type Insert = Database["public"]["Tables"]["applications"]["Insert"];
@@ -28,6 +29,8 @@ export type ApplicationInput = {
   surname: string;
   email: string;
   phone: string;
+  /** ISO 3166-1 alpha-2 for the dialling code in front of `phone`. */
+  phoneCountry: string;
   gender: string;
   university: string;
   universityOther: string;
@@ -115,6 +118,45 @@ function choice(
   return typed;
 }
 
+
+/**
+ * Put the dialling code and the typed number together into one dialable
+ * string, or say why it cannot be done.
+ *
+ * The number is stored composed — "+44 7700900123" — rather than as two
+ * columns, because every use of it is a person about to ring or message it.
+ *
+ * THE LEADING ZERO. Most countries use a trunk prefix of 0 domestically that
+ * is DROPPED when dialling in from abroad: "07700 900123" is "+44 7700900123",
+ * and keeping the 0 gives a number that does not connect. Italy is the
+ * well-known exception — the 0 on an Italian landline is part of the number
+ * in international form — so it is kept there and stripped everywhere else.
+ *
+ * This is not a substitute for a real parser. libphonenumber exists because
+ * the full rules are enormous, and it is a big dependency for one field on
+ * one form. The rule here is right for the overwhelming majority of what this
+ * form will see, and a teacher reading a number can see what it is either way.
+ */
+function composePhone(raw: string, countryCode: string): string | Bad {
+  const country = countryByCode(clean(countryCode) || DEFAULT_COUNTRY);
+  if (!country) return { error: "Please choose the country for your phone number." };
+
+  // Everything a person might type between the digits: spaces, dashes,
+  // brackets, dots. A leading + is dropped too — the code in front supplies it.
+  const digits = clean(raw).replace(/^\+/, "").replace(/[^0-9]/g, "");
+  if (!digits) return { error: "Phone number is required." };
+  if (digits.length < 5) return { error: "That phone number looks too short." };
+  if (digits.length > 15) return { error: "That phone number looks too long." };
+
+  const KEEPS_TRUNK_ZERO = new Set(["IT"]);
+  const national = KEEPS_TRUNK_ZERO.has(country.cc)
+    ? digits
+    : digits.replace(/^0+/, "");
+  if (!national) return { error: "That phone number looks wrong." };
+
+  return `${country.dial} ${national}`;
+}
+
 /**
  * @param requirePaymentTick whether a payment link is set, and so whether the
  *   applicant was given anything to confirm having paid. With no link there is
@@ -142,7 +184,7 @@ export function validateApplication(
     return { ok: false, error: "That email address doesn't look right." };
   }
 
-  const phone = text(input.phone, "Phone number", MAX.phone);
+  const phone = composePhone(input.phone, input.phoneCountry);
   if (failed(phone)) return { ok: false, error: phone.error };
 
   const section = sectionForGender(clean(input.gender));
