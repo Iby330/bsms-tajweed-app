@@ -169,7 +169,11 @@ export default async function StudentHifz({
       </div>
 
       <div className="field">
-        <RevisionHeatmap days={activity} end={today} />
+        {/* .field is a 12-column grid; a child must claim its span or it
+            lands in one column. Same wrapper the hero and journey use. */}
+        <section className="box c12" aria-label="Revision activity">
+          <RevisionHeatmap days={activity} end={today} />
+        </section>
       </div>
 
       <div className="divider">
