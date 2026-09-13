@@ -36,7 +36,7 @@ describe("TERMS", () => {
   it("is the faculty calendar, verbatim", () => {
     expect(TERMS.map((t) => [t.startsOn, t.endsOn])).toEqual([
       ["2026-10-05", "2026-11-26"],
-      ["2027-01-05", "2027-02-04"],
+      ["2027-01-04", "2027-02-04"],
       ["2027-03-15", "2027-05-20"],
     ]);
   });
@@ -148,10 +148,10 @@ describe("session counts", () => {
     [1, "brothers", "hifdh", 8],
     [1, "sisters", "tajweed", 8],
     [1, "sisters", "hifdh", 8],
-    [2, "brothers", "tajweed", 4],
+    [2, "brothers", "tajweed", 5],
     [2, "brothers", "hifdh", 5],
     [2, "sisters", "tajweed", 5],
-    [2, "sisters", "hifdh", 4],
+    [2, "sisters", "hifdh", 5],
     [3, "brothers", "tajweed", 10],
     [3, "brothers", "hifdh", 10],
     [3, "sisters", "tajweed", 10],
@@ -161,9 +161,10 @@ describe("session counts", () => {
   });
 
   it("counts a term's sessions rather than dividing its span by seven", () => {
-    // 5 Jan → 4 Feb is 31 days, which is 4.4 weeks and not 5 of anything —
-    // yet it holds 9 sessions, because it opens on a Tuesday.
-    expect(termSessions(2, TT("brothers"))).toHaveLength(9);
+    // 4 Jan → 4 Feb is 32 days, which is 4.6 weeks and not 5 of anything —
+    // yet it holds 10 sessions, because it opens on a Monday and closes on a
+    // Thursday. Dividing the span would say 4.
+    expect(termSessions(2, TT("brothers"))).toHaveLength(10);
   });
 
   it("squares Term 1 at eight of each, for both sections", () => {
@@ -235,7 +236,7 @@ describe("sessionTypeFor", () => {
 describe("breaks", () => {
   it("fills the gaps between the terms exactly", () => {
     expect(breaks().map((b) => [b.startsOn, b.endsOn, b.label])).toEqual([
-      ["2026-11-27", "2027-01-04", "Winter break"],
+      ["2026-11-27", "2027-01-03", "Winter break"],
       ["2027-02-05", "2027-03-14", "Ramadan break"],
     ]);
   });
@@ -278,6 +279,8 @@ describe("termIdFor", () => {
   it.each([
     ["2026-10-05", 1],
     ["2026-11-26", 1],
+    // The Monday the term opens on, since it was corrected from the Tuesday.
+    ["2027-01-04", 2],
     ["2027-01-05", 2],
     ["2027-03-15", 3],
     ["2027-05-20", 3],
@@ -321,7 +324,9 @@ describe("nextSessionDate", () => {
   });
 
   it("jumps a whole break rather than landing inside it", () => {
-    expect(nextSessionDate("2026-12-25", TT("brothers"))).toBe("2027-01-07");
+    // Term 2 opens on Monday 4 January, so that is the first session back —
+            // not the Thursday, which was the answer while it opened on the 5th.
+    expect(nextSessionDate("2026-12-25", TT("brothers"))).toBe("2027-01-04");
     expect(nextSessionDate("2027-02-20", TT("brothers"))).toBe("2027-03-15");
   });
 
@@ -337,7 +342,9 @@ describe("previousSessionDate", () => {
   });
 
   it("steps back over a break into the previous term", () => {
-    expect(previousSessionDate("2027-01-07", TT("brothers"))).toBe("2026-11-26");
+    // From Term 2's opening Monday, since the 7th now has the 4th in front of
+    // it and would not cross the break at all.
+    expect(previousSessionDate("2027-01-04", TT("brothers"))).toBe("2026-11-26");
   });
 
   it("is null before the year's first session", () => {

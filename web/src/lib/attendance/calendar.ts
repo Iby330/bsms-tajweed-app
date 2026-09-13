@@ -52,10 +52,16 @@ export type Term = {
 /**
  * Faculty dates, exactly as given.
  *
- * They are NOT all whole weeks, and the lopsidedness that remains is real
- * rather than a typo to be fixed here: Term 2 opens on a Tuesday, so it holds
- * 5 hifdh sessions but only 4 tajweed ones. Anything that counts sessions must
- * count them, never divide the span by seven.
+ * Every term now opens on a Monday and closes on a Thursday, so each one
+ * holds the same number of tajweed and hifdh sessions — 8 and 8 in Term 1,
+ * 5 and 5 in Term 2, 10 and 10 in Term 3.
+ *
+ * That balance is recent and should not be relied on. Term 2 was given as
+ * starting Tuesday 5 January and was corrected to Monday the 4th, which is
+ * what squared it: before the correction it held 5 hifdh sessions against
+ * only 4 tajweed ones. Anything that counts sessions must COUNT them and
+ * never divide the span by seven — the next set of faculty dates may well be
+ * lopsided again.
  *
  * Term 1 ends on the Thursday rather than the Wednesday the faculty dates
  * first gave, which is a deliberate correction: 26 November is a lesson. It
@@ -65,7 +71,8 @@ export type Term = {
  */
 export const TERMS: readonly Term[] = [
   { id: 1, startsOn: "2026-10-05", endsOn: "2026-11-26" },
-  { id: 2, startsOn: "2027-01-05", endsOn: "2027-02-04" },
+  // Monday 4 January, not the Tuesday the first set of dates gave.
+  { id: 2, startsOn: "2027-01-04", endsOn: "2027-02-04" },
   { id: 3, startsOn: "2027-03-15", endsOn: "2027-05-20" },
 ];
 

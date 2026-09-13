@@ -102,6 +102,9 @@ describe("how much teaching time each term actually has", () => {
   // with more lessons than its term has Mondays silently loses the tail.
   it("counts the brothers' tajweed Mondays per term", () => {
     const tt = timetableFor("brothers");
-    expect(TERMS.map((t) => termSessions(t.id, tt, "tajweed").length)).toEqual([8, 4, 10]);
+    // Term 2 is 5 since its start was corrected from Tuesday 5 January to
+    // Monday the 4th. Ṣifāt is still 7 lessons against those 5 Mondays, so the
+    // squeeze this test exists to record is smaller but not gone.
+    expect(TERMS.map((t) => termSessions(t.id, tt, "tajweed").length)).toEqual([8, 5, 10]);
   });
 });
