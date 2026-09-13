@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
-  buildTree, overlayProgress, findCourse, findCurrentModule, moduleTitle,
+  buildTree, overlayProgress, findCourse, findCurrentModule, moduleTitle, scheduledUnlockAt,
   listHomework, bucketHomework, weekContent,
   type TermRow, type WeekRow, type LessonRow, type HomeworkRow,
+  type ClassSchedule,
 } from "./tree";
 
 /* ── moduleTitle — exercised against the REAL seed strings, because this is
@@ -499,5 +500,124 @@ describe("edge cases", () => {
       NOW,
     );
     expect(odd[0].courses[0].label).toBe("mystery");
+  });
+});
+
+/* ── The per-class syllabus ────────────────────────────────────────────────
+ *
+ * The rule these lock down is the one the whole change rests on: a course's
+ * items open according to the term THE CLASS takes it in, not the term the
+ * rows are filed under. The arithmetic here must match `class_item_unlock_at`
+ * in migration 0026 — this decides what the screen draws, that decides what
+ * RLS hands over, and a disagreement shows as a module that renders empty.
+ */
+describe("buildTree with a class syllabus", () => {
+  const terms: TermRow[] = [
+    { id: 1, starts_on: "2026-10-05", ends_on: "2026-11-26", exam_max: 89 },
+    { id: 3, starts_on: "2027-03-15", ends_on: "2027-05-20", exam_max: 98 },
+  ];
+  // Two terms, two weeks each. Term 1 opens 5 Oct, Term 3 opens 15 Mar.
+  const weeks: WeekRow[] = [
+    { id: "w1", term_id: 1, number: 1, unlock_at: "2026-10-05T00:00:00Z" },
+    { id: "w2", term_id: 1, number: 2, unlock_at: "2026-10-12T00:00:00Z" },
+    { id: "w31", term_id: 3, number: 1, unlock_at: "2027-03-15T00:00:00Z" },
+    { id: "w32", term_id: 3, number: 2, unlock_at: "2027-03-22T00:00:00Z" },
+  ];
+  // Ghunna sits in Term 1's weeks; Mudūd sits in Term 3's.
+  const homeworks: HomeworkRow[] = [
+    { id: "g1", week_id: "w1", course_id: "GH", ordinal: 1, number: 1, series: "tajweed", title: "G1", total_marks: 10, due_at: null, is_graded: true },
+    { id: "g2", week_id: "w2", course_id: "GH", ordinal: 2, number: 2, series: "tajweed", title: "G2", total_marks: 10, due_at: null, is_graded: true },
+    { id: "m1", week_id: "w31", course_id: "MU", ordinal: 1, number: 16, series: "tajweed", title: "M1", total_marks: 10, due_at: null, is_graded: true },
+    { id: "m2", week_id: "w32", course_id: "MU", ordinal: 2, number: 17, series: "tajweed", title: "M2", total_marks: 10, due_at: null, is_graded: true },
+  ];
+  const rows = { terms, weeks, lessons: [], homeworks };
+
+  /** Group 1: takes Mudūd in TERM 1, and does not take it in Term 3 at all. */
+  const groupOne: ClassSchedule = {
+    courses: [
+      { courseId: "GH", key: "ghunna", label: "Ghunna", termId: 1, position: 1 },
+      { courseId: "MU", key: "mudood", label: "Mudūd", termId: 1, position: 2 },
+    ],
+    firstUnlockByTerm: { 1: "2026-10-05T00:00:00Z", 3: "2027-03-15T00:00:00Z" },
+  };
+
+  it("moves a course into the term the class takes it in", () => {
+    const tree = buildTree(rows, new Date("2026-10-06"), groupOne);
+    const t1 = tree.find((t) => t.id === 1)!;
+    expect(t1.courses.map((c) => c.label)).toEqual(["Ghunna", "Mudūd"]);
+    // …and it is gone from the term its rows are filed under.
+    expect(tree.find((t) => t.id === 3)!.courses).toEqual([]);
+  });
+
+  it("re-dates the moved course, so it opens with the term the class takes it in", () => {
+    const tree = buildTree(rows, new Date("2026-10-06"), groupOne);
+    const mudood = tree.find((t) => t.id === 1)!.courses.find((c) => c.label === "Mudūd")!;
+    // Item 1 opens on Term 1's first Monday, not Term 3's.
+    expect(mudood.modules[0].unlockAt).toBe("2026-10-05T00:00:00.000Z");
+    expect(mudood.modules[0].unlocked).toBe(true);
+    // Item 2 a week later, and still shut on the 6th.
+    expect(mudood.modules[1].unlockAt).toBe("2026-10-12T00:00:00.000Z");
+    expect(mudood.modules[1].unlocked).toBe(false);
+  });
+
+  it("drops a course the class does not take", () => {
+    const onlyGhunna: ClassSchedule = {
+      courses: [{ courseId: "GH", key: "ghunna", label: "Ghunna", termId: 1, position: 1 }],
+      firstUnlockByTerm: { 1: "2026-10-05T00:00:00Z", 3: "2027-03-15T00:00:00Z" },
+    };
+    const tree = buildTree(rows, new Date("2027-06-01"), onlyGhunna);
+    const labels = tree.flatMap((t) => t.courses.map((c) => c.label));
+    expect(labels).toEqual(["Ghunna"]);
+    // Even long after Mudūd's own weeks opened, it never appears.
+    expect(labels).not.toContain("Mudūd");
+  });
+
+  it("still names a course it holds no content for", () => {
+    const withEmpty: ClassSchedule = {
+      courses: [
+        { courseId: "GH", key: "ghunna", label: "Ghunna", termId: 1, position: 1 },
+        { courseId: "QA", key: "qaidah", label: "Qāʿidah Nūrāniyyah", termId: 1, position: 2 },
+      ],
+      firstUnlockByTerm: { 1: "2026-10-05T00:00:00Z" },
+    };
+    const t1 = buildTree(rows, new Date("2026-10-06"), withEmpty).find((t) => t.id === 1)!;
+    const qaidah = t1.courses.find((c) => c.label === "Qāʿidah Nūrāniyyah");
+    expect(qaidah).toBeDefined();
+    expect(qaidah!.moduleCount).toBe(0);
+  });
+
+  /**
+   * The sisters and the demo cohorts have no syllabus, and must keep exactly
+   * the behaviour they have today — this is the guarantee that writing one
+   * class's curriculum down cannot disturb a class that has none.
+   */
+  it("falls back to the week calendar when there is no syllabus", () => {
+    for (const none of [undefined, null, { courses: [], firstUnlockByTerm: {} }]) {
+      const tree = buildTree(rows, new Date("2026-10-06"), none as ClassSchedule | null | undefined);
+      expect(tree.find((t) => t.id === 1)!.courses[0].modules[0].unlockAt)
+        .toBe("2026-10-05T00:00:00Z");
+      // Mudūd stays in Term 3, where its rows live.
+      expect(tree.find((t) => t.id === 3)!.courses.length).toBe(1);
+    }
+  });
+});
+
+describe("scheduledUnlockAt", () => {
+  const s: ClassSchedule = { courses: [], firstUnlockByTerm: { 2: "2027-01-11T00:00:00Z" } };
+
+  it("adds seven days per item, counting from one", () => {
+    expect(scheduledUnlockAt(s, 2, 1)).toBe("2027-01-11T00:00:00.000Z");
+    expect(scheduledUnlockAt(s, 2, 3)).toBe("2027-01-25T00:00:00.000Z");
+  });
+
+  /** A course longer than its term runs past the end rather than piling items
+   *  into the last week — the mismatch is the faculty's to settle, and it is
+   *  better visible than hidden. Matches 0026, which does not clamp either. */
+  it("does not clamp to the end of the term", () => {
+    expect(scheduledUnlockAt(s, 2, 9)).toBe("2027-03-08T00:00:00.000Z");
+  });
+
+  it("is null for a term it has no date for", () => {
+    expect(scheduledUnlockAt(s, 3, 1)).toBeNull();
   });
 });

@@ -6,7 +6,8 @@ import { ClassFilter } from "@/components/app/class-filter";
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { Rule } from "@/components/app/rule";
-import { moduleTitle } from "@/lib/curriculum/tree";
+import { moduleTitle, scheduledUnlockAt } from "@/lib/curriculum/tree";
+import { getClassSchedule } from "@/lib/curriculum/queries";
 import { SERIES_LABELS, seriesRank } from "@/lib/lessons/series";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,8 @@ type Sub = {
 type Hw = {
   id: string;
   week_id: string;
+  course_id: string | null;
+  ordinal: number | null;
   number: number;
   title: string;
   series: string;
@@ -58,8 +61,16 @@ export default async function TeacherHomework({
   const [scope, { terms, weeks }, { data: homeworks }] = await Promise.all([
     homeworkScope(classParam),
     getTermsAndWeeks(),
-    db.from("homeworks").select("id, week_id, number, title, series, is_graded").order("number"),
+    db.from("homeworks")
+      .select(`id, week_id, course_id, ordinal, number, title, series, is_graded`)
+      .order("number"),
   ]);
+
+  // The selected class's syllabus. Null when no single class is selected (the
+  // section-wide view) or when the class has none — the sisters and the demo
+  // cohorts — and in both cases the screen behaves exactly as it always has,
+  // showing the whole programme.
+  const schedule = await getClassSchedule(scope.selected?.id);
 
   const roster = scope.students;
   const rosterIds = roster.map((s) => s.id);
@@ -76,13 +87,6 @@ export default async function TeacherHomework({
   const weekById = new Map(weeks.map((w) => [w.id, w]));
   const week = currentWeek(weeks);
 
-  // Weeks arrive in teaching order and unlock in that order, so everything up
-  // to and including the current one is released. Derived from the ordering
-  // rather than a clock read, which a render is not allowed to do.
-  const orderedWeekIds = weeks.map((w) => w.id);
-  const currentIndex = week ? orderedWeekIds.indexOf(week.id) : -1;
-  const releasedWeekIds = new Set(orderedWeekIds.slice(0, currentIndex + 1));
-
   const pendingByHw = new Map<string, Sub[]>();
   const approvedByHw = new Map<string, number>();
   for (const s of (subs ?? []) as Sub[]) {
@@ -95,26 +99,102 @@ export default async function TeacherHomework({
     }
   }
 
-  const thisWeekHws = ((homeworks ?? []) as Hw[]).filter((h) => week && h.week_id === week.id);
-  const backlogHws = ((homeworks ?? []) as Hw[]).filter(
-    (h) => (!week || h.week_id !== week.id) && pendingByHw.has(h.id),
+
+  /* ── What this class actually studies ──────────────────────────────────
+   *
+   * Under a syllabus, a homework belongs to the term THE CLASS takes its
+   * course in, not the term its row is filed under — so Masjid An-Nabawi's
+   * Mudūd appears in Term 1 where they study it, while every other class
+   * keeps it in Term 3, off the same six rows. Homework for a course the
+   * class does not take is dropped entirely, which is the whole point: they
+   * were being offered eight Ghunna homeworks they are not studying.
+   */
+  const scheduledByCourse = new Map((schedule?.courses ?? []).map((c) => [c.courseId, c]));
+  const useSyllabus = scheduledByCourse.size > 0;
+
+  /** The group a homework is filed under: its course, or its series as before. */
+  const groupKeyOf = (h: Hw) =>
+    useSyllabus ? (h.course_id ? scheduledByCourse.get(h.course_id)?.key ?? null : null) : h.series;
+
+  const termOf = (h: Hw) =>
+    useSyllabus
+      ? (h.course_id ? scheduledByCourse.get(h.course_id)?.termId : undefined)
+      : weekById.get(h.week_id)?.term_id;
+
+  /** When this homework opens for this class. */
+  const unlockOf = (h: Hw): string | null => {
+    const sc = useSyllabus && h.course_id ? scheduledByCourse.get(h.course_id) : undefined;
+    if (schedule && sc) return scheduledUnlockAt(schedule, sc.termId, h.ordinal ?? 1);
+    return weekById.get(h.week_id)?.unlock_at ?? null;
+  };
+
+  const visible = ((homeworks ?? []) as Hw[]).filter(
+    (h) => !useSyllabus || groupKeyOf(h) !== null,
   );
 
-  // term → series → homeworks, in teaching order
+  const labelOf = (key: string) =>
+    (useSyllabus
+      ? schedule?.courses.find((c) => c.key === key)?.label
+      : SERIES_LABELS[key]) ?? SERIES_LABELS[key] ?? key;
+
+  const rankOf = (key: string) =>
+    useSyllabus
+      ? schedule?.courses.find((c) => c.key === key)?.position ?? 0
+      : seriesRank(key);
+
+  // Released is now a fact about a HOMEWORK rather than about its week, since
+  // the same row opens on different dates for different classes. The current
+  // week's own unlock date is the reference point, which keeps this derived
+  // from the calendar ordering rather than from a clock read a render is not
+  // allowed to make.
+  const nowRef = week ? Date.parse(week.unlock_at) : Number.NEGATIVE_INFINITY;
+  const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+  const releasedHwIds = new Set(
+    visible.filter((h) => {
+      const at = unlockOf(h);
+      return at !== null && Date.parse(at) <= nowRef;
+    }).map((h) => h.id),
+  );
+  /** Opening in the current teaching week — the reference point, up to the next. */
+  const isThisWeek = (h: Hw) => {
+    const at = unlockOf(h);
+    if (at === null || !week) return false;
+    const t = Date.parse(at);
+    return t >= nowRef && t < nowRef + WEEK_MS;
+  };
+
+  const thisWeekHws = visible.filter(isThisWeek);
+  const backlogHws = visible.filter((h) => !isThisWeek(h) && pendingByHw.has(h.id));
+
+  // term → course (or series) → homeworks, in teaching order
   const byTerm = new Map<number, Map<string, Hw[]>>();
-  for (const h of (homeworks ?? []) as Hw[]) {
-    const termId = weekById.get(h.week_id)?.term_id;
-    if (termId === undefined) continue; // orphan — its week was deleted
+  for (const h of visible) {
+    const termId = termOf(h);
+    const group = groupKeyOf(h);
+    if (termId === undefined || group === null) continue; // orphan or unscheduled
     let bySeries = byTerm.get(termId);
     if (!bySeries) byTerm.set(termId, (bySeries = new Map()));
-    const list = bySeries.get(h.series) ?? [];
+    const list = bySeries.get(group) ?? [];
     list.push(h);
-    bySeries.set(h.series, list);
+    bySeries.set(group, list);
+  }
+
+  // A course the class takes that has no homework in the app at all — Qāʿidah
+  // Nūrāniyyah, Makhārij, the new Ṣifāt, and Umm al-Kitāb, which has nine
+  // lessons and no homework. It gets an empty folder rather than vanishing:
+  // Masjid Al-Aqsa's entire year is courses like these, and a blank screen
+  // would read as the app being broken rather than as content not existing.
+  if (useSyllabus) {
+    for (const sc of scheduledByCourse.values()) {
+      let bySeries = byTerm.get(sc.termId);
+      if (!bySeries) byTerm.set(sc.termId, (bySeries = new Map()));
+      if (!bySeries.has(sc.key)) bySeries.set(sc.key, []);
+    }
   }
 
   const byWeekThenNumber = (a: Hw, b: Hw) => {
-    const wa = weekById.get(a.week_id)?.number ?? 0;
-    const wb = weekById.get(b.week_id)?.number ?? 0;
+    const wa = a.ordinal ?? weekById.get(a.week_id)?.number ?? 0;
+    const wb = b.ordinal ?? weekById.get(b.week_id)?.number ?? 0;
     return wa - wb || a.number - b.number;
   };
   const waitingIn = (list: Hw[]) =>
@@ -157,7 +237,7 @@ export default async function TeacherHomework({
   const hwRow = (h: Hw, indent: boolean) => {
     const waiting = pendingByHw.get(h.id)?.length ?? 0;
     const done = approvedByHw.get(h.id) ?? 0;
-    const unlocked = releasedWeekIds.has(h.week_id);
+    const unlocked = releasedHwIds.has(h.id);
     return (
       <li key={h.id}>
         <Link
@@ -273,7 +353,7 @@ export default async function TeacherHomework({
         {terms.map((term) => {
           const bySeries = byTerm.get(term.id);
           if (!bySeries) return null;
-          const seriesKeys = [...bySeries.keys()].sort((a, b) => seriesRank(a) - seriesRank(b));
+          const seriesKeys = [...bySeries.keys()].sort((a, b) => rankOf(a) - rankOf(b));
           const termHws = seriesKeys.flatMap((s) => bySeries.get(s) ?? []);
           const single = seriesKeys.length === 1;
 
@@ -295,7 +375,7 @@ export default async function TeacherHomework({
                     Term {term.id}
                     {single && (
                       <span className="ml-2 text-xs font-normal text-muted-foreground">
-                        {SERIES_LABELS[seriesKeys[0]] ?? seriesKeys[0]}
+                        {labelOf(seriesKeys[0])}
                       </span>
                     )}
                   </span>
@@ -303,7 +383,11 @@ export default async function TeacherHomework({
                 {countLabel(termHws.length, waitingIn(termHws))}
               </summary>
 
-              {single ? (
+              {single && termHws.length === 0 ? (
+                <p className="border-t border-line px-4 py-3 text-sm text-muted-foreground">
+                  No homework for this course yet.
+                </p>
+              ) : single ? (
                 <ul className="divide-y divide-line border-t border-line">
                   {[...termHws].sort(byWeekThenNumber).map((h) => hwRow(h, false))}
                 </ul>
@@ -324,13 +408,19 @@ export default async function TeacherHomework({
                             >
                               ▸
                             </span>
-                            <span className="truncate">{SERIES_LABELS[series] ?? series}</span>
+                            <span className="truncate">{labelOf(series)}</span>
                           </span>
                           {countLabel(list.length, waitingIn(list))}
                         </summary>
-                        <ul className="divide-y divide-line border-t border-line">
-                          {list.map((h) => hwRow(h, true))}
-                        </ul>
+                        {list.length === 0 ? (
+                          <p className="border-t border-line px-3 py-2.5 text-sm text-muted-foreground">
+                            No homework for this course yet.
+                          </p>
+                        ) : (
+                          <ul className="divide-y divide-line border-t border-line">
+                            {list.map((h) => hwRow(h, true))}
+                          </ul>
+                        )}
                       </details>
                     );
                   })}

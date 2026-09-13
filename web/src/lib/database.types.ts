@@ -223,6 +223,49 @@ export type Database = {
           },
         ]
       }
+      class_courses: {
+        Row: {
+          class_id: string
+          course_id: string
+          position: number
+          term_id: number
+        }
+        Insert: {
+          class_id: string
+          course_id: string
+          position?: number
+          term_id: number
+        }
+        Update: {
+          class_id?: string
+          course_id?: string
+          position?: number
+          term_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_courses_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_courses_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_courses_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "terms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       classes: {
         Row: {
           id: string
@@ -251,6 +294,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      courses: {
+        Row: {
+          id: string
+          key: string
+          label: string
+          position: number
+        }
+        Insert: {
+          id?: string
+          key: string
+          label: string
+          position?: number
+        }
+        Update: {
+          id?: string
+          key?: string
+          label?: string
+          position?: number
+        }
+        Relationships: []
       }
       deposit_entries: {
         Row: {
@@ -598,36 +662,49 @@ export type Database = {
       }
       homeworks: {
         Row: {
+          course_id: string | null
           due_at: string | null
           id: string
           is_graded: boolean
           number: number
+          ordinal: number | null
           series: Database["public"]["Enums"]["series_t"]
           title: string
           total_marks: number
           week_id: string
         }
         Insert: {
+          course_id?: string | null
           due_at?: string | null
           id?: string
           is_graded?: boolean
           number: number
+          ordinal?: number | null
           series?: Database["public"]["Enums"]["series_t"]
           title: string
           total_marks: number
           week_id: string
         }
         Update: {
+          course_id?: string | null
           due_at?: string | null
           id?: string
           is_graded?: boolean
           number?: number
+          ordinal?: number | null
           series?: Database["public"]["Enums"]["series_t"]
           title?: string
           total_marks?: number
           week_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "homeworks_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "homeworks_week_id_fkey"
             columns: ["week_id"]
@@ -672,7 +749,9 @@ export type Database = {
       }
       lessons: {
         Row: {
+          course_id: string | null
           id: string
+          ordinal: number | null
           position: number
           series: Database["public"]["Enums"]["series_t"]
           title: string
@@ -680,7 +759,9 @@ export type Database = {
           youtube_id: string | null
         }
         Insert: {
+          course_id?: string | null
           id?: string
+          ordinal?: number | null
           position?: number
           series: Database["public"]["Enums"]["series_t"]
           title: string
@@ -688,7 +769,9 @@ export type Database = {
           youtube_id?: string | null
         }
         Update: {
+          course_id?: string | null
           id?: string
+          ordinal?: number | null
           position?: number
           series?: Database["public"]["Enums"]["series_t"]
           title?: string
@@ -696,6 +779,13 @@ export type Database = {
           youtube_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lessons_week_id_fkey"
             columns: ["week_id"]
@@ -716,6 +806,7 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role"]
           section: Database["public"]["Enums"]["section_t"]
           setup_complete: boolean
+          unlock_all: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -727,6 +818,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           section: Database["public"]["Enums"]["section_t"]
           setup_complete?: boolean
+          unlock_all?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -738,6 +830,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           section?: Database["public"]["Enums"]["section_t"]
           setup_complete?: boolean
+          unlock_all?: boolean
         }
         Relationships: [
           {
@@ -1532,8 +1625,13 @@ export type Database = {
         Args: { p_delta: number; p_student: string; p_term: number }
         Returns: undefined
       }
+      class_item_unlock_at: {
+        Args: { p_class: string; p_course: string; p_ordinal: number }
+        Returns: string
+      }
       get_homework_for_student: { Args: { hw_id: string }; Returns: Json }
       is_teacher: { Args: never; Returns: boolean }
+      sees_all_content: { Args: never; Returns: boolean }
     }
     Enums: {
       application_status_t:
