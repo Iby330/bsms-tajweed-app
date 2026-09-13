@@ -65,15 +65,17 @@ const eventsFor = (section: Section, from: string, to = from) =>
 /**
  * The colour key for the grid's dots.
  *
- * The swatches HANG. A dot (0.5rem) plus its gap (0.5rem) would otherwise set
- * "Tajweed" a whole rem to the right of every other line in the panel, so the
- * legend alone looked indented. Pulling the row back by exactly that much puts
- * the TEXT on the panel's left edge, with the dots hanging into the padding —
- * which is 18px at its narrowest, so they never clip the box.
+ * The DOT sits on the panel's left edge, in line with "Next class", the date
+ * and the lesson names above it — the swatch is the thing the eye tracks down
+ * the column, so it is what should line up.
+ *
+ * This was briefly the other way round, hanging the dots into the padding so
+ * the word "Tajweed" lined up instead. That put a mark nobody asked to be
+ * first out past everything else, and read as the legend being adrift.
  */
 function Legend({ timetable }: { timetable: Timetable }) {
   return (
-    <div className="-ml-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
       {(["tajweed", "hifdh"] as const).map((type) => (
         <span key={type} className="flex items-center gap-2 text-xs">
           <span className={cn("size-2 rounded-full", SESSION_DOT[type])} aria-hidden />
