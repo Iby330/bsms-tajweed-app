@@ -36,6 +36,18 @@ const VERSES: Record<string, ClassVerse> = {
     enWord: "Rayyān",
     source: "Ṣaḥīḥ Muslim 1152",
   },
+  // The dagger alif (U+0670) is written WITHOUT the tatweel (U+0640) that
+  // QUL carries in front of it. The tatweel is only a carrier — it changes no
+  // letter, no rasm and no pronunciation, it just gives the mark something to
+  // sit on — and Uthmanic Hafs mis-places the pair: it sets the alif adrift to
+  // the left, past the letter AFTER the one it lengthens, so جَنَّـٰتُ came out
+  // with its alif over the tāʾ instead of over the nūn. Dropping the carrier,
+  // Hafs puts it exactly where it belongs. Verified against the original ttf
+  // as well as the woff2, so it is the face and not the subsetting.
+  //
+  // Two characters in this whole file, one here and one in zukhruf. Everything
+  // else is byte-identical to QUL's quran/verses/uthmani.
+  //
   // Fāṭir 35:33. The text carried two spurious small high meems (U+06E2) —
   // the iqlāb mark — one before yā' and one before wāw. Iqlāb only occurs
   // before bā'; both of those positions are idghām with ghunna, so the mark
@@ -43,7 +55,7 @@ const VERSES: Record<string, ClassVerse> = {
   // quran.com rather than the app's own quran_words (that table holds
   // surahs 67–114 only, so Fāṭir is not in it to check against).
   hareer: {
-    ar: "جَنَّـٰتُ عَدْنٍ يَدْخُلُونَهَا يُحَلَّوْنَ فِيهَا مِنْ أَسَاوِرَ مِن ذَهَبٍ وَلُؤْلُؤًا ۖ وَلِبَاسُهُمْ فِيهَا حَرِيرٌ",
+    ar: "جَنَّٰتُ عَدْنٍ يَدْخُلُونَهَا يُحَلَّوْنَ فِيهَا مِنْ أَسَاوِرَ مِن ذَهَبٍ وَلُؤْلُؤًا ۖ وَلِبَاسُهُمْ فِيهَا حَرِيرٌ",
     arWord: "حَرِيرٌ",
     en: "They will enter the Gardens of Eternity, where they will be adorned with bracelets of gold and pearls, and their clothing will be silk.",
     enWord: "silk",
@@ -58,7 +70,7 @@ const VERSES: Record<string, ClassVerse> = {
   },
   zukhruf: {
     // The surah's own name is not in the ayah; the word carrying it is ذَهَب.
-    ar: "يُطَافُ عَلَيْهِم بِصِحَافٍ مِّن ذَهَبٍ وَأَكْوَابٍ ۖ وَفِيهَا مَا تَشْتَهِيهِ ٱلْأَنفُسُ وَتَلَذُّ ٱلْأَعْيُنُ ۖ وَأَنتُمْ فِيهَا خَـٰلِدُونَ",
+    ar: "يُطَافُ عَلَيْهِم بِصِحَافٍ مِّن ذَهَبٍ وَأَكْوَابٍ ۖ وَفِيهَا مَا تَشْتَهِيهِ ٱلْأَنفُسُ وَتَلَذُّ ٱلْأَعْيُنُ ۖ وَأَنتُمْ فِيهَا خَٰلِدُونَ",
     arWord: "ذَهَبٍ",
     en: "Golden trays and cups will be passed around to them. There will be whatever the souls desire and the eyes delight in. And you will be there forever.",
     enWord: "Golden",
