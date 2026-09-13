@@ -3,6 +3,8 @@
  *
  *   npx tsx execution/apply_migration.ts web/supabase/migrations/0007_x.sql
  *   npx tsx execution/apply_migration.ts --check          # list applied migrations
+ *   npx tsx execution/apply_migration.ts --probe "select 1"      # run SQL, no ledger row
+ *   npx tsx execution/apply_migration.ts --probe scratch/q.sql   # same, from a file
  *
  * Uses the Management API's query endpoint with SUPABASE_ACCESS_TOKEN, because
  * the Supabase CLI isn't installed on this machine and `psql` would need the
@@ -28,8 +30,16 @@
  *    writing migrations that target rows by stable identity (position/id),
  *    not by matching mutable text, and consider a RETURNING clause on data
  *    migrations so the printed result below isn't just `[]`.
+ *  - Never run an ad-hoc / read-only query by handing this script a temp file:
+ *    every applied file gets a `schema_migrations` row named after it, so a
+ *    throwaway `q.sql` leaves junk in the ledger, and the delete you write to
+ *    clean it up leaves its own row in turn (the insert is `on conflict
+ *    (filename) do update set applied_at = now()`, so the loop only closes by
+ *    reusing the name of a real migration). Use `--probe` instead: it sends the
+ *    SQL and prints the full result without touching the ledger — and it is
+ *    also how you delete a junk row that a pre-`--probe` session left behind.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { basename, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
@@ -102,7 +112,23 @@ async function main() {
 
   const args = process.argv.slice(2);
   const force = args.includes("--force");
+  const probe = args.includes("--probe");
   const files = args.filter((a) => !a.startsWith("--"));
+
+  // Ad-hoc query mode: run the SQL and print what came back, writing NOTHING to
+  // schema_migrations (and not even creating it). Each argument is a file path
+  // if one exists at it, otherwise it is taken as SQL text, so a one-off probe
+  // needs no temp file at all.
+  if (probe) {
+    if (files.length === 0) throw new Error("--probe needs SQL text or a .sql file path");
+    for (const arg of files) {
+      const path = resolve(ROOT, arg);
+      const sql = existsSync(path) && statSync(path).isFile() ? readFileSync(path, "utf8") : arg;
+      const result = await runSql(token, sql);
+      console.log(JSON.stringify(result, null, 2));
+    }
+    return;
+  }
 
   await runSql(token, LEDGER);
 
