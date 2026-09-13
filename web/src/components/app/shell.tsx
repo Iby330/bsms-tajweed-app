@@ -9,7 +9,7 @@ import {
   Moon, Sun, Home, PlaySquare, ClipboardList, BookOpenCheck, User, Library,
   Landmark, Bell, CheckSquare, Users, GraduationCap, Settings2, CalendarDays,
   CalendarRange,
-  LogOut, PanelLeftClose, Wallet, type LucideIcon,
+  LogOut, PanelLeftClose, Wallet, UserPlus, type LucideIcon,
 } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   user: User, library: Library, landmark: Landmark, bell: Bell,
   check: CheckSquare, users: Users, graduation: GraduationCap,
   settings: Settings2, calendar: CalendarDays, "calendar-range": CalendarRange,
-  wallet: Wallet,
+  wallet: Wallet, "user-plus": UserPlus,
 };
 
 /**

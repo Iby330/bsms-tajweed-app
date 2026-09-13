@@ -125,6 +125,17 @@ export const SECTION_TIMETABLES: Readonly<Record<Section, Timetable>> = {
 export const CLASS_TIMETABLES: Readonly<Record<string, Timetable>> = {};
 
 /**
+ * Whether the sisters' hifdh weekday above is still the placeholder.
+ *
+ * A flag rather than a comment because one screen now PUBLISHES the teaching
+ * days to people who are not yet students — the terms on /apply — and a
+ * public page must not state a placeholder as a fact. While this is true that
+ * page says the hifdh evening is confirmed before term starts instead of
+ * naming one. Set it to false once the real days are in CLASS_TIMETABLES.
+ */
+export const SISTERS_HIFDH_DAY_PROVISIONAL = true;
+
+/**
  * The timetable a class actually runs on: its own if it has one, otherwise
  * its section's.
  *

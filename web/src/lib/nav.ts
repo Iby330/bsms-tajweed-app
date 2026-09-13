@@ -6,7 +6,8 @@
 export type IconName =
   | "home" | "video" | "clipboard" | "book" | "user"
   | "library" | "landmark" | "bell" | "check" | "users"
-  | "graduation" | "settings" | "calendar" | "calendar-range" | "wallet";
+  | "graduation" | "settings" | "calendar" | "calendar-range" | "wallet"
+  | "user-plus";
 
 export type NavItem = {
   href: string;
@@ -49,6 +50,10 @@ export const teacherNav: NavItem[] = [
   // which is a different question from "who is in the room today".
   { href: "/teacher/calendar", label: "Calendar", icon: "calendar-range" },
   { href: "/teacher/classes", label: "Classes", icon: "graduation" },
+  // Below the mobile five on purpose: the intake is worked through in a sitting
+  // or two each September, not weekly, and it should not cost the register or
+  // the roster their place in the tab bar for the other eleven months.
+  { href: "/teacher/applications", label: "Applications", icon: "user-plus" },
   { href: "/teacher/deposits", label: "Deposits", icon: "wallet" },
   { href: "/coming-soon/notifications", label: "Notifications", icon: "bell", comingSoon: true },
 ];

@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -58,6 +58,102 @@ export type Database = {
             columns: ["submission_id"]
             isOneToOne: false
             referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      applications: {
+        Row: {
+          arabic_reading: string
+          assessed_level: string | null
+          class_id: string | null
+          created_at: string
+          email: string
+          enrolled_before: boolean
+          fee_pence: number
+          fee_settled: boolean
+          first_name: string
+          heard_from: string
+          id: string
+          memorised: string
+          motivation: string
+          notes: string | null
+          paid_confirmed: boolean
+          phone: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          section: Database["public"]["Enums"]["section_t"]
+          status: Database["public"]["Enums"]["application_status_t"]
+          surname: string
+          tajweed_level: string
+          university: string
+          year_of_study: string
+        }
+        Insert: {
+          arabic_reading: string
+          assessed_level?: string | null
+          class_id?: string | null
+          created_at?: string
+          email: string
+          enrolled_before: boolean
+          fee_pence: number
+          fee_settled?: boolean
+          first_name: string
+          heard_from: string
+          id?: string
+          memorised: string
+          motivation: string
+          notes?: string | null
+          paid_confirmed?: boolean
+          phone: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          section: Database["public"]["Enums"]["section_t"]
+          status?: Database["public"]["Enums"]["application_status_t"]
+          surname: string
+          tajweed_level: string
+          university: string
+          year_of_study: string
+        }
+        Update: {
+          arabic_reading?: string
+          assessed_level?: string | null
+          class_id?: string | null
+          created_at?: string
+          email?: string
+          enrolled_before?: boolean
+          fee_pence?: number
+          fee_settled?: boolean
+          first_name?: string
+          heard_from?: string
+          id?: string
+          memorised?: string
+          motivation?: string
+          notes?: string | null
+          paid_confirmed?: boolean
+          phone?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          section?: Database["public"]["Enums"]["section_t"]
+          status?: Database["public"]["Enums"]["application_status_t"]
+          surname?: string
+          tajweed_level?: string
+          university?: string
+          year_of_study?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -777,7 +873,7 @@ export type Database = {
           note?: string | null
           session_id: string
           surah_number: number
-          word_position: number | null
+          word_position?: number | null
         }
         Update: {
           ayah_number?: number
@@ -1440,6 +1536,12 @@ export type Database = {
       is_teacher: { Args: never; Returns: boolean }
     }
     Enums: {
+      application_status_t:
+        | "new"
+        | "invited"
+        | "assessed"
+        | "placed"
+        | "declined"
       qtype_t: "mcq" | "checkbox" | "text" | "paragraph" | "grid"
       scoring_t: "exact" | "per_option" | "manual"
       section_t: "brothers" | "sisters" | "demo"
@@ -1463,12 +1565,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1492,11 +1594,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1517,11 +1619,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1542,11 +1644,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1559,11 +1661,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1575,6 +1677,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      application_status_t: [
+        "new",
+        "invited",
+        "assessed",
+        "placed",
+        "declined",
+      ],
       qtype_t: ["mcq", "checkbox", "text", "paragraph", "grid"],
       scoring_t: ["exact", "per_option", "manual"],
       section_t: ["brothers", "sisters", "demo"],
@@ -1586,4 +1695,3 @@ export const Constants = {
     },
   },
 } as const
-

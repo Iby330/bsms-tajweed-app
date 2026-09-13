@@ -37,6 +37,7 @@ import { NextResponse, type NextRequest } from "next/server";
  */
 const PUBLIC_PATHS = [
   "/",
+  "/apply",
   "/login",
   "/locked",
   "/forgot-password",

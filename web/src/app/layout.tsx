@@ -47,6 +47,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Needed by /apply, whose openGraph image is a relative path: without a base
+  // Next emits it relative and WhatsApp, which fetches the preview from its
+  // own servers with no page context, resolves it to nothing and shows a card
+  // with no picture. The custom domain, not the netlify.app one — that
+  // 307-redirects here.
+  metadataBase: new URL("https://www.bsmstajweed.com"),
   title: { default: "BSMS Tajweed", template: "%s · BSMS Tajweed" },
   description:
     "Tajweed and Qur'an memorisation platform for the Brighton Sussex Muslim Students programme.",
