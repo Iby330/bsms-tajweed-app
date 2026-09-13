@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { currentProfile } from "@/lib/supabase/server";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
 import { findCourse, findTerm } from "@/lib/curriculum/tree";
-import { seriesShort } from "@/lib/lessons/series";
 import { ModuleCard } from "@/components/app/module-card";
 import { ProgressBar } from "@/components/app/progress-bar";
 import { Crumbs } from "@/components/app/crumbs";
@@ -39,7 +38,9 @@ export default async function CoursePage({
           items={[
             { label: "Courses", href: "/courses" },
             { label: `Term ${term.id}`, href: `/courses/${term.id}` },
-            { label: seriesShort(course.series) },
+            // The course's own name. `seriesShort` knows only series keys and
+            // would print a raw "mudood" for a syllabus-keyed course.
+            { label: course.label },
           ]}
         />
         <h1 style={{ marginTop: 16 }}>
@@ -74,6 +75,7 @@ export default async function CoursePage({
             key={m.weekId}
             module={m}
             series={course.series}
+            courseLabel={course.label}
             pct={m.homework ? pctByHomeworkId.get(m.homework.id) : undefined}
           />
         ))}

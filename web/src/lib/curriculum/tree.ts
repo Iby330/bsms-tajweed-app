@@ -548,6 +548,41 @@ export function weekContent(
   };
 }
 
+/**
+ * The modules that opened most recently — "this week" for whoever this tree
+ * was built for.
+ *
+ * Read off the TREE rather than by matching `week_id`, which is the only way
+ * it can be right since the per-class syllabus: group 1 takes Mudūd in Term 1
+ * but its rows are filed against Term 3's weeks, so a week-id match finds
+ * nothing for them and their current work silently disappears from Home.
+ *
+ * Returns every module sharing the latest unlocked date, because a week
+ * carries more than one course — Term 3 week 1 has both Mudūd and Mabādi'.
+ */
+export function currentModules(terms: Term[], now: Date = new Date()): Module[] {
+  const nowMs = now.getTime();
+  let latest = Number.NEGATIVE_INFINITY;
+  for (const t of terms) {
+    for (const c of t.courses) {
+      for (const m of c.modules) {
+        const at = Date.parse(m.unlockAt);
+        if (at <= nowMs && at > latest) latest = at;
+      }
+    }
+  }
+  if (latest === Number.NEGATIVE_INFINITY) return [];
+  const out: Module[] = [];
+  for (const t of terms) {
+    for (const c of t.courses) {
+      for (const m of c.modules) {
+        if (Date.parse(m.unlockAt) === latest) out.push(m);
+      }
+    }
+  }
+  return out;
+}
+
 export function findTerm(terms: Term[], termId: number): Term | null {
   return terms.find((t) => t.id === termId) ?? null;
 }

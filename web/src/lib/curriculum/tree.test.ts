@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  buildTree, overlayProgress, findCourse, findCurrentModule, moduleTitle, scheduledUnlockAt,
+  buildTree, overlayProgress, findCourse, findCurrentModule, moduleTitle, scheduledUnlockAt, currentModules,
   listHomework, bucketHomework, weekContent,
   type TermRow, type WeekRow, type LessonRow, type HomeworkRow,
   type ClassSchedule,
@@ -619,5 +619,54 @@ describe("scheduledUnlockAt", () => {
 
   it("is null for a term it has no date for", () => {
     expect(scheduledUnlockAt(s, 3, 1)).toBeNull();
+  });
+});
+
+describe("currentModules", () => {
+  const terms: TermRow[] = [
+    { id: 1, starts_on: "2026-10-05", ends_on: "2026-11-26", exam_max: 89 },
+    { id: 3, starts_on: "2027-03-15", ends_on: "2027-05-20", exam_max: 98 },
+  ];
+  const weeks: WeekRow[] = [
+    { id: "w1", term_id: 1, number: 1, unlock_at: "2026-10-05T00:00:00Z" },
+    { id: "w2", term_id: 1, number: 2, unlock_at: "2026-10-12T00:00:00Z" },
+    { id: "w31", term_id: 3, number: 1, unlock_at: "2027-03-15T00:00:00Z" },
+  ];
+  const lessons: LessonRow[] = [
+    { id: "lg1", week_id: "w1", course_id: "GH", ordinal: 1, series: "tajweed", title: "G1", youtube_id: "x", position: 1 },
+    { id: "lg2", week_id: "w2", course_id: "GH", ordinal: 2, series: "tajweed", title: "G2", youtube_id: "x", position: 1 },
+    { id: "lm1", week_id: "w31", course_id: "MU", ordinal: 1, series: "tajweed", title: "M1", youtube_id: "x", position: 1 },
+  ];
+  const rows = { terms, weeks, lessons, homeworks: [] };
+
+  /** Group 1: Mudūd in Term 1, though its rows are filed under Term 3. */
+  const groupOne: ClassSchedule = {
+    courses: [
+      { courseId: "GH", key: "ghunna", label: "Ghunna", termId: 1, position: 1 },
+      { courseId: "MU", key: "mudood", label: "Mudūd", termId: 1, position: 2 },
+    ],
+    firstUnlockByTerm: { 1: "2026-10-05T00:00:00Z", 3: "2027-03-15T00:00:00Z" },
+  };
+
+  /**
+   * The regression this exists for: Home used to pick "this week" by matching
+   * `week_id`, which finds nothing for a course whose rows live in another
+   * term — group 1's Mudūd would have vanished from their Home entirely.
+   */
+  it("finds a re-dated course's module alongside the term's own", () => {
+    const tree = buildTree(rows, new Date("2026-10-06"), groupOne);
+    const ids = currentModules(tree, new Date("2026-10-06")).flatMap((m) => m.lessons.map((l) => l.id));
+    expect(ids.sort()).toEqual(["lg1", "lm1"]);
+  });
+
+  it("moves on to the next week's module once it opens", () => {
+    const tree = buildTree(rows, new Date("2026-10-13"), groupOne);
+    const ids = currentModules(tree, new Date("2026-10-13")).flatMap((m) => m.lessons.map((l) => l.id));
+    expect(ids).toEqual(["lg2"]);
+  });
+
+  it("is empty before anything has opened", () => {
+    const tree = buildTree(rows, new Date("2026-09-01"), groupOne);
+    expect(currentModules(tree, new Date("2026-09-01"))).toEqual([]);
   });
 });

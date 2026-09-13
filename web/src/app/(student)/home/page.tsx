@@ -5,7 +5,7 @@ import {
   getStudentProgress, getHomeLeaderboards,
 } from "@/lib/dashboard/queries";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
-import { listHomework, bucketHomework, moduleTitle, weekContent } from "@/lib/curriculum/tree";
+import { listHomework, bucketHomework, moduleTitle, currentModules } from "@/lib/curriculum/tree";
 import { expectedPassed } from "@/lib/hifz/pace";
 import { StrikeDots } from "@/components/app/strike-dots";
 import { LeaderboardPanel } from "@/components/app/leaderboard-panel";
@@ -64,11 +64,22 @@ export default async function StudentHome() {
   // cross-section scope would only repeat the one above it.
   const crossSection = profile.section !== "demo";
 
-  // A week can carry more than one course's homework — Term 3 week 1 has both
-  // Tajweed 16 and TFP 1 — so `hws` is a list, not a single row.
-  const { lessons, homeworks: hws } = week
-    ? weekContent(curriculum.rows, week.id)
-    : { lessons: [], homeworks: [] };
+  // "This week" comes off the TREE, not from matching `week_id`. Since the
+  // per-class syllabus a course can sit in a different term for different
+  // classes — group 1 takes Mudūd in Term 1 while its rows are filed against
+  // Term 3's weeks — so a week-id match would quietly drop their current work.
+  //
+  // A week carries more than one course, so this is a list: Term 3 week 1 has
+  // both Mudūd and Mabādi'.
+  const openModules = currentModules(curriculum.terms, now);
+  const lessons = openModules.flatMap((m) => m.lessons);
+  const hws = openModules.flatMap((m) => (m.homework ? [m.homework] : []));
+  // Which homework belongs to which lesson, taken from the module they share
+  // rather than by matching series — group 1 has two `tajweed` courses running
+  // at once in Term 1, and series cannot tell them apart.
+  const hwByLessonId = new Map(
+    openModules.flatMap((m) => (m.homework ? m.lessons.map((l) => [l.id, m.homework!]) : [])),
+  );
   const watched = curriculum.watchedLessonIds;
   const statusByHw = curriculum.submissionByHomeworkId;
 
@@ -211,7 +222,7 @@ export default async function StudentHome() {
           lessons.map((l, i) => {
             // No standalone homework cards: the homework is reached from the
             // lesson, since watching is the first step to handing in.
-            const hw = hws.find((h) => h.series === l.series);
+            const hw = hwByLessonId.get(l.id);
             const status = hw ? statusByHw.get(hw.id) : undefined;
             const isIn =
               status === "submitted" || status === "auto_marked" || status === "approved";

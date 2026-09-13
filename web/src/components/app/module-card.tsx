@@ -19,6 +19,7 @@ const dmy = (iso: string) =>
 export function ModulePoster({
   youtubeId,
   series,
+  label,
   locked = false,
   unlockAt,
   ticked = false,
@@ -26,6 +27,15 @@ export function ModulePoster({
   youtubeId: string | null;
   /** Course series key, for the placeholder label. */
   series: string;
+  /**
+   * What to call the course, when the series key is not it.
+   *
+   * Since the per-class syllabus, a course is keyed by its own name rather
+   * than its series — group 1 takes Ghunna AND Mudūd in Term 1 and both are
+   * `tajweed`, so the series cannot tell them apart. `seriesShort` knows
+   * nothing about those keys and would fall back to printing "mudood".
+   */
+  label?: string;
   locked?: boolean;
   /** Read only when locked. */
   unlockAt?: string;
@@ -55,7 +65,7 @@ export function ModulePoster({
       ) : (
         <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground">
           <span aria-hidden className="text-lg">▸</span>
-          <span className="text-xs">{seriesShort(series)} · video coming soon</span>
+          <span className="text-xs">{label ?? seriesShort(series)} · video coming soon</span>
         </div>
       )}
 
@@ -85,11 +95,14 @@ export function ModulePoster({
 export function ModuleCard({
   module: m,
   series,
+  courseLabel,
   pct,
 }: {
   module: Module;
   /** Course series key, for the placeholder label. */
   series: string;
+  /** The course's own name — see ModulePoster's `label`. */
+  courseLabel?: string;
   /** Approved homework percentage, when the teacher has marked it. */
   pct?: number;
 }) {
@@ -123,6 +136,7 @@ export function ModuleCard({
       <ModulePoster
         youtubeId={lesson?.youtube_id ?? null}
         series={series}
+        label={courseLabel}
         locked={!m.unlocked}
         unlockAt={m.unlockAt}
         ticked={m.unlocked && m.watched}
