@@ -42,6 +42,29 @@ describe("HifzJourney", () => {
     // Nothing is "next" once every surah on the list is passed.
     expect(container.querySelector(".cell.next")).toBeNull();
   });
+  it("folds every hizb, opening only the one holding the next surah", () => {
+    const { container } = render(<HifzJourney list={RUN} records={recs([0,1,2,3,4,5,6,7])} expected={0} />);
+    const folds = [...container.querySelectorAll("details")];
+    expect(folds.length).toBeGreaterThan(1);
+    // every band is a summary, so it toggles natively
+    expect(container.querySelectorAll("details > summary.band").length).toBe(folds.length);
+    const open = folds.filter((d) => d.hasAttribute("open"));
+    expect(open).toHaveLength(1);
+    expect(open[0].querySelector(".cell.next")).not.toBeNull();
+  });
+  it("also opens the hizb carrying the pace marker, so 'behind' is never hidden", () => {
+    const { container } = render(<HifzJourney list={RUN} records={recs([0,1])} expected={30} />);
+    const open = [...container.querySelectorAll("details[open]")];
+    expect(open.length).toBe(2);
+    expect(open.some((d) => d.textContent?.includes("Expected here by now"))).toBe(true);
+    expect(open.some((d) => d.querySelector(".cell.next"))).toBe(true);
+  });
+  it("starts fully folded once the list is complete", () => {
+    const all = recs(Array.from({ length: 43 }, (_, i) => i));
+    const { container } = render(<HifzJourney list={RUN} records={all} expected={30} />);
+    expect(container.querySelectorAll("details").length).toBeGreaterThan(1);
+    expect(container.querySelectorAll("details[open]").length).toBe(0);
+  });
   it("renders nothing for an empty list", () => {
     const { container } = render(<HifzJourney list={[]} records={new Map()} expected={0} />);
     expect(container.innerHTML).toBe("");

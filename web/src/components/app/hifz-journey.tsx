@@ -23,6 +23,13 @@ type Rec = { passed_at: string; teacher_comment: string | null };
  * A cell links to that surah's own page. The introductions run to thousands
  * of words, so they get somewhere to live rather than an expanding panel that
  * pushes the grid around and cannot be linked to.
+ *
+ * Each hizb folds. A student does not need forty surah cells in view to see
+ * where they are; they need the band they are working in. The band is a
+ * native <details>/<summary>, so it folds before hydration and from the
+ * keyboard with no script. Open by default: the hizb holding the next
+ * surah, and the one carrying the pace marker — a warning that they are
+ * behind must never sit hidden inside a closed fold.
  */
 export function HifzJourney({
   list,
@@ -65,16 +72,22 @@ export function HifzJourney({
         // "Ready" only when the WHOLE hizb is on the student's list and passed —
         // a partial hizb can never be checked, so it must not claim to be.
         const ready = done === g.items.length && g.items.length === inHizb;
+        const holdsCurrent = g.items.some((x) => x.i === currentIdx);
+        const holdsMarker = markerIdx !== null && g.items.some((x) => x.i === markerIdx);
         return (
-          <div key={g.hizb}>
-            <div className="band">
+          <details key={g.hizb} open={holdsCurrent || holdsMarker}>
+            <summary className="band" aria-label={`Hizb ${g.hizb}, ${done} of ${g.items.length} passed`}>
+              <svg className="chev" viewBox="0 0 24 24" aria-hidden>
+                <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2"
+                  strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
               <span className="t">Hizb {g.hizb}</span>
               <span className="r" />
               <span className={cn("st", !ready && "wait")}>
                 {done} of {g.items.length}
                 {ready && " · ready for your check"}
               </span>
-            </div>
+            </summary>
 
             <div className="index">
               {g.items.map(({ s, i }) => {
@@ -110,13 +123,13 @@ export function HifzJourney({
               })}
             </div>
 
-            {markerIdx !== null && g.items.some((x) => x.i === markerIdx) && (
+            {holdsMarker && (
               <div className="paceline">
                 <span className="t">Expected here by now</span>
                 <span className="r" />
               </div>
             )}
-          </div>
+          </details>
         );
       })}
 
