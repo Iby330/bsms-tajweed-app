@@ -262,10 +262,26 @@ export default async function TeacherHomework({
     );
   };
 
-  const countLabel = (n: number, waiting: number) => (
+  /**
+   * Courses in a term that the class takes but which have no homework at all.
+   *
+   * Named on the term's own row rather than left to be discovered inside it.
+   * A term that reads "8 homeworks" while collapsed looks complete, and the
+   * empty Umm al-Kitāb folder one click inside it looks like the app having
+   * lost something — which is exactly how it was read the first time.
+   */
+  const emptyCoursesIn = (keys: string[], bySeries: Map<string, Hw[]>) =>
+    keys.filter((k) => (bySeries.get(k) ?? []).length === 0).map(labelOf);
+
+  const countLabel = (n: number, waiting: number, noneYet: string[] = []) => (
     <span className="flex shrink-0 items-center gap-2 text-xs tabular-nums text-muted-foreground">
       {waiting > 0 && <span className="rounded bg-warn/12 px-1.5 py-0.5 text-warn">{waiting} waiting</span>}
       <span>{n} homework{n === 1 ? "" : "s"}</span>
+      {noneYet.length > 0 && (
+        <span className="hidden sm:inline">
+          · {noneYet.join(", ")} {noneYet.length === 1 ? "has" : "have"} none yet
+        </span>
+      )}
     </span>
   );
 
@@ -380,7 +396,11 @@ export default async function TeacherHomework({
                     )}
                   </span>
                 </span>
-                {countLabel(termHws.length, waitingIn(termHws))}
+                {countLabel(
+                  termHws.length,
+                  waitingIn(termHws),
+                  emptyCoursesIn(seriesKeys, bySeries),
+                )}
               </summary>
 
               {single && termHws.length === 0 ? (
