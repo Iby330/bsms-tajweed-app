@@ -1433,14 +1433,28 @@ body::after {
   /* Overdue is a warning, not a headline. At full panel scale it outweighed
      this week's lessons directly beneath it, which is backwards — the point
      of the screen is the work, and the warning only sizes up by having more
-     rows in it. Tighter padding and smaller type throughout. */
-  .box.needs { padding: clamp(14px, 1.5vw, 17px); gap: 9px; }
-  .box.needs .rowlist li { padding: 7px 0; }
-  .box.needs .rowlist li:hover { padding-left: 6px; }
+     rows in it. Tighter padding and smaller type throughout.
+     
+     The panel is sized by overriding `--pad`, not by setting `padding`.
+     Four other declarations read that variable — the rows' own padding, the
+     negative inline margin that runs their tint out to the panel's edges, and
+     the hover nudge — so shrinking `padding` alone left every row dressed for
+     a 26px panel inside a 17px one, hanging 9px out of both sides of the box
+     it lives in. One variable moves all of it together. */
+  .box.needs { --pad: clamp(14px, 1.5vw, 17px); gap: 9px; }
+
+  /* A row's height. The padding that sets it moved from the `li` to the
+     anchor when the whole row became a link, and this block — written the day
+     before that landed, and merged after it — kept aiming at the `li`. So the
+     row held its full 15px and quietly gained 7px more on top of it: the
+     shrink was not merely lost, it was inverted. */
+  .box.needs .rowlist li:not(.linked) { padding-block: 7px; }
+  .box.needs .rowlist .rowlink { padding-block: 7px; }
+  .box.needs .rowlist li.linked:hover .rowlink { padding-left: calc(var(--pad) + 6px); }
+
   .box.needs .rowlist .t { font-size: 0.9rem; }
   .box.needs .rowlist .s { font-size: 0.6rem; margin-top: 2px; }
   .box.needs .rowlist .meta { gap: clamp(10px, 1.4vw, 16px); }
-  .box.needs .chip { font-size: 0.58rem; padding: 3px 7px; }
 
   /* This week's videos: side-by-side cards rather than list rows, so the two
      of them read as the first thing to DO on the screen. The whole card is
