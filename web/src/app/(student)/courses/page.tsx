@@ -1,6 +1,6 @@
 import { currentProfile } from "@/lib/supabase/server";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
-import { getCatalogue, coursesForClass, splitCourses } from "@/lib/curriculum/catalogue";
+import { getCatalogue, courseIndex } from "@/lib/curriculum/catalogue";
 import { findCurrentModule } from "@/lib/curriculum/tree";
 import { CourseTile } from "@/components/app/course-tile";
 import { Rule } from "@/components/app/rule";
@@ -25,30 +25,19 @@ export const dynamic = "force-dynamic";
  */
 export default async function Courses() {
   const profile = (await currentProfile())!;
-  const [{ terms }, { blocks: catalogue }] = await Promise.all([
+  const [{ terms, hasSyllabus }, { blocks: catalogue }] = await Promise.all([
     getStudentCurriculum(profile.id),
     getCatalogue(),
   ]);
 
-  const { mine, locked } = splitCourses(
-    catalogue, coursesForClass(profile.class_id), profile.unlock_all,
-  );
-
-  // Progress per block. The tree already counts per (term, series), which is
-  // exactly a block, so this is a lookup rather than a sum.
-  const progressOf = new Map<string, { done: number; total: number }>();
-  for (const term of terms) {
-    for (const course of term.courses) {
-      progressOf.set(`${course.series} ${term.id}`, {
-        done: course.doneCount,
-        total: course.actionableCount,
-      });
-    }
-  }
+  // Both halves are built from the student's own tree, so every tile links at
+  // a course that tree actually holds. The catalogue supplies the shape and
+  // the cover art — including for courses RLS has not released to them yet.
+  const { mine, locked } = courseIndex(catalogue, terms, hasSyllabus);
 
   const live = findCurrentModule(terms);
-  const totalDone = [...progressOf.values()].reduce((n, p) => n + p.done, 0);
-  const totalModules = [...progressOf.values()].reduce((n, p) => n + p.total, 0);
+  const totalDone = terms.reduce((n, t) => n + t.doneCount, 0);
+  const totalModules = terms.reduce((n, t) => n + t.actionableCount, 0);
 
   return (
     <>
@@ -79,12 +68,12 @@ export default async function Courses() {
         </div></div>
       ) : (
         <div className="cards">
-          {mine.map((block) => (
+          {mine.map((tile) => (
             <CourseTile
-              key={`${block.series} ${block.termId}`}
-              block={block}
-              href={`/courses/${block.termId}/${block.series}`}
-              progress={progressOf.get(`${block.series} ${block.termId}`) ?? { done: 0, total: 0 }}
+              key={tile.id}
+              block={tile.block}
+              href={tile.href}
+              progress={tile.progress}
             />
           ))}
         </div>
@@ -102,12 +91,12 @@ export default async function Courses() {
             className={cn("cards", locked.length < 3 && "few")}
             style={{ ["--n" as string]: locked.length }}
           >
-            {locked.map(({ block, reason }) => (
+            {locked.map((tile) => (
               <CourseTile
-                key={`${block.series} ${block.termId}`}
-                block={block}
+                key={tile.id}
+                block={tile.block}
                 href={null}
-                reason={reason}
+                reason={tile.reason}
               />
             ))}
           </div>

@@ -84,6 +84,15 @@ export type StudentCurriculum = {
   watchedLessonIds: Set<string>;
   /** homework_id → the student's submission status, whatever stage it is at. */
   submissionByHomeworkId: Map<string, SubStatus>;
+  /**
+   * Whether the tree was built from this student's class syllabus.
+   *
+   * False for a class that has none, and false for a reader exempt from the
+   * calendar, who is put back on the whole programme. The course index needs
+   * it to read an unlisted course correctly: under a syllabus it belongs to
+   * another class, without one it is simply this student's next term.
+   */
+  hasSyllabus: boolean;
 };
 
 /**
@@ -160,8 +169,12 @@ export async function getStudentCurriculum(
     ),
   };
 
+  const unlockAll = me?.unlock_all ?? false;
+
   return {
-    terms: overlayProgress(buildTree(rows, now, schedule, me?.unlock_all ?? false), progress),
+    terms: overlayProgress(buildTree(rows, now, schedule, unlockAll), progress),
+    // The same condition `buildTree` applies, so the two cannot disagree.
+    hasSyllabus: !unlockAll && (schedule?.courses.length ?? 0) > 0,
     pctByHomeworkId: new Map(
       (pcts.data ?? []).map((r) => [r.homework_id as string, Number(r.pct)]),
     ),

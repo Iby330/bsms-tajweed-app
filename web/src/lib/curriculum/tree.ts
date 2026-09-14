@@ -148,6 +148,17 @@ export type Course = {
   actionableCount: number;
   doneCount: number;
   hasHomework: boolean;
+  /**
+   * When this course's first item opens FOR THIS READER — which the tree can
+   * answer even when the reader cannot yet see the item itself.
+   *
+   * That is the whole reason it is here. Post-0027 RLS hands a student only
+   * the rows their syllabus has already released, so a course they take next
+   * term arrives as an empty shell with no module to read a date off. The
+   * course index still has to say "Opens 15 March", and under a syllabus that
+   * date is the class's, not the one on the rows' own weeks.
+   */
+  opensAt: string | null;
   /** First unlocked module still outstanding. Null when finished or all locked. */
   nextModule: Module | null;
 };
@@ -358,6 +369,7 @@ export function buildTree(
         actionableCount: modules.filter((m) => m.actionable).length,
         doneCount: 0,
         hasHomework: modules.some((m) => m.homework !== null),
+        opensAt: modules[0]?.unlockAt ?? null,
         nextModule: null,
       });
     }
@@ -374,7 +386,13 @@ export function buildTree(
         courses.push({
           termId: t.id, series: sc.key, label: sc.label, blurb: "",
           modules: [], moduleCount: 0, unlockedCount: 0, actionableCount: 0,
-          doneCount: 0, hasHomework: false, nextModule: null,
+          doneCount: 0, hasHomework: false,
+          // Empty because the rows are still locked, or empty because the
+          // course has no content at all — this date cannot tell the two
+          // apart, and does not need to: the index pairs it with the
+          // catalogue, which knows whether there is anything behind it.
+          opensAt: schedule ? scheduledUnlockAt(schedule, sc.termId, 1) : null,
+          nextModule: null,
         });
       }
       // The syllabus's own order within the term, not the series ranking.

@@ -45,7 +45,7 @@ export function CourseTile({
   /** Null renders the square as locked and unclickable. */
   href: string | null;
   /** Why it is shut. Only read when href is null. */
-  reason?: "later" | "not-running";
+  reason?: "later" | "not-running" | "no-content";
   /** Modules done / modules with something in them. Open blocks only. */
   progress?: { done: number; total: number };
   /** Replaces the progress line. The teacher's index counts content, not
@@ -106,9 +106,13 @@ export function CourseTile({
               <span aria-hidden>🔒</span>
               {reason === "later" && block.opensAt
                 ? `Opens ${fmtDay(block.opensAt)}`
-                : block.moduleCount > 0
-                  ? "Another class is studying this"
-                  : "Not taught this year"}
+                : reason === "no-content"
+                  // Their own course, with nothing behind it yet. Saying it is
+                  // not taught would contradict the lesson they sat in today.
+                  ? "Taught in class — nothing here yet"
+                  : block.moduleCount > 0
+                    ? "Another class is studying this"
+                    : "Not taught this year"}
             </p>
           )}
         </div>
