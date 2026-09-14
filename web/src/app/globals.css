@@ -284,7 +284,7 @@
      when it has to sit on navy rather than on lavender. */
   --ok: #5fa98c;      /* green — pass, done, present, ≥ target       */
   --warn: #e0a35a;    /* orange — on target, pending, late           */
-  --danger: #d97a62;  /* red — below target, overdue, wrong, strikes */
+  --danger: #e5675f;  /* red — below target, overdue, wrong, strikes */
   --brand: #7b93f0;   /* periwinkle — highlights, links, current, focus */
 
   --background: #00004d;
@@ -301,7 +301,7 @@
   --muted-foreground: #a8a8dc;
   --accent: #15156b;
   --accent-foreground: #e5e5ff;
-  --destructive: #d97a62;
+  --destructive: #e5675f;
   --border: #1a1a6e;
   --input: #1a1a6e;
   --ring: #7b93f0;
