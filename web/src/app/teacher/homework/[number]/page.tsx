@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { homeworkScope, scopedHref } from "@/lib/teacher/scope";
 import { ClassFilter } from "@/components/app/class-filter";
@@ -17,7 +16,6 @@ import { StudentPicker } from "@/components/app/student-picker";
 import { ResultsTabs, type ResultsTab } from "@/components/app/results-tabs";
 import { ResultsSummary, type SummaryRow } from "@/components/app/results-summary";
 import { QuestionBreakdown } from "@/components/app/question-breakdown";
-import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -305,12 +303,9 @@ export default async function HomeworkResults({
           : `${r.name} · ${Math.round(r.pct)}%`,
   }));
 
-  // Paging runs over the students who handed in, in register order — the ones
-  // with nothing to read are not steps on the way to the next script.
+  // Who actually handed in — the figure the empty state quotes when nobody is
+  // picked yet. It counted the pager's steps too, until the picker replaced it.
   const handedIn = roster.filter((s) => subByStudent.has(s.id));
-  const at = selected ? handedIn.findIndex((s) => s.id === selected.id) : -1;
-  const prev = at > 0 ? handedIn[at - 1] : null;
-  const next = at >= 0 && at < handedIn.length - 1 ? handedIn[at + 1] : null;
 
   const marked = rows.filter((r) => r.state === "approved").length;
   const waiting = rows.filter(
@@ -429,29 +424,14 @@ export default async function HomeworkResults({
                         size="lg"
                       />
                     </h2>
-                    {selected && selectedSub && (
-                      <span className="flex items-center gap-3 text-xs">
-                        {selectedSub.is_late && (
-                          <span className="rounded bg-warn/12 px-1.5 py-0.5 text-warn">late</span>
-                        )}
-                        <span className="tabular-nums text-muted-foreground">
-                          {at + 1} of {handedIn.length}
-                        </span>
-                        {prev ? (
-                          <Link href={individualHref(prev.id)} className="hover:underline underline-offset-4">
-                            ← {prev.full_name.split(" ")[0]}
-                          </Link>
-                        ) : (
-                          <span className="text-muted-foreground/50">←</span>
-                        )}
-                        {next ? (
-                          <Link href={individualHref(next.id)} className="hover:underline underline-offset-4">
-                            {next.full_name.split(" ")[0]} →
-                          </Link>
-                        ) : (
-                          <span className="text-muted-foreground/50">→</span>
-                        )}
-                      </span>
+                    {/* The late flag stays: it is a fact about the script,
+                        not a way to get to another one. The "N of M" counter
+                        and the prev/next links went with the pager — the
+                        picker beside them names every student and how they
+                        did, which is the same walk with the destination
+                        visible. */}
+                    {selected && selectedSub?.is_late && (
+                      <span className="rounded bg-warn/12 px-1.5 py-0.5 text-xs text-warn">late</span>
                     )}
                   </div>
 
