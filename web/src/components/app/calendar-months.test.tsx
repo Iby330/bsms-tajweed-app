@@ -58,7 +58,9 @@ describe("CalendarMonths", () => {
     const dotOf = (iso: string) =>
       document.querySelector(`[data-day="${iso}"] [data-dot]`)?.className ?? "";
     expect(dotOf("2026-10-05")).toContain("bg-ink"); // tajweed
-    expect(dotOf("2026-10-08")).toContain("bg-ok"); // hifdh
+    // bg-brand, not bg-ok: the dot names which session ran, not whether it
+    // went well, and --ok means "passed" since the semantic palette landed.
+    expect(dotOf("2026-10-08")).toContain("bg-brand"); // hifdh
   });
 
   it("leaves a day that is not a class inert", () => {
