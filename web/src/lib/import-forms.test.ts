@@ -32,6 +32,36 @@ describe("classifyItem", () => {
       title: "Which Class do you belong to? ", points: 0,
       options: [{ position: 0, label: "A", value: "x", correct: null }] })).toBe("skip");
   });
+
+  it("skips both wordings of the class question", () => {
+    // The app knows the class from the profile; the form had to ask. Seven
+    // homeworks used "are you in" and slipped past the older pattern.
+    for (const title of [
+      "Which class do you belong to?",
+      "Which class are you in?",
+      "which class are you in",
+      "  Which Class Are You In?  ",
+    ]) {
+      expect(
+        classifyItem({ index: 0, type: "MULTIPLE_CHOICE", title, points: 0,
+          options: [
+            { position: 0, label: "A", value: "Rayyan", correct: null },
+            { position: 1, label: "B", value: "Hareer", correct: null },
+          ] }),
+      ).toBe("skip");
+    }
+  });
+
+  it("still keeps a real question that merely mentions a class", () => {
+    expect(
+      classifyItem({ index: 2, type: "MULTIPLE_CHOICE",
+        title: "Which class of letters is heavy?", points: 1,
+        options: [
+          { position: 0, label: "A", value: "Heavy", correct: true },
+          { position: 1, label: "B", value: "Light", correct: false },
+        ] }),
+    ).toBe("question");
+  });
   it("routes single-option zero-point task confirmations to task", () => {
     expect(classifyItem({ index: 5, type: "MULTIPLE_CHOICE",
       title: "HW Task: Find 5 examples of Mad ul Asli and send them as a voice note!",

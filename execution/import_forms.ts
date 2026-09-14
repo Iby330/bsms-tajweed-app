@@ -97,7 +97,12 @@ export function hwNumber(fileName: string): number | null {
   return m ? parseInt(m[1], 10) : null;
 }
 
-const META_TITLES = /^(name|class|which class do you belong to)\s*\??\s*$/i;
+// Both wordings the forms used for the same question. The app knows the
+// class from `profiles.class_id`; asking the student to restate it was a
+// Google Forms artefact, and the seven forms that phrased it "are you in"
+// slipped past the narrower pattern into seven homeworks.
+const META_TITLES =
+  /^(name|class|which class (do you belong to|are you in))\s*\??\s*$/i;
 const TASK_RE = /task|recite|record|voice note|find\s+.*examples?/i;
 
 export function classifyItem(
