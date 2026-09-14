@@ -192,12 +192,6 @@ export function ReviewPanel({
         // auto_rubric chips carry `why` from the LLM when it explained itself;
         // otherwise fall back to the concept's own wording rather than its bare id.
         const rubricDesc = new Map((q.rubric ?? []).map((c) => [c.id, c.desc]));
-        const chosenValues = q.options
-          ? q.options.filter((o) => chosen.includes(o.position)).map((o) => o.value).join(", ")
-          : "";
-        const correctValues = q.options
-          ? q.options.filter((o) => o.correct).map((o) => o.value).join(", ")
-          : "";
 
         return (
           <section key={q.id} className="box c12">
@@ -250,40 +244,33 @@ export function ReviewPanel({
                    nothing about where the rule was missed. */
                 <TapWords options={q.options!} selected={chosen} readOnly reveal />
               ) : q.options ? (
-                <>
-                  <ul className="space-y-1">
-                    {q.options.map((o) => {
-                      const picked = chosen.includes(o.position);
-                      return (
-                        <li key={o.position} className={cn(
-                          "flex items-start gap-2 rounded-md px-2.5 py-1.5 text-sm",
-                          picked && o.correct && "bg-ok/10",
-                          picked && !o.correct && "bg-danger/10",
-                          !picked && o.correct && "bg-muted",
-                        )}>
-                          <span className="w-10 shrink-0 text-xs text-muted-foreground">
-                            {picked ? "chose" : o.correct ? "answer" : ""}
-                          </span>
-                          <MixedText text={o.value} />
-                        </li>
-                      );
-                    })}
-                  </ul>
-                  <div className="space-y-1">
-                    <div className="text-sm">
-                      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Chose</span>{" "}
-                      {chosenValues ? (
-                        <MixedText text={chosenValues} />
-                      ) : (
-                        <span className="italic text-muted-foreground">nothing</span>
-                      )}
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Answer</span>{" "}
-                      <MixedText text={correctValues} />
-                    </div>
-                  </div>
-                </>
+                /* Two channels, so one row can say both things at once: the
+                   fill is whether the option is RIGHT, the ring is whether the
+                   student PICKED it. A correct option nobody chose is the case
+                   that used to disappear — `bg-muted` read as a disabled row
+                   rather than as the answer. */
+                <ul className="space-y-1">
+                  {q.options.map((o) => {
+                    const picked = chosen.includes(o.position);
+                    return (
+                      <li key={o.position} className={cn(
+                        "flex items-start gap-2 rounded-md px-2.5 py-1.5 text-sm",
+                        o.correct && "bg-ok/10",
+                        picked && !o.correct && "bg-danger/10",
+                        picked && "ring-1",
+                        picked && o.correct && "ring-ok/40",
+                        picked && !o.correct && "ring-danger/40",
+                      )}>
+                        {/* w-14, not w-10: "answer" and the ticked form both
+                            overflowed the old column and wrapped mid-word. */}
+                        <span className="w-14 shrink-0 text-xs text-muted-foreground">
+                          {picked && o.correct ? "chose ✓" : picked ? "chose ✗" : o.correct ? "answer" : ""}
+                        </span>
+                        <MixedText text={o.value} />
+                      </li>
+                    );
+                  })}
+                </ul>
               ) : (
                 <>
                   <div className="rounded-md border border-line bg-page p-3">

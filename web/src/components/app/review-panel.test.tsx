@@ -277,15 +277,38 @@ describe("ReviewPanel — model answer", () => {
 });
 
 describe("ReviewPanel — multiple choice", () => {
-  it("names the picked option under Chose and the correct one under Answer", () => {
+  // Fill = right or wrong, ring = picked. The classes are the assertion because
+  // they ARE the feature: nothing on the row says "answer" in words when the
+  // student happened to choose it.
+  const rowFor = (c: HTMLElement, value: string) =>
+    [...c.querySelectorAll("li")].find((li) => li.textContent?.includes(value))!;
+
+  it("fills the correct option green even when the student did not pick it", () => {
     const { container } = panel([MCQ], [answer({ id: "a2", question_id: "q2", response: { selected: [1] } })]);
-    expect(container.textContent).toContain("Chose");
-    expect(container.textContent).toContain("wrong");
-    expect(container.textContent).toContain("Answer");
-    expect(container.textContent).toContain("right");
+    const right = rowFor(container, "right");
+    expect(right.className).toContain("bg-ok/10");
+    // not picked, so no ring — the fill alone says it is the answer
+    expect(right.className).not.toContain("ring-1");
+    expect(right.textContent).toContain("answer");
   });
 
-  it("lists both correct options on a checkbox question", () => {
+  it("rings and reddens the option they picked when it is wrong", () => {
+    const { container } = panel([MCQ], [answer({ id: "a2", question_id: "q2", response: { selected: [1] } })]);
+    const wrong = rowFor(container, "wrong");
+    expect(wrong.className).toContain("bg-danger/10");
+    expect(wrong.className).toContain("ring-1");
+    expect(wrong.textContent).toContain("chose");
+  });
+
+  it("shows one row as both chosen and correct when they got it right", () => {
+    const { container } = panel([MCQ], [answer({ id: "a2", question_id: "q2", response: { selected: [0] } })]);
+    const right = rowFor(container, "right");
+    expect(right.className).toContain("bg-ok/10");
+    expect(right.className).toContain("ring-1");
+    expect(right.textContent).toContain("chose");
+  });
+
+  it("marks every correct option on a checkbox question", () => {
     const CHECKBOX = question({
       id: "q4",
       position: 4,
@@ -297,13 +320,18 @@ describe("ReviewPanel — multiple choice", () => {
         { position: 2, label: "Option 2", value: "gamma", correct: false },
       ],
     });
-    const { container } = panel([CHECKBOX], [answer({ id: "a4", question_id: "q4", response: { selected: [0, 1] } })]);
-    expect(container.textContent).toContain("alpha");
-    expect(container.textContent).toContain("beta");
+    const { container } = panel([CHECKBOX], [answer({ id: "a4", question_id: "q4", response: { selected: [0] } })]);
+    expect(rowFor(container, "alpha").className).toContain("bg-ok/10");
+    // the correct one they missed is still filled — that is the whole point
+    expect(rowFor(container, "beta").className).toContain("bg-ok/10");
+    expect(rowFor(container, "beta").className).not.toContain("ring-1");
+    expect(rowFor(container, "gamma").className).not.toContain("bg-ok/10");
   });
 
-  it("shows 'nothing' under Chose when no option was selected", () => {
+  it("still marks the answer when nothing was selected", () => {
     const { container } = panel([MCQ], [answer({ id: "a2", question_id: "q2", response: { selected: [] } })]);
-    expect(container.textContent).toContain("nothing");
+    const right = rowFor(container, "right");
+    expect(right.className).toContain("bg-ok/10");
+    expect([...container.querySelectorAll("li")].every((li) => !li.className.includes("ring-1"))).toBe(true);
   });
 });
