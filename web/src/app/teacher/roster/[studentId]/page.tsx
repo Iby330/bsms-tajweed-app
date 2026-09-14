@@ -287,7 +287,7 @@ export default async function StudentRecord({
                     className={cn(
                       "min-w-0 flex-1 rounded-t-sm transition-colors hover:opacity-80",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      m.pct >= 80 ? "bg-viz-hw" : m.pct >= 50 ? "bg-warn/70" : "bg-danger/70",
+                      m.pct >= 80 ? "bg-ok/70" : m.pct >= 50 ? "bg-warn/70" : "bg-danger/70",
                     )}
                     style={{ height: `${Math.max(m.pct, 2)}%` }}
                     data-tip={title.get(m.number) ?? `Homework ${m.number}`}

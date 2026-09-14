@@ -28,8 +28,9 @@ export function sessionLabel(session: SessionType): string {
 
 /**
  * The colour each session is drawn in: tajweed the page's ink, hifdh the
- * ochre accent — the same two weights the rest of the app uses for "the main
- * thing" and "the other thing".
+ * brand accent — the same two weights the rest of the app uses for "the main
+ * thing" and "the other thing". Not --ok: these name which kind of session
+ * ran, not whether it went well, and --ok now means passed.
  *
  * It lives HERE, in a plain module, rather than beside the grid that uses it.
  * It was briefly exported from the grid's own file, which carries "use
@@ -40,5 +41,5 @@ export function sessionLabel(session: SessionType): string {
  */
 export const SESSION_DOT: Record<SessionType, string> = {
   tajweed: "bg-ink",
-  hifdh: "bg-ok",
+  hifdh: "bg-brand",
 };
