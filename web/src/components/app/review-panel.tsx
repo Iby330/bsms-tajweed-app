@@ -24,6 +24,9 @@ export type ReviewQuestion = {
   /** `label` carries the word locator on a tap-the-rule question — see
    *  lib/homework/tap-words. Ordinary options use it for "Option 3". */
   options: { position: number; label: string; value: string; correct: boolean }[] | null;
+  /** The model answer for a written, non-task question — one entry per
+   *  concept, with the marks it carries. Null when nothing was written for it. */
+  rubric?: { id: string; desc: string; marks: number }[] | null;
 };
 
 export type ReviewAnswer = {
@@ -186,6 +189,15 @@ export function ReviewPanel({
         if (!a) return null;
         const chosen = selectedOf(a.response);
         const text = textOf(a.response);
+        // auto_rubric chips carry `why` from the LLM when it explained itself;
+        // otherwise fall back to the concept's own wording rather than its bare id.
+        const rubricDesc = new Map((q.rubric ?? []).map((c) => [c.id, c.desc]));
+        const chosenValues = q.options
+          ? q.options.filter((o) => chosen.includes(o.position)).map((o) => o.value).join(", ")
+          : "";
+        const correctValues = q.options
+          ? q.options.filter((o) => o.correct).map((o) => o.value).join(", ")
+          : "";
 
         return (
           <section key={q.id} className="box c12">
@@ -238,49 +250,85 @@ export function ReviewPanel({
                    nothing about where the rule was missed. */
                 <TapWords options={q.options!} selected={chosen} readOnly reveal />
               ) : q.options ? (
-                <ul className="space-y-1">
-                  {q.options.map((o) => {
-                    const picked = chosen.includes(o.position);
-                    return (
-                      <li key={o.position} className={cn(
-                        "flex items-start gap-2 rounded-md px-2.5 py-1.5 text-sm",
-                        picked && o.correct && "bg-ok/10",
-                        picked && !o.correct && "bg-danger/10",
-                        !picked && o.correct && "bg-muted",
-                      )}>
-                        <span className="w-10 shrink-0 text-xs text-muted-foreground">
-                          {picked ? "chose" : o.correct ? "key" : ""}
-                        </span>
-                        <MixedText text={o.value} />
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : (
-                <div className="rounded-md border border-line bg-page p-3">
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                    {q.is_task ? "Student recitation" : "Student answer"}
+                <>
+                  <ul className="space-y-1">
+                    {q.options.map((o) => {
+                      const picked = chosen.includes(o.position);
+                      return (
+                        <li key={o.position} className={cn(
+                          "flex items-start gap-2 rounded-md px-2.5 py-1.5 text-sm",
+                          picked && o.correct && "bg-ok/10",
+                          picked && !o.correct && "bg-danger/10",
+                          !picked && o.correct && "bg-muted",
+                        )}>
+                          <span className="w-10 shrink-0 text-xs text-muted-foreground">
+                            {picked ? "chose" : o.correct ? "answer" : ""}
+                          </span>
+                          <MixedText text={o.value} />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <div className="space-y-1">
+                    <div className="text-sm">
+                      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Chose</span>{" "}
+                      {chosenValues ? (
+                        <MixedText text={chosenValues} />
+                      ) : (
+                        <span className="italic text-muted-foreground">nothing</span>
+                      )}
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Answer</span>{" "}
+                      <MixedText text={correctValues} />
+                    </div>
                   </div>
-                  {q.is_task ? (
-                    voiceByQ.has(q.id) ? (
-                      <div className="mt-1.5">
-                        <VoicePlayback
-                          storagePath={voiceByQ.get(q.id)!.storage_path}
-                          durationS={voiceByQ.get(q.id)!.duration_s}
-                          label="Recorded in the app"
-                        />
-                      </div>
+                </>
+              ) : (
+                <>
+                  <div className="rounded-md border border-line bg-page p-3">
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                      {q.is_task ? "Student recitation" : "Student answer"}
+                    </div>
+                    {q.is_task ? (
+                      voiceByQ.has(q.id) ? (
+                        <div className="mt-1.5">
+                          <VoicePlayback
+                            storagePath={voiceByQ.get(q.id)!.storage_path}
+                            durationS={voiceByQ.get(q.id)!.duration_s}
+                            label="Recorded in the app"
+                          />
+                        </div>
+                      ) : (
+                        <p className="mt-1.5 text-sm italic text-muted-foreground">
+                          Nothing recorded for this task.
+                        </p>
+                      )
+                    ) : text ? (
+                      <MixedText text={text} className="mt-1.5 block text-sm leading-relaxed" />
                     ) : (
-                      <p className="mt-1.5 text-sm italic text-muted-foreground">
-                        Nothing recorded for this task.
-                      </p>
-                    )
-                  ) : text ? (
-                    <MixedText text={text} className="mt-1.5 block text-sm leading-relaxed" />
-                  ) : (
-                    <p className="mt-1.5 text-sm italic text-muted-foreground">No answer given.</p>
+                      <p className="mt-1.5 text-sm italic text-muted-foreground">No answer given.</p>
+                    )}
+                  </div>
+
+                  {!q.is_task && q.rubric && q.rubric.length > 0 && (
+                    <div className="rounded-md border border-line bg-page p-3">
+                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                        Model answer
+                      </div>
+                      <ul className="mt-1.5 space-y-1">
+                        {q.rubric.map((c) => (
+                          <li key={c.id} className="flex items-start justify-between gap-3 text-sm">
+                            <MixedText text={c.desc} className="leading-relaxed" />
+                            <span className="shrink-0 tabular-nums text-muted-foreground">
+                              {fmtMarks(c.marks)} {c.marks === 1 ? "mark" : "marks"}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
-                </div>
+                </>
               )}
 
               {a.auto_rubric && (
@@ -290,7 +338,7 @@ export function ReviewPanel({
                       "rounded-md px-2 py-1 text-xs",
                       c.present ? "bg-ok/12 text-ok" : "bg-danger/12 text-danger",
                     )}>
-                      {c.present ? "✓" : "✗"} {c.why ?? c.id}
+                      {c.present ? "✓" : "✗"} {c.why ?? rubricDesc.get(c.id) ?? c.id}
                     </li>
                   ))}
                 </ul>

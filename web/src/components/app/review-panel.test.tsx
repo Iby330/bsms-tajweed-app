@@ -216,3 +216,94 @@ describe("ReviewPanel — commenting", () => {
     expect(box.disabled).toBe(true);
   });
 });
+
+describe("ReviewPanel — model answer", () => {
+  const RUBRIC = [
+    { id: "c1", desc: "Names the rule", marks: 1 },
+    { id: "c2", desc: "Gives a correct example", marks: 2 },
+  ];
+
+  it("shows every concept's description and marks", () => {
+    const { container } = panel(
+      [question({ id: "q1", position: 1, rubric: RUBRIC })],
+      [answer({ id: "a1", question_id: "q1" })],
+    );
+    expect(container.textContent).toContain("Model answer");
+    expect(container.textContent).toContain("Names the rule");
+    expect(container.textContent).toContain("Gives a correct example");
+  });
+
+  it("reads '1 mark' singular, not '1 marks'", () => {
+    const { container } = panel(
+      [question({ id: "q1", position: 1, rubric: RUBRIC })],
+      [answer({ id: "a1", question_id: "q1" })],
+    );
+    expect(container.textContent).toContain("1 mark");
+    expect(container.textContent).not.toContain("1 marks");
+    expect(container.textContent).toContain("2 marks");
+  });
+
+  it("renders nothing when rubric is null", () => {
+    const { container } = panel(
+      [question({ id: "q1", position: 1, rubric: null })],
+      [answer({ id: "a1", question_id: "q1" })],
+    );
+    expect(container.textContent).not.toContain("Model answer");
+  });
+
+  it("renders nothing for a task, even with a rubric", () => {
+    const { container } = panel(
+      [question({ id: "q3", position: 3, is_task: true, rubric: RUBRIC })],
+      [answer({ id: "a3", question_id: "q3" })],
+    );
+    expect(container.textContent).not.toContain("Model answer");
+  });
+
+  it("falls back to the rubric's own wording when auto_rubric carries no `why`", () => {
+    const { container } = panel(
+      [question({ id: "q1", position: 1, rubric: RUBRIC })],
+      [
+        answer({
+          id: "a1",
+          question_id: "q1",
+          auto_rubric: [{ id: "c1", present: true }],
+        }),
+      ],
+    );
+    expect(container.textContent).toContain("Names the rule");
+    // the bare concept id must never leak onto the page as a stand-in label
+    expect(container.textContent).not.toMatch(/\bc1\b/);
+  });
+});
+
+describe("ReviewPanel — multiple choice", () => {
+  it("names the picked option under Chose and the correct one under Answer", () => {
+    const { container } = panel([MCQ], [answer({ id: "a2", question_id: "q2", response: { selected: [1] } })]);
+    expect(container.textContent).toContain("Chose");
+    expect(container.textContent).toContain("wrong");
+    expect(container.textContent).toContain("Answer");
+    expect(container.textContent).toContain("right");
+  });
+
+  it("lists both correct options on a checkbox question", () => {
+    const CHECKBOX = question({
+      id: "q4",
+      position: 4,
+      qtype: "checkbox",
+      points: 2,
+      options: [
+        { position: 0, label: "Option 0", value: "alpha", correct: true },
+        { position: 1, label: "Option 1", value: "beta", correct: true },
+        { position: 2, label: "Option 2", value: "gamma", correct: false },
+      ],
+    });
+    const { container } = panel([CHECKBOX], [answer({ id: "a4", question_id: "q4", response: { selected: [0, 1] } })]);
+    expect(container.textContent).toContain("alpha");
+    expect(container.textContent).toContain("beta");
+  });
+
+  it("shows 'nothing' under Chose when no option was selected", () => {
+    const { container } = panel([MCQ], [answer({ id: "a2", question_id: "q2", response: { selected: [] } })]);
+    expect(container.textContent).toContain("nothing");
+  });
+});

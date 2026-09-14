@@ -41,7 +41,7 @@ export default async function SubmissionReview({
       ),
       homeworks(
         number, title, series, total_marks,
-        questions(id, position, prompt, points, qtype, is_bonus, is_task, options)
+        questions(id, position, prompt, points, qtype, is_bonus, is_task, options, rubric)
       ),
       answers(id, question_id, response, auto_marks, auto_rubric, final_marks, teacher_comment),
       voice_notes(question_id, storage_path, duration_s)
@@ -99,7 +99,7 @@ export default async function SubmissionReview({
     : `/teacher/homework/${hw?.number ?? ""}` + (carry ? `?class=${carry}` : "");
 
   return (
-    <>
+    <div className="mx-auto w-full max-w-[46rem]">
       <header className="masthead">
         <Link href={backHref} className="backstep">
           <ArrowLeft className="size-[13px]" aria-hidden />
@@ -124,6 +124,6 @@ export default async function SubmissionReview({
         approved={sub.status === "approved"}
         backHref={backHref}
       />
-    </>
+    </div>
   );
 }

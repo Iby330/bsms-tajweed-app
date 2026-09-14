@@ -4,7 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { homeworkScope, scopedHref } from "@/lib/teacher/scope";
 import { ClassFilter } from "@/components/app/class-filter";
 import { markSubmission } from "@/lib/marking/actions";
-import { parseAutoRubric, parseOptions } from "@/lib/marking/objective";
+import { parseAutoRubric, parseOptions, parseRubric } from "@/lib/marking/objective";
 import { questionStats, scoreSubmissions } from "@/lib/marking/responses";
 import { blockTopic } from "@/lib/curriculum/catalogue";
 import { moduleTitle } from "@/lib/curriculum/tree";
@@ -288,6 +288,7 @@ export default async function HomeworkResults({
         value: o.value,
         correct: o.correct,
       })) ?? null,
+    rubric: parseRubric(q.rubric),
   }));
 
   // Paging runs over the students who handed in, in register order — the ones
@@ -489,15 +490,17 @@ export default async function HomeworkResults({
                         /* Approving stays on this page rather than bouncing
                            back to the marking queue — the next script is one
                            click away in the list beside it. */
-                        <ReviewPanel
-                          key={selectedSub.id}
-                          submissionId={selectedSub.id}
-                          questions={reviewQuestions}
-                          answers={review.answers}
-                          voiceNotes={review.voiceNotes}
-                          approved={review.approved}
-                          backHref={individualHref(selected.id)}
-                        />
+                        <div className="mx-auto w-full max-w-[46rem]">
+                          <ReviewPanel
+                            key={selectedSub.id}
+                            submissionId={selectedSub.id}
+                            questions={reviewQuestions}
+                            answers={review.answers}
+                            voiceNotes={review.voiceNotes}
+                            approved={review.approved}
+                            backHref={individualHref(selected.id)}
+                          />
+                        </div>
                       )}
                     </>
                   )}
