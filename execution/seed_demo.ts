@@ -236,7 +236,11 @@ async function main() {
           };
         }
 
-        const marks = q.is_task ? 0 : gotIt ? points : Math.round(points * 0.4 * 100) / 100;
+        // A wrong answer scores nothing. This used to pay 40% consolation,
+        // which invented marks no marking path can produce — every question
+        // is worth a whole number and scores all-or-nothing — and put 0.4,
+        // 1.2 and 2.4 in front of teachers being trained on this cohort.
+        const marks = q.is_task || !gotIt ? 0 : points;
         return {
           submission_id: sub.id,
           question_id: q.id,

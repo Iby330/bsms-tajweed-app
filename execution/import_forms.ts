@@ -12,7 +12,7 @@
  *  - single-option zero-point "task" items → is_task (voice-note slot)
  *  - GRID/CHECKBOX_GRID → scoring 'manual', needs_key, residual points
  *    (HW 9→10, 19→3, 20→4, 21→10)
- *  - checkbox with points>1 and >1 correct option → 'per_option'
+ *  - every machine-marked question → 'exact' (grids stay 'manual')
  *  - graded questions beyond the official total → is_bonus (HW 15 bonus round)
  *  - TFP forms → homework numbers 101..107, series 'tfp', ungraded
  *  - HARD ASSERT: per-HW non-bonus points == gradebook divisor, else abort
@@ -160,12 +160,13 @@ export function transformForm(form: Form): OutHomework {
     let points = typeof item.points === "number" ? item.points : 0;
     if (isGrid && item.points == null) points = GRID_RESIDUALS[num] ?? 0;
 
-    const correctOpts = (item.options ?? []).filter((o) => o.correct === true);
-    const scoring: OutQuestion["scoring"] = isGrid
-      ? "manual"
-      : qtype === "checkbox" && points > 1 && correctOpts.length > 1
-        ? "per_option"
-        : "exact";
+    // Everything a machine marks is all-or-nothing. Multi-mark checkbox
+    // questions used to score per correct option, mirroring Google Forms —
+    // but the question's total comes from the gradebook, not from counting
+    // options, so 2 marks over 5 correct options paid 0.4 a tick and put
+    // marks like 1.6 in front of a teacher. A homework mark is whole: they
+    // got the question or they did not.
+    const scoring: OutQuestion["scoring"] = isGrid ? "manual" : "exact";
 
     // bonus rule: graded marks past the official total are the bonus round
     const isBonus = !isTfp && points > 0 && gradedSum + points > official;
