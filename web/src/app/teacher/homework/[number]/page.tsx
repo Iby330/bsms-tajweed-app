@@ -410,18 +410,51 @@ export default async function HomeworkResults({
 
             {view === "individual" && (
               <div className="space-y-4">
-                {/* A row of every name ran across the top here. Fine for
-                    four and unreadable for twenty: it scrolled sideways, so
-                    "who else is there" lived off the edge of the screen. The
-                    picker says the same thing in a fixed width, and on a phone
-                    it hands off to the OS picker. Still sticky — switching
-                    student is the reason it exists, and a long script would
-                    scroll it away. */}
-                <nav aria-label="Students" className="sticky top-0 z-20 flex justify-end bg-page py-2">
-                  <StudentPicker students={pickerStudents} selected={selected?.id ?? null} />
-                </nav>
 
                 <div className="mx-auto w-full min-w-0 max-w-[46rem] space-y-4">
+                  {/* Outside the branches below on purpose: this is the only
+                      way to change student, so it has to survive the states
+                      where there is no script to read — otherwise "pick a
+                      student" is an instruction with nothing to pick with.
+                      Sticky because a script runs well past a screen, and
+                      `bg-page` so the marks do not show through it. */}
+                  <div className="sticky top-0 z-20 -mx-1 flex flex-wrap items-baseline justify-between gap-3 bg-page px-1 py-2">
+                    {/* The name IS the picker. It was a heading with a separate
+                        control above it saying the same word; one of them was
+                        redundant and it was not the name. */}
+                    <h2 className="min-w-0">
+                      <StudentPicker
+                        students={pickerStudents}
+                        selected={selected?.id ?? null}
+                        size="lg"
+                      />
+                    </h2>
+                    {selected && selectedSub && (
+                      <span className="flex items-center gap-3 text-xs">
+                        {selectedSub.is_late && (
+                          <span className="rounded bg-warn/12 px-1.5 py-0.5 text-warn">late</span>
+                        )}
+                        <span className="tabular-nums text-muted-foreground">
+                          {at + 1} of {handedIn.length}
+                        </span>
+                        {prev ? (
+                          <Link href={individualHref(prev.id)} className="hover:underline underline-offset-4">
+                            ← {prev.full_name.split(" ")[0]}
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground/50">←</span>
+                        )}
+                        {next ? (
+                          <Link href={individualHref(next.id)} className="hover:underline underline-offset-4">
+                            {next.full_name.split(" ")[0]} →
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground/50">→</span>
+                        )}
+                      </span>
+                    )}
+                  </div>
+
                   {!selected && (
                     <p className="empty">
                       Pick a student to read their script. {handedIn.length} of{" "}
@@ -437,31 +470,6 @@ export default async function HomeworkResults({
 
                   {selected && selectedSub && review && (
                     <>
-                      <div className="flex flex-wrap items-baseline justify-between gap-3">
-                        <h2 className="text-lg font-medium">{selected.full_name}</h2>
-                        <span className="flex items-center gap-3 text-xs">
-                          {selectedSub.is_late && (
-                            <span className="rounded bg-warn/12 px-1.5 py-0.5 text-warn">late</span>
-                          )}
-                          <span className="tabular-nums text-muted-foreground">
-                            {at + 1} of {handedIn.length}
-                          </span>
-                          {prev ? (
-                            <Link href={individualHref(prev.id)} className="hover:underline underline-offset-4">
-                              ← {prev.full_name.split(" ")[0]}
-                            </Link>
-                          ) : (
-                            <span className="text-muted-foreground/50">←</span>
-                          )}
-                          {next ? (
-                            <Link href={individualHref(next.id)} className="hover:underline underline-offset-4">
-                              {next.full_name.split(" ")[0]} →
-                            </Link>
-                          ) : (
-                            <span className="text-muted-foreground/50">→</span>
-                          )}
-                        </span>
-                      </div>
 
                       {/* Most of last year's results came over as a single
                           total per homework — Google Forms exported nothing

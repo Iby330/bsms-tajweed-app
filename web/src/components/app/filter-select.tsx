@@ -22,6 +22,7 @@ export function FilterSelect({
   onChange,
   controls,
   className,
+  size = "sm",
 }: {
   /** Always present for screen readers; `hideLabel` only hides it visually. */
   label: string;
@@ -32,6 +33,14 @@ export function FilterSelect({
   /** id of the region this select reorders or replaces, if any. */
   controls?: string;
   className?: string;
+  /**
+   * `lg` is for a select that IS the heading — it carries the page's subject
+   * rather than filtering beneath one, so it takes heading weight and drops
+   * the resting border, keeping only the chevron to say it opens. A prop
+   * rather than a second component: the moment two selects are hand-rolled
+   * apart they stop agreeing about focus rings and dark mode.
+   */
+  size?: "sm" | "lg";
 }) {
   const id = useId();
   return (
@@ -49,10 +58,12 @@ export function FilterSelect({
           aria-controls={controls}
           onChange={(e) => onChange(e.target.value)}
           className={cn(
-            "appearance-none rounded-md border border-line bg-card",
-            "py-1 pl-2.5 pr-7 text-xs text-foreground",
-            "transition-colors hover:border-ink/30",
+            "appearance-none rounded-md bg-card text-foreground transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            size === "lg"
+              ? // reads as the heading it replaces until you go near it
+                "border border-transparent bg-transparent py-0.5 pl-1.5 pr-9 text-xl font-medium hover:border-line"
+              : "border border-line py-1 pl-2.5 pr-7 text-xs hover:border-ink/30",
           )}
         >
           {options.map((o) => (
@@ -63,7 +74,10 @@ export function FilterSelect({
         </select>
         <span
           aria-hidden
-          className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-muted-foreground"
+          className={cn(
+            "pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground",
+            size === "lg" ? "right-3 text-[11px]" : "right-2 text-[9px]",
+          )}
         >
           ▼
         </span>

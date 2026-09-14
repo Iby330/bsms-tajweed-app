@@ -32,9 +32,12 @@ export type PickerStudent = {
 export function StudentPicker({
   students,
   selected,
+  size = "sm",
 }: {
   students: PickerStudent[];
   selected: string | null;
+  /** `lg` where the picker stands in for the student's name as the heading. */
+  size?: "sm" | "lg";
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -45,6 +48,10 @@ export function StudentPicker({
   return (
     <FilterSelect
       label="Student"
+      // The name is the heading at `lg`; a visible "Student" beside it would
+      // be labelling the obvious. Screen readers still get it.
+      hideLabel={size === "lg"}
+      size={size}
       value={selected ?? ""}
       options={[
         // Only until someone is chosen: once a script is open there is no
