@@ -395,9 +395,24 @@ export default async function HomeworkResults({
             )}
 
             {view === "individual" && (
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,13rem)_minmax(0,1fr)]">
-                <nav aria-label="Students" className="lg:sticky lg:top-4 lg:self-start">
-                  <ul className="field" style={{ gridTemplateColumns: "1fr" }}>
+              <div className="space-y-4">
+                {/* The roster runs across the top rather than down the side. A
+                    script is a column of prose and a column of marks; read
+                    against a 13rem rail it sat hard left of a 1000px shell with
+                    the measure squeezed beside it. Sticky, because the point of
+                    the list is to move between students, and a long script
+                    would otherwise scroll it away. */}
+                <nav aria-label="Students" className="sticky top-0 z-20 overflow-x-auto">
+                  <ul
+                    className="field w-max min-w-full"
+                    style={{
+                      gridTemplateColumns: "none",
+                      gridAutoFlow: "column",
+                      // A class that outgrows the row scrolls sideways rather
+                      // than crushing every name to an initial.
+                      gridAutoColumns: "minmax(9rem, 1fr)",
+                    }}
+                  >
                     {rows.map((r) => (
                       <li key={r.studentId} className="box" style={{ padding: 0 }}>
                         {r.state === "missing" ? (
@@ -425,7 +440,7 @@ export default async function HomeworkResults({
                   </ul>
                 </nav>
 
-                <div className="min-w-0 space-y-4">
+                <div className="mx-auto w-full min-w-0 max-w-[46rem] space-y-4">
                   {!selected && (
                     <p className="empty">
                       Pick a student to read their script. {handedIn.length} of{" "}
@@ -489,18 +504,17 @@ export default async function HomeworkResults({
                       ) : (
                         /* Approving stays on this page rather than bouncing
                            back to the marking queue — the next script is one
-                           click away in the list beside it. */
-                        <div className="mx-auto w-full max-w-[46rem]">
-                          <ReviewPanel
-                            key={selectedSub.id}
-                            submissionId={selectedSub.id}
-                            questions={reviewQuestions}
-                            answers={review.answers}
-                            voiceNotes={review.voiceNotes}
-                            approved={review.approved}
-                            backHref={individualHref(selected.id)}
-                          />
-                        </div>
+                           click away in the list above it. The measure lives on
+                           the column now, so the panel needs no width of its own. */
+                        <ReviewPanel
+                          key={selectedSub.id}
+                          submissionId={selectedSub.id}
+                          questions={reviewQuestions}
+                          answers={review.answers}
+                          voiceNotes={review.voiceNotes}
+                          approved={review.approved}
+                          backHref={individualHref(selected.id)}
+                        />
                       )}
                     </>
                   )}
