@@ -28,6 +28,7 @@
   --color-page: var(--background);
   --color-line: var(--border);
   --color-ok: var(--ok);
+  --color-brand: var(--brand);
   --color-warn: var(--warn);
   --color-danger: var(--danger);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -44,7 +45,9 @@
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
   /* data viz — the chart-* ramp is a greyscale that inverts per theme, so it
-     cannot carry a two-part bar. These two stay indigo in both themes. */
+     cannot carry a two-part bar. These two carry the term bar's split: exam in
+     the scheme's own ink, homework in a lighter tint of it that never sets
+     text, so the two halves read apart without borrowing a state colour. */
   --color-ink-3: var(--ink-3);
   --color-hair: var(--hair);
   --color-viz-exam: var(--viz-exam);
@@ -206,9 +209,14 @@
   --slate: #c9c9e8;
   --ink-3: #7676ac;
   --hair: #c9c9e8;
-  --ok: #7a5e10;      /* gold, darkened to hold against a pale ground   */
-  --warn: #8a6614;
-  --danger: #b23a2a;
+  /* State is state and accent is accent. Green / orange / red carry pass,
+     pending and fail exactly as the first version of this app did; the
+     scheme's own indigo carries every decorative and "this one" use, so a
+     highlight can never be mistaken for a mark. */
+  --ok: #2e5e4e;      /* green — pass, done, present, ≥ target   (6.4:1)  */
+  --warn: #9a5314;    /* orange — on target, pending, late       (5.0:1)  */
+  --danger: #8c3b2e;  /* red — below target, overdue, wrong, strikes (6.5:1) */
+  --brand: #2f4fd0;   /* indigo — highlights, links, current, focus  (5.75:1) */
 
   --background: #ededfc;
   --foreground: #00004d;
@@ -224,12 +232,12 @@
   --muted-foreground: #3a3a85;
   --accent: #dcdcf6;
   --accent-foreground: #00004d;
-  --destructive: #b23a2a;
+  --destructive: #8c3b2e;
   --border: #d8d8f0;
   --input: #d8d8f0;
-  --ring: #7a5e10;
+  --ring: #2f4fd0;
   --chart-1: #00004d;
-  --chart-2: #7a5e10;
+  --chart-2: #2f4fd0;
   --chart-3: #3a3a85;
   --chart-4: #7676ac;
   --chart-5: #c9c9e8;
@@ -245,15 +253,15 @@
   --sidebar-accent: #12125a;
   --sidebar-accent-foreground: #e0e0f7;
   --sidebar-border: #12125a;
-  --sidebar-ring: #e9c97a;
+  --sidebar-ring: #7b93f0;
 
   --glass-bg: #ffffff;
   --glass-border: #d8d8f0;
-  --glow-1: #7a5e10;
-  --glow-2: #8a6614;
-  --glow-3: #b23a2a;
-  --viz-exam: #7a5e10;
-  --viz-hw: #7676ac;
+  --glow-1: #2f4fd0;
+  --glow-2: #2e5e4e;
+  --glow-3: #9a5314;
+  --viz-exam: #00004d;  /* exam share of the term bar — the ink itself */
+  --viz-hw: #93a6ee;    /* homework share — periwinkle, a bar fill never text */
   --sidebar-glass: #00004d;
 
   /* The class photographs were graded against cream. Navy is a saturated
@@ -271,9 +279,13 @@
   --slate: #1a1a6e;
   --ink-3: #7676ae;
   --hair: #1a1a6e;
-  --ok: #e9c97a;      /* gold — what the ochre was: also the "on target" state */
-  --warn: #e3a857;
-  --danger: #ff8c7a;
+  /* The same three states, lifted for a navy ground, plus the accent as the
+     wordmark's own periwinkle — a colour the light scheme's indigo becomes
+     when it has to sit on navy rather than on lavender. */
+  --ok: #5fa98c;      /* green — pass, done, present, ≥ target       */
+  --warn: #e0a35a;    /* orange — on target, pending, late           */
+  --danger: #e5675f;  /* red — below target, overdue, wrong, strikes */
+  --brand: #7b93f0;   /* periwinkle — highlights, links, current, focus */
 
   --background: #00004d;
   --foreground: #e5e5ff;
@@ -288,13 +300,13 @@
   --muted: #14146a;
   --muted-foreground: #a8a8dc;
   --accent: #15156b;
-  --accent-foreground: #e9c97a;
-  --destructive: #ff8c7a;
+  --accent-foreground: #e5e5ff;
+  --destructive: #e5675f;
   --border: #1a1a6e;
   --input: #1a1a6e;
-  --ring: #e9c97a;
+  --ring: #7b93f0;
   --chart-1: #e5e5ff;
-  --chart-2: #e9c97a;
+  --chart-2: #7b93f0;
   --chart-3: #a8a8dc;
   --chart-4: #7676ae;
   --chart-5: #1a1a6e;
@@ -303,17 +315,17 @@
   --sidebar-primary: #e5e5ff;
   --sidebar-primary-foreground: #000039;
   --sidebar-accent: #12125a;
-  --sidebar-accent-foreground: #e9c97a;
+  --sidebar-accent-foreground: #e5e5ff;
   --sidebar-border: #12125a;
-  --sidebar-ring: #e9c97a;
+  --sidebar-ring: #7b93f0;
 
   --glass-bg: #0a0a5e;
   --glass-border: #1a1a6e;
-  --glow-1: #e9c97a;
-  --glow-2: #e3a857;
-  --glow-3: #ff8c7a;
-  --viz-exam: #e9c97a;
-  --viz-hw: #7676ae;
+  --glow-1: #7b93f0;
+  --glow-2: #5fa98c;
+  --glow-3: #e0a35a;
+  --viz-exam: #a3b4f7;  /* exam share of the term bar — the letterform itself */
+  --viz-hw: #5f7ae8;    /* homework share — a deeper periwinkle, bar fill only */
   --sidebar-glass: rgba(0, 0, 45, 0.82);
 
   --photo-op: 0.42;
@@ -495,8 +507,8 @@ body::after {
 }
 /* the print's thin double-rule frame, hugging the text block */
 .mushaf-frame {
-  border: 1px solid color-mix(in oklab, var(--ok) 45%, var(--border));
-  box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3px color-mix(in oklab, var(--ok) 40%, var(--border));
+  border: 1px solid color-mix(in oklab, var(--brand) 45%, var(--border));
+  box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3px color-mix(in oklab, var(--brand) 40%, var(--border));
   padding: 0.62em 0.55em;
 }
 .mushaf-pageno {
@@ -679,8 +691,8 @@ body::after {
    ──────────────────────────────────────────────────────────────────── */
 :root {
   /* Daylight needs more opacity and an ink hairline than the mockup carried:
-     white-on-white panels over a slate page read as one flat sheet, and a
-     white border only makes the edge disappear faster. */
+     white-on-white panels over a pale lavender page read as one flat sheet,
+     and a white border only makes the edge disappear faster. */
   --glass-bg: #fbf9ee;
   --glass-border: #ded9bf;
   --glass-shadow: none;
@@ -755,11 +767,13 @@ body::after {
     background: var(--sidebar-glass);
   }
 
-  /* A panel carrying bad news keeps the glass shadow and adds a red bloom.
-     Written out because an arbitrary shadow utility holding a var() colour
-     compiles to a transparent shadow — visible as nothing at all. */
+  /* A panel carrying bad news gets a red bloom. Written out because an
+     arbitrary shadow utility holding a var() colour compiles to a transparent
+     shadow — visible as nothing at all. The glass shadow is not composed in:
+     --glass-shadow is `none`, and `none, <shadow>` is not a valid shadow list,
+     so naming it here threw the whole declaration away and the bloom with it. */
   .glass-danger {
-    box-shadow: var(--glass-shadow), 0 0 30px -10px var(--danger);
+    box-shadow: 0 0 30px -10px var(--danger);
   }
 
   /* Folder disclosure. A closing <details> normally snaps shut and yanks the
@@ -921,11 +935,11 @@ body::after {
   .masthead p { margin: 14px 0 0; color: var(--muted-foreground); max-width: 52ch; }
   .masthead .meta { display: flex; align-items: baseline; justify-content: space-between;
                     gap: 26px; margin-top: 22px; flex-wrap: wrap; }
-  .masthead .meta .hi { color: var(--ok); }
+  .masthead .meta .hi { color: var(--brand); }
 
   .divider { display: flex; align-items: center; gap: 14px; margin: clamp(32px, 5vw, 54px) 0 20px; }
   .divider .r { flex: 1; height: 1px; background: var(--hair); }
-  .divider .m { width: 5px; height: 5px; transform: rotate(45deg); background: var(--ok); flex: none; }
+  .divider .m { width: 5px; height: 5px; transform: rotate(45deg); background: var(--brand); flex: none; }
 
   /* Every section on every screen is introduced by a `.divider`, which brings
      its own top margin. The student home's overdue call-out is the one section
@@ -963,7 +977,7 @@ body::after {
   }
   .classverse .src { display: block; }
   /* the class's own word, in the accent the masthead already uses for `.hi` */
-  .classverse .w { color: var(--ok); }
+  .classverse .w { color: var(--brand); }
   @media (max-width: 900px) { .classverse { max-width: 100%; } }
 
   /* — the hairline grid: panels share 1px rules, no floating cards — */
@@ -1005,7 +1019,7 @@ body::after {
   .stat .v.sm { font-size: clamp(2.4rem, 5.4vw, 3.4rem); }
   .stat .u { font-size: 1.02rem; font-weight: 400; color: var(--ink-3); }
   .note { font-size: 0.83rem; color: var(--muted-foreground); }
-  .trend { color: var(--ok); font-weight: 600; }
+  .trend { color: var(--brand); font-weight: 600; }
 
   /* — the same figures, compressed into a single row —
      Four `.box.c4` tiles stack below 800px, and four stacked tiles at
@@ -1086,7 +1100,8 @@ body::after {
     text-transform: uppercase; padding: 5px 10px; border: 1px solid var(--hair);
     color: var(--muted-foreground); white-space: nowrap; flex: none;
   }
-  .chip.due, .chip.ok { border-color: var(--ok); color: var(--ok); }
+  .chip.ok { border-color: var(--ok); color: var(--ok); }
+  .chip.due { border-color: var(--brand); color: var(--brand); }
   .chip.bad { border-color: var(--danger); color: var(--danger); }
   .chip.warn { border-color: var(--warn); color: var(--warn); }
 
@@ -1103,7 +1118,7 @@ body::after {
             color: var(--muted-foreground); white-space: nowrap; }
   .lb .sc { font-family: var(--font-mono); font-size: 0.74rem; text-align: right;
             color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
-  .lb .row.me .bar { background: var(--ok); }
+  .lb .row.me .bar { background: var(--brand); }
   .lb .row.me .nm { color: var(--card); font-weight: 700; }
   .lb .row.me .sc, .lb .row.me .rk { color: var(--foreground); font-weight: 700; }
 
@@ -1131,7 +1146,7 @@ body::after {
 
   .surah-line { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
   .surah-line .ar { font-family: var(--font-quran); font-size: 2.4rem; line-height: 1.9;
-                    direction: rtl; color: var(--ok); }
+                    direction: rtl; color: var(--brand); }
 
   .empty { border: 1px dashed var(--hair); padding: 34px; text-align: center;
            color: var(--muted-foreground); background: var(--card); }
@@ -1150,8 +1165,8 @@ body::after {
 }
 
 /* ─────────────────────────────────────────────────────────────────────
-   The shell — near-black rail in both themes, so the cream mark always
-   sits in its own environment. Collapsible; the width is a variable so
+   The shell — the rail holds the scheme's own deep ground in both themes, so
+   the navy wordmark always sits in the environment it was drawn for. Collapsible; the width is a variable so
    the backdrop behind the content can follow it.
    ──────────────────────────────────────────────────────────────────── */
 @layer components {
@@ -1477,7 +1492,7 @@ body::after {
   table.marks tr:last-child td { border-bottom: none; }
   table.marks td.r, table.marks th.r { text-align: right; font-variant-numeric: tabular-nums; }
   table.marks td.dim { color: var(--ink-3); }
-  table.marks tr.now td { background: color-mix(in oklab, var(--ok) 10%, transparent); }
+  table.marks tr.now td { background: color-mix(in oklab, var(--brand) 10%, transparent); }
 }
 
 /* — the ledger: a table that reads like the spreadsheet it replaces — */
@@ -1515,7 +1530,7 @@ body::after {
      from the names. */
   table.ledger tr.band th {
     position: static; border-bottom: 1px solid var(--hair);
-    padding-top: 18px; color: var(--ok); letter-spacing: 0.16em;
+    padding-top: 18px; color: var(--brand); letter-spacing: 0.16em;
     background: transparent;
   }
 
@@ -1634,8 +1649,8 @@ body::after {
     border-radius: 5px;
   }
 
-  /* The rail is near-black in both themes, so its focus ring has to be the
-     cream side of the palette to be visible at all. */
+  /* The rail carries the scheme's deepest ground in both themes, so its focus
+     ring has to be the pale letterform colour to be visible at all. */
   .railbtn:focus-visible { outline-color: var(--sidebar-foreground); }
 
   /* Pointer affordances. This is a desktop-first tool, so these matter less
@@ -1725,10 +1740,10 @@ body::after {
   .cell.done:hover { background: color-mix(in oklab, var(--ok) 24%, var(--card)); }
   .cell.done .ar-quran { color: var(--ok); }
   .cell.done .en, .cell.done .n { color: var(--muted-foreground); }
-  .cell.next { box-shadow: inset 0 0 0 2px var(--ok); }
+  .cell.next { box-shadow: inset 0 0 0 2px var(--brand); }
   .cell .tag { position: absolute; top: 9px; right: 10px; font-family: var(--font-mono);
-               font-size: 0.52rem; letter-spacing: 0.14em; color: var(--ok); }
-  .cell .cmt { position: absolute; top: 9px; right: 10px; width: 13px; height: 13px; color: var(--ok); }
+               font-size: 0.52rem; letter-spacing: 0.14em; color: var(--brand); }
+  .cell .cmt { position: absolute; top: 9px; right: 10px; width: 13px; height: 13px; color: var(--brand); }
   .cell.next .cmt { right: 44px; }
   .cell .cmt svg { width: 100%; height: 100%; fill: currentColor; }
   /* Selected beats hover, and has to say so: .cell.done:hover outweighs a
@@ -1762,13 +1777,13 @@ body::after {
   .markpanel .head { display: flex; align-items: flex-start; gap: 16px; }
   /* Size lives on `.ar-panel` up with the base rule — a font-size for
      `.ar-quran` cannot be set from in here. Colour can: the base sets none. */
-  .markpanel .head .ar-quran { color: var(--ok); }
+  .markpanel .head .ar-quran { color: var(--brand); }
   .markpanel .who { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 9px; }
   .markpanel .who b { font-size: 1.05rem; font-weight: 500; letter-spacing: -0.02em; }
   /* `.facts` gaps both axes at 18px, which on a phone — where these wrap to
      two lines — opened a gap you could read a sentence in. */
   .markpanel .facts { row-gap: 5px; }
-  .markpanel .facts .hi { color: var(--ok); }
+  .markpanel .facts .hi { color: var(--brand); }
   .markpanel .label { display: block; margin: 20px 0 7px; }
   .markpanel .acts { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
                      margin-top: 14px; }
@@ -1779,7 +1794,7 @@ body::after {
 
   .detail { border-top: 1px solid var(--hair); margin-top: 26px; padding-top: 22px;
             display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: start; }
-  .detail .ar-quran.big { font-size: 3rem; line-height: 1.5; color: var(--ok); }
+  .detail .ar-quran.big { font-size: 3rem; line-height: 1.5; color: var(--brand); }
   .detail .en { font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; }
   .detail .facts { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px; }
   .detail .facts span { font-family: var(--font-mono); font-size: 0.63rem; letter-spacing: 0.11em;
@@ -1793,14 +1808,14 @@ body::after {
 
   /* The teacher's words are set apart: they are not part of the scholarship. */
   .saywrap { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
-  .say { margin: 8px 0 0; border-left: 2px solid var(--ok); padding: 10px 12px 10px 14px;
-         background: color-mix(in oklab, var(--ok) 10%, transparent); }
+  .say { margin: 8px 0 0; border-left: 2px solid var(--brand); padding: 10px 12px 10px 14px;
+         background: color-mix(in oklab, var(--brand) 10%, transparent); }
   .say p { margin: 0; font-size: 0.98rem; font-style: italic; color: var(--muted-foreground); }
   .say .by { margin-top: 6px; font-family: var(--font-mono); font-size: 0.62rem;
              letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
   .readon { display: inline-block; margin-top: 18px; font-family: var(--font-mono);
             font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase;
-            color: var(--ok); text-decoration: none; border-bottom: 1px solid currentColor;
+            color: var(--brand); text-decoration: none; border-bottom: 1px solid currentColor;
             padding-bottom: 2px; }
   @media (max-width: 760px) { .detail { grid-template-columns: 1fr; } }
 }
@@ -1816,7 +1831,7 @@ body::after {
 @layer components {
   .backlink { text-decoration: none; display: inline-block; }
   .backlink:hover { color: var(--foreground); }
-  .surahtitle { font-size: clamp(2.6rem, 7vw, 4.4rem); line-height: 1.4; color: var(--ok); }
+  .surahtitle { font-size: clamp(2.6rem, 7vw, 4.4rem); line-height: 1.4; color: var(--brand); }
   .facts { display: flex; gap: 18px; flex-wrap: wrap; }
   .facts span { font-family: var(--font-mono); font-size: 0.63rem; letter-spacing: 0.11em;
                 text-transform: uppercase; color: var(--ink-3); }
@@ -1866,7 +1881,7 @@ body::after {
     gap: 13px; min-width: 0; transition: background 0.2s; text-decoration: none; color: inherit;
   }
   .tcard:hover { background: color-mix(in oklab, var(--foreground) 3%, var(--card)); }
-  .tcard.current { box-shadow: inset 0 2px 0 var(--ok); }
+  .tcard.current { box-shadow: inset 0 2px 0 var(--brand); }
   /* A module whose week has not opened yet: present, but visibly not yours. */
   .tcard.locked { opacity: 0.62; }
   .tcard.locked:hover { background: var(--card); }
@@ -1890,7 +1905,7 @@ body::after {
   .cover-card .tbody { padding: var(--pad); display: flex; flex-direction: column;
                        gap: 0; flex: 1; min-width: 0; }
   .cover-card .tbody .label { margin-bottom: 6px; }
-  .tcard.current .label { color: var(--ok); }
+  .tcard.current .label { color: var(--brand); }
   .tcard h2, .tcard h3 {
     margin: 0; font-size: 1.5rem; font-weight: 250; letter-spacing: -0.03em; line-height: 1.1;
   }
@@ -1931,7 +1946,7 @@ body::after {
   .classrow { transition: background 0.16s, box-shadow 0.16s; }
   .classrow:hover {
     background: color-mix(in oklab, var(--foreground) 8%, transparent);
-    box-shadow: inset 3px 0 0 var(--ok);
+    box-shadow: inset 3px 0 0 var(--brand);
   }
   .classrow:focus-visible {
     outline: none;
@@ -1958,6 +1973,9 @@ body::after {
    the same element, so they reach everything — including the tooltip,
    which portals to body — without touching what is pinned. */
 html {
+  /* Cream never had a separate accent: its --ok WAS the accent. This one line
+     keeps that true without touching the pinned :root block. */
+  --brand: var(--ok);
   --chart-scale-01: color-mix(in oklab, var(--foreground) 7%, var(--card));
   --chart-scale-02: color-mix(in oklab, var(--ok) 22%, var(--card));
   --chart-scale-03: color-mix(in oklab, var(--ok) 45%, var(--card));

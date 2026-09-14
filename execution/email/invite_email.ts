@@ -5,19 +5,20 @@
  * actually render — Outlook still uses Word's engine, and Gmail strips
  * <style> blocks in some contexts. Nothing here loads from a stylesheet.
  *
- * The palette is lifted from web/src/app/globals.css so the mail and the app
- * are visibly the same product:
- *   page cream  #f4f1df   card  #fbf9ee   ink   #14140f
- *   border      #ded9bf   muted #5c5949   ochre #6e6010
+ * The palette is lifted from the navy scheme in web/src/app/globals.css so the
+ * mail and the app are visibly the same product:
+ *   page  #ededfc   card  #ffffff   ink    #00004d
+ *   border #d8d8f0  muted #3a3a85   accent #2f4fd0
  *
  * The logo is the deployed one rather than an attachment: a remote image can
  * be blocked by the client, and a CID attachment trips some spam filters. It
- * sits on a black band, which is also the logo's own background, so a blocked
- * image degrades to a black bar with alt text rather than a broken frame.
+ * sits on a #00004d band, which is the navy wordmark's own ground, so a
+ * blocked image degrades to a navy bar with alt text rather than a broken
+ * frame.
  */
 
-const SITE = "https://bsms-tajweed.netlify.app";
-const LOGO = `${SITE}/brand/logo.png`;
+const SITE = "https://www.bsmstajweed.com";
+const LOGO = `${SITE}/brand/logo-navy.png`;
 
 /**
  * How long the link in this email actually lasts.
@@ -95,7 +96,7 @@ export function inviteHtml(i: Invite): string {
 <meta name="supported-color-schemes" content="light">
 <title>${esc(inviteSubject())}</title>
 </head>
-<body style="margin:0;padding:0;background:#f4f1df;">
+<body style="margin:0;padding:0;background:#ededfc;">
 
 <!-- Preheader: the grey line of text a client shows next to the subject.
      Left empty it would scrape the first words of the markup instead. -->
@@ -104,16 +105,16 @@ export function inviteHtml(i: Invite): string {
 </div>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-       style="background:#f4f1df;margin:0;padding:0;">
+       style="background:#ededfc;margin:0;padding:0;">
   <tr>
     <td align="center" style="padding:32px 12px;">
 
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
-             style="width:100%;max-width:600px;background:#fbf9ee;border:1px solid #ded9bf;border-radius:14px;overflow:hidden;">
+             style="width:100%;max-width:600px;background:#ffffff;border:1px solid #d8d8f0;border-radius:14px;overflow:hidden;">
 
         <!-- brand band ------------------------------------------------- -->
         <tr>
-          <td align="center" style="background:#000000;padding:28px 24px;">
+          <td align="center" style="background:#00004d;padding:28px 24px;">
             <img src="${LOGO}" width="104" height="104" alt="BSMS Tajweed"
                  style="display:block;border:0;outline:none;text-decoration:none;width:104px;height:104px;">
           </td>
@@ -122,10 +123,10 @@ export function inviteHtml(i: Invite): string {
         <!-- body ------------------------------------------------------- -->
         <tr>
           <td style="padding:34px 34px 8px 34px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-            <p style="margin:0 0 18px 0;font-size:17px;line-height:1.5;color:#14140f;">
+            <p style="margin:0 0 18px 0;font-size:17px;line-height:1.5;color:#00004d;">
               Assalamu alaikum ${name},
             </p>
-            <p style="margin:0 0 16px 0;font-size:16px;line-height:1.65;color:#14140f;">
+            <p style="margin:0 0 16px 0;font-size:16px;line-height:1.65;color:#00004d;">
               Your teacher account is ready. You don&rsquo;t need to sign up &mdash;
               it already exists and is waiting for you.
             </p>
@@ -136,16 +137,16 @@ export function inviteHtml(i: Invite): string {
         <tr>
           <td style="padding:6px 34px 0 34px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-                   style="background:#f4f1df;border:1px solid #ded9bf;border-radius:10px;">
+                   style="background:#ededfc;border:1px solid #d8d8f0;border-radius:10px;">
               <tr>
                 <td style="padding:18px 20px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-                  <div style="font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#6e6010;font-weight:700;">
+                  <div style="font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#2f4fd0;font-weight:700;">
                     Your class
                   </div>
-                  <div style="font-size:21px;line-height:1.3;color:#14140f;font-weight:700;padding-top:6px;">
+                  <div style="font-size:21px;line-height:1.3;color:#00004d;font-weight:700;padding-top:6px;">
                     ${cls}
                   </div>
-                  <div style="font-size:14px;line-height:1.5;color:#5c5949;padding-top:4px;">
+                  <div style="font-size:14px;line-height:1.5;color:#3a3a85;padding-top:4px;">
                     ${people} &middot; ${sectionLabel}
                   </div>
                 </td>
@@ -156,7 +157,7 @@ export function inviteHtml(i: Invite): string {
 
         <tr>
           <td style="padding:20px 34px 0 34px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-            <p style="margin:0;font-size:16px;line-height:1.65;color:#14140f;">
+            <p style="margin:0;font-size:16px;line-height:1.65;color:#00004d;">
               Last year&rsquo;s register, homework and hifdh records are already in
               there, so you can look around properly rather than at an empty shell.
             </p>
@@ -169,9 +170,9 @@ export function inviteHtml(i: Invite): string {
           <td align="center" style="padding:28px 34px 6px 34px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td align="center" bgcolor="#14140f" style="border-radius:9px;">
+                <td align="center" bgcolor="#00004d" style="border-radius:9px;">
                   <a href="${link}"
-                     style="display:inline-block;padding:15px 34px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#f4f1df;text-decoration:none;border-radius:9px;">
+                     style="display:inline-block;padding:15px 34px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#ededfc;text-decoration:none;border-radius:9px;">
                     Set up your account
                   </a>
                 </td>
@@ -182,7 +183,7 @@ export function inviteHtml(i: Invite): string {
 
         <tr>
           <td style="padding:14px 34px 0 34px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-            <p style="margin:0;font-size:13px;line-height:1.6;color:#5c5949;text-align:center;">
+            <p style="margin:0;font-size:13px;line-height:1.6;color:#3a3a85;text-align:center;">
               You&rsquo;ll choose your own password. Adding a photo is optional.
             </p>
           </td>
@@ -192,18 +193,18 @@ export function inviteHtml(i: Invite): string {
         <tr>
           <td style="padding:24px 34px 0 34px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-                   style="border-top:1px solid #ded9bf;">
+                   style="border-top:1px solid #d8d8f0;">
               <tr>
                 <td style="padding-top:18px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-                  <p style="margin:0 0 12px 0;font-size:13px;line-height:1.6;color:#5c5949;">
-                    <strong style="color:#14140f;">The link works once and runs out after ${validFor}.</strong>
+                  <p style="margin:0 0 12px 0;font-size:13px;line-height:1.6;color:#3a3a85;">
+                    <strong style="color:#00004d;">The link works once and runs out after ${validFor}.</strong>
                     If it has expired by the time you open this, go to
-                    <a href="${SITE}/forgot-password" style="color:#6e6010;text-decoration:underline;">${SITE.replace("https://", "")}/forgot-password</a>
+                    <a href="${SITE}/forgot-password" style="color:#2f4fd0;text-decoration:underline;">${SITE.replace("https://", "")}/forgot-password</a>
                     and enter this address &mdash; that sends a fresh one straight away.
                   </p>
-                  <p style="margin:0;font-size:12px;line-height:1.6;color:#5c5949;">
+                  <p style="margin:0;font-size:12px;line-height:1.6;color:#3a3a85;">
                     Button not working? Copy this in:<br>
-                    <span style="word-break:break-all;color:#6e6010;">${link}</span>
+                    <span style="word-break:break-all;color:#2f4fd0;">${link}</span>
                   </p>
                 </td>
               </tr>
@@ -218,7 +219,7 @@ export function inviteHtml(i: Invite): string {
              style="width:100%;max-width:600px;">
         <tr>
           <td align="center" style="padding:18px 24px 0 24px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-            <p style="margin:0;font-size:12px;line-height:1.6;color:#5c5949;">
+            <p style="margin:0;font-size:12px;line-height:1.6;color:#3a3a85;">
               BSMS Tajweed &middot; sent because you teach on the programme.<br>
               Not expecting this? Reply and tell us &mdash; don&rsquo;t use the link.
             </p>

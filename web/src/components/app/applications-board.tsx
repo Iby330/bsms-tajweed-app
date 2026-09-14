@@ -281,7 +281,7 @@ export function ApplicationsBoard({
         <section className="box c12 gap-5">
           <div className="flex flex-wrap gap-x-10 gap-y-5">
             <Figure label="Applications" value={counts.total} />
-            <Figure label="Still to hear" value={counts.toHear} tone="ok" />
+            <Figure label="Still to hear" value={counts.toHear} tone="brand" />
             <Figure label="Placed" value={counts.placed} />
             <Figure label="Fee not received" value={counts.owing} tone="danger" />
           </div>
@@ -339,14 +339,14 @@ export function ApplicationsBoard({
 
 function Figure({
   label, value, tone,
-}: { label: string; value: number; tone?: "ok" | "danger" }) {
+}: { label: string; value: number; tone?: "brand" | "danger" }) {
   return (
     <div>
       <span className="label">{label}</span>
       <div
         className={cn(
           "mt-1 font-heading text-3xl tabular-nums",
-          tone === "ok" && value > 0 && "text-ok",
+          tone === "brand" && value > 0 && "text-brand",
           tone === "danger" && value > 0 && "text-danger",
         )}
       >
