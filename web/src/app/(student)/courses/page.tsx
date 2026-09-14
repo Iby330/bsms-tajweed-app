@@ -30,7 +30,9 @@ export default async function Courses() {
     getCatalogue(),
   ]);
 
-  const { mine, locked } = splitCourses(catalogue, coursesForClass(profile.class_id));
+  const { mine, locked } = splitCourses(
+    catalogue, coursesForClass(profile.class_id), profile.unlock_all,
+  );
 
   // Progress per block. The tree already counts per (term, series), which is
   // exactly a block, so this is a lookup rather than a sum.

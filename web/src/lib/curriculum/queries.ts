@@ -129,10 +129,11 @@ export async function getStudentCurriculum(
 ): Promise<StudentCurriculum> {
   const db = await supabaseServer();
 
-  // The student's own class, for their syllabus. Read here rather than
-  // threaded through five call sites that all pass the current user anyway.
+  // The student's own class, for their syllabus, and whether they are exempt
+  // from the calendar altogether. Read here rather than threaded through five
+  // call sites that all pass the current user anyway.
   const { data: me } = await db
-    .from("profiles").select("class_id").eq("id", studentId).single();
+    .from("profiles").select("class_id, unlock_all").eq("id", studentId).single();
 
   const [terms, weeks, lessons, homeworks, watches, subs, pcts, schedule] = await Promise.all([
     getCachedTerms(),
@@ -160,7 +161,7 @@ export async function getStudentCurriculum(
   };
 
   return {
-    terms: overlayProgress(buildTree(rows, now, schedule), progress),
+    terms: overlayProgress(buildTree(rows, now, schedule, me?.unlock_all ?? false), progress),
     pctByHomeworkId: new Map(
       (pcts.data ?? []).map((r) => [r.homework_id as string, Number(r.pct)]),
     ),

@@ -262,16 +262,25 @@ export type SplitCourses = {
 export function splitCourses(
   catalogue: CourseBlock[],
   studying: string[] | null,
+  /**
+   * `profiles.unlock_all` — the demo/preview exemption from migration 0023.
+   * The database already hands such a reader every row; this puts every block
+   * that HAS content on their side of the rule, so the index offers them the
+   * whole programme rather than shutting three quarters of it behind "not
+   * yours to open — yet". A block with no content at all stays in the locked
+   * half for them too: there is nothing behind it to open.
+   */
+  unlockAll = false,
 ): SplitCourses {
   const mine: CourseBlock[] = [];
   const locked: SplitCourses["locked"] = [];
 
   for (const block of catalogue) {
     const onTheirTimetable =
-      studying === null ? block.moduleCount > 0 : studying.includes(block.series);
+      unlockAll || (studying === null ? block.moduleCount > 0 : studying.includes(block.series));
     if (!onTheirTimetable || block.moduleCount === 0) {
       locked.push({ block, reason: "not-running" });
-    } else if (block.started) {
+    } else if (block.started || unlockAll) {
       mine.push(block);
     } else {
       locked.push({ block, reason: "later" });

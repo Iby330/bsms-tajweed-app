@@ -220,15 +220,31 @@ export function buildTree(
   rows: CurriculumRows,
   now: Date = new Date(),
   schedule?: ClassSchedule | null,
+  /**
+   * `profiles.unlock_all` — the demo/preview flag from migration 0023, which
+   * the database reads as `sees_all_content()` and ORs into the content
+   * policies. Such a reader is handed every lesson and homework row there is,
+   * so this tree must stop applying the two gates the database has already
+   * waived for them: the class syllabus and the release calendar. Without
+   * that, RLS returns the whole year and the screen greys it out — which is
+   * exactly the state the flag exists to prevent.
+   *
+   * It is deliberately NOT the teacher path. A teacher gets the locked rows
+   * and is SHOWN the locks, because knowing what has not opened yet is the
+   * point of preparing next term. An exempt reader is walking a student
+   * journey, so for them nothing is locked at all.
+   */
+  unlockAll = false,
 ): Term[] {
   const nowMs = now.getTime();
   const weekById = new Map(rows.weeks.map((w) => [w.id, w]));
 
   // Courses this class takes, by the course id the rows carry. Empty when
   // there is no syllabus, which is what puts the whole function back on its
-  // original (term, series) footing.
+  // original (term, series) footing — and so does `unlockAll`, because a
+  // reader exempt from the syllabus is by definition on the whole programme.
   const scheduled = new Map((schedule?.courses ?? []).map((c) => [c.courseId, c]));
-  const useSyllabus = scheduled.size > 0;
+  const useSyllabus = !unlockAll && scheduled.size > 0;
 
   // key → weekId → bucket. The key is the course id under a syllabus and the
   // old (termId, series) pair without one.
@@ -312,7 +328,9 @@ export function buildTree(
             weekId,
             weekNumber: sched ? ordinal : week.number,
             unlockAt,
-            unlocked: Date.parse(unlockAt) <= nowMs,
+            // The date is left as it is and only the verdict changes, so a
+            // screen that wants to say WHEN something opened still can.
+            unlocked: unlockAll || Date.parse(unlockAt) <= nowMs,
             title: moduleTitle(source),
             lessons,
             homework: bucket.homework,
@@ -380,7 +398,9 @@ export function buildTree(
       actionableCount: courses.reduce((n, c) => n + c.actionableCount, 0),
       doneCount: 0,
       weekCount: termWeeks.length,
-      lockedWeeks: termWeeks
+      // "Week 4 unlocks 26 October" is a promise, and there is nothing to
+      // promise a reader who already has it.
+      lockedWeeks: unlockAll ? [] : termWeeks
         .filter((w) => Date.parse(w.unlock_at) > nowMs)
         .map((w) => ({ number: w.number, unlockAt: w.unlock_at })),
     } satisfies Term;
@@ -591,18 +611,27 @@ export function findCourse(terms: Term[], termId: number, series: string): Cours
   return findTerm(terms, termId)?.courses.find((c) => c.series === series) ?? null;
 }
 
-/** Where the year is right now: the most recently unlocked module anywhere. */
+/**
+ * Where the year is right now: the most recently opened module anywhere.
+ *
+ * It asks the calendar rather than `m.unlocked`, and the difference only
+ * shows for a reader exempt from the calendar (`unlockAll`), for whom every
+ * module is unlocked and the answer would otherwise be the last week of the
+ * year. "This week" is a date; it is not a permission.
+ */
 export function findCurrentModule(
   terms: Term[],
+  now: Date = new Date(),
 ): { termId: number; series: string; module: Module } | null {
+  const nowMs = now.getTime();
   let best: { termId: number; series: string; module: Module } | null = null;
   let bestMs = -Infinity;
 
   for (const term of terms) {
     for (const course of term.courses) {
       for (const m of course.modules) {
-        if (!m.unlocked) continue;
         const ms = Date.parse(m.unlockAt);
+        if (ms > nowMs) continue;
         if (ms > bestMs) {
           bestMs = ms;
           best = { termId: term.id, series: course.series, module: m };

@@ -361,14 +361,15 @@ describe("overlayProgress", () => {
 
 describe("findCurrentModule", () => {
   it("resolves the live week to a course and module", () => {
-    const found = findCurrentModule(tree());
+    const found = findCurrentModule(tree(), NOW);
     expect(found).toMatchObject({ termId: 1, series: "tajweed" });
     expect(found!.module.weekNumber).toBe(3);
   });
 
   it("returns null before the year starts", () => {
-    const early = buildTree({ terms, weeks, lessons, homeworks }, new Date(Date.UTC(2026, 0, 1)));
-    expect(findCurrentModule(early)).toBeNull();
+    const jan = new Date(Date.UTC(2026, 0, 1));
+    const early = buildTree({ terms, weeks, lessons, homeworks }, jan);
+    expect(findCurrentModule(early, jan)).toBeNull();
   });
 });
 
@@ -599,6 +600,95 @@ describe("buildTree with a class syllabus", () => {
       // Mudūd stays in Term 3, where its rows live.
       expect(tree.find((t) => t.id === 3)!.courses.length).toBe(1);
     }
+  });
+});
+
+/* ── The reader who is exempt from the calendar ────────────────────────────
+ *
+ * `profiles.unlock_all` — migration 0023 — is the demo/preview flag. In the
+ * database it is ORed into the content policies as `sees_all_content()`, so
+ * such a reader is handed EVERY lesson and homework row regardless of both
+ * the release calendar and their class's syllabus. These tests pin the app to
+ * the same two exemptions, because the screens draw their own locks from this
+ * tree and would otherwise grey out rows RLS has already handed over.
+ */
+describe("buildTree for a reader exempt from the calendar", () => {
+  const terms: TermRow[] = [
+    { id: 1, starts_on: "2026-10-05", ends_on: "2026-11-26", exam_max: 89 },
+    { id: 3, starts_on: "2027-03-15", ends_on: "2027-05-20", exam_max: 98 },
+  ];
+  const weeks: WeekRow[] = [
+    { id: "w1", term_id: 1, number: 1, unlock_at: "2026-10-05T00:00:00Z" },
+    { id: "w2", term_id: 1, number: 2, unlock_at: "2026-10-12T00:00:00Z" },
+    { id: "w31", term_id: 3, number: 1, unlock_at: "2027-03-15T00:00:00Z" },
+  ];
+  const hw = (id: string, week: string, course: string, ordinal: number, series: string) => ({
+    id, week_id: week, course_id: course, ordinal, number: ordinal,
+    series, title: `${id}`, total_marks: 10, due_at: null, is_graded: true,
+  });
+  // Ghunna in Term 1, Mudūd in Term 3, and a TFP course nobody's syllabus lists.
+  const homeworks: HomeworkRow[] = [
+    hw("g1", "w1", "GH", 1, "tajweed"),
+    hw("g2", "w2", "GH", 2, "tajweed"),
+    hw("m1", "w31", "MU", 1, "tajweed"),
+    hw("p1", "w31", "TF", 1, "tfp"),
+  ];
+  const rows = { terms, weeks, lessons: [], homeworks };
+
+  /** A syllabus that takes Ghunna and nothing else. */
+  const onlyGhunna: ClassSchedule = {
+    courses: [{ courseId: "GH", key: "ghunna", label: "Ghunna", termId: 1, position: 1 }],
+    firstUnlockByTerm: { 1: "2026-10-05T00:00:00Z", 3: "2027-03-15T00:00:00Z" },
+  };
+
+  // The 6th: Term 1 week 1 has opened, week 2 has not, and Term 3 is months off.
+  const NOW6 = new Date("2026-10-06");
+
+  it("shows every course, not just the ones the class takes", () => {
+    const series = buildTree(rows, NOW6, onlyGhunna, true)
+      .flatMap((t) => t.courses.map((c) => c.series));
+    expect(series).toContain("tajweed");
+    expect(series).toContain("tfp");
+    // Term 3's tajweed is a second block, so three in all.
+    expect(series).toHaveLength(3);
+  });
+
+  it("leaves a course in the term its rows are filed under", () => {
+    const tree = buildTree(rows, NOW6, onlyGhunna, true);
+    expect(tree.find((t) => t.id === 3)!.courses.map((c) => c.series).sort())
+      .toEqual(["tajweed", "tfp"]);
+  });
+
+  it("opens every module, including ones whose week has not come", () => {
+    const tree = buildTree(rows, NOW6, onlyGhunna, true);
+    const modules = tree.flatMap((t) => t.courses.flatMap((c) => c.modules));
+    expect(modules).not.toHaveLength(0);
+    expect(modules.every((m) => m.unlocked)).toBe(true);
+    // The dates themselves are untouched — only the verdict changes.
+    expect(modules.find((m) => m.weekId === "w31")!.unlockAt).toBe("2027-03-15T00:00:00Z");
+  });
+
+  it("stops promising a week that is, for this reader, already here", () => {
+    const tree = buildTree(rows, NOW6, onlyGhunna, true);
+    expect(tree.flatMap((t) => t.lockedWeeks)).toEqual([]);
+    // …and the promise is still made to everybody else.
+    expect(buildTree(rows, NOW6, null, false).flatMap((t) => t.lockedWeeks).length)
+      .toBeGreaterThan(0);
+  });
+
+  it("changes nothing for a reader who is not exempt", () => {
+    expect(buildTree(rows, NOW6, onlyGhunna, false))
+      .toEqual(buildTree(rows, NOW6, onlyGhunna));
+  });
+
+  /**
+   * "This week" is a date, not a permission. An exempt reader can open the
+   * whole year, and Home would otherwise announce Term 3 week 1 as where the
+   * programme currently is — in October.
+   */
+  it("keeps `findCurrentModule` on the calendar rather than on the locks", () => {
+    const tree = buildTree(rows, NOW6, null, true);
+    expect(findCurrentModule(tree, NOW6)!.module.weekId).toBe("w1");
   });
 });
 
