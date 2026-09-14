@@ -13,6 +13,7 @@ import { homeworkLabel } from "@/components/app/homework-row";
 import { Crumbs } from "@/components/app/crumbs";
 import { MixedText } from "@/components/app/mixed-text";
 import { ReviewPanel } from "@/components/app/review-panel";
+import { StudentPicker } from "@/components/app/student-picker";
 import { ResultsTabs, type ResultsTab } from "@/components/app/results-tabs";
 import { ResultsSummary, type SummaryRow } from "@/components/app/results-summary";
 import { QuestionBreakdown } from "@/components/app/question-breakdown";
@@ -291,6 +292,19 @@ export default async function HomeworkResults({
     rubric: parseRubric(q.rubric),
   }));
 
+  // The picker lists everyone, with how they did, so choosing is informed and
+  // a teacher hunting for who is missing can still land on them. `rows` is
+  // already in register order and already carries the state.
+  const pickerStudents = rows.map((r) => ({
+    id: r.studentId,
+    label:
+      r.state === "missing"
+        ? `${r.name} · not handed in`
+        : r.pct === null
+          ? `${r.name} · not marked`
+          : `${r.name} · ${Math.round(r.pct)}%`,
+  }));
+
   // Paging runs over the students who handed in, in register order — the ones
   // with nothing to read are not steps on the way to the next script.
   const handedIn = roster.filter((s) => subByStudent.has(s.id));
@@ -396,48 +410,15 @@ export default async function HomeworkResults({
 
             {view === "individual" && (
               <div className="space-y-4">
-                {/* The roster runs across the top rather than down the side. A
-                    script is a column of prose and a column of marks; read
-                    against a 13rem rail it sat hard left of a 1000px shell with
-                    the measure squeezed beside it. Sticky, because the point of
-                    the list is to move between students, and a long script
-                    would otherwise scroll it away. */}
-                <nav aria-label="Students" className="sticky top-0 z-20 overflow-x-auto">
-                  <ul
-                    className="field w-max min-w-full"
-                    style={{
-                      gridTemplateColumns: "none",
-                      gridAutoFlow: "column",
-                      // A class that outgrows the row scrolls sideways rather
-                      // than crushing every name to an initial.
-                      gridAutoColumns: "minmax(9rem, 1fr)",
-                    }}
-                  >
-                    {rows.map((r) => (
-                      <li key={r.studentId} className="box" style={{ padding: 0 }}>
-                        {r.state === "missing" ? (
-                          <span className="flex items-baseline justify-between gap-2 px-3 py-2 text-sm opacity-60">
-                            <span className="min-w-0 truncate">{r.name}</span>
-                            <span className="shrink-0 text-[11px]">—</span>
-                          </span>
-                        ) : (
-                          <Link
-                            href={r.href}
-                            aria-current={selected?.id === r.studentId ? "page" : undefined}
-                            className={cn(
-                              "flex items-baseline justify-between gap-2 px-3 py-2 text-sm transition-colors hover:bg-muted/60",
-                              selected?.id === r.studentId && "bg-muted font-medium",
-                            )}
-                          >
-                            <span className="min-w-0 truncate">{r.name}</span>
-                            <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
-                              {r.pct === null ? "•" : `${Math.round(r.pct)}%`}
-                            </span>
-                          </Link>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                {/* A row of every name ran across the top here. Fine for
+                    four and unreadable for twenty: it scrolled sideways, so
+                    "who else is there" lived off the edge of the screen. The
+                    picker says the same thing in a fixed width, and on a phone
+                    it hands off to the OS picker. Still sticky — switching
+                    student is the reason it exists, and a long script would
+                    scroll it away. */}
+                <nav aria-label="Students" className="sticky top-0 z-20 flex justify-end bg-page py-2">
+                  <StudentPicker students={pickerStudents} selected={selected?.id ?? null} />
                 </nav>
 
                 <div className="mx-auto w-full min-w-0 max-w-[46rem] space-y-4">
