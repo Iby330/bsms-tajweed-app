@@ -5,10 +5,11 @@ import { useEffect, useRef } from "react";
 /**
  * The class's own place, behind the page.
  *
- * All seven classes have a photograph. The three mosques are the buildings
- * themselves; the four named from the Qur'an and the sunnah — Rayyan, Hareer,
- * Salsabeel, Zukhruf — have an image made for the name: a gate, silk, a
- * spring, gilded vessels. Each is composed for this slot, which hides its top
+ * All nine classes have a photograph. The five mosques are the buildings
+ * themselves — Al-Umawi in Damascus and Quba in Medina joined when groups 3
+ * and 4 got their real classes in 0029; the four named from the Qur'an and
+ * the sunnah — Rayyan, Hareer, Salsabeel, Zukhruf — have an image made for
+ * the name: a gate, silk, a spring, gilded vessels. Each is composed for this slot, which hides its top
  * quarter as parallax headroom and crops the sides, and each carries both a
  * dark mass and a bright element so it survives on either page colour.
  *
@@ -26,6 +27,8 @@ const PHOTOS: Record<string, string> = {
   "masjid an-nabawi": "/brand/classes/masjid-an-nabawi.jpg",
   "masjid al-haram": "/brand/classes/masjid-al-haram.jpg",
   "masjid al-aqsa": "/brand/classes/masjid-al-aqsa.jpg",
+  "masjid al-umawi": "/brand/classes/masjid-al-umawi.jpg",
+  "masjid quba": "/brand/classes/masjid-quba.jpg",
   rayyan: "/brand/classes/rayyan.jpg",
   hareer: "/brand/classes/hareer.jpg",
   salsabeel: "/brand/classes/salsabeel.jpg",
