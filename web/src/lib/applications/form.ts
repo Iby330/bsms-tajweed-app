@@ -193,10 +193,10 @@ export function termsFor(section: Section): { title: string; body: string }[] {
   const provisional = section === "sisters" && SISTERS_HIFDH_DAY_PROVISIONAL;
 
   const days = provisional
-    ? `${tajweedDay} evenings for tajweed, plus one evening a week for hifdh — `
-      + `the hifdh evening is set against everyone's availability and confirmed `
+    ? `${tajweedDay} evenings for tajweed, plus one evening a week for hifdh. `
+      + `The hifdh evening is set against everyone's availability and confirmed `
       + `before term starts.`
-    : `${teachingDaysLabel(tt)} evenings — ${tajweedDay} for tajweed and `
+    : `${teachingDaysLabel(tt)} evenings: ${tajweedDay} for tajweed and `
       + `${hifdhDay} for hifdh.`;
 
   return [

@@ -40,11 +40,11 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Apply",
   description:
-    `Applications are open for BSMS Tajweed — tajweed and Qur'an memorisation for `
+    `Applications are open for BSMS Tajweed: tajweed and Qur'an memorisation for `
     + `Brighton, Sussex and BSMS students. ${feeLabel()} for the year. `
     + `Closes ${CLOSES_LABEL}.`,
   openGraph: {
-    title: "Apply — BSMS Tajweed",
+    title: "Apply to BSMS Tajweed",
     description:
       `Tajweed and Qur'an memorisation for Brighton, Sussex and BSMS students. `
       + `${feeLabel()} for the year. Applications close ${CLOSES_LABEL}.`,

@@ -138,7 +138,7 @@ const STEPS: Step[] = [
   {
     id: "memorised",
     title: "How much Qur'an have you memorised?",
-    hint: "However you'd say it — a few surahs, juz 'amma, five juz. There's no wrong answer.",
+    hint: "However you'd say it: a few surahs, juz 'amma, five juz. There's no wrong answer.",
     validate: (f) => need(f.memorised, "Please put something, even if it's 'none yet'."),
   },
   {
@@ -150,7 +150,7 @@ const STEPS: Step[] = [
   {
     id: "tajweed",
     title: "What's your level when it comes to tajweed?",
-    hint: "Answer honestly — everyone is placed in a group by level, and there's a group for every answer here.",
+    hint: "Answer honestly. Everyone is placed in a group by level, and there's a group for every answer here.",
     autoAdvance: true,
     validate: (f) => need(f.tajweedLevel, "Please choose one."),
   },
@@ -168,7 +168,7 @@ const STEPS: Step[] = [
   },
   {
     id: "terms",
-    title: "Last thing — what you're agreeing to",
+    title: "Last thing: what you're agreeing to",
     validate: (f) => (f.paidConfirmed ? null : "Please tick to confirm you've read the terms."),
   },
 ];
@@ -266,7 +266,7 @@ function FunnelHeader({ big }: { big: boolean }) {
         src={BRAND_LOGO} alt="" width={32} height={32} className="rounded-lg" aria-hidden
       />
       <span className="font-heading text-sm tracking-tight">BSMS Tajweed</span>
-      <span className="sr-only">— application</span>
+      <span className="sr-only">, application</span>
     </header>
   );
 }
@@ -384,7 +384,7 @@ export function ApplyFunnel() {
             <b className="text-foreground">{form.email}</b> with an invitation to an
             online session where you&apos;ll read a short passage for us. That is how
             we hear where everyone is up to and put people into groups at the right
-            level — it is not a test you can fail, and there is nothing to prepare.
+            level. It is not a test you can fail, and there is nothing to prepare.
           </p>
           <p>
             Once groups are set we&apos;ll send you a login for the app, where your
@@ -415,7 +415,7 @@ export function ApplyFunnel() {
           again: weekly tajweed classes, hifdh with a teacher who knows what
           you&apos;re working on, and an app that keeps your lessons, homework and
           memorisation in one place. Open to students at BSMS, Brighton and
-          Sussex — and to alumni.
+          Sussex, and to alumni.
         </p>
 
         <div className="mt-8 rounded-xl border border-line p-5">
@@ -425,7 +425,7 @@ export function ApplyFunnel() {
               ["You answer a few questions",
                 `Under two minutes. Applications close ${CLOSES_LABEL}.`],
               ["We invite you to read for us",
-                "A short online session where you recite a passage. It is not a test and there is nothing to revise — we just need to hear where you are up to. Brothers and sisters hold theirs separately."],
+                "A short online session where you recite a passage. It is not a test and there is nothing to revise. We just need to hear where you are up to. Brothers and sisters hold theirs separately."],
               ["You're placed in a group",
                 "Groups are set by what we hear, so everyone is with people working at the same level. There is a group for complete beginners, including if you don't yet know the alphabet."],
               ["You get your login",
