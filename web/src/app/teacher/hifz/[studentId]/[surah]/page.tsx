@@ -1,0 +1,146 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { notFound } from "next/navigation";
+import { currentProfile, supabaseServer } from "@/lib/supabase/server";
+import {
+  getCachedPageWords, getCachedSurahPageRange, getCachedSurahs,
+} from "@/lib/reference/cached";
+import { fromRow, groupIntoPages } from "@/lib/quran/mushaf";
+import { pageWithin } from "@/lib/quran/page-within";
+import { memorisationList, type Surah } from "@/lib/hifz/pace";
+import { SURAH_META } from "@/lib/hifz/surah-meta";
+import { draftHearing, hearingsFor } from "@/lib/hifz/hearing-queries";
+import { startHearing } from "@/lib/hifz/hearing-actions";
+import { recordLine, summaryOf } from "@/lib/hifz/hearings";
+import { spreadHeat } from "@/lib/hifz/heat-spread";
+import { teacherClass } from "@/lib/teacher/scope";
+import { ReviewLogger } from "@/components/app/review-logger";
+import { RecordActions } from "@/components/app/record-actions";
+import { Rule } from "@/components/app/rule";
+import type { SurahNames } from "@/components/app/mushaf-reader";
+
+export const dynamic = "force-dynamic";
+
+/**
+ * One surah, ready to be heard.
+ *
+ * This page IS the Thursday lesson: the student presents the surah, the
+ * teacher taps each slip on the printed page as it happens, and ends with
+ * Passed or Not passed. There is no start step — opening the page creates
+ * nothing; the first tap or the first verdict does (see startHearing).
+ * Words earlier hearings marked sit tinted underneath, so a slip that keeps
+ * coming back is visible while it is being heard again.
+ */
+export default async function TeacherSurahPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ studentId: string; surah: string }>;
+  searchParams: Promise<{ p?: string }>;
+}) {
+  const [{ studentId, surah: raw }, { p }] = await Promise.all([params, searchParams]);
+  const number = Number(raw);
+  if (!Number.isInteger(number) || !SURAH_META[number]) notFound();
+
+  const profile = (await currentProfile())!;
+  const db = await supabaseServer();
+
+  const [mine, { data: student }, { data: hp }, surahs, { data: record }, hearings, draft, range] =
+    await Promise.all([
+      teacherClass(),
+      db.from("profiles").select("full_name, class_id").eq("id", studentId).maybeSingle(),
+      db.from("hifz_profiles").select("start_surah, target_count").eq("student_id", studentId).maybeSingle(),
+      getCachedSurahs(),
+      db.from("hifz_records").select("passed_at, teacher_comment")
+        .eq("student_id", studentId).eq("surah_number", number).maybeSingle(),
+      hearingsFor(studentId, number),
+      draftHearing(profile.id, studentId, number),
+      getCachedSurahPageRange(number),
+    ]);
+  if (!student) notFound();
+  // Same scoping as the student's hifdh page: a teacher with a class of
+  // their own sees only their own students.
+  if (mine && student.class_id !== mine.id) notFound();
+
+  const surah = surahs.find((s) => s.number === number);
+  if (!surah || !range) notFound();
+  // Only surahs on the student's run have a page — nothing else can be heard.
+  const list = hp ? memorisationList(hp.start_surah, hp.target_count, surahs as Surah[]) : [];
+  const idx = list.findIndex((s) => s.number === number);
+  if (idx === -1) notFound();
+
+  const page = pageWithin(p, range);
+  const rows = await getCachedPageWords(page);
+  const words = rows.map(fromRow);
+  const { heat, history } = spreadHeat(words, hearings.flatMap((h) => h.mistakes), new Date());
+  const surahNames: SurahNames = Object.fromEntries(
+    surahs.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]),
+  );
+
+  const latest = hearings[0] ?? null;
+  const line = recordLine(
+    record ? { passedAt: record.passed_at, comment: record.teacher_comment } : null,
+    summaryOf(latest),
+  );
+  const basePath = `/teacher/hifz/${studentId}/${number}`;
+
+  return (
+    <>
+      <header className="masthead">
+        <Link href={`/teacher/hifz/${studentId}`} className="backstep">
+          <ArrowLeft className="size-[13px]" aria-hidden />
+          {student.full_name}
+        </Link>
+        <h1 style={{ marginTop: 18 }}>
+          <span dir="rtl" lang="ar" className="ar-quran surahtitle">{surah.name_ar}</span>
+        </h1>
+        <p>
+          {surah.name_en} · {idx + 1} of {list.length} · {line}
+        </p>
+      </header>
+
+      {record && (
+        <>
+          <Rule label="The record" />
+          <div className="field">
+            <section className="box c12">
+              <RecordActions studentId={studentId} surah={number} comment={record.teacher_comment} />
+            </section>
+          </div>
+        </>
+      )}
+
+      <Rule label={latest ? "Hear it again" : "Hear it"} />
+      <div className="field">
+        <section className="box c12" aria-label="The mushaf">
+          {draft ? (
+            <ReviewLogger
+              mode="hearing"
+              sessionId={draft.id}
+              reciterName={student.full_name}
+              pages={groupIntoPages(words)}
+              initialMistakes={draft.mistakes}
+              heat={heat}
+              history={history}
+              surahNames={surahNames}
+              pager={{ page, min: range.from, max: range.to, basePath, param: "p" }}
+            />
+          ) : (
+            <ReviewLogger
+              mode="hearing"
+              sessionId={null}
+              ensureSession={startHearing.bind(null, studentId, number)}
+              reciterName={student.full_name}
+              pages={groupIntoPages(words)}
+              initialMistakes={[]}
+              heat={heat}
+              history={history}
+              surahNames={surahNames}
+              pager={{ page, min: range.from, max: range.to, basePath, param: "p" }}
+            />
+          )}
+        </section>
+      </div>
+    </>
+  );
+}

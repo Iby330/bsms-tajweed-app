@@ -34,3 +34,16 @@ export function recordLine(record: RecordSummary | null, hearing: HearingSummary
       : "not signed off";
   return `Heard by ${hearing.teacherName} on ${fmtStamp(hearing.submittedAt)} · ${status} · ${mistakes}`;
 }
+
+/** The latest hearing, reduced to what recordLine needs; null when there is none. */
+export function summaryOf(
+  hearing: { submittedAt: string; outcome: HearingOutcome | null; teacherName: string; mistakes: unknown[] } | null | undefined,
+): HearingSummary | null {
+  if (!hearing) return null;
+  return {
+    submittedAt: hearing.submittedAt,
+    outcome: hearing.outcome,
+    teacherName: hearing.teacherName,
+    mistakeCount: hearing.mistakes.length,
+  };
+}

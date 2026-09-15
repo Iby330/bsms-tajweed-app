@@ -7,7 +7,7 @@ import { memorisationList } from "@/lib/hifz/pace";
 import { hizbOf } from "@/lib/hifz/hizb";
 import { pageWithin } from "@/lib/quran/page-within";
 import { hearingsFor } from "@/lib/hifz/hearing-queries";
-import { recordLine } from "@/lib/hifz/hearings";
+import { recordLine, summaryOf } from "@/lib/hifz/hearings";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
 import { SURAH_INFO } from "@/lib/hifz/surah-info";
 import { SURAH_SUMMARY, REVIEWED } from "@/lib/hifz/surah-summary";
@@ -91,14 +91,7 @@ export default async function SurahPage({
   const latest = hearings[0] ?? null;
   const line = recordLine(
     record ? { passedAt: record.passed_at, comment: record.teacher_comment } : null,
-    latest
-      ? {
-          submittedAt: latest.submittedAt,
-          outcome: latest.outcome,
-          teacherName: latest.teacherName,
-          mistakeCount: latest.mistakes.length,
-        }
-      : null,
+    summaryOf(latest),
   );
   const hearingMistakes = hearings.flatMap((h) => h.mistakes);
   const surahNames: SurahNames = Object.fromEntries(

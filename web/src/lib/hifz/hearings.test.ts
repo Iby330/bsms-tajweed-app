@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { fmtDay, fmtStamp } from "@/lib/format";
-import { recordLine, type HearingSummary } from "./hearings";
+import { recordLine, summaryOf, type HearingSummary } from "./hearings";
 
 const when = "2026-09-10T10:00:00Z";
 const day = fmtDay(when);
@@ -33,5 +33,18 @@ describe("recordLine", () => {
   });
   it("says so when nothing has happened", () => {
     expect(recordLine(null, null)).toBe("Not heard yet");
+  });
+});
+
+describe("summaryOf", () => {
+  it("is null when there is no hearing", () => {
+    expect(summaryOf(null)).toBeNull();
+    expect(summaryOf(undefined)).toBeNull();
+  });
+
+  it("reduces a hearing to what recordLine needs", () => {
+    expect(
+      summaryOf({ submittedAt: when, outcome: "passed", teacherName: "Ustadh Bilal", mistakes: [1, 2, 3] }),
+    ).toEqual({ submittedAt: when, outcome: "passed", teacherName: "Ustadh Bilal", mistakeCount: 3 });
   });
 });
