@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CATEGORIES, DETAILS, lettersOf, type Category } from "@/lib/hifz/mistake-taxonomy";
+import type { WordHistoryEntry } from "@/lib/hifz/heat-spread";
 import type { QuranWord } from "@/lib/quran/mushaf";
 import { cn } from "@/lib/utils";
 
@@ -26,12 +27,14 @@ export type SheetResult = { category: Category; detail: string | null; note: str
 export function MistakeSheet({
   word,
   existing,
+  previous,
   onSave,
   onRemove,
   onClose,
 }: {
   word: QuranWord | null;
   existing?: { category: Category; detail: string | null; note: string | null };
+  previous?: WordHistoryEntry[];   // earlier, submitted marks on this word
   onSave: (r: SheetResult) => void;
   onRemove?: () => void;
   onClose: () => void;
@@ -70,6 +73,24 @@ export function MistakeSheet({
             </DialogTitle>
           )}
         </DialogHeader>
+        {/* What earlier hearings said about this word — context for the
+            classification, not a substitute for it. */}
+        {previous && previous.length > 0 && (
+          <ul
+            aria-label="Earlier marks on this word"
+            className="space-y-1 rounded-md bg-muted px-2.5 py-1.5 text-xs"
+          >
+            {previous.map((e, i) => (
+              <li key={i}>
+                <span className="font-medium">{e.label}</span>
+                <span className="ml-2 text-muted-foreground">
+                  {new Date(e.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                </span>
+                {e.note && <span className="ml-2 text-ink-2">{e.note}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
         {/* Fits the count: three categories on one row, two side by side.
             A fixed 2-col grid left Makhraj stranded alone on a second row. */}
         <div className={cn("grid gap-1.5", categories.length === 3 ? "grid-cols-3" : "grid-cols-2")}>
