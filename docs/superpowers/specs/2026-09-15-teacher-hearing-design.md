@@ -47,7 +47,7 @@ even though they share a table underneath.
 
 ## Data
 
-One migration, `0024_teacher_hearings.sql`.
+One migration, `0029_teacher_hearings.sql`.
 
 **`revision_sessions`** gains three nullable-by-default columns:
 
@@ -60,6 +60,9 @@ One migration, `0024_teacher_hearings.sql`.
 Constraints: `kind in ('peer','hearing')`; `outcome in ('passed','not_passed')`;
 `(kind = 'hearing') = (surah_number is not null)`; `outcome is null` when
 `kind = 'peer'`. Existing rows default to `'peer'` and satisfy all of it.
+A hearing's date on screen is its `submitted_at`, a timestamptz, formatted
+in the school's zone by `fmtStamp`; a pass date stays `fmtDay`, because
+`passed_at` is a date column.
 
 **`hifz_records`** gains `session_id uuid references revision_sessions(id)`,
 nullable. A pass produced by a hearing points at it; passes from before this
@@ -81,6 +84,11 @@ The existing student insert policy gains `kind = 'peer'`, so a student can
 never create a hearing. Reciter reads are unchanged: a student sees a
 session, and its mistakes, only once `submitted_at` is set. That is the rule
 that keeps a half-finished hearing invisible.
+
+In practice only the session insert needed a new policy: the existing
+reviewer policies on update and on mistake insert/delete check
+`reviewer_id = auth.uid()` with no role test, so they admit a teacher as
+they stand.
 
 The active-pair uniqueness on drafts is peer-only. A teacher may hold one
 open draft per student per surah; `startHearing` reuses it.
@@ -104,7 +112,8 @@ Top to bottom:
    the surah occupies. Words carry heat from every *submitted* hearing of this
    surah; marks from the current draft render as they do in the peer logger.
    Tapping a word classifies it exactly as the peer logger does. Tapping a
-   hot word with no draft mark shows its history (what, when).
+   hot word opens the classifier as usual, with what earlier hearings said
+   about that word listed above the picker.
 3. **The verdict bar**, sticky at the bottom: mistake count on the left,
    **Not passed** and **Passed** on the right. Either opens the popup: one
    textarea, "Note for the student", and a confirm button named after the
@@ -163,16 +172,18 @@ In `lib/hifz/hearing-actions.ts`, each guarded by `requireTeacher()` and
   `session_id`. Both writes happen in one server action; if the record write
   fails the session is left unsubmitted and the error surfaces.
 
-`markSurahPassed` stays for the register's bulk paths but is no longer
-reachable from the surah page.
+`markSurahPassed` has no caller left; it stays until the register grows a
+bulk path or is deleted in a cleanup.
 
 ## Shared code
 
-- **`surahPageRange(surah, startPages, lastPage = 604)`** in
-  `lib/quran/mushaf.ts`: pure. A surah spans from its own start page to the
-  start page of the next surah in mushaf order (surah + 1), inclusive, or to
-  `lastPage` for An-Nas. Unit-tested, including a surah that shares a page
-  with its neighbour on both sides.
+- **`getCachedSurahPageRange(surah)`** in `lib/reference/cached.ts`: cached,
+  reads the surah's own first and last word's page straight from
+  `quran_words`, rather than deriving the end from the next surah's start —
+  the source of truth for what pages a surah occupies. **`pageWithin(requested,
+  range)`** in `lib/quran/page-within.ts`: pure, clamps a requested page
+  into that range, falling back to its first page when nothing sensible was
+  asked for. Unit-tested.
 - **`hearingsFor(studentId, surah)`** in `lib/hifz/hearing-queries.ts`:
   submitted hearings of one surah with their mistakes and the teacher's name.
   Runs as the caller, so RLS decides what a student sees.
@@ -208,9 +219,9 @@ reachable from the surah page.
 - Component: the verdict bar and popup (confirm button reads the verdict;
   submits with the note; disabled while pending); `HifzGrid` cells render as
   links and no longer mount a panel.
-- Live RLS test, in the style of `indexcheck.live.test.ts`: a teacher can
-  insert a hearing and its mistakes; a student cannot insert a hearing; a
-  student reads a hearing's mistakes only after submit.
+- Live RLS check: `supabase/checks/hearings_rls.sql`, run through
+  `apply_migration.ts --probe` as the teacher and as the student inside one
+  self-undoing transaction.
 - Manual: hear a surah with no mistakes and press Passed in one press; hear
   with three mistakes, Not passed, reopen, see the three marks in history;
   student opens the surah and sees exactly those three.
