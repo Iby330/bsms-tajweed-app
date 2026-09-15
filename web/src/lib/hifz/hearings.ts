@@ -1,4 +1,4 @@
-import { fmtDay } from "@/lib/format";
+import { fmtDay, fmtStamp } from "@/lib/format";
 
 export type HearingOutcome = "passed" | "not_passed";
 
@@ -32,5 +32,5 @@ export function recordLine(record: RecordSummary | null, hearing: HearingSummary
     : hearing.outcome === "not_passed"
       ? "not passed"
       : "not signed off";
-  return `Heard by ${hearing.teacherName} on ${fmtDay(hearing.submittedAt)} · ${status} · ${mistakes}`;
+  return `Heard by ${hearing.teacherName} on ${fmtStamp(hearing.submittedAt)} · ${status} · ${mistakes}`;
 }

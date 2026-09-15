@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { fmtDay } from "./format";
+import { fmtDay, fmtStamp } from "./format";
 
 describe("fmtDay", () => {
   it("formats a date column day-first, short month", () => {
@@ -16,5 +16,14 @@ describe("fmtDay", () => {
       process.env.TZ = prev;
       vi.resetModules();
     }
+  });
+});
+
+describe("fmtStamp", () => {
+  it("renders a timestamp in the school's zone, rolling into BST", () => {
+    expect(fmtStamp("2026-07-01T23:30:00Z")).toBe("2 Jul");
+  });
+  it("does not roll a date column the same way", () => {
+    expect(fmtDay("2026-07-01")).toBe("1 Jul");
   });
 });
