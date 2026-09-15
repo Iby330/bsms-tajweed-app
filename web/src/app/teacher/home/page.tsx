@@ -186,7 +186,7 @@ export default async function TeacherHome() {
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Nothing waiting — every submission is marked and approved.
+              Nothing waiting. Every submission is marked and approved.
             </p>
           )}
         </div>

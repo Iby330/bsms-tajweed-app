@@ -104,9 +104,9 @@ export function CalendarMonths({
                       )}
                     >
                       {n}
-                      {isToday && <span className="sr-only"> — today</span>}
+                      {isToday && <span className="sr-only">, today</span>}
                       {day?.type && (
-                        <span className="sr-only"> — {sessionLabel(day.type)} class</span>
+                        <span className="sr-only">, {sessionLabel(day.type)} class</span>
                       )}
                     </span>
                     <span className="flex h-1.5 items-center gap-0.5">
@@ -134,7 +134,7 @@ export function CalendarMonths({
                       type="button"
                       data-day={iso}
                       aria-label={`${long(iso)}${
-                        day.type ? ` — ${sessionLabel(day.type)} class` : ""
+                        day.type ? `, ${sessionLabel(day.type)} class` : ""
                       }${summarise(day) ? `: ${summarise(day)}` : ""}`}
                       onClick={() => setOpenDate(iso)}
                       data-tip={day.type ? `${sessionLabel(day.type)} class` : undefined}

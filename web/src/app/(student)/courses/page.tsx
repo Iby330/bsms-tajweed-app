@@ -83,7 +83,7 @@ export default async function Courses() {
         <>
           <Rule label="The rest of the programme" />
           <p className="note" style={{ marginBottom: 18, maxWidth: "60ch" }}>
-            Not yours to open — yet. It is here so you can see how much more
+            Not yours to open yet. It is here so you can see how much more
             there is: what the other classes are studying, and what is waiting
             for you if you keep going.
           </p>

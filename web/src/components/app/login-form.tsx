@@ -107,7 +107,7 @@ export function LoginForm({ next }: { next?: string }) {
         </button>
       ) : (
         <p className="text-center text-xs text-muted-foreground">
-          Access is by invitation — speak to your teacher if you need one.
+          Access is by invitation. Speak to your teacher if you need one.
         </p>
       )}
       {/* With the reset link hidden, someone who has forgotten their password

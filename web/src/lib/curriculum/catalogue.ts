@@ -60,7 +60,7 @@ const TOPICS: Record<string, Record<number, { label: string; blurb: string; slug
   tajweed: {
     1: {
       label: "Noon & Meem Sākin",
-      blurb: "Nūn sākin, tanwīn and meem sākin — iẓhār, idghām, iqlāb, ikhfā’.",
+      blurb: "Nūn sākin, tanwīn and meem sākin: iẓhār, idghām, iqlāb, ikhfā’.",
       slug: "tajweed-noon-meem-sakin",
     },
     2: {
@@ -70,7 +70,7 @@ const TOPICS: Record<string, Record<number, { label: string; blurb: string; slug
     },
     3: {
       label: "Mudūd",
-      blurb: "The lengthenings — muttaṣil, munfaṣil, ʿāriḍ, lāzim — and stopping.",
+      blurb: "The lengthenings (muttaṣil, munfaṣil, ʿāriḍ, lāzim) and stopping.",
       slug: "tajweed-mudood",
     },
   },

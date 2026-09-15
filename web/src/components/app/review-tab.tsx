@@ -31,7 +31,7 @@ export async function ReviewTab({
     return (
       <div className="space-y-5">
         <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
-          Your teacher hasn&apos;t paired you with anyone yet — reviews happen with
+          Your teacher hasn&apos;t paired you with anyone yet. Reviews happen with
           your revision partner.
         </p>
         <section className="space-y-2">
@@ -92,7 +92,7 @@ export async function ReviewTab({
   } else if (draft) {
     logging = (
       <p className="text-sm text-muted-foreground">
-        {pair.partnerName} has no memorisation target yet — ask your teacher.
+        {pair.partnerName} has no memorisation target yet. Ask your teacher.
       </p>
     );
   } else {

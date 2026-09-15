@@ -27,7 +27,7 @@ export default async function Locked() {
         <h1 className="text-2xl">Your place is on hold</h1>
         <p className="text-sm text-muted-foreground">
           Your account isn&apos;t active at the moment, so lessons and homework
-          are paused. Nothing has been lost — your marks, hifz progress and
+          are paused. Nothing has been lost. Your marks, hifz progress and
           feedback are all still here waiting.
         </p>
         <p className="text-sm text-muted-foreground">

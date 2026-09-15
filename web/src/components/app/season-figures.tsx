@@ -56,7 +56,7 @@ export function SeasonFigures({
           saved ? "opacity-100" : "opacity-0",
         )}
       >
-        Saved — applies to new payments
+        Saved. Applies to new payments
       </span>
     </span>
   );

@@ -113,7 +113,7 @@ export async function setPresence({
         student_id: studentId,
         term_id: termId,
         reason: "absence",
-        note: absenceReason?.trim() || `Absent — ${sessionLabel(sessionType)} session, ${sessionDate}`,
+        note: absenceReason?.trim() || `Absent: ${sessionLabel(sessionType)} session, ${sessionDate}`,
         issued_by: teacher.id,
       })
       .select("id")

@@ -383,8 +383,8 @@ export default async function HomeworkResults({
 
             {view === "question" && answers.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                No answers were recorded against these submissions — last year&apos;s
-                results came over from the spreadsheet as totals only — so there is
+                No answers were recorded against these submissions. Last year&apos;s
+                results came over from the spreadsheet as totals only, so there is
                 nothing to show under each question. This is the paper itself.
               </p>
             )}
@@ -466,7 +466,7 @@ export default async function HomeworkResults({
                               <span className="tabular-nums text-foreground">
                                 {Number(selectedSub.imported_marks)} out of {totalMarks}
                               </span>
-                              . Only the total came across — there are no answers to read.
+                              . Only the total came across. There are no answers to read.
                             </>
                           )}
                         </p>
@@ -496,7 +496,7 @@ export default async function HomeworkResults({
         <div className="mt-2 space-y-4">
           <p className="text-sm text-muted-foreground">
             Nobody has handed this in yet, so there is nothing to summarise. This is
-            the paper itself — the answer key, the mark scheme, and how each question
+            the paper itself: the answer key, the mark scheme, and how each question
             scores.
           </p>
           <QuestionBreakdown questions={questions} answers={[]} attribution={() => null} />

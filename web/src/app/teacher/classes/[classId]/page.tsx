@@ -252,7 +252,7 @@ export default async function ClassDetail({
       </div>
 
       <p className="text-xs text-muted-foreground">
-        A colleague&rsquo;s class, so this page reads and nothing more — marks, strikes and hifdh
+        A colleague&rsquo;s class, so this page reads and nothing more: marks, strikes and hifdh
         sign-off stay with the teacher who takes it. Overall is the year to date: each term is
         80% exam and 20% homework. Strikes are for Term {termId} only.
       </p>

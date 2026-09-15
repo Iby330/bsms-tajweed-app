@@ -229,7 +229,7 @@ export function LessonPlayer({
       {track && (
         <p className="text-xs text-muted-foreground">
           {watched
-            ? "✓ Watched — this one's marked off for you."
+            ? "✓ Watched. This one's marked off for you."
             : "Watch to the end and this marks itself off."}
         </p>
       )}

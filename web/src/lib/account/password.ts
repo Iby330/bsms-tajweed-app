@@ -25,7 +25,7 @@ export type PasswordResult = { ok: true } | { ok: false; message: string };
 export function humanisePasswordError(message: string): string {
   const m = message.toLowerCase();
   if (m.includes("different from the old password")) {
-    return "That's already your password — pick a new one.";
+    return "That's already your password. Pick a new one.";
   }
   if (m.includes("password should be") || m.includes("weak")) {
     return "That password is too weak. Try a longer one.";

@@ -23,7 +23,7 @@ describe("aggregatePatterns", () => {
     expect(ikhfa.total).toBe(2);
     expect(ikhfa.recent).toBe(1); // May is outside the 28-day window
     expect(ikhfa.surahs).toEqual([114, 112]);
-    expect(ikhfa.label).toBe("Tajweed — Ikhfa");
+    expect(ikhfa.label).toBe("Tajweed: Ikhfa");
   });
   it("sorts most recently active first", () => {
     const out = aggregatePatterns(

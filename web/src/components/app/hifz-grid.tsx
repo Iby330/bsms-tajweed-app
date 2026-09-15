@@ -284,7 +284,7 @@ function MarkPanel({
         rows={2}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        placeholder="e.g. Tighten the madd in āyah 3 — the student reads this…"
+        placeholder="e.g. Tighten the madd in āyah 3. The student reads this…"
       />
 
       <div className="acts">

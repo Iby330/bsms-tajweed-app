@@ -5,12 +5,12 @@ const STUBS: Record<string, { title: string; description: string }> = {
   resources: {
     title: "Resource Library",
     description:
-      "Extra videos, notes and reference material for students and teachers — all in one place.",
+      "Extra videos, notes and reference material for students and teachers, all in one place.",
   },
   seerah: {
     title: "Seerah Series",
     description:
-      "The biography of the Prophet ﷺ — fortnightly Monday talks, with examinable content.",
+      "The biography of the Prophet ﷺ. Fortnightly Monday talks, with examinable content.",
   },
   notifications: {
     title: "Notifications",

@@ -195,7 +195,7 @@ export function HomeworkForm({
                   value={textOf(value)}
                   onChange={(e) => update(q.id, textResponse(e.target.value))}
                   rows={q.qtype === "paragraph" || q.qtype === "grid" ? 4 : 2}
-                  placeholder="Answer in Arabic, transliteration or English — all are accepted."
+                  placeholder="Answer in Arabic, transliteration or English. All are accepted."
                   className="font-arabic"
                 />
               )}
@@ -254,7 +254,7 @@ export function HomeworkForm({
 
       {readOnly && !approved && (
         <p className="empty">
-          Submitted — your teacher will release your mark shortly.
+          Submitted. Your teacher will release your mark shortly.
         </p>
       )}
     </div>

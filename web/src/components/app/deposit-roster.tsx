@@ -35,7 +35,7 @@ function EntryRow({ row, price }: { row: DepositRow; price: number }) {
           <span className="font-semibold">{row.full_name}</span>
           {!row.student_id && (
             <span
-              title="No app account — their strike counts are typed in by hand"
+              title="No app account. Their strike counts are typed in by hand"
               className="shrink-0 rounded border border-line px-1 py-px text-[9px] uppercase tracking-wide text-muted-foreground"
             >
               no acct
@@ -51,7 +51,7 @@ function EntryRow({ row, price }: { row: DepositRow; price: number }) {
           data-in={stillIn}
           disabled={pending}
           aria-label={stillIn ? `Mark ${row.full_name} as no longer on the course` : `Mark ${row.full_name} as on the course`}
-          title={stillIn ? "On the course — click to remove" : "Left the course — click to restore"}
+          title={stillIn ? "On the course. Click to remove" : "Left the course. Click to restore"}
           onClick={() => {
             const next = !stillIn;
             setIn(next);

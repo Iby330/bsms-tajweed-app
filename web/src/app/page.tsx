@@ -49,7 +49,8 @@ export default function Landing() {
       </div>
 
       <p className="max-w-sm text-center text-xs text-muted-foreground">
-        Applications are open for the coming year — {feeLabel()}{" "}for the year.
+        Applications are open for the coming year. {feeLabel()}{" "}one time fee for the
+        full year.
         Already on the course? Sign in above, or speak to your teacher if you
         need a login.
       </p>

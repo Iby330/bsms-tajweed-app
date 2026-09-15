@@ -118,7 +118,7 @@ describe("ResultsSummary", () => {
       pctOfMax: 40,
       points: 2,
     });
-    expect(container.textContent).toContain("dropped a mark here \u2014 worth");
+    expect(container.textContent).toContain("dropped a mark here, worth");
     expect(container.textContent).not.toContain("leaving it blank");
   });
 

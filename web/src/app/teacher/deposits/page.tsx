@@ -121,7 +121,7 @@ export default async function Deposits() {
             hint={
               left < 0
                 ? "spending is ahead of income"
-                : "left to spend — and what carries into next year"
+                : "left to spend, and what carries into next year"
             }
           />
           {owed.length > 0 && (
@@ -145,7 +145,7 @@ export default async function Deposits() {
           </span>
         </div>
         <p className="mt-2 mb-5 max-w-[65ch] text-sm text-muted-foreground">
-          Set someone to <strong>N</strong> and they stay listed but grey — they
+          Set someone to <strong>N</strong> and they stay listed but grey. They
           left the course. The bin removes the row altogether.
         </p>
         <DepositRoster seasonId={season.id} rows={roster} price={price} />

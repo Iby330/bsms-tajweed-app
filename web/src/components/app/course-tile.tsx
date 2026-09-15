@@ -109,7 +109,7 @@ export function CourseTile({
                 : reason === "no-content"
                   // Their own course, with nothing behind it yet. Saying it is
                   // not taught would contradict the lesson they sat in today.
-                  ? "Taught in class — nothing here yet"
+                  ? "Taught in class, nothing here yet"
                   : block.moduleCount > 0
                     ? "Another class is studying this"
                     : "Not taught this year"}
@@ -122,7 +122,7 @@ export function CourseTile({
 
   if (!href) {
     return (
-      <div className="tcard cover-card locked" aria-label={`${block.label} — locked`}>
+      <div className="tcard cover-card locked" aria-label={`${block.label}, locked`}>
         {body}
       </div>
     );

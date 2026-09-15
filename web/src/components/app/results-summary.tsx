@@ -217,7 +217,7 @@ export function ResultsSummary({
                       , and {mostMissed.blank} left it blank
                     </>
                   )}
-                  {" "}— worth {fmtMarks(mostMissed.points)} marks.
+                  {", "}worth {fmtMarks(mostMissed.points)} marks.
                 </p>
               </Link>
             </div>

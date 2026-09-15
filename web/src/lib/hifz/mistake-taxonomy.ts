@@ -54,7 +54,7 @@ const RETIRED_DETAILS: Record<string, { id: string; label: string }[]> = {
 /** Session-level observations that aren't anchored to one word. */
 export const SESSION_FLAGS = [
   { id: "weak_hifz", label: "Weak hifdh overall" },
-  { id: "halting", label: "Halting — needs more revision" },
+  { id: "halting", label: "Halting: needs more revision" },
   { id: "strong", label: "Strong recitation" },
 ] as const;
 
@@ -88,7 +88,7 @@ export function detailLabel(category: Category | string, detail: string | null):
   const list =
     DETAILS[category as Exclude<Category, "makhraj">] ?? RETIRED_DETAILS[category];
   const d = list?.find((x) => x.id === detail);
-  return d ? `${cat} — ${d.label}` : cat;
+  return d ? `${cat}: ${d.label}` : cat;
 }
 
 export function flagLabel(flag: string): string {

@@ -117,7 +117,7 @@ export default async function StudentHifzDetail({
         <Rule label="The run" />
         <div className="field">
           <p className="box c12 note">
-            No target set yet — choose one on the{" "}
+            No target set yet. Choose one on the{" "}
             <Link href="/teacher/hifz" className="underline">
               register
             </Link>{" "}

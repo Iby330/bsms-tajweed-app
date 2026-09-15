@@ -206,7 +206,7 @@ function ApplicationCard({ row, classes }: { row: ApplicationRow; classes: Class
                 value={level}
                 disabled={pending}
                 maxLength={200}
-                placeholder="e.g. solid makhārij, shaky on mudūd — group 2"
+                placeholder="e.g. solid makhārij, shaky on mudūd, group 2"
                 onChange={(e) => setLevel(e.target.value)}
                 onBlur={() => {
                   if (level !== (row.assessed_level ?? "")) {

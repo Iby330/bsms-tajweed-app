@@ -66,13 +66,13 @@ export function HifzRegister({ rows, surahs }: { rows: RegisterRow[]; surahs: Su
     startTransition(async () => {
       if (single && count !== null) {
         await setStudentHifzProfile(single.studentId, start, count);
-        setMessage(`Saved — ${single.name}'s target is ${count} surah${count === 1 ? "" : "s"}.`);
+        setMessage(`Saved. ${single.name}'s target is ${count} surah${count === 1 ? "" : "s"}.`);
       } else if (end !== null) {
         const res = await setTargetForStudents([...sel], end);
         setMessage(
           `Applied to ${res.applied} student${res.applied === 1 ? "" : "s"}.` +
             (res.skipped.length
-              ? ` Skipped ${res.skipped.join(", ")} — already past that surah.`
+              ? ` Skipped ${res.skipped.join(", ")}: already past that surah.`
               : ""),
         );
       }

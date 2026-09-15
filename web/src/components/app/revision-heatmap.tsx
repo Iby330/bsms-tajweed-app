@@ -42,7 +42,7 @@ function describe(date: Date, day: RevisionDay | undefined): string {
   if (day.pages > 0) parts.push(plural(day.pages, "page"));
   if (day.surahs > 0) parts.push(plural(day.surahs, "surah"));
   if (day.sessions > 0) parts.push(plural(day.sessions, "session"));
-  return `${parts.join(" · ")} — ${when}`;
+  return `${parts.join(" · ")} · ${when}`;
 }
 
 export function RevisionHeatmap({

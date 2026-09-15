@@ -67,10 +67,10 @@ export function StrikeDots({ strikes }: { strikes: StrikeInfo[] }) {
               title={
                 strikes[i]
                   ? `${REASON_LABELS[strikes[i].reason] ?? strikes[i].reason}${
-                      strikes[i].note ? ` — ${strikes[i].note}` : ""
+                      strikes[i].note ? `: ${strikes[i].note}` : ""
                     }`
                   : i === 2
-                    ? "Third strike — leaving the course"
+                    ? "Third strike: leaving the course"
                     : "No strike"
               }
             />

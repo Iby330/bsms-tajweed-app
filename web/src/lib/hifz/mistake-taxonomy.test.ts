@@ -18,7 +18,7 @@ describe("taxonomy shape", () => {
   // still read properly rather than showing the raw slug to a student.
   it("still labels a retired category's rows", () => {
     expect(CATEGORIES.map((c) => c.id)).not.toContain("fluency");
-    expect(detailLabel("fluency", "hesitation")).toBe("Fluency — Hesitation");
+    expect(detailLabel("fluency", "hesitation")).toBe("Fluency: Hesitation");
   });
 });
 
@@ -36,7 +36,7 @@ describe("lettersOf", () => {
 
 describe("labels", () => {
   it("labels a tajweed rule", () => {
-    expect(detailLabel("tajweed", "ikhfa")).toBe("Tajweed — Ikhfa");
+    expect(detailLabel("tajweed", "ikhfa")).toBe("Tajweed: Ikhfa");
   });
   it("labels a makhraj letter with the letter itself", () => {
     expect(detailLabel("makhraj", "ض")).toBe("Makhraj of ض");

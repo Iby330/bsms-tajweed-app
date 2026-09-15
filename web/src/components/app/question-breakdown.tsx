@@ -216,7 +216,7 @@ export function QuestionBreakdown({
             {rubric && (
               <div className="mt-4">
                 <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                  Mark scheme — the AI awards each point independently
+                  Mark scheme: the AI awards each point independently
                 </div>
                 <ul className="mt-2 space-y-1">
                   {rubric.map((c) => (
@@ -257,7 +257,7 @@ export function QuestionBreakdown({
                         <div className="min-w-0 flex-1">
                           {q.is_task ? (
                             <span className="text-sm text-muted-foreground">
-                              Recorded in the app — open their script to listen.
+                              Recorded in the app. Open their script to listen.
                             </span>
                           ) : responseIsEmpty(a.response) ? (
                             <span className="text-sm italic text-muted-foreground">
@@ -279,7 +279,7 @@ export function QuestionBreakdown({
 
             {gap && (
               <p className="mt-4 rounded-md bg-warn/10 px-3 py-2 text-xs text-warn">
-                No answer key or mark scheme for this question — a teacher enters the mark
+                No answer key or mark scheme for this question. A teacher enters the mark
                 during review. Adding one here would let it mark automatically.
               </p>
             )}

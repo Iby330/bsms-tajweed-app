@@ -76,7 +76,7 @@ export default async function AccountPage() {
         <section className="box c12">
           <span className="label">Profile picture</span>
           <p className="mt-2 max-w-[65ch] text-sm text-muted-foreground">
-            Shown beside your name in the sidebar. Entirely optional — your
+            Shown beside your name in the sidebar. Entirely optional. Your
             initials stand in when there isn&rsquo;t one.
           </p>
           <AvatarForm

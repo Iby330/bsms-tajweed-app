@@ -283,7 +283,7 @@ export default async function StudentRecord({
                         ? `/teacher/homework/submission/${subId}?from=student`
                         : `/teacher/homework/${m.number}`
                     }
-                    aria-label={`${title.get(m.number) ?? `Homework ${m.number}`} — ${m.pct.toFixed(1)}%`}
+                    aria-label={`${title.get(m.number) ?? `Homework ${m.number}`}: ${m.pct.toFixed(1)}%`}
                     className={cn(
                       "min-w-0 flex-1 rounded-t-sm transition-colors hover:opacity-80",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",

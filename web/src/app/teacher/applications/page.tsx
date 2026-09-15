@@ -33,7 +33,7 @@ export default async function Applications() {
             bsmstajweed.com/apply
           </a>
           . Invite them to the online recitation session, record what you hear,
-          then place them in a group — they get their login once they&apos;re
+          then place them in a group. They get their login once they&apos;re
           placed.
         </p>
         {!PAYMENT_LINK && (
@@ -44,7 +44,7 @@ export default async function Applications() {
              — which looks like a bug unless you know. */
           <p className="mt-3 max-w-[60ch] text-sm text-danger">
             No payment link is set, so the form asks nobody to confirm paying
-            the {feeLabel()}{" "}fee — it tells them the details follow by email.
+            the {feeLabel()}{" "}fee. It tells them the details follow by email.
             Every application will show as unpaid until you send them.
           </p>
         )}

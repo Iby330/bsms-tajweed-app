@@ -144,7 +144,7 @@ export function ReviewPanel({
         ) : (
           needsAttention > 0 && !locked && (
             <p className="text-xs text-warn">
-              {needsAttention} answer{needsAttention === 1 ? "" : "s"} could not be marked automatically — enter a mark below.
+              {needsAttention} answer{needsAttention === 1 ? "" : "s"} could not be marked automatically. Enter a mark below.
             </p>
           )
         )}
@@ -175,7 +175,7 @@ export function ReviewPanel({
         {locked && (
           <span className="flex items-center gap-2">
             <span className="rounded-md bg-ok/12 px-2.5 py-1 text-xs font-medium text-ok">
-              Approved — the student can see this
+              Approved. The student can see this
             </span>
             <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
               Edit marks
@@ -333,7 +333,7 @@ export function ReviewPanel({
 
               {a.auto_marks === null && !q.is_task && (
                 <p className="text-xs text-warn">
-                  Needs your judgement — no answer key or rubric for this one.
+                  Needs your judgement. No answer key or rubric for this one.
                 </p>
               )}
 

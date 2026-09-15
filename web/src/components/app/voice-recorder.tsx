@@ -196,7 +196,7 @@ export function VoiceRecorder({
       {error && <p className="text-xs text-danger">{error}</p>}
       {!path && !recording && !error && (
         <p className="text-xs text-muted-foreground">
-          Your teacher listens to this — find somewhere quiet and take your time.
+          Your teacher listens to this. Find somewhere quiet and take your time.
         </p>
       )}
     </div>
