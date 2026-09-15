@@ -55,17 +55,34 @@ check — has to cope with `0023_teaching_calendar.sql` and
 **To fix, if it is ever worth fixing:** a `schema_migrations`-style ledger,
 or renumber on merge. Not urgent while migrations are applied by hand.
 
-## 4. `lib/curriculum/syllabus.ts` is dead
+## 4. `lib/curriculum/syllabus.ts` is a second, name-keyed copy of the syllabus
 
-`0026_courses_and_class_syllabus.sql` moved `SYLLABUS` and `CLASS_GROUP` into
-the `courses` and `class_courses` tables, because RLS cannot read a TypeScript
-file. The file was left in place and nothing in `web/src` imports it any more
-except its own test — the per-class curriculum is now read from the database
-by `getClassSchedule()`.
+~~Dead code.~~ **Wrong — corrected 2026-09-15.** The original note here said
+nothing imported this file. It does: `plan.ts` imports it as `./syllabus`, and
+the grep behind the claim only looked for the `@/lib/curriculum/syllabus`
+alias. `plan.ts` drives both calendar screens and `lib/marking/actions.ts`, so
+the file is very much live. The lesson is the smaller one: a relative import is
+invisible to a search for the aliased path.
 
-It is a live hazard rather than clutter: it still reads like the source of
-truth, still lists the 2026/27 levelling, and the database has since moved on
-from it (Masjid Al-Aqsa's Term 2, for one).
+The real drift is subtler than a dead file, and worse.
+`0026_courses_and_class_syllabus.sql` copied `SYLLABUS` and `CLASS_GROUP` into
+`courses` and `class_courses`, because RLS cannot read a TypeScript file. It
+did not replace them. So the same syllabus is now stated twice:
 
-**To fix:** delete `syllabus.ts` and `syllabus.test.ts`, or reduce the file to
-the seed data `0026` was written from with a comment saying so.
+| | keyed by | drives | survives a class rename |
+| --- | --- | --- | --- |
+| `class_courses` | class **id** | RLS, the course index | yes |
+| `syllabus.ts` `CLASS_GROUP` | class **name** | both calendar screens | **no** |
+
+A class rename therefore half-works: the database copy follows the row, and
+the TypeScript copy silently stops matching. It does not throw — `CLASS_GROUP`
+simply returns no group, and that class's calendar renders its teaching days
+with no topics on them.
+
+This is not hypothetical. `0029_real_classes_for_groups_3_and_4.sql` renamed
+two classes on 2026-09-15 and had to edit `syllabus.ts` in the same commit to
+keep the calendars working.
+
+**To fix:** have `plan.ts` read `class_courses` like everything else, and
+delete `CLASS_GROUP`. Until then, treat "rename a class" as a change that
+touches the database *and* this file, and never only one.
