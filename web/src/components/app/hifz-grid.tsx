@@ -1,17 +1,7 @@
-"use client";
-
-import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { markSurahPassed, setSurahComment, unmarkSurah } from "@/lib/hifz/actions";
+import Link from "next/link";
 import { hizbOf, HIZB_BOUNDS } from "@/lib/hifz/hizb";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
-import { fmtDay } from "@/lib/format";
 import { cn } from "@/lib/utils";
-
-const cellId = (surahNumber: number) => `hifz-cell-${surahNumber}`;
 
 export type MarkRow = {
   number: number;
@@ -24,22 +14,21 @@ export type MarkRow = {
 };
 
 /**
- * The marking grid — the student's own mushaf index, made writable.
+ * The teacher's view of the run — the student's own mushaf index, each
+ * cell a door.
  *
  * The teacher used to sign surahs off down a list of forty-odd rows, which
  * gave away the one thing the student's view has: the run as a single shape,
  * banded by hizb, so where a student actually is takes no reading. This is
- * that grid with the marking attached, and the same page now looks like the
- * page the student is looking at when they talk about it.
+ * that grid, and the same page now looks like the page the student is
+ * looking at when they talk about it.
  *
- * Selecting a cell opens the sign-off panel under its own band, rather than
- * putting a Pass button on every cell. Marking is deliberate — it follows a
- * recitation — and one panel has room to say what the cell cannot: the āyah
- * count, the date it was heard, and the comment in full rather than clipped.
+ * A cell links to the surah's page, which is where a surah is heard: the
+ * mushaf, the marks, the verdict. The sign-off panel that used to open
+ * under a band is gone — passing a surah follows a hearing, and two places
+ * to mark the same surah is how records drift.
  *
- * Comments are editable on a surah already passed. That was impossible in the
- * list: the comment box only existed on the way to marking, so fixing a typo
- * meant undoing the pass and losing the date with it.
+ * Server component: nothing here needs state any more.
  */
 export function HifzGrid({
   studentId,
@@ -50,34 +39,6 @@ export function HifzGrid({
   rows: MarkRow[];
   expected: number;
 }) {
-  const router = useRouter();
-  const [sel, setSel] = useState<number | null>(null);
-  const [comment, setComment] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-
-  /** Closing hands focus back to the cell that opened the panel — the panel
-   *  takes focus when it opens, so without this a keyboard user lands on the
-   *  document body and has to tab through the whole grid again. */
-  const close = () => {
-    const id = sel;
-    setSel(null);
-    if (id !== null) requestAnimationFrame(() => document.getElementById(cellId(id))?.focus());
-  };
-
-  // Escape closes the panel — it is a transient editor over a grid the
-  // teacher is scanning, and reaching for the × with a mouse is the slow way.
-  useEffect(() => {
-    if (sel === null) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      setSel(null);
-      requestAnimationFrame(() => document.getElementById(cellId(sel))?.focus());
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [sel]);
-
   if (rows.length === 0) return null;
 
   const passedCount = rows.filter((r) => r.passed).length;
@@ -100,29 +61,9 @@ export function HifzGrid({
     else groups.push({ hizb: h, items: [{ r, i }] });
   });
 
-  const open = (r: MarkRow) => {
-    if (sel === r.number) {
-      setSel(null);
-      return;
-    }
-    setSel(r.number);
-    setComment(r.comment ?? "");
-    setMessage(null);
-  };
-
-  /** Every action ends the same way: refresh, and say what happened. */
-  const run = (work: () => Promise<void>, said: string) =>
-    startTransition(async () => {
-      await work();
-      setMessage(said);
-      router.refresh();
-    });
-
   return (
-    <section className="box c12 hifzindex" aria-label="Hifdh marking grid">
-      <p className="note" aria-live="polite">
-        {message ?? "Select a surah to sign it off, or to leave the student a comment."}
-      </p>
+    <section className="box c12 hifzindex" aria-label="Hifdh run">
+      <p className="note">Open a surah to hear it, or to see how it was heard.</p>
 
       {groups.map((g) => {
         const bound = HIZB_BOUNDS.find((b) => b.hizb === g.hizb);
@@ -131,7 +72,6 @@ export function HifzGrid({
         // "Ready for the check" only when the WHOLE hizb is on this student's
         // run and passed — a partial hizb can never be checked.
         const ready = done === g.items.length && g.items.length === inHizb;
-        const holds = g.items.find((x) => x.r.number === sel);
 
         return (
           <div key={g.hizb}>
@@ -148,18 +88,10 @@ export function HifzGrid({
               {g.items.map(({ r, i }) => {
                 const meta = SURAH_META[r.number];
                 return (
-                  <button
+                  <Link
                     key={r.number}
-                    id={cellId(r.number)}
-                    type="button"
-                    onClick={() => open(r)}
-                    aria-expanded={sel === r.number}
-                    className={cn(
-                      "cell",
-                      r.passed && "done",
-                      i === currentIdx && "next",
-                      sel === r.number && "sel",
-                    )}
+                    href={`/teacher/hifz/${studentId}/${r.number}`}
+                    className={cn("cell", r.passed && "done", i === currentIdx && "next")}
                   >
                     <span className="n">{String(i + 1).padStart(2, "0")}</span>
                     {i === currentIdx && <span className="tag">NEXT</span>}
@@ -179,24 +111,10 @@ export function HifzGrid({
                         {r.comment && ", has a comment"}
                       </span>
                     </span>
-                  </button>
+                  </Link>
                 );
               })}
             </div>
-
-            {holds && (
-              <MarkPanel
-                studentId={studentId}
-                row={holds.r}
-                position={holds.i + 1}
-                total={rows.length}
-                comment={comment}
-                setComment={setComment}
-                pending={pending}
-                onClose={close}
-                run={run}
-              />
-            )}
 
             {markerIdx !== null && g.items.some((x) => x.i === markerIdx) && (
               <div className="paceline">
@@ -208,134 +126,5 @@ export function HifzGrid({
         );
       })}
     </section>
-  );
-}
-
-/** The sign-off panel: one surah, attached to the bottom of its own band. */
-function MarkPanel({
-  studentId,
-  row,
-  position,
-  total,
-  comment,
-  setComment,
-  pending,
-  onClose,
-  run,
-}: {
-  studentId: string;
-  row: MarkRow;
-  position: number;
-  total: number;
-  comment: string;
-  setComment: (v: string) => void;
-  pending: boolean;
-  onClose: () => void;
-  run: (work: () => Promise<void>, said: string) => void;
-}) {
-  const meta = SURAH_META[row.number];
-  const dirty = comment.trim() !== (row.comment ?? "").trim();
-  const panel = useRef<HTMLDivElement>(null);
-
-  // The panel takes focus, not the textarea: autofocusing a field throws up
-  // the keyboard on a phone over a panel whose first action is usually a
-  // button, and the teacher marking on a laptop still lands here, one Tab
-  // from the comment and with Escape already live.
-  useEffect(() => {
-    panel.current?.focus({ preventScroll: true });
-  }, [row.number]);
-
-  return (
-    <div className="markpanel" ref={panel} tabIndex={-1}>
-      <div className="head">
-        <span dir="rtl" lang="ar" className="ar-quran ar-panel">{row.name_ar}</span>
-        <span className="who">
-          <b>{row.name_en}</b>
-          <span className="facts">
-            {meta && <span>{meta.ayahs} āyāt</span>}
-            <span>
-              {position} of {total}
-            </span>
-            <span className={cn(row.passed && "hi")}>
-              {row.passed
-                ? row.passedAt
-                  ? `Heard ${fmtDay(row.passedAt)}`
-                  : "Signed off"
-                : "Not signed off"}
-            </span>
-          </span>
-        </span>
-        <button
-          type="button"
-          className="iconbtn"
-          onClick={onClose}
-          aria-label="Close"
-          title="Close"
-        >
-          <X className="size-3.5" />
-        </button>
-      </div>
-
-      <label className="label" htmlFor="hifz-comment">
-        Comment for the student
-      </label>
-      <Textarea
-        id="hifz-comment"
-        rows={2}
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        placeholder="e.g. Tighten the madd in āyah 3. The student reads this…"
-      />
-
-      <div className="acts">
-        {row.passed ? (
-          <>
-            <Button
-              size="sm"
-              disabled={pending || !dirty}
-              onClick={() =>
-                run(
-                  () => setSurahComment(studentId, row.number, comment),
-                  `Comment saved for ${row.name_en}.`,
-                )
-              }
-            >
-              {pending ? "Saving…" : "Save comment"}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={pending}
-              onClick={() =>
-                run(
-                  () => unmarkSurah(studentId, row.number),
-                  `${row.name_en} is no longer signed off.`,
-                )
-              }
-            >
-              Undo pass
-            </Button>
-          </>
-        ) : (
-          <Button
-            size="sm"
-            disabled={pending}
-            onClick={() =>
-              run(
-                () => markSurahPassed(studentId, row.number, comment),
-                `${row.name_en} signed off.`,
-              )
-            }
-          >
-            {pending ? "Saving…" : "Mark passed"}
-          </Button>
-        )}
-        <span className="hint">
-          {row.passed
-            ? "Undoing removes the date it was heard on."
-            : "The comment is optional, and visible to the student."}
-        </span>
-      </div>
-    </div>
   );
 }

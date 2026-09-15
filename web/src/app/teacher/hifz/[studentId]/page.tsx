@@ -25,7 +25,7 @@ const PACE_LABEL = { ok: "Ahead", warn: "On pace", danger: "Behind" } as const;
  * banded by hizb — rather than a teacher-shaped list of rows. Both people end
  * up looking at the same shape, which matters on a Thursday when they are
  * looking at it together, and the run reads as a run instead of forty-odd
- * lines. Marking hangs off the cells; see HifzGrid.
+ * lines. Each cell opens the surah's page, where it is heard and passed.
  */
 export default async function StudentHifzDetail({
   params,
