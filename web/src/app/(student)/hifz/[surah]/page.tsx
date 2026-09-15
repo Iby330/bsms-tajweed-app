@@ -2,13 +2,19 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
-import { getCachedSurahs } from "@/lib/reference/cached";
+import { getCachedSurahs, getCachedSurahPageRange } from "@/lib/reference/cached";
 import { memorisationList } from "@/lib/hifz/pace";
 import { hizbOf } from "@/lib/hifz/hizb";
+import { pageWithin } from "@/lib/quran/page-within";
+import { hearingsFor } from "@/lib/hifz/hearing-queries";
+import { recordLine } from "@/lib/hifz/hearings";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
 import { SURAH_INFO } from "@/lib/hifz/surah-info";
 import { SURAH_SUMMARY, REVIEWED } from "@/lib/hifz/surah-summary";
 import { fmtDay } from "@/lib/format";
+import { SurahMushaf } from "@/components/app/surah-mushaf";
+import { Rule } from "@/components/app/rule";
+import type { SurahNames } from "@/components/app/mushaf-reader";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +31,12 @@ export const dynamic = "force-dynamic";
  */
 export default async function SurahPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ surah: string }>;
+  searchParams: Promise<{ p?: string }>;
 }) {
-  const { surah: raw } = await params;
+  const [{ surah: raw }, { p }] = await Promise.all([params, searchParams]);
   const number = Number(raw);
   // Checked against static data before touching the database, so a nonsense
   // number costs no query. SURAH_META covers 67–114, which is WIDER than the
@@ -47,7 +55,7 @@ export default async function SurahPage({
   const profile = (await currentProfile())!;
   const db = await supabaseServer();
 
-  const [surahs, hp, rec] = await Promise.all([
+  const [surahs, hp, rec, hearings, range] = await Promise.all([
     getCachedSurahs(),
     db
       .from("hifz_profiles")
@@ -60,6 +68,8 @@ export default async function SurahPage({
       .eq("student_id", profile.id)
       .eq("surah_number", number)
       .maybeSingle(),
+    hearingsFor(profile.id, number),
+    getCachedSurahPageRange(number),
   ]);
 
   const surah = surahs.find((s) => s.number === number);
@@ -75,6 +85,25 @@ export default async function SurahPage({
   const info = SURAH_INFO[number];
   const summary = SURAH_SUMMARY[number];
   const record = rec.data;
+
+  // The latest submitted hearing carries the date and count; the record
+  // carries the truth about "passed". recordLine reconciles the two.
+  const latest = hearings[0] ?? null;
+  const line = recordLine(
+    record ? { passedAt: record.passed_at, comment: record.teacher_comment } : null,
+    latest
+      ? {
+          submittedAt: latest.submittedAt,
+          outcome: latest.outcome,
+          teacherName: latest.teacherName,
+          mistakeCount: latest.mistakes.length,
+        }
+      : null,
+  );
+  const hearingMistakes = hearings.flatMap((h) => h.mistakes);
+  const surahNames: SurahNames = Object.fromEntries(
+    surahs.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]),
+  );
 
   return (
     <>
@@ -117,7 +146,7 @@ export default async function SurahPage({
               <div className="stat">
                 <span className="v sm">Passed</span>
               </div>
-              <div className="note">Heard by your teacher on {fmtDay(record.passed_at)}.</div>
+              <div className="note">{line}.</div>
               {record.teacher_comment ? (
                 <div className="saywrap" style={{ marginTop: 8, paddingTop: 0, borderTop: "none" }}>
                   <div className="seclab">What your teacher said</div>
@@ -136,14 +165,41 @@ export default async function SurahPage({
                 <span className="v sm">Not yet</span>
               </div>
               <div className="note">
-                {idx >= 0
-                  ? "This one is still ahead of you. Your teacher hears it when you are ready."
-                  : "This surah is not on your list this year."}
+                {latest
+                  ? `${line}.`
+                  : idx >= 0
+                    ? "This one is still ahead of you. Your teacher hears it when you are ready."
+                    : "This surah is not on your list this year."}
               </div>
             </>
           )}
         </section>
       </div>
+
+      {/* ── the surah itself, with the teacher's marks on it ── */}
+      {range && idx >= 0 && (
+        <>
+          <Rule label="The mushaf" />
+          <div className="field">
+            <section className="box c12" aria-label="The surah, with your teacher's marks">
+              <p className="note">
+                {hearingMistakes.length > 0
+                  ? "Tinted words are the ones your teacher marked. Tap one to see what went wrong."
+                  : latest
+                    ? "Your teacher marked no mistakes on this one."
+                    : "Once your teacher has heard this surah, their marks show here."}
+              </p>
+              <SurahMushaf
+                page={pageWithin(p, range)}
+                range={range}
+                mistakes={hearingMistakes}
+                basePath={`/hifz/${number}`}
+                surahNames={surahNames}
+              />
+            </section>
+          </div>
+        </>
+      )}
 
       {/* ── then the surah itself, briefly ── */}
       {summary && (
