@@ -15,7 +15,7 @@ import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { Sparkline } from "@/components/app/sparkline";
 import { getCachedSurahs } from "@/lib/reference/cached";
-import { memorisationList, passedOfList } from "@/lib/hifz/pace";
+import { memorisationList, passedThisYear } from "@/lib/hifz/pace";
 import { SERIES_LABELS, seriesShort } from "@/lib/lessons/series";
 import { isLate } from "@/lib/homework/logic";
 import { cn } from "@/lib/utils";
@@ -150,11 +150,12 @@ export default async function StudentHome() {
   const hifzList = progress.hifz
     ? memorisationList(progress.hifz.startSurah, progress.hifz.target, surahs)
     : [];
-  // How far through THIS year's list they are. `progress.hifz.passed` is a
+  // How far past the start of this year's list they have got — which may be
+  // past its end, and that is not an error. `progress.hifz.passed` is a
   // lifetime count and indexing the list with it put the surah name off the
-  // end of the array for a returning student, which is why the Arabic line
-  // disappeared rather than showing the wrong surah.
-  const hifzDone = passedOfList(hifzList, progress.hifz?.passedSurahs ?? []);
+  // end of the array, which is why the Arabic line disappeared entirely
+  // rather than showing the wrong surah.
+  const hifzDone = passedThisYear(surahs, hifzList, progress.hifz?.passedSurahs ?? []);
   const lastPassed = hifzDone.last;
 
   // Clamped to the list, as /hifz does: a target set beyond the surahs the

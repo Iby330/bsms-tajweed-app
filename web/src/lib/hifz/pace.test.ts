@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectedPassed, paceStatus, memorisationList, passedOfList, type Surah } from "./pace";
+import { expectedPassed, paceStatus, memorisationList, passedThisYear, type Surah } from "./pace";
 
 const weeks = (n: number, startMs: number) =>
   Array.from({ length: n }, (_, i) => ({
@@ -67,49 +67,72 @@ describe("memorisationList", () => {
   });
 });
 
-/* ── passedOfList — this year's list against a lifetime record ───────────── */
+/* ── passedThisYear — the year's work, against a lifetime record ─────────── */
 
-describe("passedOfList", () => {
+describe("passedThisYear", () => {
   const s = (number: number, order_index: number): Surah => ({
-    number, order_index, name_ar: `ع${number}`, name_en: `S${number}`,
+    number, order_index, name_ar: `\u0639${number}`, name_en: `S${number}`,
   });
-  // A returning student's year: fifteen surahs starting at 86.
-  const list = [s(86, 29), s(85, 30), s(84, 31)];
+  // The memorisation order: An-Nas (114) first, descending.
+  const all = Array.from({ length: 45 }, (_, i) => s(114 - i, i + 1));
+  /** A first-year student: the whole run from An-Nas, target 43. */
+  const firstYear = all.slice(0, 43);
+  /** A returning student: fifteen surahs starting at 86 (order 29). */
+  const returning = all.slice(28, 43);
 
-  it("counts only what is in this year's list", () => {
-    // 114..87 are last year's, and must not count towards this year.
-    const lifetime = [114, 113, 112, 87, 86, 85];
-    expect(passedOfList(list, lifetime).count).toBe(2);
-  });
-
-  it("names the furthest surah reached, not the nth", () => {
-    expect(passedOfList(list, [86, 85]).last?.number).toBe(85);
+  it("counts a first-year student's list normally", () => {
+    const got = passedThisYear(all, firstYear, [114, 113, 112]);
+    expect(got.count).toBe(3);
+    expect(got.last?.number).toBe(112);
   });
 
   /**
-   * THE REGRESSION. Home did `list[passed - 1]` with a LIFETIME count. Adam
-   * Whitfield has 26 records against a 15-surah year, so the index ran off the
-   * end, the lookup came back undefined, and the whole Arabic surah name line
-   * stopped rendering.
+   * A student two past their target has not made an error — they are two
+   * ahead, and the card must say where they actually are. Capping at the
+   * list's end named the 43rd surah to someone who left it two surahs ago.
    */
-  it("still names a surah when the lifetime count exceeds the list", () => {
-    const lifetime = Array.from({ length: 26 }, (_, i) => 114 - i); // 114..89
-    expect(list[lifetime.length - 1]).toBeUndefined();   // what Home did
-    const got = passedOfList(list, lifetime);            // what it does now
+  it("counts past the target and names the surah actually reached", () => {
+    const lifetime = all.slice(0, 45).map((x) => x.number);   // 45 of a 43 list
+    const got = passedThisYear(all, firstYear, lifetime);
+    expect(got.count).toBe(45);
+    expect(got.last?.number).toBe(70);                        // the 45th, not the 43rd
+  });
+
+  it("does not count an earlier year's work as this year's", () => {
+    // 26 surahs from before the returning student's list even begins.
+    const lastYear = all.slice(0, 26).map((x) => x.number);
+    const got = passedThisYear(all, returning, lastYear);
     expect(got.count).toBe(0);
     expect(got.last).toBeNull();
   });
 
+  it("counts a returning student's own year, and only that", () => {
+    const lastYear = all.slice(0, 26).map((x) => x.number);
+    const got = passedThisYear(all, returning, [...lastYear, 86, 85]);
+    expect(got.count).toBe(2);
+    expect(got.last?.number).toBe(85);
+  });
+
+  /**
+   * THE ORIGINAL REGRESSION. Home did `list[passed - 1]` with the LIFETIME
+   * count, so a student past their target indexed off the end of the array
+   * and the Arabic surah name stopped rendering altogether.
+   */
+  it("still names a surah where indexing by the count ran off the end", () => {
+    const lifetime = all.slice(0, 45).map((x) => x.number);
+    expect(firstYear[lifetime.length - 1]).toBeUndefined();  // what Home did
+    expect(passedThisYear(all, firstYear, lifetime).last).not.toBeNull();
+  });
+
   it("does not assume the passed ones are an unbroken run from the top", () => {
-    // 85 passed, 86 not — indexing by a count of 1 would have named 86.
-    const got = passedOfList(list, [85]);
+    const got = passedThisYear(all, returning, [85]);        // 86 not passed
     expect(got.count).toBe(1);
     expect(got.last?.number).toBe(85);
     expect(got.isPassed(86)).toBe(false);
-    expect(got.isPassed(85)).toBe(true);
   });
 
-  it("is empty for a student with no records at all", () => {
-    expect(passedOfList(list, [])).toMatchObject({ count: 0, last: null });
+  it("is empty for a student with no records, and for an empty list", () => {
+    expect(passedThisYear(all, firstYear, [])).toMatchObject({ count: 0, last: null });
+    expect(passedThisYear(all, [], [114])).toMatchObject({ count: 0, last: null });
   });
 });

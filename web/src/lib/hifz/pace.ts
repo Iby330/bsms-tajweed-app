@@ -41,40 +41,44 @@ export type Surah = {
 };
 
 /**
- * Which of THIS YEAR'S list a student has actually passed.
+ * How far past the START of this year's list a student has got.
  *
- * `hifz_records` is lifetime — it has no year column — while the list is one
- * year's target. A returning student therefore carries more records than the
- * list has entries, and the two numbers must not be confused:
+ * `hifz_records` is lifetime — it has no year column — so the raw count says
+ * how many surahs a student knows, not how much of this year they have done.
+ * The two differ in both directions, and the list's FIRST entry is what
+ * separates them:
  *
- *   · counting the records answers "how many surahs do they know", and for
- *     Adam Whitfield that is 26 against a target of 15, which is why the
- *     hifdh leaderboard has him at 173%.
- *   · counting the intersection answers "how far through this year are they",
- *     which is what a card about this year's target is asking.
+ *   · Anything before it belongs to an earlier year. A returning student
+ *     starting at Al-A'la has 26 passes behind that point; none of them is
+ *     this year's work, and counting them would open their year at 173%.
+ *   · Anything at or after it is this year's work, INCLUDING the surahs that
+ *     run past the target. A student who has done 45 of a 43-surah year has
+ *     not made an error, they are two ahead — so the count is 45 and the
+ *     surah named is the 45th, not the 43rd. Capping it there would tell
+ *     them they are somewhere they left two surahs ago.
  *
- * Home used to take the first number and index the list with it —
- * `list[passed - 1]` — which is wrong twice over. Past the end of the list it
- * is `undefined`, and the surah name simply vanishes off the card. Inside it,
- * it names the wrong surah for anyone who passed anything out of order, since
- * indexing by a count assumes the passed ones are an unbroken run from the
- * top. `/hifz` has always done it this way; this is that logic, shared.
+ * Which is why this takes the whole ordered list of surahs and not just the
+ * year's slice: the slice cannot name a surah beyond its own end.
  *
- * `last` is the furthest along the list, not the most recent by date — the
- * list is the order the programme intends, so it is the one that answers
- * "where have you got to".
+ * `last` is the furthest along the memorisation order, not the most recent by
+ * date — the order is the one the programme intends, so it is the one that
+ * answers "where have you got to".
  */
-export function passedOfList(
+export function passedThisYear(
+  allSurahs: Surah[],
   list: Surah[],
   passedSurahNumbers: Iterable<number>,
 ): { count: number; last: Surah | null; isPassed: (surah: number) => boolean } {
   const passed = new Set(passedSurahNumbers);
-  const mine = list.filter((s) => passed.has(s.number));
-  return {
-    count: mine.length,
-    last: mine.length ? mine[mine.length - 1] : null,
-    isPassed: (surah: number) => passed.has(surah),
-  };
+  const isPassed = (surah: number) => passed.has(surah);
+  if (list.length === 0) return { count: 0, last: null, isPassed };
+
+  const from = list[0].order_index;
+  const mine = allSurahs
+    .filter((s) => s.order_index >= from && passed.has(s.number))
+    .sort((a, b) => a.order_index - b.order_index);
+
+  return { count: mine.length, last: mine.length ? mine[mine.length - 1] : null, isPassed };
 }
 
 /**
