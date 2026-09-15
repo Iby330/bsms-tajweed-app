@@ -3,13 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { teacherRoster } from "@/lib/teacher/scope";
+import { requireTeacher } from "@/lib/teacher/guards";
 import { CATEGORY_IDS, SESSION_FLAGS, type Category } from "./mistake-taxonomy";
-
-async function requireTeacher() {
-  const profile = await currentProfile();
-  if (!profile || profile.role !== "teacher") throw new Error("Teachers only.");
-  return profile;
-}
 
 async function requireUser() {
   const profile = await currentProfile();

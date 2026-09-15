@@ -1,30 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { supabaseServer, currentProfile } from "@/lib/supabase/server";
+import { supabaseServer } from "@/lib/supabase/server";
 import { getCachedSurahs } from "@/lib/reference/cached";
 import { teacherRoster } from "@/lib/teacher/scope";
+import { requireOwnStudent, requireTeacher } from "@/lib/teacher/guards";
 import { memorisationList, type Surah } from "@/lib/hifz/pace";
 import { planTargets } from "@/lib/hifz/targets";
-
-async function requireTeacher() {
-  const profile = await currentProfile();
-  if (!profile || profile.role !== "teacher") throw new Error("Teachers only.");
-  return profile;
-}
-
-/**
- * …and one of your own students.
- *
- * setStudentHifzProfile has always checked this; the three record-level actions
- * below did not, so any teacher could sign off any student's surah by posting
- * the id. The pages are scoped now, which hides the buttons — this is what
- * stops the action itself, which is the part a hidden button does not.
- */
-async function requireOwnStudent(studentId: string): Promise<void> {
-  const roster = await teacherRoster();
-  if (!roster.some((s) => s.id === studentId)) throw new Error("Not your student.");
-}
 
 /** Recited correctly to the teacher. The comment is visible to the student —
  *  it replaces the mistakes they used to mark in their physical Qur'an. */
