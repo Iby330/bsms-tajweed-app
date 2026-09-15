@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { feedbackFor } from "@/lib/hifz/review-queries";
-import {
-  aggregateFlags, aggregatePatterns, heatClass, wordHeat,
-} from "@/lib/hifz/mistakes";
-import { detailLabel } from "@/lib/hifz/mistake-taxonomy";
+import { aggregateFlags, aggregatePatterns } from "@/lib/hifz/mistakes";
+import { spreadHeat } from "@/lib/hifz/heat-spread";
 import {
   getCachedPageWords, getCachedSurahs, getCachedSurahStartPages,
 } from "@/lib/reference/cached";
-import { ayahKey, fromRow, groupIntoPages, markKey, wordKey } from "@/lib/quran/mushaf";
+import { fromRow, groupIntoPages } from "@/lib/quran/mushaf";
 import { PatternTracker } from "./pattern-tracker";
-import { HeatViewer, type WordHistoryEntry } from "./heat-viewer";
+import { HeatViewer } from "./heat-viewer";
 import { MushafPager } from "./mushaf-pager";
 import type { SurahNames } from "./mushaf-reader";
 import { cn } from "@/lib/utils";
@@ -17,8 +15,10 @@ import { cn } from "@/lib/utils";
 const LAST_PAGE = 604;
 
 /**
- * Submitted-review results for one student: pattern tracker, mushaf heatmap,
- * session history. RLS behind feedbackFor decides who may look. The heatmap
+ * Submitted-review results for one student: pattern tracker and mushaf
+ * heatmap. Sessions themselves are not listed here any more — the revision
+ * activity grid on the overview already shows them day by day.
+ * RLS behind feedbackFor decides who may look. The heatmap
  * is the same page-turning mushaf as the logger; surah chips jump to a
  * surah's opening page and the `heat` query param owns the shown page.
  * basePath already carries ?tab=review (and the logger's page, if any).
@@ -71,36 +71,7 @@ export async function ReviewFeedback({
     const pages = groupIntoPages(words);
     const onPage = new Set(rows.map((r) => r.surah_number));
 
-    // wordHeat keys by markKey, so an ayah-scoped mistake lands on the ayah.
-    // Spread it back over the words of this page and ADD the two: a word
-    // mis-read inside an ayah that was also forgotten is hotter than either
-    // on its own, which a `??` fallback in the reader would quietly hide.
-    const raw = wordHeat(mistakes, now);
-    const heatValues: Record<string, string> = {};
-    for (const w of words) {
-      const total = (raw[wordKey(w)] ?? 0) + (raw[ayahKey(w)] ?? 0);
-      if (total > 0) heatValues[wordKey(w)] = heatClass(total);
-    }
-
-    // Same spread for the tap-through history, so tapping any word of a
-    // forgotten ayah explains why it is hot — including the end marker.
-    const byTarget: Record<string, WordHistoryEntry[]> = {};
-    for (const m of mistakes) {
-      const k = markKey({ surah: m.surah_number, ayah: m.ayah_number, position: m.word_position });
-      (byTarget[k] ??= []).push({
-        label: detailLabel(m.category, m.detail)
-          + (m.word_position === null ? " · whole ayah" : ""),
-        note: m.note,
-        date: m.created_at,
-      });
-    }
-    const history: Record<string, WordHistoryEntry[]> = {};
-    for (const w of words) {
-      const entries = [...(byTarget[wordKey(w)] ?? []), ...(byTarget[ayahKey(w)] ?? [])];
-      if (entries.length) {
-        history[wordKey(w)] = entries.sort((a, b) => b.date.localeCompare(a.date));
-      }
-    }
+    const { heat: heatValues, history } = spreadHeat(words, mistakes, now);
     heatBlock = (
       <div className="space-y-2">
         <h3 className="text-sm font-medium">Mistake heatmap</h3>
@@ -126,32 +97,6 @@ export async function ReviewFeedback({
     <div className="space-y-5">
       <PatternTracker patterns={patterns} flags={flags} />
       {heatBlock}
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">Review sessions</h3>
-        <ul className="divide-y divide-line overflow-hidden glass rounded-2xl">
-          {sessions.map((s) => {
-            const n = mistakes.filter((m) => m.session_id === s.id).length;
-            return (
-              <li key={s.id} className="px-4 py-2.5">
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span>
-                    {new Date(s.submitted_at!).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                    <span className="ml-2 text-xs text-muted-foreground">by {s.reviewerName}</span>
-                  </span>
-                  <span className="text-xs tabular-nums text-muted-foreground">
-                    {n} mistake{n === 1 ? "" : "s"}
-                  </span>
-                </div>
-                {s.overall_note && (
-                  <p className="mt-1 rounded-md bg-muted px-2.5 py-1.5 text-xs text-ink-2">
-                    {s.overall_note}
-                  </p>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
     </div>
   );
 }

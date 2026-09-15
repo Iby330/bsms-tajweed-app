@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { MushafReader, type SurahNames } from "./mushaf-reader";
 import { wordKey, type MushafPage, type QuranWord } from "@/lib/quran/mushaf";
 
-export type WordHistoryEntry = { label: string; note: string | null; date: string };
+import type { WordHistoryEntry } from "@/lib/hifz/heat-spread";
+export type { WordHistoryEntry };
 
 /** Heat mode: tinted mushaf; tapping a hot word lists what went wrong there. */
 export function HeatViewer({
