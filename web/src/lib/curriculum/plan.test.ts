@@ -40,7 +40,7 @@ describe("planFromLessons", () => {
 
   it("lays one lesson of each course on each Monday", () => {
     // Group 3 takes ghunna and ummul kitab together in Term 1.
-    const week1 = planFromLessons(ROWS, "Demo — Abdallah", tt, NOW)[1][0];
+    const week1 = planFromLessons(ROWS, "Masjid Al-Umawi", tt, NOW)[1][0];
     expect(week1.number).toBe(1);
     expect(week1.date).toBe("2026-10-05");
     expect(week1.lessons.map((l) => `${l.courseLabel} ${l.index}`)).toEqual([
@@ -55,13 +55,13 @@ describe("planFromLessons", () => {
   });
 
   it("walks each course forward a lesson per week", () => {
-    const term1 = planFromLessons(ROWS, "Demo — Abdallah", tt, NOW)[1];
+    const term1 = planFromLessons(ROWS, "Masjid Al-Umawi", tt, NOW)[1];
     expect(term1[3].lessons.map((l) => l.index)).toEqual([4, 4]);
     expect(term1[3].lessons[0].label).toBe("tajweed lesson 4");
   });
 
   it("links a lesson only when its week is open and it has a video", () => {
-    const term1 = planFromLessons(ROWS, "Demo — Abdallah", tt, NOW)[1];
+    const term1 = planFromLessons(ROWS, "Masjid Al-Umawi", tt, NOW)[1];
     expect(term1[0].lessons[0].href).toBe("/lessons/tajweed-1-1");
   });
 
@@ -69,7 +69,7 @@ describe("planFromLessons", () => {
     // The student layout redirects any teacher landing on /lessons/<id> to
     // /teacher/home, so getting this wrong looks like the link doing nothing
     // rather than like a broken link.
-    const term1 = planFromLessons(ROWS, "Demo — Abdallah", tt, NOW, "teacher")[1];
+    const term1 = planFromLessons(ROWS, "Masjid Al-Umawi", tt, NOW, "teacher")[1];
     expect(term1[0].lessons[0].href).toBe("/teacher/lessons/tajweed-1-1");
   });
 
@@ -103,7 +103,7 @@ describe("planFromLessons", () => {
 
   it("offers no link for an open lesson that has no video yet", () => {
     const openNoVideo = [...series("tajweed", 1, 8, { video: false })];
-    const week1 = planFromLessons(openNoVideo, "Demo — Abdallah", tt, NOW)[1][0];
+    const week1 = planFromLessons(openNoVideo, "Masjid Al-Umawi", tt, NOW)[1][0];
     expect(week1.lessons[0].label).toBe("tajweed lesson 1");
     expect(week1.lessons[0].href).toBeNull();
   });
@@ -129,7 +129,7 @@ describe("planFromLessons", () => {
 
   it("drops the tail when a course has more lessons than the term has Mondays", () => {
     // Umm al-Kitab is 9 lessons into 8 Mondays — lesson 9 has nowhere to go.
-    const term1 = planFromLessons(ROWS, "Demo — Abdallah", tt, NOW)[1];
+    const term1 = planFromLessons(ROWS, "Masjid Al-Umawi", tt, NOW)[1];
     const indices = term1.map((w) => w.lessons[1].index);
     expect(indices).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     expect(indices).not.toContain(9);
@@ -141,7 +141,7 @@ describe("planFromLessons", () => {
   });
 
   it("plans only tajweed Mondays, never the hifdh day", () => {
-    const term1 = planFromLessons(ROWS, "Demo — Abdallah", tt, NOW)[1];
+    const term1 = planFromLessons(ROWS, "Masjid Al-Umawi", tt, NOW)[1];
     for (const week of term1)
       expect(new Date(`${week.date}T12:00:00`).getDay()).toBe(1);
   });

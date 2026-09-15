@@ -8,10 +8,14 @@
  * Four teachers join in October, all of them students here last year, and they
  * need somewhere to learn the app that is not the live register. So the twenty
  * demo students seeded by seed_demo.ts — minus the two now on loan to the real
- * Masjid Al-Haram — are split into four demo classes, one per new teacher, the
- * girls between the two sisters-side teachers and the boys between the two on
- * the brothers side. A class of five or six is what they will actually teach;
- * one class of eighteen would not have looked like the job.
+ * Masjid Al-Haram — are split into demo classes, the girls between the two
+ * sisters-side teachers and the boys into one brothers-side class. A class of
+ * five or six is what they will actually teach; one class of eighteen would
+ * not have looked like the job.
+ *
+ * It was four classes until migration 0029. The two brothers-side ones were
+ * Abdallah's and Ibrahim's, and those rows became their real classes, so what
+ * is left on this side is a single teacherless cohort — see LAYOUT below.
  *
  * WHY A 'demo' SECTION, and it is the whole trick: the three leaderboard views
  * filter on `p.section = (select section from profiles where id = auth.uid())`.
@@ -83,17 +87,20 @@ const LAYOUT = [
     from: "sisters",
     students: ["sumayya.a", "khadija.f", "amina.c", "zaynab.h", "fatima.n"],
   },
+  // One brothers-side demo class, not two. Abdallah and Ibrahim had one each
+  // — "Demo — Abdallah" and "Demo — Ibrahim" — until 0029 turned those very
+  // rows into their real classes, Masjid Al-Umawi and Masjid Quba, and moved
+  // the seven demo students here. Pointing this file at the old names would
+  // now seed invented students straight into two real brothers' registers.
+  //
+  // No teacher slot, because neither of them needs a demo class any more:
+  // their own classes are real and empty, which is a safer place to learn the
+  // app than someone else's live register ever was.
   {
-    slot: "abdallah",
-    className: "Demo — Abdallah",
+    slot: "brothers",
+    className: "Demo — Brothers",
     from: "brothers",
-    students: ["adam.w", "bilal.o", "idris.k", "zayd.m"],
-  },
-  {
-    slot: "ibrahim",
-    className: "Demo — Ibrahim",
-    from: "brothers",
-    students: ["harun.d", "suleiman.n", "tariq.l"],
+    students: ["adam.w", "bilal.o", "idris.k", "zayd.m", "harun.d", "suleiman.n", "tariq.l"],
   },
 ] as const;
 

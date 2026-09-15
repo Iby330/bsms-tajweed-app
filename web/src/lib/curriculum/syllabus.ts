@@ -99,17 +99,24 @@ export const SYLLABUS: Readonly<Record<GroupId, Readonly<Record<TermId, CourseKe
  * deliberately absent and their calendars show class days without topics
  * until theirs is decided.
  *
- * The two demo classes are here on purpose. Abdallah and Ibrahim lead groups 3
- * and 4 but have no brothers' class holding real students yet, so their own
- * curriculum would otherwise be invisible to them — including while they are
- * learning the app on the demo cohort. Move these two entries to the real
- * class names as soon as those classes exist.
+ * Groups 3 and 4 were keyed to "Demo — Abdallah" and "Demo — Ibrahim" while
+ * Abdallah and Ibrahim had no brothers' class to hold them. They have one
+ * each now — Masjid Al-Umawi and Masjid Quba (migration 0029) — and the
+ * entries have moved with them. The demo students those classes used to hold
+ * went the other way, into "Demo — Brothers", so the real classes start empty.
+ *
+ * KEYED BY NAME, which is the reason this file has to be edited whenever a
+ * class is renamed: `plan.ts` reads it for both calendar screens, and a key
+ * that no longer matches `classes.name` does not fail — it quietly returns no
+ * syllabus, and the class's calendar shows its teaching days with no topics
+ * on them. The database's own copy in `class_courses` is keyed by id and
+ * survives a rename untouched; this one does not.
  */
 export const CLASS_GROUP: Readonly<Record<string, GroupId>> = {
   "Masjid An-Nabawi": 1, // Daniyal Thakur
   "Masjid Al-Haram": 2, // Yunus Zafar
-  "Demo — Abdallah": 3, // Abdallah Ghouse — awaiting a brothers' class
-  "Demo — Ibrahim": 4, // Ibrahim Ramadan — awaiting a brothers' class
+  "Masjid Al-Umawi": 3, // Abdallah Ghouse
+  "Masjid Quba": 4, // Ibrahim Ramadan
   "Masjid Al-Aqsa": 5, // Moadh Hwessa
 };
 
