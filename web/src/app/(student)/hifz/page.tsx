@@ -82,6 +82,12 @@ export default async function StudentHifz({
   }
 
   const list = memorisationList(hp.start_surah, hp.target_count, all);
+  // A returning student's earlier years, for the journey. The hero stays on
+  // this year alone; the journey is where the whole run so far belongs.
+  const earlier = list.length
+    ? [...all].sort((a, b) => a.order_index - b.order_index)
+        .filter((s) => s.order_index < list[0].order_index)
+    : [];
   if (list.length === 0) {
     return emptyShell("Your teacher hasn't set your memorisation target yet.");
   }
@@ -186,7 +192,7 @@ export default async function StudentHifz({
       </div>
 
       <div className="field">
-        <HifzJourney list={list} records={recordMap} expected={expected} />
+        <HifzJourney list={list} earlier={earlier} records={recordMap} expected={expected} />
       </div>
 
       <div className="signoff">

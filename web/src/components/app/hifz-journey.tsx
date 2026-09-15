@@ -24,6 +24,13 @@ type Rec = { passed_at: string; teacher_comment: string | null };
  * of words, so they get somewhere to live rather than an expanding panel that
  * pushes the grid around and cannot be linked to.
  *
+ * A returning student's earlier years sit above this year, in the same
+ * grid. `earlier` is the run before their start_surah: passed, but usually
+ * carrying no hifz_records, since records only begin at start_surah — so a
+ * cell is done when it is in `earlier` OR has a record. A hizb split across
+ * two years lands in one band, because groups follow contiguous runs. A hizb
+ * finished before this year never offers its check; that was sat last year.
+ *
  * Each hizb folds. A student does not need forty surah cells in view to see
  * where they are; they need the band they are working in. The band is a
  * native <details>/<summary>, so it folds before hydration and from the
@@ -33,10 +40,12 @@ type Rec = { passed_at: string; teacher_comment: string | null };
  */
 export function HifzJourney({
   list,
+  earlier = [],
   records,
   expected,
 }: {
   list: Surah[];
+  earlier?: Surah[];      // previous years' surahs, passed, usually recordless
   records: Map<number, Rec>;
   expected: number;
 }) {
@@ -53,27 +62,42 @@ export function HifzJourney({
       ? rawMarker
       : null;
 
-  // Contiguous hizb groups over the list, each keeping its global index.
-  const groups: { hizb: number; items: { s: Surah; i: number }[] }[] = [];
-  list.forEach((s, i) => {
-    const h = hizbOf(s.number);
+  // Contiguous hizb groups over the earlier years and this one. `i` is the
+  // index into THIS year's list, and null for an earlier year — which is what
+  // keeps "next" and the pace marker, both indexes into `list`, off cells
+  // that are not this year's.
+  type Item = { s: Surah; i: number | null };
+  const cells: Item[] = [
+    ...earlier.map((s) => ({ s, i: null })),
+    ...list.map((s, i) => ({ s, i })),
+  ];
+  const groups: { hizb: number; items: Item[] }[] = [];
+  cells.forEach((item) => {
+    const h = hizbOf(item.s.number);
     if (h === null) return;
     const last = groups[groups.length - 1];
-    if (last && last.hizb === h) last.items.push({ s, i });
-    else groups.push({ hizb: h, items: [{ s, i }] });
+    if (last && last.hizb === h) last.items.push(item);
+    else groups.push({ hizb: h, items: [item] });
   });
+  const isDone = (item: Item) => item.i === null || records.has(item.s.number);
 
   return (
     <section className="box c12 hifzindex" aria-label="Your surahs">
       {groups.map((g) => {
         const bound = HIZB_BOUNDS.find((b) => b.hizb === g.hizb);
         const inHizb = bound ? bound.to - bound.from + 1 : g.items.length;
-        const done = g.items.filter((x) => records.has(x.s.number)).length;
-        // "Ready" only when the WHOLE hizb is on the student's list and passed —
-        // a partial hizb can never be checked, so it must not claim to be.
-        const ready = done === g.items.length && g.items.length === inHizb;
-        const holdsCurrent = g.items.some((x) => x.i === currentIdx);
-        const holdsMarker = markerIdx !== null && g.items.some((x) => x.i === markerIdx);
+        const done = g.items.filter(isDone).length;
+        // "Ready" only when the WHOLE hizb is here and passed — a partial hizb
+        // can never be checked, so it must not claim to be — AND at least one
+        // of its surahs was passed THIS year. A hizb finished before this year
+        // had its check then.
+        const ready =
+          done === g.items.length &&
+          g.items.length === inHizb &&
+          g.items.some((x) => x.i !== null && records.has(x.s.number));
+        const holdsCurrent = g.items.some((x) => x.i !== null && x.i === currentIdx);
+        const holdsMarker =
+          markerIdx !== null && g.items.some((x) => x.i !== null && x.i === markerIdx);
         return (
           <details key={g.hizb} open={holdsCurrent || holdsMarker}>
             <summary className="band" aria-label={`Hizb ${g.hizb}, ${done} of ${g.items.length} passed`}>
@@ -90,17 +114,24 @@ export function HifzJourney({
             </summary>
 
             <div className="index">
-              {g.items.map(({ s, i }) => {
+              {g.items.map((item) => {
+                const { s, i } = item;
                 const rec = records.get(s.number);
                 const meta = SURAH_META[s.number];
+                const isNext = i !== null && i === currentIdx;
                 return (
                   <Link
                     key={s.number}
                     href={`/hifz/${s.number}`}
-                    className={cn("cell", rec && "done", i === currentIdx && "next")}
+                    className={cn("cell", isDone(item) && "done", isNext && "next")}
                   >
-                    <span className="n">{String(i + 1).padStart(2, "0")}</span>
-                    {i === currentIdx && <span className="tag">NEXT</span>}
+                    {/* Numbered by position in the whole run, not in this
+                        year's slice, so a returning student's second year
+                        carries on counting instead of restarting at 01. For a
+                        student who starts at the beginning the two are the
+                        same number. */}
+                    <span className="n">{String(s.order_index).padStart(2, "0")}</span>
+                    {isNext && <span className="tag">NEXT</span>}
                     {rec?.teacher_comment && (
                       <span className="cmt" title="Your teacher left a comment">
                         <svg viewBox="0 0 24 24" aria-hidden>

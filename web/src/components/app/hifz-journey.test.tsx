@@ -65,6 +65,70 @@ describe("HifzJourney", () => {
     expect(container.querySelectorAll("details").length).toBeGreaterThan(1);
     expect(container.querySelectorAll("details[open]").length).toBe(0);
   });
+  // ── returning students: last year's hizbs sit above this year's ──────────
+  // `earlier` is the run before their start_surah — passed in an earlier year,
+  // so there are no hifz_records for them (records only exist from start_surah
+  // onward). They must still read as done.
+  it("adds no bands for a fresh student, whose earlier run is empty", () => {
+    const plain = render(<HifzJourney list={RUN} records={recs([0, 1])} expected={0} />);
+    const withEmpty = render(
+      <HifzJourney list={RUN} earlier={[]} records={recs([0, 1])} expected={0} />,
+    );
+    expect(withEmpty.container.querySelectorAll("details").length)
+      .toBe(plain.container.querySelectorAll("details").length);
+  });
+
+  it("shows last year's hizbs above this year's", () => {
+    // starts at surah 86: hizb 60 (114..87) was last year
+    const earlier = RUN.slice(0, 28);
+    const list = RUN.slice(28);
+    const { container } = render(
+      <HifzJourney list={list} earlier={earlier} records={new Map()} expected={0} />,
+    );
+    const bands = [...container.querySelectorAll("details > summary.band .t")]
+      .map((e) => e.textContent);
+    expect(bands).toEqual(["Hizb 60", "Hizb 59", "Hizb 58"]);
+  });
+
+  it("marks an earlier year's surahs done even though they carry no records", () => {
+    const earlier = RUN.slice(0, 28);
+    const list = RUN.slice(28);
+    const { container } = render(
+      <HifzJourney list={list} earlier={earlier} records={new Map()} expected={0} />,
+    );
+    const first = container.querySelector("details");
+    expect(first?.querySelectorAll(".cell.done").length).toBe(28);
+    expect(first?.textContent).toContain("28 of 28");
+  });
+
+  it("does not offer a check for a hizb finished in an earlier year", () => {
+    // They sat that check last year; nothing to present now.
+    const { container } = render(
+      <HifzJourney list={RUN.slice(28)} earlier={RUN.slice(0, 28)} records={new Map()} expected={0} />,
+    );
+    expect(container.querySelector("details")?.textContent).not.toContain("ready for your check");
+  });
+
+  it("starts an earlier year's band folded, and opens this year's current hizb", () => {
+    const { container } = render(
+      <HifzJourney list={RUN.slice(28)} earlier={RUN.slice(0, 28)} records={new Map()} expected={0} />,
+    );
+    const open = [...container.querySelectorAll("details[open]")];
+    expect(open).toHaveLength(1);
+    expect(open[0].querySelector("summary.band .t")?.textContent).toBe("Hizb 59");
+  });
+
+  it("numbers cells by programme position, so this year continues last year's count", () => {
+    const { container } = render(
+      <HifzJourney list={RUN.slice(28)} earlier={RUN.slice(0, 28)} records={new Map()} expected={0} />,
+    );
+    // surah 86 is the 29th of the run, and says so even though it is this
+    // year's first
+    const cells = [...container.querySelectorAll(".cell")];
+    const s86 = cells.find((c) => c.textContent?.includes("S86"));
+    expect(s86?.querySelector(".n")?.textContent).toBe("29");
+  });
+
   it("renders nothing for an empty list", () => {
     const { container } = render(<HifzJourney list={[]} records={new Map()} expected={0} />);
     expect(container.innerHTML).toBe("");
