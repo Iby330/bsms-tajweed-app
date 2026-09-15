@@ -5,7 +5,7 @@ export type HearingOutcome = "passed" | "not_passed";
 /** The latest submitted hearing of a surah, reduced to what the line needs. */
 export type HearingSummary = {
   submittedAt: string;
-  outcome: HearingOutcome | null;
+  outcome: HearingOutcome | null; // null only on a draft, which callers never pass here
   teacherName: string;
   mistakeCount: number;
 };
