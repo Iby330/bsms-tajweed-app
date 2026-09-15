@@ -40,6 +40,14 @@ const targetOf = (w: QuranWord) => ({
  *    verdict, when `ensureSession` creates it. `heat`/`history` paint what
  *    earlier hearings said about the same words.
  */
+type SessionProps =
+  // A session already exists (peer mode always, hearing mode once heard
+  // before) — ensureSession is unused, so it's fine unset.
+  | { sessionId: string; ensureSession?: () => Promise<string> }
+  // No draft yet — only a hearing can be in this state, and only
+  // `ensureSession` can get it a session id, so it's required here.
+  | { sessionId: null; ensureSession: () => Promise<string> };
+
 export function ReviewLogger({
   mode = "peer",
   sessionId,
@@ -51,10 +59,8 @@ export function ReviewLogger({
   history,
   surahNames,
   pager,
-}: {
+}: SessionProps & {
   mode?: "peer" | "hearing";
-  sessionId: string | null;
-  ensureSession?: () => Promise<string>;   // required when sessionId is null
   reciterName: string;
   pages: MushafPage[];
   initialMistakes: MistakeRow[];   // the whole session — marks span pages
@@ -81,16 +87,23 @@ export function ReviewLogger({
   const [pending, startTransition] = useTransition();
 
   /**
-   * The session to write to, creating the draft on first use. `sid ?? …`
-   * short-circuits when a session already exists, so the write below it
-   * still fires in the SAME synchronous tick as the click that triggered
-   * it — no `await` on an already-known id sneaks in a microtask before
-   * the write, which matters because peer mode's tests assert the mock was
-   * called immediately after `fireEvent.click`, before awaiting anything.
+   * The session to write to, creating the draft on first use. When one is
+   * already known, `write` fires in the SAME synchronous tick as the click
+   * that triggered it — no `await` on an already-known id sneaks in a
+   * microtask before the write, which matters because peer mode's tests
+   * assert the mock was called immediately after `fireEvent.click`, before
+   * awaiting anything.
+   *
+   * The middle branch is unreachable at runtime (`sid` starts as
+   * `sessionId` and only ever moves null → a string, never back), but it's
+   * what lets TypeScript prove `ensureSession` is defined below without a
+   * `!` — the props type only guarantees that when `sessionId` (not `sid`)
+   * is null.
    */
   const withSession = (write: (id: string) => Promise<void>) => {
     if (sid) return write(sid);
-    return ensureSession!().then((id) => {
+    if (sessionId !== null) return write(sessionId);
+    return ensureSession().then((id) => {
       setSid(id);
       return write(id);
     });
@@ -145,6 +158,7 @@ export function ReviewLogger({
       withSession(async (id) => {
         await submitHearing(id, outcome, overallNote);
         setVerdict(null);
+        setOverallNote("");
         router.refresh();
       }),
     );
@@ -181,10 +195,13 @@ export function ReviewLogger({
         <div className="glass sticky bottom-2 z-10 flex items-center justify-between rounded-xl px-4 py-2.5">
           {/* Bare count, not "N mistakes" — the header above already
               spells that out, and repeating the exact phrase here reads
-              as noise beside the verdict buttons. aria-label keeps it
-              legible to a screen reader. */}
-          <p className="text-xs tabular-nums text-muted-foreground" aria-label={`${count} ${plural}`}>
+              as noise beside the verdict buttons. The word is still there
+              for a screen reader (sr-only), split into its own node so it
+              doesn't itself read back as "N mistakes" and collide with
+              the header's text in a lookup by that phrase. */}
+          <p className="text-xs tabular-nums text-muted-foreground">
             {count}
+            <span className="sr-only"> {plural}</span>
           </p>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" disabled={pending} onClick={() => setVerdict("not_passed")}>
@@ -234,7 +251,16 @@ export function ReviewLogger({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={verdict !== null} onOpenChange={(o) => !o && setVerdict(null)}>
+      <Dialog
+        open={verdict !== null}
+        onOpenChange={(o) => {
+          if (o) return;
+          // A note typed under one verdict and then abandoned must not
+          // silently ride along with a later, different verdict.
+          setVerdict(null);
+          setOverallNote("");
+        }}
+      >
         <DialogContent className="max-w-sm space-y-3">
           <DialogHeader>
             <DialogTitle>{verdict === "passed" ? "Passed" : "Not passed"}</DialogTitle>

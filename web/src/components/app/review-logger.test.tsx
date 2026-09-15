@@ -101,6 +101,23 @@ describe("ReviewLogger in hearing mode", () => {
     expect(ensureSession).not.toHaveBeenCalled();
   }, SLOW);
 
+  it("drops a note left in an abandoned verdict popup", async () => {
+    render(
+      <ReviewLogger
+        mode="hearing" sessionId="draft-9" ensureSession={ensure()}
+        reciterName="Aisha" pages={pages} initialMistakes={[]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Passed" }));
+    fireEvent.change(screen.getByPlaceholderText("Note for the student (optional)"), {
+      target: { value: "note that should not survive" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    fireEvent.click(screen.getByRole("button", { name: "Not passed" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm not passed" }));
+    await vi.waitFor(() => expect(submitHearing).toHaveBeenCalledWith("draft-9", "not_passed", ""));
+  }, SLOW);
+
   it("shows earlier marks for a hot word inside the sheet", () => {
     render(
       <ReviewLogger
