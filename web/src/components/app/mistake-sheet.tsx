@@ -78,7 +78,7 @@ export function MistakeSheet({
         {previous && previous.length > 0 && (
           <ul
             aria-label="Earlier marks on this word"
-            className="space-y-1 rounded-md bg-muted px-2.5 py-1.5 text-xs"
+            className="max-h-24 space-y-1 overflow-y-auto rounded-md bg-muted px-2.5 py-1.5 text-xs"
           >
             {previous.map((e, i) => (
               <li key={i}>

@@ -11,6 +11,10 @@ vi.mock("@/lib/hifz/review-actions", () => ({
   submitSession: vi.fn(async () => {}),
 }));
 import { logMistake, submitSession } from "@/lib/hifz/review-actions";
+vi.mock("@/lib/hifz/hearing-actions", () => ({
+  submitHearing: vi.fn(async () => {}),
+}));
+import { submitHearing } from "@/lib/hifz/hearing-actions";
 
 const w = (over: Partial<QuranWord>): QuranWord => ({
   surah: 114, ayah: 1, position: 1, text: "قُلْ", glyph: null, isEnd: false, page: 604, line: 12, ...over,
@@ -41,5 +45,72 @@ describe("ReviewLogger", () => {
     fireEvent.click(screen.getByLabelText("Weak hifdh overall"));
     fireEvent.click(screen.getByRole("button", { name: /Submit/ }));
     expect(submitSession).toHaveBeenCalledWith("s1", ["weak_hifz"], "");
+  }, SLOW);
+});
+
+describe("ReviewLogger in hearing mode", () => {
+  const ensure = () => vi.fn(async () => "h1");
+
+  it("creates the draft on the first tap, then logs into it", async () => {
+    const ensureSession = ensure();
+    render(
+      <ReviewLogger
+        mode="hearing" sessionId={null} ensureSession={ensureSession}
+        reciterName="Aisha" pages={pages} initialMistakes={[]}
+      />,
+    );
+    expect(screen.getByText(/Hearing/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Finish" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "قُلْ" }));
+    fireEvent.click(screen.getByRole("button", { name: "Hifdh" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText(/1 mistake/, undefined, { timeout: 10_000 })).toBeTruthy();
+    expect(ensureSession).toHaveBeenCalledTimes(1);
+    expect(logMistake).toHaveBeenCalledWith(
+      "h1", { surah: 114, ayah: 1, position: 1 }, "hifz", undefined, "");
+  }, SLOW);
+
+  it("passes with a note through the verdict popup, creating the draft if needed", async () => {
+    const ensureSession = ensure();
+    render(
+      <ReviewLogger
+        mode="hearing" sessionId={null} ensureSession={ensureSession}
+        reciterName="Aisha" pages={pages} initialMistakes={[]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Passed" }));
+    fireEvent.change(screen.getByPlaceholderText("Note for the student (optional)"), {
+      target: { value: "cleaner than last week" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Confirm pass" }));
+    await vi.waitFor(() => expect(submitHearing).toHaveBeenCalledWith("h1", "passed", "cleaner than last week"));
+    expect(ensureSession).toHaveBeenCalledTimes(1);
+  }, SLOW);
+
+  it("reuses an existing draft for Not passed", async () => {
+    const ensureSession = ensure();
+    render(
+      <ReviewLogger
+        mode="hearing" sessionId="draft-9" ensureSession={ensureSession}
+        reciterName="Aisha" pages={pages} initialMistakes={[]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Not passed" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm not passed" }));
+    await vi.waitFor(() => expect(submitHearing).toHaveBeenCalledWith("draft-9", "not_passed", ""));
+    expect(ensureSession).not.toHaveBeenCalled();
+  }, SLOW);
+
+  it("shows earlier marks for a hot word inside the sheet", () => {
+    render(
+      <ReviewLogger
+        mode="hearing" sessionId="draft-9" ensureSession={ensure()}
+        reciterName="Aisha" pages={pages} initialMistakes={[]}
+        heat={{ "114:1:1": "bg-warn/20" }}
+        history={{ "114:1:1": [{ label: "Hifdh — Forgot it", note: null, date: "2026-09-10T00:00:00Z" }] }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "قُلْ" }));
+    expect(screen.getByRole("list", { name: "Earlier marks on this word" }).textContent).toContain("Forgot it");
   }, SLOW);
 });

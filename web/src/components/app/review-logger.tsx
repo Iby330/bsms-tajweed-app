@@ -9,8 +9,11 @@ import { MushafReader, type SurahNames } from "./mushaf-reader";
 import { MushafPager } from "./mushaf-pager";
 import { MistakeSheet, type SheetResult } from "./mistake-sheet";
 import { logMistake, removeMistake, submitSession } from "@/lib/hifz/review-actions";
+import { submitHearing } from "@/lib/hifz/hearing-actions";
 import { SESSION_FLAGS, type Category } from "@/lib/hifz/mistake-taxonomy";
-import { markKey, type MushafPage, type QuranWord } from "@/lib/quran/mushaf";
+import type { HearingOutcome } from "@/lib/hifz/hearings";
+import type { WordHistoryEntry } from "@/lib/hifz/heat-spread";
+import { markKey, wordKey, type MushafPage, type QuranWord } from "@/lib/quran/mushaf";
 import type { MistakeRow } from "@/lib/hifz/mistakes";
 
 type Mark = { id?: string; category: Category; detail: string | null; note: string | null };
@@ -26,24 +29,42 @@ const targetOf = (w: QuranWord) => ({
  * ayah's END MARKER classifies the whole ayah instead, which is the commoner
  * slip — one row, tinting every word in it. State is local (each tap is one
  * server action, no refresh); submit refreshes the page so the server swaps
- * this for the feedback view.
+ * this for whatever comes after.
+ *
+ * Two modes, one logger:
+ *  · `peer` — a partner listening. "Listening to B · Finish" on top; Finish
+ *    asks for flags and a note.
+ *  · `hearing` — the teacher, on the Thursday lesson. "Hearing B" on top,
+ *    the verdict bar below: Passed / Not passed, each with a note. The
+ *    draft may not exist yet: `sessionId` is null until the first tap or
+ *    verdict, when `ensureSession` creates it. `heat`/`history` paint what
+ *    earlier hearings said about the same words.
  */
 export function ReviewLogger({
+  mode = "peer",
   sessionId,
+  ensureSession,
   reciterName,
   pages,
   initialMistakes,
+  heat,
+  history,
   surahNames,
   pager,
 }: {
-  sessionId: string;
+  mode?: "peer" | "hearing";
+  sessionId: string | null;
+  ensureSession?: () => Promise<string>;   // required when sessionId is null
   reciterName: string;
   pages: MushafPage[];
   initialMistakes: MistakeRow[];   // the whole session — marks span pages
+  heat?: Record<string, string>;                  // earlier hearings' tint
+  history?: Record<string, WordHistoryEntry[]>;   // …and what they said
   surahNames?: SurahNames;
-  pager?: { page: number; min: number; max: number; basePath: string; step?: number };
+  pager?: { page: number; min: number; max: number; basePath: string; param?: string; step?: number };
 }) {
   const router = useRouter();
+  const [sid, setSid] = useState<string | null>(sessionId);
   const [marks, setMarks] = useState<Record<string, Mark>>(() =>
     Object.fromEntries(
       initialMistakes.map((m) => [
@@ -54,24 +75,41 @@ export function ReviewLogger({
   );
   const [tapped, setTapped] = useState<QuranWord | null>(null);
   const [wrapUp, setWrapUp] = useState(false);
+  const [verdict, setVerdict] = useState<HearingOutcome | null>(null);
   const [flags, setFlags] = useState<string[]>([]);
   const [overallNote, setOverallNote] = useState("");
   const [pending, startTransition] = useTransition();
+
+  /**
+   * The session to write to, creating the draft on first use. `sid ?? …`
+   * short-circuits when a session already exists, so the write below it
+   * still fires in the SAME synchronous tick as the click that triggered
+   * it — no `await` on an already-known id sneaks in a microtask before
+   * the write, which matters because peer mode's tests assert the mock was
+   * called immediately after `fireEvent.click`, before awaiting anything.
+   */
+  const withSession = (write: (id: string) => Promise<void>) => {
+    if (sid) return write(sid);
+    return ensureSession!().then((id) => {
+      setSid(id);
+      return write(id);
+    });
+  };
 
   const save = (r: SheetResult) => {
     const word = tapped;
     if (!word) return;
     setTapped(null);
-    startTransition(async () => {
-      const target = targetOf(word);
-      const id = await logMistake(
-        sessionId, target, r.category, r.detail ?? undefined, r.note,
-      );
-      setMarks((m) => ({
-        ...m,
-        [markKey(target)]: { id, category: r.category, detail: r.detail, note: r.note },
-      }));
-    });
+    const target = targetOf(word);
+    startTransition(() =>
+      withSession(async (id) => {
+        const newId = await logMistake(id, target, r.category, r.detail ?? undefined, r.note);
+        setMarks((m) => ({
+          ...m,
+          [markKey(target)]: { id: newId, category: r.category, detail: r.detail, note: r.note },
+        }));
+      }),
+    );
   };
 
   const remove = () => {
@@ -92,40 +130,78 @@ export function ReviewLogger({
   };
 
   const submit = () =>
-    startTransition(async () => {
-      await submitSession(sessionId, flags, overallNote);
-      setWrapUp(false);
-      router.refresh();
-    });
+    startTransition(() =>
+      withSession(async (id) => {
+        await submitSession(id, flags, overallNote);
+        setWrapUp(false);
+        router.refresh();
+      }),
+    );
+
+  const confirmVerdict = () => {
+    const outcome = verdict;
+    if (!outcome) return;
+    startTransition(() =>
+      withSession(async (id) => {
+        await submitHearing(id, outcome, overallNote);
+        setVerdict(null);
+        router.refresh();
+      }),
+    );
+  };
 
   const count = Object.keys(marks).length;
   const plural = count === 1 ? "mistake" : "mistakes";
   const existing = tapped ? marks[markKey(targetOf(tapped))] : undefined;
+  // spreadHeat keys history by wordKey for every word, end markers included.
+  const previous = tapped ? history?.[wordKey(tapped)] : undefined;
+
+  const reader = (
+    <MushafReader pages={pages} marks={marks} heat={heat} surahNames={surahNames} onWordTap={setTapped} />
+  );
 
   return (
     <div className="space-y-3">
       <div className="glass sticky top-[calc(var(--chrome-top,0px)+0.5rem)] z-10 flex items-center justify-between rounded-xl px-4 py-2.5">
         <p className="text-sm">
-          Listening to <span className="font-medium">{reciterName}</span>
+          {mode === "hearing" ? "Hearing " : "Listening to "}
+          <span className="font-medium">{reciterName}</span>
           <span className="ml-2 text-xs tabular-nums text-muted-foreground">
             {count} {plural}
           </span>
         </p>
-        <Button size="sm" disabled={pending} onClick={() => setWrapUp(true)}>Finish</Button>
+        {mode === "peer" && (
+          <Button size="sm" disabled={pending} onClick={() => setWrapUp(true)}>Finish</Button>
+        )}
       </div>
 
-      {pager ? (
-        <MushafPager {...pager}>
-          <MushafReader pages={pages} marks={marks} surahNames={surahNames} onWordTap={setTapped} />
-        </MushafPager>
-      ) : (
-        <MushafReader pages={pages} marks={marks} surahNames={surahNames} onWordTap={setTapped} />
+      {pager ? <MushafPager {...pager}>{reader}</MushafPager> : reader}
+
+      {mode === "hearing" && (
+        <div className="glass sticky bottom-2 z-10 flex items-center justify-between rounded-xl px-4 py-2.5">
+          {/* Bare count, not "N mistakes" — the header above already
+              spells that out, and repeating the exact phrase here reads
+              as noise beside the verdict buttons. aria-label keeps it
+              legible to a screen reader. */}
+          <p className="text-xs tabular-nums text-muted-foreground" aria-label={`${count} ${plural}`}>
+            {count}
+          </p>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" disabled={pending} onClick={() => setVerdict("not_passed")}>
+              Not passed
+            </Button>
+            <Button size="sm" disabled={pending} onClick={() => setVerdict("passed")}>
+              Passed
+            </Button>
+          </div>
+        </div>
       )}
 
       <MistakeSheet
         key={tapped ? markKey(targetOf(tapped)) : "closed"}
         word={tapped}
         existing={existing}
+        previous={previous}
         onSave={save}
         onRemove={existing ? remove : undefined}
         onClose={() => setTapped(null)}
@@ -154,6 +230,22 @@ export function ReviewLogger({
             placeholder="Overall note for the session (optional)" rows={3} />
           <Button disabled={pending} onClick={submit}>
             {pending ? "Submitting…" : `Submit ${count} ${plural}`}
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={verdict !== null} onOpenChange={(o) => !o && setVerdict(null)}>
+        <DialogContent className="max-w-sm space-y-3">
+          <DialogHeader>
+            <DialogTitle>{verdict === "passed" ? "Passed" : "Not passed"}</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            {count} {plural} marked. The note is optional and the student sees it.
+          </p>
+          <Textarea value={overallNote} onChange={(e) => setOverallNote(e.target.value)}
+            placeholder="Note for the student (optional)" rows={3} />
+          <Button disabled={pending} onClick={confirmVerdict}>
+            {pending ? "Saving…" : verdict === "passed" ? "Confirm pass" : "Confirm not passed"}
           </Button>
         </DialogContent>
       </Dialog>
