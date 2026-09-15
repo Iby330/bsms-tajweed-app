@@ -451,7 +451,8 @@ export function ApplyFunnel() {
           Start my application
         </Button>
         <p className="mt-3 text-xs text-muted-foreground">
-          {STEPS.length} questions · {feeLabel()} for the year · closes {CLOSES_LABEL}
+          {STEPS.length} questions · {feeLabel()} one time fee for the full year ·{" "}
+          closes {CLOSES_LABEL}
         </p>
       </div>
       </>
