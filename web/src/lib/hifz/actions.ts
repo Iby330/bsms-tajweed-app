@@ -56,6 +56,8 @@ export async function setSurahComment(
   if (error) throw new Error(error.message);
   revalidatePath("/teacher/hifz");
   revalidatePath("/hifz");
+  revalidatePath(`/hifz/${surahNumber}`);
+  revalidatePath(`/teacher/hifz/${studentId}/${surahNumber}`);
 }
 
 export async function unmarkSurah(studentId: string, surahNumber: number): Promise<void> {
@@ -66,6 +68,8 @@ export async function unmarkSurah(studentId: string, surahNumber: number): Promi
     .eq("student_id", studentId).eq("surah_number", surahNumber);
   revalidatePath("/teacher/hifz");
   revalidatePath("/hifz");
+  revalidatePath(`/hifz/${surahNumber}`);
+  revalidatePath(`/teacher/hifz/${studentId}/${surahNumber}`);
 }
 
 /** The target must land between the start surah and the end of the run, or
