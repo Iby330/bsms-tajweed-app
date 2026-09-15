@@ -43,4 +43,27 @@ describe("spreadHeat", () => {
     );
     expect(history["114:1:1"].map((e) => e.date)).toEqual(["2026-09-10T00:00:00Z", "2026-08-01T00:00:00Z"]);
   });
+
+  it("returns empty heat and history when there are no mistakes", () => {
+    expect(spreadHeat([w(1), w(2)], [], now)).toEqual({ heat: {}, history: {} });
+  });
+
+  it("gives a word both its own and its ayah's history entries, newest first", () => {
+    const { history } = spreadHeat(
+      [w(1)],
+      [
+        m({ id: "word", detail: "forgot", created_at: "2026-08-01T00:00:00Z" }),
+        m({ id: "ayah", word_position: null, detail: "swapped", created_at: "2026-09-10T00:00:00Z" }),
+      ],
+      now,
+    );
+    expect(history["114:1:1"].map((e) => e.date)).toEqual([
+      "2026-09-10T00:00:00Z",
+      "2026-08-01T00:00:00Z",
+    ]);
+    expect(history["114:1:1"].map((e) => e.label)).toEqual([
+      "Hifdh — Swapped / wrong · whole ayah",
+      "Hifdh — Forgot it",
+    ]);
+  });
 });

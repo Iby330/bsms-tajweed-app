@@ -13,7 +13,7 @@ export type HeatSpread = {
  * Mistakes → what the mushaf paints and what a tap on a word explains.
  *
  * wordHeat keys by markKey, so an ayah-scoped mistake lands on the ayah.
- * Spread it back over the words of the page and ADD the two: a word
+ * Spread it back over the words given and ADD the two: a word
  * mis-read inside an ayah that was also forgotten is hotter than either on
  * its own, which a `??` fallback in the reader would quietly hide. The
  * history gets the same spread, so tapping any word of a forgotten ayah —

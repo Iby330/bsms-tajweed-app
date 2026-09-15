@@ -76,9 +76,9 @@ export function aggregateFlags(sessions: SessionRow[]): FlagPattern[] {
 
 /** Per-target heat: 2 per mistake in the last 28 days, 1 for older ones.
  *  Keys are markKey — a wordKey, or an ayahKey for an ayah-scoped mistake.
- *  Callers that paint words must add the two together (see ReviewFeedback):
- *  a word mis-read inside an ayah that was also forgotten is hotter than
- *  either alone, and `??` would hide that. */
+ *  Callers that paint words must add the two together (see spreadHeat in
+ *  heat-spread.ts): a word mis-read inside an ayah that was also forgotten
+ *  is hotter than either alone, and `??` would hide that. */
 export function wordHeat(mistakes: MistakeRow[], now: Date): Record<string, number> {
   const heat: Record<string, number> = {};
   for (const m of mistakes) {
