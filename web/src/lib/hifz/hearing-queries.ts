@@ -56,7 +56,9 @@ export async function hearingsFor(studentId: string, surah: number): Promise<Hea
  *
  * `teacherId` must be the signed-in teacher's own id (the page passes
  * `profile.id`); RLS will not catch a mismatch the way it does for a
- * student, because teachers read every session.
+ * student, because teachers read every session. If a race ever leaves two
+ * open drafts, the oldest wins and the other stays orphaned rather than
+ * crashing the page.
  */
 export async function draftHearing(
   teacherId: string,
@@ -72,6 +74,8 @@ export async function draftHearing(
     .eq("kind", "hearing")
     .eq("surah_number", surah)
     .is("submitted_at", null)
+    .order("started_at", { ascending: true })
+    .limit(1)
     .maybeSingle();
   if (!s) return null;
   const { data } = await db.from("revision_mistakes").select(MISTAKE_COLS).eq("session_id", s.id);
