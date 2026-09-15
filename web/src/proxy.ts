@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { SURFACE_HEADER, isDarkOnlyPath } from "@/lib/theme/surface";
 
 /**
  * Runs before every page request. Two jobs:
@@ -49,10 +50,30 @@ const PUBLIC_PATHS = [
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  /**
+   * Every response carries the scheme decision down to the root layout, which
+   * renders <html> and cannot see the route for itself.
+   *
+   * It is a function rather than a value because Supabase rebuilds the
+   * response whenever it refreshes a token (see setAll below), and a header
+   * set once on the first response would be dropped by that rebuild — the
+   * layout would then render the app scheme on a signed-out page, at random,
+   * only for the users whose session happened to refresh on that request.
+   *
+   * Headers are rebuilt from `request.headers` each time, AFTER Supabase has
+   * written the refreshed cookies onto the request, so the new session still
+   * reaches the server render.
+   */
+  const withSurface = () => {
+    const headers = new Headers(request.headers);
+    headers.set(SURFACE_HEADER, isDarkOnlyPath(pathname) ? "dark-only" : "app");
+    return NextResponse.next({ request: { headers } });
+  };
+
   // Must be reassigned (not recreated) whenever Supabase sets cookies, and
   // returned as-is — building a fresh response would drop the refreshed tokens
   // and log the user out on the next request.
-  let response = NextResponse.next({ request });
+  let response = withSurface();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -64,7 +85,7 @@ export async function proxy(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
-          response = NextResponse.next({ request });
+          response = withSurface();
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options),
           );

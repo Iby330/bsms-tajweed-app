@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Sans_Arabic, Amiri_Quran, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { headers } from "next/headers";
+import { SURFACE_HEADER } from "@/lib/theme/surface";
 import "./globals.css";
 
 // No `weight`: that pins the download to fixed cuts, and the 2026 design
@@ -69,18 +71,39 @@ export const metadata: Metadata = {
  *
  *   cream light  #f4f1df      cream dark  #0a0a08
  */
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ededfc" },
-    { media: "(prefers-color-scheme: dark)", color: "#00004d" },
-  ],
-};
+export async function generateViewport(): Promise<Viewport> {
+  // On a screen pinned to the dark scheme the browser chrome has to be pinned
+  // with it. Left keyed to prefers-color-scheme, a light-mode phone would draw
+  // a pale address bar directly above a navy page — the exact strip this
+  // export exists to prevent, just the other way round.
+  if ((await headers()).get(SURFACE_HEADER) === "dark-only") {
+    return { themeColor: "#00004d" };
+  }
+  return {
+    themeColor: [
+      { media: "(prefers-color-scheme: light)", color: "#ededfc" },
+      { media: "(prefers-color-scheme: dark)", color: "#00004d" },
+    ],
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  /**
+   * The signed-out screens are pinned to the dark scheme; the app follows the
+   * viewer. The proxy decides which this is and says so on the request, because
+   * a layout cannot see its own route — see lib/theme/surface.ts.
+   *
+   * Both halves are needed. `dark` on <html> is what the server sends, so the
+   * page paints navy immediately; `forcedTheme` is what stops next-themes
+   * replacing it with the system scheme the moment it hydrates. One without the
+   * other is either a flash of white or a page that quietly reverts.
+   */
+  const darkOnly = (await headers()).get(SURFACE_HEADER) === "dark-only";
+
   return (
     // The font variables go on <html>, not <body>. `--font-sans` and
     // `--font-heading` are declared in @theme, which lands on :root — if the
@@ -94,11 +117,16 @@ export default function RootLayout({
     <html
       lang="en"
       data-brand="navy"
-      className={`${archivo.variable} ${plexArabic.variable} ${amiriQuran.variable} ${geistMono.variable} h-full`}
+      className={`${archivo.variable} ${plexArabic.variable} ${amiriQuran.variable} ${geistMono.variable} h-full${darkOnly ? " dark" : ""}`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          forcedTheme={darkOnly ? "dark" : undefined}
+        >
           {children}
         </ThemeProvider>
       </body>
