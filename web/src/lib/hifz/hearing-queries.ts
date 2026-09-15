@@ -1,7 +1,7 @@
 import "server-only";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import type { MistakeRow } from "./mistakes";
+import { MISTAKE_COLS, type MistakeRow } from "./mistakes";
 import type { HearingOutcome } from "./hearings";
 
 export type Hearing = {
@@ -12,9 +12,6 @@ export type Hearing = {
   teacherName: string;
   mistakes: MistakeRow[];
 };
-
-const MISTAKE_COLS =
-  "id, session_id, surah_number, ayah_number, word_position, category, detail, note, created_at";
 
 /**
  * Submitted hearings of one surah for one student, newest first. Reads run
@@ -54,7 +51,13 @@ export async function hearingsFor(studentId: string, surah: number): Promise<Hea
   }));
 }
 
-/** The teacher's own open draft on this surah, with its marks, or null. */
+/**
+ * The teacher's own open draft on this surah, with its marks, or null.
+ *
+ * `teacherId` must be the signed-in teacher's own id (the page passes
+ * `profile.id`); RLS will not catch a mismatch the way it does for a
+ * student, because teachers read every session.
+ */
 export async function draftHearing(
   teacherId: string,
   studentId: string,

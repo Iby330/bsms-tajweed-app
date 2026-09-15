@@ -13,6 +13,10 @@ export type MistakeRow = {
   created_at: string;
 };
 
+/** The select list that produces a MistakeRow. */
+export const MISTAKE_COLS =
+  "id, session_id, surah_number, ayah_number, word_position, category, detail, note, created_at";
+
 export type SessionRow = {
   id: string;
   submitted_at: string | null;

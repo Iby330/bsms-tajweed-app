@@ -3,7 +3,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getCachedSurahs } from "@/lib/reference/cached";
 import { memorisationList, type Surah } from "@/lib/hifz/pace";
-import type { MistakeRow, SessionRow } from "./mistakes";
+import { MISTAKE_COLS, type MistakeRow, type SessionRow } from "./mistakes";
 
 export type ActivePair = { pairId: string; partnerId: string; partnerName: string };
 
@@ -67,7 +67,7 @@ export async function draftMistakes(sessionId: string): Promise<MistakeRow[]> {
   const db = await supabaseServer();
   const { data } = await db
     .from("revision_mistakes")
-    .select("id, session_id, surah_number, ayah_number, word_position, category, detail, note, created_at")
+    .select(MISTAKE_COLS)
     .eq("session_id", sessionId);
   return (data ?? []) as MistakeRow[];
 }
@@ -93,7 +93,7 @@ export async function feedbackFor(studentId: string): Promise<Feedback> {
   const ids = sessions.map((s) => s.id);
   const [{ data: mistakes }, { data: names }] = await Promise.all([
     db.from("revision_mistakes")
-      .select("id, session_id, surah_number, ayah_number, word_position, category, detail, note, created_at")
+      .select(MISTAKE_COLS)
       .in("session_id", ids),
     supabaseAdmin().from("profiles").select("id, full_name")
       .in("id", [...new Set(sessions.map((s) => s.reviewer_id))]),
