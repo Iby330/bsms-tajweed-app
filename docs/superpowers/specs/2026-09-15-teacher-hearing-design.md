@@ -14,9 +14,11 @@ The teacher opens the same surah from the student's hifdh page and sees the
 same mushaf, ready to hear it again.
 
 Peer revision is untouched. Students keep logging each other on the Review
-tab, and that feedback stays where it is. A hearing is the teacher's record
-of a surah; peer review is the partner's record of a session. The two are
-kept apart on screen even though they share a table underneath.
+tab, and that feedback stays where it is. A hearing is not a review: it is
+the Thursday lesson itself, the student presenting their hifdh to the
+teacher, and the teacher's marks are the record of that. Peer review is the
+partner's record of a revision session. The two are kept apart on screen
+even though they share a table underneath.
 
 ## Decisions (user-confirmed)
 
