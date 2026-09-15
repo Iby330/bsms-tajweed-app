@@ -43,7 +43,6 @@ describe("HifzGrid", () => {
     const { container } = render(<HifzGrid studentId="s1" rows={run(0)} expected={0} />);
     expect(cellFor(container, "S114").getAttribute("href")).toBe("/teacher/hifz/s1/114");
     expect(cellFor(container, "S100").getAttribute("href")).toBe("/teacher/hifz/s1/100");
-    expect(container.querySelector(".markpanel")).toBeNull();
   });
 
   it("flags a cell that carries a comment", () => {

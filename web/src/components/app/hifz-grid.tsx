@@ -91,6 +91,10 @@ export function HifzGrid({
                   <Link
                     key={r.number}
                     href={`/teacher/hifz/${studentId}/${r.number}`}
+                    // The surah page is force-dynamic with real Supabase reads;
+                    // left to prefetch, a 43-cell grid would fire most of them
+                    // on viewport alone.
+                    prefetch={false}
                     className={cn("cell", r.passed && "done", i === currentIdx && "next")}
                   >
                     <span className="n">{String(i + 1).padStart(2, "0")}</span>
