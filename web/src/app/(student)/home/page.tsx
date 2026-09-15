@@ -15,7 +15,7 @@ import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { Sparkline } from "@/components/app/sparkline";
 import { getCachedSurahs } from "@/lib/reference/cached";
-import { memorisationList } from "@/lib/hifz/pace";
+import { memorisationList, passedOfList } from "@/lib/hifz/pace";
 import { SERIES_LABELS, seriesShort } from "@/lib/lessons/series";
 import { isLate } from "@/lib/homework/logic";
 import { cn } from "@/lib/utils";
@@ -150,13 +150,17 @@ export default async function StudentHome() {
   const hifzList = progress.hifz
     ? memorisationList(progress.hifz.startSurah, progress.hifz.target, surahs)
     : [];
-  const lastPassed =
-    progress.hifz && progress.hifz.passed > 0
-      ? hifzList[progress.hifz.passed - 1] ?? null
-      : null;
+  // How far through THIS year's list they are. `progress.hifz.passed` is a
+  // lifetime count and indexing the list with it put the surah name off the
+  // end of the array for a returning student, which is why the Arabic line
+  // disappeared rather than showing the wrong surah.
+  const hifzDone = passedOfList(hifzList, progress.hifz?.passedSurahs ?? []);
+  const lastPassed = hifzDone.last;
 
+  // Clamped to the list, as /hifz does: a target set beyond the surahs the
+  // list actually holds would otherwise expect work that is not on it.
   const expected = progress.hifz
-    ? expectedPassed(now, weeks, progress.hifz.target)
+    ? expectedPassed(now, weeks, Math.min(progress.hifz.target, hifzList.length))
     : 0;
 
   return (
@@ -332,10 +336,12 @@ export default async function StudentHome() {
                 </div>
               )}
               <div className="beads" role="img"
-                   aria-label={`${progress.hifz.passed} of ${progress.hifz.target} surahs passed`}>
-                {Array.from({ length: progress.hifz.target }, (_, i) => {
+                   aria-label={`${hifzDone.count} of ${hifzList.length} surahs passed`}>
+                {Array.from({ length: hifzList.length }, (_, i) => {
                   const s = hifzList[i];
-                  const done = i < progress.hifz!.passed;
+                  // The bead for the surah it stands for, rather than the
+                  // first N beads — they are not passed in order.
+                  const done = s ? hifzDone.isPassed(s.number) : false;
                   return (
                     <b
                       key={i}
@@ -350,13 +356,13 @@ export default async function StudentHome() {
                 })}
               </div>
               <div className="note">
-                {progress.hifz.passed} of {progress.hifz.target}
+                {hifzDone.count} of {hifzList.length}
                 {expected > 0 && (
                   <> · <span className="trend">
-                    {progress.hifz.passed > expected
-                      ? `${progress.hifz.passed - expected} ahead of pace`
-                      : progress.hifz.passed < expected
-                        ? `${expected - progress.hifz.passed} behind pace`
+                    {hifzDone.count > expected
+                      ? `${hifzDone.count - expected} ahead of pace`
+                      : hifzDone.count < expected
+                        ? `${expected - hifzDone.count} behind pace`
                         : "on pace"}
                   </span></>
                 )}

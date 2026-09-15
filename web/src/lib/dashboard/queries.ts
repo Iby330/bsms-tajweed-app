@@ -48,9 +48,14 @@ export function currentTermId(
  */
 export async function getStudentProgress(studentId: string) {
   const db = await supabaseServer();
-  const [avgs, hifz, strikes] = await Promise.all([
+  const [avgs, hifz, records, strikes] = await Promise.all([
     db.from("v_termly_avg").select("term_id, hw_avg").eq("student_id", studentId),
     db.from("v_hifz_progress").select("passed, target_count, start_surah, pct").eq("student_id", studentId).maybeSingle(),
+    // The records themselves, not just the view's count of them. The count is
+    // LIFETIME — hifz_records has no year column — so it cannot say how far
+    // through THIS year's list a returning student is, and a card about this
+    // year's target has to ask that question. See `passedOfList`.
+    db.from("hifz_records").select("surah_number").eq("student_id", studentId),
     db.from("strikes").select("term_id, reason, note, issued_at").eq("student_id", studentId).order("issued_at"),
   ]);
 
@@ -67,9 +72,12 @@ export async function getStudentProgress(studentId: string) {
     hwAvgByTerm,
     hifz: hifz.data
       ? {
+          /** LIFETIME surahs passed, which may exceed `target`. */
           passed: Number(hifz.data.passed),
           target: Number(hifz.data.target_count),
           startSurah: Number(hifz.data.start_surah),
+          /** Every surah ever passed. Scope it with `passedOfList`. */
+          passedSurahs: (records.data ?? []).map((r) => Number(r.surah_number)),
         }
       : null,
     /** Every term's strikes, each carrying its `term_id`. Callers filter. */
