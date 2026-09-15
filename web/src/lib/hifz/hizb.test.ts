@@ -4,6 +4,7 @@ import {
   juzOf,
   assumedPassed,
   hizbBlocks,
+  blocksInScope,
   checkStatus,
   juzProgress,
   rowPlan,
@@ -92,6 +93,36 @@ describe("hizbBlocks", () => {
   });
 });
 
+describe("blocksInScope — the hero shows the year, not the programme", () => {
+  it("keeps only the hizbs this year's target actually reaches", () => {
+    // target 28 = surahs 114..87 = hizb 60 exactly. 59 and 58 are next year's.
+    const list = RUN.slice(0, 28);
+    const scoped = blocksInScope(hizbBlocks(RUN, new Set()), list);
+    expect(scoped.map((b) => b.hizb)).toEqual([60]);
+  });
+
+  it("keeps the FULL hizb size when a target stops part-way through one", () => {
+    // target 30 puts only 2 surahs of hizb 59 on the list, but the CHECK is on
+    // the whole hizb — showing 2 would tell the student the check is nearer
+    // than it is.
+    const list = RUN.slice(0, 30);
+    const scoped = blocksInScope(hizbBlocks(RUN, new Set()), list);
+    expect(scoped.map((b) => b.hizb)).toEqual([60, 59]);
+    expect(scoped.map((b) => b.surahs.length)).toEqual([28, 9]);
+  });
+
+  it("drops the hizbs a returning student finished in an earlier year", () => {
+    const list = RUN.slice(28); // starts at surah 86 — hizb 60 was last year
+    const assumed = assumedPassed(RUN, list, new Set());
+    const scoped = blocksInScope(hizbBlocks(RUN, assumed), list);
+    expect(scoped.map((b) => b.hizb)).toEqual([59, 58]);
+  });
+
+  it("an empty list scopes to nothing rather than to everything", () => {
+    expect(blocksInScope(hizbBlocks(RUN, new Set()), [])).toEqual([]);
+  });
+});
+
 describe("checkStatus", () => {
   it("mid-block: surahs to go until the check", () => {
     const p = passedFirstN(12);
@@ -108,9 +139,22 @@ describe("checkStatus", () => {
     expect(checkStatus(hizbBlocks(RUN, p), p))
       .toEqual({ kind: "toGo", hizb: 59, remaining: 8 });
   });
-  it("whole run passed: done", () => {
+  it("finishing the last block in scope is READY for its check, not silently done", () => {
+    // Was pinned as { kind: "done" }, which the hero renders as nothing. That
+    // only passed because an out-of-scope block (57) supplied the "ready"
+    // line instead. Once the hero is scoped to the year, the last block has
+    // no successor to trigger it, and a student who has just finished a hizb
+    // must still be told to present it.
     const p = passedFirstN(43);
-    expect(checkStatus(hizbBlocks(RUN, p), p)).toEqual({ kind: "done" });
+    expect(checkStatus(hizbBlocks(RUN, p), p)).toEqual({ kind: "ready", hizb: 58 });
+  });
+
+  it("a scope complete only through an earlier year is done, not ready", () => {
+    // Nothing earned THIS year, so there is no check to present now.
+    const list = RUN.slice(28);
+    const assumed = assumedPassed(RUN, RUN.slice(43), new Set(list.map((s) => s.number)));
+    const scoped = blocksInScope(hizbBlocks(RUN, assumed), list);
+    expect(checkStatus(scoped, new Set())).toEqual({ kind: "done" });
   });
   it("no blocks: null", () => {
     expect(checkStatus([], new Set())).toBeNull();

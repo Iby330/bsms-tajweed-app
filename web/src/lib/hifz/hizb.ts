@@ -58,8 +58,10 @@ export type HizbBlock = {
   state: HizbBlockState;
 };
 
-/** Blocks over the FULL run — the hero bars show all of them regardless of
- *  the student's yearly target. Pass the `assumedPassed` set. */
+/** Blocks over the FULL run, so every hizb reports its true size. Pass the
+ *  `assumedPassed` set. The hero narrows these to the student's year with
+ *  {@link blocksInScope}; sizes must stay whole, because a hizb check is on
+ *  the whole hizb however much of it falls in this year. */
 export function hizbBlocks(allSurahs: Surah[], passed: Set<number>): HizbBlock[] {
   const ordered = [...allSurahs].sort((a, b) => a.order_index - b.order_index);
   const groups = new Map<number, Surah[]>();
@@ -85,6 +87,20 @@ export function hizbBlocks(allSurahs: Surah[], passed: Set<number>): HizbBlock[]
   return blocks;
 }
 
+/**
+ * Narrow the hero's blocks to the hizbs this year's target actually reaches.
+ *
+ * Without this the bars showed the whole programme, so a student targeting
+ * one hizb saw three more sitting permanently at zero — which reads as being
+ * far behind rather than as next year's work. Sizes are NOT narrowed: a
+ * target that stops part-way through a hizb still shows that hizb's full
+ * count, because the check is on all of it.
+ */
+export function blocksInScope(blocks: HizbBlock[], list: Surah[]): HizbBlock[] {
+  const reached = new Set(list.map((s) => hizbOf(s.number)));
+  return blocks.filter((b) => reached.has(b.hizb));
+}
+
 export type CheckStatus =
   | { kind: "toGo"; hizb: number; remaining: number }
   | { kind: "ready"; hizb: number }
@@ -99,7 +115,16 @@ export type CheckStatus =
  *  Derived, never authoritative. */
 export function checkStatus(blocks: HizbBlock[], earned: Set<number>): CheckStatus {
   if (blocks.length === 0) return null;
-  if (blocks.every((b) => b.state === "complete")) return { kind: "done" };
+  if (blocks.every((b) => b.state === "complete")) {
+    // No block after the last one to trigger "ready", so ask here. A student
+    // who has just finished a hizb must still be told to present it — before
+    // the hero was scoped to the year, an out-of-scope block did this. "Done"
+    // is kept for a scope completed entirely in an earlier year, where there
+    // is no check to sit now.
+    const last = blocks[blocks.length - 1];
+    const earnedLast = last.surahs.some((s) => earned.has(s.number));
+    return earnedLast ? { kind: "ready", hizb: last.hizb } : { kind: "done" };
+  }
   const curIdx = blocks.findIndex((b) => b.state === "current");
   if (curIdx === -1) return null;
   const cur = blocks[curIdx];

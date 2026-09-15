@@ -2,7 +2,7 @@ import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { getCachedSurahs } from "@/lib/reference/cached";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
-import { assumedPassed, checkStatus, hizbBlocks, juzProgress } from "@/lib/hifz/hizb";
+import { assumedPassed, blocksInScope, checkStatus, hizbBlocks, juzProgress } from "@/lib/hifz/hizb";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
 import { HifzHero } from "@/components/app/hifz-hero";
 import { HifzJourney } from "@/components/app/hifz-journey";
@@ -102,7 +102,10 @@ export default async function StudentHifz({
   // Derived numbers all use the assumed set so a returning student's earlier
   // years count; the path itself only ever shows this year's list.
   const assumed = assumedPassed(all, list, passedSet);
-  const blocks = hizbBlocks(all, assumed);
+  // Scoped to the year: the bars are this student's target, not the whole
+  // programme. Sizes stay whole — a hizb check is on the whole hizb even
+  // when only part of it falls in this year.
+  const blocks = blocksInScope(hizbBlocks(all, assumed), list);
   // earned, not assumed/lifetime: last year's hizb check doesn't need redoing
   const check = checkStatus(blocks, earned);
   const juz = juzProgress(all, list, assumed);
