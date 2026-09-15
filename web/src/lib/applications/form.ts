@@ -137,13 +137,18 @@ export const PROGRAMME_YEAR = "sixth";
 /* ── The fee ──────────────────────────────────────────────────────────── */
 
 /**
- * £20 for 2026/27, up from £10 for 2025/26. One payment, for the whole year.
+ * £15 for 2026/27, up from £10 for 2025/26. One payment, for the whole year.
  *
- * Stored on each application row as well (`fee_pence`), so changing this next
- * year prices new applications without rewriting what this year's applicants
- * were asked for.
+ * THE ONE PLACE THE PRICE LIVES. Every screen that mentions the fee reads it
+ * through `feeLabel()` — the opening screen, the terms on both sides, the
+ * landing page, the meta description and the WhatsApp share card — so the
+ * price is changed here and nowhere else. It was £20 until 2026-09-15.
+ *
+ * Stored on each application row as well (`fee_pence`), so changing it again
+ * prices new applications without rewriting what earlier applicants were
+ * asked for. Nobody had applied at £20, so there is no such history yet.
  */
-export const FEE_PENCE = 2000;
+export const FEE_PENCE = 1500;
 
 export const feeLabel = () =>
   FEE_PENCE % 100 === 0 ? `£${FEE_PENCE / 100}` : `£${(FEE_PENCE / 100).toFixed(2)}`;
