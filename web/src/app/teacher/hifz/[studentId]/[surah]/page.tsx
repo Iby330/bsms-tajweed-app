@@ -1,4 +1,3 @@
-import type { ComponentProps } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -16,27 +15,12 @@ import type { MistakeRow } from "@/lib/hifz/mistakes";
 import { recordLine, summaryOf } from "@/lib/hifz/hearings";
 import { spreadHeat } from "@/lib/hifz/heat-spread";
 import { teacherClass } from "@/lib/teacher/scope";
-import { ReviewLogger } from "@/components/app/review-logger";
+import { ReviewLogger, type SessionProps } from "@/components/app/review-logger";
 import { RecordActions } from "@/components/app/record-actions";
 import { Rule } from "@/components/app/rule";
 import type { SurahNames } from "@/components/app/mushaf-reader";
 
 export const dynamic = "force-dynamic";
-
-/**
- * ReviewLogger's session props as a discriminated union (`sessionId` /
- * `ensureSession` are correlated: `sessionId: null` requires
- * `ensureSession`, a live id makes it optional). A plain
- * `Pick<ComponentProps<...>, …>` merges the union into one object first —
- * `sessionId` widens to `string | null` with `ensureSession` optional
- * either way — which loses that correlation and would let a `null` session
- * through with no `ensureSession`. `X extends unknown ? Pick<X, …> : never`
- * is the standard "distributive Pick" idiom: because the checked type is a
- * naked type parameter, TS re-runs Pick once per union member instead of
- * once over the merged type, so the result stays a matching two-branch
- * union.
- */
-type DistributivePick<T, K extends PropertyKey> = T extends unknown ? Pick<T, K & keyof T> : never;
 
 /**
  * One surah, ready to be heard.
@@ -101,10 +85,7 @@ export default async function TeacherSurahPage({
   );
   const basePath = `/teacher/hifz/${studentId}/${number}`;
 
-  const session: DistributivePick<
-    ComponentProps<typeof ReviewLogger>,
-    "sessionId" | "ensureSession" | "initialMistakes"
-  > = draft
+  const session: SessionProps & { initialMistakes: MistakeRow[] } = draft
     ? { sessionId: draft.id, initialMistakes: draft.mistakes }
     : {
         sessionId: null,

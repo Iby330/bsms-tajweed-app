@@ -40,7 +40,7 @@ const targetOf = (w: QuranWord) => ({
  *    verdict, when `ensureSession` creates it. `heat`/`history` paint what
  *    earlier hearings said about the same words.
  */
-type SessionProps =
+export type SessionProps =
   // A session already exists (peer mode always, hearing mode once heard
   // before) — ensureSession is unused, so it's fine unset.
   | { sessionId: string; ensureSession?: () => Promise<string> }
