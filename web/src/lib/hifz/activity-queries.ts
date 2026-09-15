@@ -20,8 +20,11 @@ export async function revisionActivityFor(studentId: string): Promise<RevisionDa
   const [spans, signOffs, sessions] = await Promise.all([
     getCachedSurahPageSpans(),
     db.from("hifz_records").select("surah_number, passed_at").eq("student_id", studentId),
+    // Hearings are lessons, not revision — the activity grid counts what
+    // the student revised on their own (or with a peer), so only peer
+    // sessions count here.
     db.from("revision_sessions").select("submitted_at")
-      .eq("reciter_id", studentId).not("submitted_at", "is", null),
+      .eq("reciter_id", studentId).eq("kind", "peer").not("submitted_at", "is", null),
   ]);
   return collectDays(
     signOffs.data ?? [],

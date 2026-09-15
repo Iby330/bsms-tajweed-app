@@ -86,6 +86,9 @@ export async function feedbackFor(studentId: string): Promise<Feedback> {
     .from("revision_sessions")
     .select("id, reviewer_id, submitted_at, flags, overall_note")
     .eq("reciter_id", studentId)
+    // Hearings live in this same table but belong to the surah pages, not
+    // the peer-review tab — a teacher's slip is not a classmate's mistake.
+    .eq("kind", "peer")
     .not("submitted_at", "is", null)
     .order("submitted_at", { ascending: false });
   if (!sessions?.length) return { sessions: [], mistakes: [] };
