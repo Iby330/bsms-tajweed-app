@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { fmtDay, fmtStamp } from "@/lib/format";
-import { recordLine, summaryOf, type HearingSummary } from "./hearings";
+import { commentToShow, recordLine, summaryOf, type HearingSummary } from "./hearings";
 
 const when = "2026-09-10T10:00:00Z";
 const day = fmtDay(when);
@@ -46,5 +46,32 @@ describe("summaryOf", () => {
     expect(
       summaryOf({ submittedAt: when, outcome: "passed", teacherName: "Ustadh Bilal", mistakes: [1, 2, 3] }),
     ).toEqual({ submittedAt: when, outcome: "passed", teacherName: "Ustadh Bilal", mistakeCount: 3 });
+  });
+});
+
+describe("commentToShow", () => {
+  const laterWhen = "2026-09-12T10:00:00Z";
+  const passRecord = { comment: "Well done", passedAt: when };
+  const notPassed = { note: "Watch the madd in āyah 3", outcome: "not_passed" as const, submittedAt: laterWhen };
+
+  it("shows the Not passed note when it is the latest word", () => {
+    expect(commentToShow(passRecord, notPassed)).toEqual({
+      text: "Watch the madd in āyah 3", date: laterWhen, kind: "hearing",
+    });
+  });
+
+  it("falls through to the record comment when the latest hearing passed", () => {
+    expect(commentToShow(passRecord, { note: "Nice recitation", outcome: "passed", submittedAt: laterWhen }))
+      .toEqual({ text: "Well done", date: when, kind: "record" });
+  });
+
+  it("falls through to the record comment when the not-passed note is null", () => {
+    expect(commentToShow(passRecord, { note: null, outcome: "not_passed", submittedAt: laterWhen }))
+      .toEqual({ text: "Well done", date: when, kind: "record" });
+  });
+
+  it("is null when there is nothing to show", () => {
+    expect(commentToShow(null, null)).toBeNull();
+    expect(commentToShow({ comment: null, passedAt: when }, null)).toBeNull();
   });
 });

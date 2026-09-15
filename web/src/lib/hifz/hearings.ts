@@ -35,6 +35,19 @@ export function recordLine(record: RecordSummary | null, hearing: HearingSummary
   return `Heard by ${hearing.teacherName} on ${fmtStamp(hearing.submittedAt)} · ${status} · ${mistakes}`;
 }
 
+/** What the student reads under the surah: the teacher's note from a
+ *  Not passed hearing while that is the latest word, else the pass comment. */
+export function commentToShow(
+  record: { comment: string | null; passedAt: string } | null,
+  latest: { note: string | null; outcome: HearingOutcome | null; submittedAt: string } | null,
+): { text: string; date: string; kind: "hearing" | "record" } | null {
+  if (latest?.outcome === "not_passed" && latest.note) {
+    return { text: latest.note, date: latest.submittedAt, kind: "hearing" };
+  }
+  if (record?.comment) return { text: record.comment, date: record.passedAt, kind: "record" };
+  return null;
+}
+
 /** The latest hearing, reduced to what recordLine needs; null when there is none. */
 export function summaryOf(
   hearing: { submittedAt: string; outcome: HearingOutcome | null; teacherName: string; mistakes: unknown[] } | null | undefined,

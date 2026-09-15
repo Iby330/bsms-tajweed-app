@@ -125,6 +125,7 @@ export default async function TeacherSurahPage({
         <p>
           {surah.name_en} · {idx + 1} of {list.length} · {line}
         </p>
+        {latest?.note && <p className="note">Last time: &quot;{latest.note}&quot;</p>}
       </header>
 
       {record && (

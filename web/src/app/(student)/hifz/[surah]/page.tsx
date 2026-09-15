@@ -7,11 +7,11 @@ import { memorisationList } from "@/lib/hifz/pace";
 import { hizbOf } from "@/lib/hifz/hizb";
 import { pageWithin } from "@/lib/quran/page-within";
 import { hearingsFor } from "@/lib/hifz/hearing-queries";
-import { recordLine, summaryOf } from "@/lib/hifz/hearings";
+import { commentToShow, recordLine, summaryOf } from "@/lib/hifz/hearings";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
 import { SURAH_INFO } from "@/lib/hifz/surah-info";
 import { SURAH_SUMMARY, REVIEWED } from "@/lib/hifz/surah-summary";
-import { fmtDay } from "@/lib/format";
+import { fmtDay, fmtStamp } from "@/lib/format";
 import { SurahMushaf } from "@/components/app/surah-mushaf";
 import { Rule } from "@/components/app/rule";
 import type { SurahNames } from "@/components/app/mushaf-reader";
@@ -94,6 +94,12 @@ export default async function SurahPage({
     summaryOf(latest),
   );
   const hearingMistakes = hearings.flatMap((h) => h.mistakes);
+  // A Not passed note is the latest word until the next hearing passes; a
+  // pass comment otherwise. Both render in the same blockquote.
+  const comment = commentToShow(
+    record ? { comment: record.teacher_comment, passedAt: record.passed_at } : null,
+    latest ? { note: latest.note, outcome: latest.outcome, submittedAt: latest.submittedAt } : null,
+  );
   const surahNames: SurahNames = Object.fromEntries(
     surahs.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]),
   );
@@ -140,12 +146,14 @@ export default async function SurahPage({
                 <span className="v sm">Passed</span>
               </div>
               <div className="note">{line}.</div>
-              {record.teacher_comment ? (
+              {comment ? (
                 <div className="saywrap" style={{ marginTop: 8, paddingTop: 0, borderTop: "none" }}>
                   <div className="seclab">What your teacher said</div>
                   <blockquote className="say">
-                    <p>&ldquo;{record.teacher_comment}&rdquo;</p>
-                    <div className="by">{fmtDay(record.passed_at)}</div>
+                    <p>&ldquo;{comment.text}&rdquo;</p>
+                    <div className="by">
+                      {comment.kind === "hearing" ? fmtStamp(comment.date) : fmtDay(comment.date)}
+                    </div>
                   </blockquote>
                 </div>
               ) : (
@@ -164,6 +172,17 @@ export default async function SurahPage({
                     ? "This one is still ahead of you. Your teacher hears it when you are ready."
                     : "This surah is not on your list this year."}
               </div>
+              {comment && (
+                <div className="saywrap" style={{ marginTop: 8, paddingTop: 0, borderTop: "none" }}>
+                  <div className="seclab">What your teacher said</div>
+                  <blockquote className="say">
+                    <p>&ldquo;{comment.text}&rdquo;</p>
+                    <div className="by">
+                      {comment.kind === "hearing" ? fmtStamp(comment.date) : fmtDay(comment.date)}
+                    </div>
+                  </blockquote>
+                </div>
+              )}
             </>
           )}
         </section>
