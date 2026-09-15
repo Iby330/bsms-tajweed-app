@@ -113,6 +113,31 @@ export const getCachedSurahStartPages = unstable_cache(
 );
 
 /**
+ * The printed pages one surah occupies: its first word's page to its last
+ * word's. Read from the words themselves rather than derived from the next
+ * surah's start page, because a surah that ends at the foot of a page and
+ * one that shares its last page with the next both need the right answer.
+ * Null for a surah outside the seeded range.
+ */
+export const getCachedSurahPageRange = unstable_cache(
+  async (surah: number): Promise<{ from: number; to: number } | null> => {
+    const admin = supabaseAdmin();
+    const [first, last] = await Promise.all([
+      admin.from("quran_words").select("page_number").eq("surah_number", surah)
+        .order("page_number", { ascending: true }).limit(1).maybeSingle(),
+      admin.from("quran_words").select("page_number").eq("surah_number", surah)
+        .order("page_number", { ascending: false }).limit(1).maybeSingle(),
+    ]);
+    if (first.error) throw first.error;
+    if (last.error) throw last.error;
+    if (!first.data || !last.data) return null;
+    return { from: first.data.page_number, to: last.data.page_number };
+  },
+  ["ref-surah-page-range-v1"],
+  { tags: ["reference"], revalidate: 3600 },
+);
+
+/**
  * How many mushaf pages each seeded surah spans: surah → page count.
  *
  * Paginated deliberately. quran_words is 5964 rows and PostgREST caps a

@@ -27,13 +27,15 @@ export function MushafPager({
   page: number;
   min: number;
   max: number;
-  basePath: string;   // already carries its ?tab=… query
+  basePath: string;   // with or without a query string
   param?: string;     // query key this pager owns
   step?: number;
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const href = (p: number) => `${basePath}&${param}=${p}`;
+  // basePath may already carry a query (`/hifz?tab=review`) or be bare
+  // (`/hifz/88`); start the string or extend it accordingly.
+  const href = (p: number) => `${basePath}${basePath.includes("?") ? "&" : "?"}${param}=${p}`;
   const go = (p: number) => {
     if (p >= min && p <= max) router.push(href(p), { scroll: false });
   };
