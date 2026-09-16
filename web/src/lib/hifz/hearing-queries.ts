@@ -2,82 +2,111 @@ import "server-only";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { MISTAKE_COLS, type MistakeRow } from "./mistakes";
-import type { HearingOutcome } from "./hearings";
+import type { HearingRange } from "./hearings";
 
-export type Hearing = {
+export type Hearing = HearingRange & {
   id: string;
   submittedAt: string;
-  outcome: HearingOutcome | null;
   note: string | null;
   teacherName: string;
-  mistakes: MistakeRow[];
+  mistakes: MistakeRow[];   // of ONE surah when read through hearingsFor; empty from hearingsForStudent
 };
 
+type SessionRow = {
+  id: string; reviewer_id: string; submitted_at: string | null;
+  surah_number: number | null; to_surah_number: number | null; overall_note: string | null;
+};
+
+/** Reviewer names go through the admin client: profiles are not cross-readable. */
+async function namesFor(reviewerIds: string[]): Promise<Map<string, string>> {
+  if (!reviewerIds.length) return new Map();
+  const { data } = await supabaseAdmin().from("profiles").select("id, full_name").in("id", reviewerIds);
+  return new Map((data ?? []).map((p) => [p.id, p.full_name]));
+}
+
+const toHearing = (s: SessionRow, names: Map<string, string>, mistakes: MistakeRow[]): Hearing => ({
+  id: s.id,
+  from: s.surah_number!,
+  to: s.to_surah_number!,
+  submittedAt: s.submitted_at!,
+  note: s.overall_note,
+  teacherName: names.get(s.reviewer_id) ?? "your teacher",
+  mistakes,
+});
+
+const HEARING_COLS = "id, reviewer_id, submitted_at, surah_number, to_surah_number, overall_note";
+
 /**
- * Submitted hearings of one surah for one student, newest first. Reads run
- * as the CALLER, so RLS decides what comes back: a student sees only
- * submitted rows, a teacher sees the cohort. The teacher's name goes through
- * the admin client because profiles are not cross-readable.
+ * Every submitted hearing of a student, newest first, WITHOUT mistakes —
+ * what the grids need to draw heard-not-passed cells. Reads run as the
+ * caller: a student sees only submitted rows.
+ */
+export async function hearingsForStudent(studentId: string): Promise<Hearing[]> {
+  const db = await supabaseServer();
+  const { data } = await db
+    .from("revision_sessions").select(HEARING_COLS)
+    .eq("reciter_id", studentId).eq("kind", "hearing")
+    .not("submitted_at", "is", null)
+    .order("submitted_at", { ascending: false });
+  const rows = (data ?? []) as SessionRow[];
+  const names = await namesFor([...new Set(rows.map((r) => r.reviewer_id))]);
+  return rows.map((r) => toHearing(r, names, []));
+}
+
+/** Every mistake of every submitted hearing of a student — the desk's heat. */
+export async function hearingMistakesFor(studentId: string): Promise<MistakeRow[]> {
+  const db = await supabaseServer();
+  const { data: sessions } = await db
+    .from("revision_sessions").select("id")
+    .eq("reciter_id", studentId).eq("kind", "hearing").not("submitted_at", "is", null);
+  const ids = (sessions ?? []).map((s) => s.id);
+  if (!ids.length) return [];
+  const { data } = await db.from("revision_mistakes").select(MISTAKE_COLS).in("session_id", ids);
+  return (data ?? []) as MistakeRow[];
+}
+
+/**
+ * Submitted hearings whose range covers one surah, newest first, each with
+ * ITS mistakes on that surah only — a range hearing's marks on the
+ * neighbouring surahs belong to those surahs' pages.
  */
 export async function hearingsFor(studentId: string, surah: number): Promise<Hearing[]> {
   const db = await supabaseServer();
   const { data: sessions } = await db
-    .from("revision_sessions")
-    .select("id, reviewer_id, submitted_at, outcome, overall_note")
-    .eq("reciter_id", studentId)
-    .eq("kind", "hearing")
-    .eq("surah_number", surah)
+    .from("revision_sessions").select(HEARING_COLS)
+    .eq("reciter_id", studentId).eq("kind", "hearing")
+    .gte("surah_number", surah).lte("to_surah_number", surah)
     .not("submitted_at", "is", null)
     .order("submitted_at", { ascending: false });
-  if (!sessions?.length) return [];
-
-  const ids = sessions.map((s) => s.id);
-  const [{ data: mistakes }, { data: names }] = await Promise.all([
-    db.from("revision_mistakes").select(MISTAKE_COLS).in("session_id", ids),
-    supabaseAdmin()
-      .from("profiles")
-      .select("id, full_name")
-      .in("id", [...new Set(sessions.map((s) => s.reviewer_id))]),
+  const rows = (sessions ?? []) as SessionRow[];
+  if (!rows.length) return [];
+  const ids = rows.map((s) => s.id);
+  const [{ data: mistakes }, names] = await Promise.all([
+    db.from("revision_mistakes").select(MISTAKE_COLS).in("session_id", ids).eq("surah_number", surah),
+    namesFor([...new Set(rows.map((s) => s.reviewer_id))]),
   ]);
-  const nameOf = new Map((names ?? []).map((p) => [p.id, p.full_name]));
-  const rows = (mistakes ?? []) as MistakeRow[];
-  return sessions.map((s) => ({
-    id: s.id,
-    submittedAt: s.submitted_at!,
-    outcome: (s.outcome as HearingOutcome | null) ?? null,
-    note: s.overall_note,
-    teacherName: nameOf.get(s.reviewer_id) ?? "your teacher",
-    mistakes: rows.filter((m) => m.session_id === s.id),
-  }));
+  const all = (mistakes ?? []) as MistakeRow[];
+  return rows.map((s) => toHearing(s, names, all.filter((m) => m.session_id === s.id)));
 }
 
 /**
- * The teacher's own open draft on this surah, with its marks, or null.
- *
- * `teacherId` must be the signed-in teacher's own id (the page passes
- * `profile.id`); RLS will not catch a mismatch the way it does for a
- * student, because teachers read every session. If a race ever leaves two
- * open drafts, the oldest wins and the other stays orphaned rather than
- * crashing the page.
+ * The teacher's open draft on this student, wherever it started, with its
+ * marks. One open draft per teacher per student: the desk resumes it and
+ * the per-surah page defers to it. `teacherId` must be the signed-in
+ * teacher's own id (the page passes profile.id); RLS lets a teacher read
+ * every session, so it will not catch a mismatch. If a race ever leaves
+ * two open drafts, the oldest wins rather than crashing the page.
  */
-export async function draftHearing(
-  teacherId: string,
-  studentId: string,
-  surah: number,
-): Promise<{ id: string; mistakes: MistakeRow[] } | null> {
+export async function openDraftFor(
+  teacherId: string, studentId: string,
+): Promise<{ id: string; from: number; mistakes: MistakeRow[] } | null> {
   const db = await supabaseServer();
   const { data: s } = await db
-    .from("revision_sessions")
-    .select("id")
-    .eq("reviewer_id", teacherId)
-    .eq("reciter_id", studentId)
-    .eq("kind", "hearing")
-    .eq("surah_number", surah)
+    .from("revision_sessions").select("id, surah_number")
+    .eq("reviewer_id", teacherId).eq("reciter_id", studentId).eq("kind", "hearing")
     .is("submitted_at", null)
-    .order("started_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (!s) return null;
+    .order("started_at", { ascending: true }).limit(1).maybeSingle();
+  if (!s || s.surah_number === null) return null;
   const { data } = await db.from("revision_mistakes").select(MISTAKE_COLS).eq("session_id", s.id);
-  return { id: s.id, mistakes: (data ?? []) as MistakeRow[] };
+  return { id: s.id, from: s.surah_number, mistakes: (data ?? []) as MistakeRow[] };
 }
