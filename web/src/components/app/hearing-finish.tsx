@@ -19,7 +19,7 @@ export type Verdict = { to: number; passed: number[]; note: string };
  * with it.
  */
 export function HearingFinish({
-  open, onOpenChange, from, initialEnd, minEnd, names, passedBefore, pending, onConfirm, pages,
+  open, onOpenChange, from, initialEnd, minEnd, names, passedBefore, pending, onConfirm,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -30,7 +30,6 @@ export function HearingFinish({
   passedBefore: Record<number, string>;   // surah → passed_at
   pending: boolean;
   onConfirm: (v: Verdict) => void;
-  pages?: number;                          // pages the range spans, when known
 }) {
   const [end, setEnd] = useState(initialEnd);
   const [unticked, setUnticked] = useState<Set<number>>(new Set());
@@ -58,7 +57,11 @@ export function HearingFinish({
   const move = (delta: number) => {
     const next = end + delta;
     if (next > from || next < minEnd) return;
-    // A surah leaving the range takes its tick with it; one arriving is ticked.
+    // A surah leaving the range takes its tick with it; one arriving is
+    // ticked. That means an untick is not remembered across a round trip:
+    // "One fewer" pushes a surah out (dropping its entry from `unticked`
+    // along with it), and "One more" brings it back in ticked, same as any
+    // other surah newly in range — the earlier untick is gone, not restored.
     setUnticked((cur) => new Set([...cur].filter((s) => s >= next && s <= from)));
     setEnd(next);
   };
@@ -72,9 +75,7 @@ export function HearingFinish({
           <DialogTitle>Finish hearing</DialogTitle>
         </DialogHeader>
         <p className="text-sm font-medium">
-          {count === 1
-            ? name(from)
-            : `${name(from)} → ${name(end)} · ${count} surahs${pages ? ` · ${pages} page${pages === 1 ? "" : "s"}` : ""}`}
+          {count === 1 ? name(from) : `${name(from)} → ${name(end)} · ${count} surahs`}
         </p>
 
         <ul className="max-h-56 space-y-1 overflow-y-auto" aria-label="Surahs heard">

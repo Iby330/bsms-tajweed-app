@@ -63,4 +63,19 @@ describe("HearingFinish", () => {
     const boxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
     expect(boxes.map((b) => b.checked)).toEqual([false, true]);
   });
+
+  it("Confirm is disabled while pending, and does nothing if clicked", () => {
+    const onConfirm = vi.fn();
+    render(<HearingFinish {...base} initialEnd={86} pending onConfirm={onConfirm} />);
+    const confirm = screen.getByRole("button", { name: "Saving…" }) as HTMLButtonElement;
+    expect(confirm.disabled).toBe(true);
+    fireEvent.click(confirm);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it("both movers are disabled from the start when minEnd equals from", () => {
+    render(<HearingFinish {...base} from={88} minEnd={88} initialEnd={88} onConfirm={vi.fn()} />);
+    expect((screen.getByRole("button", { name: "One more" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "One fewer" }) as HTMLButtonElement).disabled).toBe(true);
+  });
 });
