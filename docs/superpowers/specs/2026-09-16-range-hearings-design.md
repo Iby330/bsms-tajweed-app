@@ -87,16 +87,20 @@ student with a target is chosen.
 
 Top to bottom:
 
-1. **Header, sticky.** A student picker (the roster, each with their next
-   surah beside the name); the start chip, "Starting at Al-Ghashiyah",
-   tappable to pick another surah on the run until the first mark; the
-   mistake count; **Finish**.
-2. **The mushaf.** Every seeded page in one scrolling column. On load the
-   view scrolls to the page where the start surah begins. Words marked in
-   earlier hearings of this student are tinted underneath, as on the
-   per-surah page; tapping classifies as it does everywhere.
-3. **Finish** opens the popup:
-   - the range, "Al-Ghashiyah → Al-A'la · 2 surahs · 3 pages";
+1. **Header, sticky.** A student picker and the start chip are both the
+   repo's `FilterSelect` (the roster, each with their next surah beside the
+   name; the start, "Starting at Al-Ghashiyah", disabled once the draft has
+   a mark); the mistake count; **Finish**.
+2. **The mushaf.** Every seeded page in one scrolling column, rendered by
+   the logger itself — the desk has no separate `DeskLogger` component, just
+   the chrome (pickers, done line, next-student link) around `ReviewLogger`
+   in hearing mode. On load the view scrolls to the page where the start
+   surah begins. Words marked in earlier hearings of this student are
+   tinted underneath, as on the per-surah page; tapping classifies as it
+   does everywhere.
+3. **Finish** opens the popup, titled "Finish hearing" with the range
+   summary in a line beneath:
+   - the range, "Al-Ghashiyah → Al-A'la · 2 surahs";
    - one row per surah in the range, in memorisation order, each with a
      tick (on by default) and, for a surah already passed, "passed 12 Oct";
    - "One more" / "One fewer" to move the end;
@@ -106,8 +110,8 @@ Top to bottom:
    view, widened to include the lowest-numbered surah with a mark. If the
    page in view is before the start, the end is the start.
 4. **After Confirm** the page stays on the student with a line "Heard
-   Al-Ghashiyah → Al-A'la · 2 passed · 1 not passed" and a **Next student**
-   button that moves down the roster.
+   Al-Ghashiyah → Al-A'la · 2 passed · 1 not passed" (`doneLine` in
+   `hearings.ts`) and a **Next student** button that moves down the roster.
 
 ### The per-surah teacher page
 
@@ -118,10 +122,11 @@ page shows the link to the desk instead of the logger.
 ### The grids and the student's surah page
 
 The journey (student) and the grid (teacher) draw heard-not-passed cells
-red, with "heard, not passed" in the screen-reader text. The student's
-surah page record line reads "Heard by Ustadh Bilal on 14 Sep · not passed
-· 3 mistakes" from the derived state, and shows the latest hearing's note
-when the surah is not passed, the pass comment when it is.
+red (the `redo` class); a second sr-only span carries "heard, not passed"
+alongside the cell's other screen-reader text (comment flag, meaning). The
+student's surah page record line reads "Heard by Ustadh Bilal on 14 Sep ·
+not passed · 3 mistakes" from the derived state, and shows the latest
+hearing's note when the surah is not passed, the pass comment when it is.
 
 ## Server actions
 
@@ -129,28 +134,38 @@ when the surah is not passed, the pass comment when it is.
   (any start) or inserts one with `surah_number = fromSurah` and
   `to_surah_number = fromSurah`.
 - `submitHearing(sessionId, { to, passed, note })` — validates the session
-  is the caller's open hearing, `to <= from`, and every surah in `passed`
-  lies in `[to, from]`. For each surah in the range: in `passed` → upsert
-  the record (comment = note, marked_by, session_id; `passed_at` untouched
-  on conflict); not in `passed` → delete the record if one exists. Then the
-  session: `submitted_at`, `to_surah_number = to`, `overall_note`. Records
-  first, session second, as before. Revalidates the index pages and every
-  surah page in the range, both sides.
+  is the caller's open hearing, `to <= from`, that `[to, from]` lies on the
+  student's own memorisation run (server-side, from `hifz_profiles` — a
+  crafted `to` cannot reach into surahs the student was never assigned),
+  and every surah in `passed` lies in `[to, from]`. For each surah in the
+  range: in `passed` → upsert the record (comment = note, marked_by,
+  session_id; `passed_at` untouched on conflict); not in `passed` → delete
+  the record if one exists. Then the session: `submitted_at`,
+  `to_surah_number = to`, `overall_note`. Records first, session second, as
+  before. Revalidates the index pages and every surah page in the range,
+  both sides.
 
 ## Shared code
 
-- `lib/hifz/hearings.ts`: `surahState(surah, records, hearings)` and
-  `endSurahFor(from, pageInView, markSurahs, pageOf)`; `recordLine` and
-  `commentToShow` take the derived state instead of an outcome.
+- `lib/hifz/hearings.ts`: `surahState(surah, passed, hearings)`,
+  `endSurahFor(from, lastSurahOnPage, markSurahs)` (the surah under the page
+  in view — found separately via `lastSurahOn(pages, page)` — widened by
+  any mark surahs), and `doneLine(from, to, passed, names)` for the desk's
+  after-Confirm line; `recordLine` and `commentToShow` take the derived
+  state instead of an outcome.
 - `lib/hifz/hearing-queries.ts`: `hearingsForStudent(studentId)` (every
   submitted hearing's id, range, date, note, teacher name), `hearingsFor`
   now matches by range and returns only that surah's mistakes,
   `openDraftFor(teacherId, studentId)`.
+- `lib/hifz/roster.ts`: `rosterWithNext()` — the teacher's roster with each
+  student's own run and next-to-hear surah, computed once and shared by the
+  register (`teacher/hifz`) and the desk, so the rule lives in one place.
 - `lib/reference/cached.ts`: `getCachedAllPageWords()` for the desk.
 - `components/app/hearing-finish.tsx`: the popup, used by both logger modes
   of hearing. `components/app/review-logger.tsx`: hearing mode gains `from`,
   `pages` may be the whole mushaf, tracks the page in view, and renders
-  `HearingFinish`; the verdict bar goes.
+  `HearingFinish` itself — the desk has no separate `DeskLogger`; the
+  verdict bar goes.
 
 ## Edge cases
 
@@ -176,7 +191,15 @@ when the surah is not passed, the pass comment when it is.
 - Component: `HearingFinish` (rows and ticks, revoke label, end movers,
   confirm payload), logger hearing tests updated for Finish, journey and
   grid draw `redo` cells.
-- Live RLS check updated for the dropped column.
-- Manual: hear three surahs, untick the third, confirm; the student sees
-  two green, one red with its marks and the note; re-hear the red one from
-  its surah page and pass it.
+- The page-in-view hook (`use-page-in-view.ts`) is scoped to the logger's
+  own root element and has no effect under `IntersectionObserver`-less
+  jsdom, so it is exercised only as a no-op in the test suite; scrolling to
+  the start page and proposing the end from the page in view are verified
+  by hand, not by test.
+- Live RLS check (`hearings_rls.sql`) updated: the hearing insert carries
+  `to_surah_number`, and the submit update no longer touches the dropped
+  `outcome` column.
+- Manual: at the desk hear three surahs, untick the third, confirm; the
+  student sees two green and one red with its marks and the note; re-hear
+  the red one from its surah page and pass it; the register and journey
+  update.
