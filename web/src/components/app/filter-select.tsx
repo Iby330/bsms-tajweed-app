@@ -3,7 +3,7 @@
 import { useId } from "react";
 import { cn } from "@/lib/utils";
 
-export type FilterOption = { value: string; label: string };
+export type FilterOption = { value: string; label: string; disabled?: boolean };
 
 /**
  * The dashboard's one way of choosing between views of the same data.
@@ -23,6 +23,8 @@ export function FilterSelect({
   controls,
   className,
   size = "sm",
+  title,
+  disabled,
 }: {
   /** Always present for screen readers; `hideLabel` only hides it visually. */
   label: string;
@@ -41,6 +43,10 @@ export function FilterSelect({
    * apart they stop agreeing about focus rings and dark mode.
    */
   size?: "sm" | "lg";
+  /** Native title tooltip on the select itself — e.g. explaining why it's disabled. */
+  title?: string;
+  /** Disables the whole select — distinct from disabling one option. */
+  disabled?: boolean;
 }) {
   const id = useId();
   return (
@@ -57,9 +63,11 @@ export function FilterSelect({
           data-size={size}
           value={value}
           aria-controls={controls}
+          title={title}
+          disabled={disabled}
           onChange={(e) => onChange(e.target.value)}
           className={cn(
-            "appearance-none rounded-md bg-card text-foreground transition-colors",
+            "appearance-none rounded-md bg-card text-foreground transition-colors disabled:opacity-60",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             size === "lg"
               ? // reads as the heading it replaces until you go near it
@@ -69,7 +77,7 @@ export function FilterSelect({
           )}
         >
           {options.map((o) => (
-            <option key={o.value} value={o.value}>
+            <option key={o.value} value={o.value} disabled={o.disabled}>
               {o.label}
             </option>
           ))}

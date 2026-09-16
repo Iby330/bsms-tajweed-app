@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { fmtDay, fmtStamp } from "@/lib/format";
 import {
-  commentToShow, covers, endSurahFor, lastSurahOn, rangeSurahs, recordLine, summaryOf, surahState,
+  commentToShow, covers, doneLine, endSurahFor, lastSurahOn, rangeSurahs, recordLine, summaryOf, surahState,
 } from "./hearings";
 import type { MushafPage } from "@/lib/quran/mushaf";
 
@@ -119,6 +119,18 @@ describe("commentToShow", () => {
   it("nothing → null", () => {
     expect(commentToShow("unheard", null, null)).toBeNull();
     expect(commentToShow("not_passed", null, { note: null, submittedAt: when })).toBeNull();
+  });
+});
+
+describe("doneLine", () => {
+  const names = { 88: { en: "Al-Ghashiyah" }, 87: { en: "Al-A'la" }, 86: { en: "At-Tariq" } };
+  it("names just the surah for a single-surah hearing", () => {
+    expect(doneLine(88, 88, new Set(), names)).toBe("Heard Al-Ghashiyah · 0 passed · 1 not passed");
+  });
+  it("spans a range and counts what passed", () => {
+    expect(doneLine(88, 86, new Set([88, 87]), names)).toBe(
+      "Heard Al-Ghashiyah → At-Tariq · 2 passed · 1 not passed",
+    );
   });
 });
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { FilterSelect } from "./filter-select";
 import { ReviewLogger, type SessionProps } from "./review-logger";
 import type { MushafPage } from "@/lib/quran/mushaf";
 import type { MistakeRow } from "@/lib/hifz/mistakes";
@@ -11,14 +12,15 @@ import type { SurahNames } from "./mushaf-reader";
 export type DeskStudent = { id: string; name: string; nextSurah: number | null; nextName: string | null };
 
 /**
- * The desk's chrome around the logger: who is reciting, where they start,
- * and — once a hearing is confirmed — what was heard and who is next. The
- * logger is passed in as children so this shell holds no mushaf state.
- * Student and start live in the URL, so a reload lands back on the same
- * student.
+ * The hearing desk: the chrome around the logger — who is reciting, where
+ * they start, and — once a hearing is confirmed — what was heard and who is
+ * next — plus the logger itself, in hearing mode. Student and start live in
+ * the URL, so a reload lands back on the same student; Confirm pushes
+ * `?done=<id>` so the page can describe what was just heard.
  */
 export function HearingDesk({
-  roster, studentId, from, draftStarted, run, done, children,
+  roster, studentId, from, draftStarted, run, done,
+  session, reciterName, pages, heat, history, surahNames, hearing,
 }: {
   roster: DeskStudent[];
   studentId: string;
@@ -26,7 +28,13 @@ export function HearingDesk({
   draftStarted: boolean;                       // marks exist: the start is fixed
   run: { number: number; name_en: string }[];   // the student's run, for the start picker
   done: { text: string } | null;               // the line after a confirmed hearing
-  children: React.ReactNode;
+  session: SessionProps & { initialMistakes: MistakeRow[] };
+  reciterName: string;
+  pages: MushafPage[];
+  heat: Record<string, string>;
+  history: Record<string, WordHistoryEntry[]>;
+  surahNames: SurahNames;
+  hearing: { from: number; minEnd: number; passedBefore: Record<number, string>; startPage?: number };
 }) {
   const router = useRouter();
   const idx = roster.findIndex((s) => s.id === studentId);
@@ -35,35 +43,31 @@ export function HearingDesk({
   return (
     <div className="space-y-3">
       <div className="glass sticky top-2 z-20 flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5">
-        <div className="flex items-center gap-2 text-sm">
-          <span className="label">Student</span>
-          <select
-            aria-label="Student"
-            className="rounded-md border border-line bg-background px-2 py-1 text-sm"
-            value={studentId}
-            onChange={(e) => router.push(`/teacher/hifz/hear?student=${e.target.value}`)}
-          >
-            {roster.map((s) => (
-              <option key={s.id} value={s.id} disabled={s.nextSurah === null}>
-                {s.name}{s.nextName ? ` · ${s.nextName}` : " · no target set"}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <span className="label">Starting at</span>
-          <select
-            aria-label="Starting at"
-            className="rounded-md border border-line bg-background px-2 py-1 text-sm disabled:opacity-60"
-            value={String(from)}
-            disabled={draftStarted}
-            title={draftStarted ? "The start is fixed once a mark is logged" : undefined}
-            onChange={(e) => router.push(`/teacher/hifz/hear?student=${studentId}&from=${e.target.value}`)}
-          >
-            {run.map((s) => <option key={s.number} value={String(s.number)}>{s.name_en}</option>)}
-          </select>
-        </div>
+        <FilterSelect
+          label="Student"
+          value={studentId}
+          onChange={(v) => router.push(`/teacher/hifz/hear?student=${v}`)}
+          options={roster.map((s) => ({
+            value: s.id,
+            label: `${s.name}${s.nextName ? ` · ${s.nextName}` : " · no target set"}`,
+            disabled: s.nextSurah === null,
+          }))}
+        />
+        <FilterSelect
+          label="Starting at"
+          value={String(from)}
+          onChange={(v) => router.push(`/teacher/hifz/hear?student=${studentId}&from=${v}`)}
+          options={run.map((s) => ({ value: String(s.number), label: s.name_en }))}
+          disabled={draftStarted}
+          title={draftStarted ? "The start is fixed once a mark is logged" : undefined}
+        />
       </div>
+
+      {draftStarted && (
+        <p className="text-xs text-muted-foreground">
+          Hearing in progress — switching student keeps it for later.
+        </p>
+      )}
 
       {done && (
         <div className="glass flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-2.5 text-sm">
@@ -76,43 +80,20 @@ export function HearingDesk({
         </div>
       )}
 
-      {children}
+      <ReviewLogger
+        mode="hearing"
+        {...session}
+        reciterName={reciterName}
+        pages={pages}
+        heat={heat}
+        history={history}
+        surahNames={surahNames}
+        hearing={{
+          ...hearing,
+          names: surahNames,
+          onFinished: (id) => router.push(`/teacher/hifz/hear?student=${studentId}&done=${id}`),
+        }}
+      />
     </div>
-  );
-}
-
-/**
- * The logger with the desk's one addition: after Confirm, the URL gains
- * `done=<hearing id>` so the page can say what was heard, and the
- * student's next surah becomes the next start.
- */
-export function DeskLogger({
-  studentId, session, reciterName, pages, heat, history, surahNames, hearing,
-}: {
-  studentId: string;
-  session: SessionProps & { initialMistakes: MistakeRow[] };
-  reciterName: string;
-  pages: MushafPage[];
-  heat: Record<string, string>;
-  history: Record<string, WordHistoryEntry[]>;
-  surahNames: SurahNames;
-  hearing: { from: number; minEnd: number; passedBefore: Record<number, string>; startPage?: number };
-}) {
-  const router = useRouter();
-  return (
-    <ReviewLogger
-      mode="hearing"
-      {...session}
-      reciterName={reciterName}
-      pages={pages}
-      heat={heat}
-      history={history}
-      surahNames={surahNames}
-      hearing={{
-        ...hearing,
-        names: surahNames,
-        onFinished: (id) => router.push(`/teacher/hifz/hear?student=${studentId}&done=${id}`),
-      }}
-    />
   );
 }

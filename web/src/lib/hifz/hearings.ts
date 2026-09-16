@@ -62,6 +62,24 @@ export function lastSurahOn(pages: readonly MushafPage[], page: number): number 
   return last ? last.surah : null;
 }
 
+/**
+ * The line shown on the desk after Finish confirms a hearing: what was
+ * heard, and how much of it passed. A single-surah range names just that
+ * surah rather than repeating it as "X → X".
+ */
+export function doneLine(
+  from: number,
+  to: number,
+  passed: ReadonlySet<number>,
+  names: Record<number, { en: string }>,
+): string {
+  const range = rangeSurahs(from, to);
+  const name = (n: number) => names[n]?.en ?? String(n);
+  const span = range.length === 1 ? name(from) : `${name(from)} → ${name(to)}`;
+  const p = range.filter((n) => passed.has(n)).length;
+  return `Heard ${span} · ${p} passed · ${range.length - p} not passed`;
+}
+
 /** The latest submitted hearing covering a surah, reduced to what the line needs. */
 export type HearingSummary = { submittedAt: string; teacherName: string; mistakeCount: number };
 

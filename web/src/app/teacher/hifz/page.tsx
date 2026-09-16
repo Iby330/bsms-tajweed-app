@@ -2,7 +2,8 @@ import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { getCachedSurahs } from "@/lib/reference/cached";
-import { scopeLabel, teacherClass, teacherRoster } from "@/lib/teacher/scope";
+import { scopeLabel, teacherClass } from "@/lib/teacher/scope";
+import { rosterWithNext } from "@/lib/hifz/roster";
 import { timetableFor, weekdayNameFor } from "@/lib/attendance/calendar";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { HifzRegister, type RegisterRow } from "@/components/app/hifz-register";
@@ -15,10 +16,10 @@ export default async function TeacherHifz() {
 
   // The label and the roster both hang off the same cached class read, so
   // firing them together costs one class round trip rather than two.
-  const [{ weeks }, label, students, mine] = await Promise.all([
+  const [{ weeks }, label, roster, mine] = await Promise.all([
     getTermsAndWeeks(),
     scopeLabel(),
-    teacherRoster(),
+    rosterWithNext(),
     teacherClass(),
   ]);
   // Which weekday hifdh falls on is a fact about the class, not the
@@ -27,51 +28,39 @@ export default async function TeacherHifz() {
     timetableFor(mine?.section ?? "brothers", mine?.name),
     "hifdh",
   );
-  const ids = students.map((s) => s.id);
+  const ids = roster.map((s) => s.id);
 
-  const [{ data: progress }, surahs, { data: pairRows }] = await Promise.all([
-    ids.length
-      ? db.from("v_hifz_progress").select("student_id, passed, target_count, start_surah").in("student_id", ids)
-      : Promise.resolve({ data: [] }),
+  const [surahs, { data: pairRows }] = await Promise.all([
     getCachedSurahs(),
     ids.length
       ? db.from("revision_pairs").select("id, student_a, student_b").eq("active", true)
           .or(`student_a.in.(${ids.join(",")}),student_b.in.(${ids.join(",")})`)
       : Promise.resolve({ data: [] as { id: string; student_a: string; student_b: string }[] }),
   ]);
-  const byStudent = new Map((progress ?? []).map((p) => [p.student_id!, p]));
   const run = memorisationList(114, (surahs as Surah[]).length, surahs as Surah[]);
   const now = new Date();
 
-  const nameOf = new Map(students.map((s) => [s.id, s.full_name]));
+  const nameOf = new Map(roster.map((s) => [s.id, s.name]));
   const pairs: PairRow[] = (pairRows ?? []).map((p) => ({
     id: p.id,
     label: `${nameOf.get(p.student_a) ?? "?"} ↔ ${nameOf.get(p.student_b) ?? "?"}`,
   }));
   const pairedIds = new Set((pairRows ?? []).flatMap((p) => [p.student_a, p.student_b]));
-  const unpaired: UnpairedStudent[] = students
+  const unpaired: UnpairedStudent[] = roster
     .filter((s) => !pairedIds.has(s.id))
-    .map((s) => ({ id: s.id, name: s.full_name }));
+    .map((s) => ({ id: s.id, name: s.name }));
 
-  const rows: RegisterRow[] = students.map((s) => {
-    const p = byStudent.get(s.id);
-    const target = p ? Number(p.target_count) : 0;
-    const passed = p ? Number(p.passed) : 0;
-    const startSurah = Number(p?.start_surah ?? 114);
-    // The student's OWN run — a returning student's start_surah is not 114,
-    // so indexing the global list here would name the wrong surah.
-    const next = memorisationList(startSurah, target, surahs as Surah[])[passed];
-    return {
-      studentId: s.id,
-      name: s.full_name,
-      nextName: next?.name_en ?? null,
-      passed,
-      target,
-      expected: expectedPassed(now, weeks, target),
-      pace: p ? paceStatus(passed, expectedPassed(now, weeks, target)) : null,
-      startSurah,
-    };
-  });
+  const rows: RegisterRow[] = roster.map((s) => ({
+    studentId: s.id,
+    name: s.name,
+    nextName: s.next?.name_en ?? null,
+    passed: s.passed,
+    target: s.target,
+    expected: expectedPassed(now, weeks, s.target),
+    // No target set reads the same as before rosterWithNext: target 0 → no pace.
+    pace: s.target > 0 ? paceStatus(s.passed, expectedPassed(now, weeks, s.target)) : null,
+    startSurah: s.startSurah,
+  }));
 
   return (
     <>
