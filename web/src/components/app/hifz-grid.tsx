@@ -8,6 +8,8 @@ export type MarkRow = {
   name_en: string;
   name_ar: string;
   passed: boolean;
+  /** covered by a submitted hearing but not passed — the third state, redo */
+  heard: boolean;
   comment: string | null;
   /** date, or null when the surah has no record yet */
   passedAt: string | null;
@@ -27,6 +29,10 @@ export type MarkRow = {
  * mushaf, the marks, the verdict. The sign-off panel that used to open
  * under a band is gone — passing a surah follows a hearing, and two places
  * to mark the same surah is how records drift.
+ *
+ * A row can also be heard, not passed: a submitted hearing covered it but
+ * left no record, so it needs redoing — a third state, drawn red, that a
+ * plain passed/unpassed row could not tell the teacher apart from unheard.
  *
  * Server component: nothing here needs state any more.
  */
@@ -95,7 +101,12 @@ export function HifzGrid({
                     // left to prefetch, a 43-cell grid would fire most of them
                     // on viewport alone.
                     prefetch={false}
-                    className={cn("cell", r.passed && "done", i === currentIdx && "next")}
+                    className={cn(
+                      "cell",
+                      r.passed && "done",
+                      !r.passed && r.heard && "redo",
+                      i === currentIdx && "next",
+                    )}
                   >
                     <span className="n">{String(i + 1).padStart(2, "0")}</span>
                     {i === currentIdx && <span className="tag">NEXT</span>}
@@ -112,6 +123,7 @@ export function HifzGrid({
                       <span className="sr-only">
                         {meta && `, ${meta.meaning}`}
                         {r.passed ? ", signed off" : ", not signed off"}
+                        {!r.passed && r.heard && ", heard, not passed"}
                         {r.comment && ", has a comment"}
                       </span>
                     </span>

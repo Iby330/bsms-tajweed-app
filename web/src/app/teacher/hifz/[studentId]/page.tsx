@@ -12,6 +12,8 @@ import { ReviewFeedback } from "@/components/app/review-feedback";
 import { Rule } from "@/components/app/rule";
 import { teacherClass } from "@/lib/teacher/scope";
 import { timetableFor, weekdayNameFor } from "@/lib/attendance/calendar";
+import { hearingsForStudent } from "@/lib/hifz/hearing-queries";
+import { rangeSurahs } from "@/lib/hifz/hearings";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +41,7 @@ export default async function StudentHifzDetail({
 
   // Every read here is keyed on the student id alone, the guard included — it
   // decides whether to render, not what to fetch, so it goes out with the rest.
-  const [{ weeks }, mine, { data: student }, { data: hp }, surahs, { data: records }] = await Promise.all([
+  const [{ weeks }, mine, { data: student }, { data: hp }, surahs, { data: records }, hearings] = await Promise.all([
     getTermsAndWeeks(),
     teacherClass(),
     db
@@ -53,6 +55,7 @@ export default async function StudentHifzDetail({
       .from("hifz_records")
       .select("surah_number, teacher_comment, passed_at")
       .eq("student_id", studentId),
+    hearingsForStudent(studentId),
   ]);
   if (!student) notFound();
   // A teacher with a class of their own sees only their own students, the same
@@ -133,6 +136,7 @@ export default async function StudentHifzDetail({
   }
 
   const recMap = new Map((records ?? []).map((r) => [r.surah_number, r]));
+  const heardSet = new Set(hearings.flatMap((h) => rangeSurahs(h.from, h.to)));
   const rows: MarkRow[] = list.map((s) => {
     const rec = recMap.get(s.number);
     return {
@@ -140,6 +144,7 @@ export default async function StudentHifzDetail({
       name_en: s.name_en,
       name_ar: s.name_ar,
       passed: Boolean(rec),
+      heard: heardSet.has(s.number),
       comment: rec?.teacher_comment ?? null,
       passedAt: rec?.passed_at ?? null,
     };

@@ -11,6 +11,8 @@ import { ReviewTab } from "@/components/app/review-tab";
 import { RevisionHeatmap } from "@/components/app/revision-heatmap";
 import { revisionActivityFor } from "@/lib/hifz/activity-queries";
 import { dayKey } from "@/lib/hifz/revision-activity";
+import { hearingsForStudent } from "@/lib/hifz/hearing-queries";
+import { rangeSurahs } from "@/lib/hifz/hearings";
 
 export const dynamic = "force-dynamic";
 
@@ -48,11 +50,12 @@ export default async function StudentHifz({
   const db = await supabaseServer();
   const { weeks } = await getTermsAndWeeks();
 
-  const [{ data: hp }, surahs, { data: records }, activity] = await Promise.all([
+  const [{ data: hp }, surahs, { data: records }, activity, hearings] = await Promise.all([
     db.from("hifz_profiles").select("start_surah, target_count").eq("student_id", profile.id).maybeSingle(),
     getCachedSurahs(),
     db.from("hifz_records").select("surah_number, passed_at, teacher_comment").eq("student_id", profile.id),
     revisionActivityFor(profile.id),
+    hearingsForStudent(profile.id),
   ]);
   // The grid's last column is "today". Resolve it here and hand the client a
   // plain ISO day: if each side called new Date() the server's timezone and
@@ -98,6 +101,7 @@ export default async function StudentHifz({
     ]),
   );
   const passedSet = new Set(recordMap.keys());
+  const heard = new Set(hearings.flatMap((h) => rangeSurahs(h.from, h.to)));
 
   // hifz_records is lifetime (no year column); this year's work is exactly
   // the surahs on the student's current list. Everything the page shows —
@@ -192,7 +196,7 @@ export default async function StudentHifz({
       </div>
 
       <div className="field">
-        <HifzJourney list={list} earlier={earlier} records={recordMap} expected={expected} />
+        <HifzJourney list={list} earlier={earlier} records={recordMap} heard={heard} expected={expected} />
       </div>
 
       <div className="signoff">

@@ -133,4 +133,26 @@ describe("HifzJourney", () => {
     const { container } = render(<HifzJourney list={[]} records={new Map()} expected={0} />);
     expect(container.innerHTML).toBe("");
   });
+
+  // ── heard, not passed: the third state ────────────────────────────────
+  it("draws a heard surah that was not passed as redo", () => {
+    // RUN[0] = 114 (done, passed), RUN[2] = 112 (done, passed).
+    // 113 is heard but carries no record: redo, not done.
+    const { container } = render(
+      <HifzJourney
+        list={RUN}
+        records={recs([0, 2])}
+        heard={new Set([113, 112])}
+        expected={0}
+      />,
+    );
+    const cells = [...container.querySelectorAll(".cell")];
+    const c113 = cells.find((c) => c.textContent?.includes("S113"));
+    const c112 = cells.find((c) => c.textContent?.includes("S112"));
+    expect(c113?.className).toContain("redo");
+    expect(c113?.textContent).toContain("heard, not passed");
+    // Both passed AND heard: done wins, not redo.
+    expect(c112?.className).toContain("done");
+    expect(c112?.className).not.toContain("redo");
+  });
 });

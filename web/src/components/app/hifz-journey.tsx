@@ -31,6 +31,10 @@ type Rec = { passed_at: string; teacher_comment: string | null };
  * two years lands in one band, because groups follow contiguous runs. A hizb
  * finished before this year never offers its check; that was sat last year.
  *
+ * A surah has a third state: heard, not passed — a submitted hearing covered
+ * it but left no `hifz_records` row, so it needs redoing. `heard` carries
+ * that set; it never overrides a real pass.
+ *
  * Each hizb folds. A student does not need forty surah cells in view to see
  * where they are; they need the band they are working in. The band is a
  * native <details>/<summary>, so it folds before hydration and from the
@@ -42,11 +46,13 @@ export function HifzJourney({
   list,
   earlier = [],
   records,
+  heard = new Set(),
   expected,
 }: {
   list: Surah[];
   earlier?: Surah[];      // previous years' surahs, passed, usually recordless
   records: Map<number, Rec>;
+  heard?: ReadonlySet<number>;
   expected: number;
 }) {
   if (list.length === 0) return null;
@@ -80,6 +86,7 @@ export function HifzJourney({
     else groups.push({ hizb: h, items: [item] });
   });
   const isDone = (item: Item) => item.i === null || records.has(item.s.number);
+  const isRedo = (item: Item) => !isDone(item) && heard.has(item.s.number);
 
   return (
     <section className="box c12 hifzindex" aria-label="Your surahs">
@@ -123,7 +130,7 @@ export function HifzJourney({
                   <Link
                     key={s.number}
                     href={`/hifz/${s.number}`}
-                    className={cn("cell", isDone(item) && "done", isNext && "next")}
+                    className={cn("cell", isDone(item) && "done", isRedo(item) && "redo", isNext && "next")}
                   >
                     {/* Numbered by position in the whole run, not in this
                         year's slice, so a returning student's second year
@@ -148,6 +155,7 @@ export function HifzJourney({
                     <span className="en">
                       {s.name_en}
                       {meta && <span className="sr-only">, {meta.meaning}</span>}
+                      {isRedo(item) && <span className="sr-only">, heard, not passed</span>}
                     </span>
                   </Link>
                 );

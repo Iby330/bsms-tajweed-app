@@ -11,6 +11,7 @@ const run = (passedTo: number, over: Partial<MarkRow> & { number?: number } = {}
       name_en: `S${114 - i}`,
       name_ar: `س${114 - i}`,
       passed: i < passedTo,
+      heard: false,
       comment: null,
       passedAt: i < passedTo ? "2026-09-19" : null,
     };
@@ -71,5 +72,22 @@ describe("HifzGrid", () => {
     // The run starts at An-Nas, so its first band is hizb 60 entire (114–78).
     const { container } = render(<HifzGrid studentId="s1" rows={run(43)} expected={43} />);
     expect(container.textContent).toContain("ready for the check");
+  });
+
+  // ── heard, not passed: the third state ────────────────────────────────
+  it("draws a heard, not-passed surah as redo", () => {
+    const rows = run(0, { number: 113, heard: true });
+    const { container } = render(<HifzGrid studentId="s1" rows={rows} expected={0} />);
+    const cell = cellFor(container, "S113");
+    expect(cell.className).toContain("redo");
+    expect(cell.textContent).toContain("heard, not passed");
+  });
+
+  it("keeps a passed AND heard surah as done, not redo", () => {
+    const rows = run(1, { number: 114, heard: true });
+    const { container } = render(<HifzGrid studentId="s1" rows={rows} expected={1} />);
+    const cell = cellFor(container, "S114");
+    expect(cell.className).toContain("done");
+    expect(cell.className).not.toContain("redo");
   });
 });
