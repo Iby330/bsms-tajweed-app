@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -178,14 +178,19 @@ export function ReviewLogger({
     <MushafReader pages={pages} marks={marks} heat={heat} surahNames={surahNames} onWordTap={setTapped} />
   );
 
+  // Scoped to this logger's own subtree: the Review tab renders a second
+  // MushafReader (the feedback heat viewer) alongside this one, so two
+  // `id="page-604"` sections can coexist in the document — the hook and the
+  // scroll-to both search inside `root`, never `document`.
+  const root = useRef<HTMLDivElement>(null);
   const pageNumbers = useMemo(() => pages.map((p) => p.page), [pages]);
-  const observed = usePageInView(pageNumbers);
+  const observed = usePageInView(root, pageNumbers);
   // With a pager there is one page and it is the one in view; without one
   // (the desk) the observer says which of the stacked pages it is.
   const pageInView = pager ? pager.page : observed;
   useEffect(() => {
     if (!hearing?.startPage) return;
-    document.getElementById(`page-${hearing.startPage}`)?.scrollIntoView?.({ block: "start" });
+    root.current?.querySelector(`[id="page-${hearing.startPage}"]`)?.scrollIntoView?.({ block: "start" });
   }, [hearing?.startPage]);
 
   // markKey is "surah:ayah" or "surah:ayah:position": the surah is always first.
@@ -222,7 +227,7 @@ export function ReviewLogger({
         <Button size="sm" disabled={pending} onClick={() => setWrapUp(true)}>Finish</Button>
       </div>
 
-      {pager ? <MushafPager {...pager}>{reader}</MushafPager> : reader}
+      <div ref={root}>{pager ? <MushafPager {...pager}>{reader}</MushafPager> : reader}</div>
 
       <MistakeSheet
         key={tapped ? markKey(targetOf(tapped)) : "closed"}
