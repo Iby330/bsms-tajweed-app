@@ -12,7 +12,7 @@ export type Hearing = HearingRange & {
   mistakes: MistakeRow[];   // of ONE surah when read through hearingsFor; empty from hearingsForStudent
 };
 
-type SessionRow = {
+type HearingSessionRow = {
   id: string; reviewer_id: string; submitted_at: string | null;
   surah_number: number | null; to_surah_number: number | null; overall_note: string | null;
 };
@@ -24,7 +24,11 @@ async function namesFor(reviewerIds: string[]): Promise<Map<string, string>> {
   return new Map((data ?? []).map((p) => [p.id, p.full_name]));
 }
 
-const toHearing = (s: SessionRow, names: Map<string, string>, mistakes: MistakeRow[]): Hearing => ({
+// surah_number / to_surah_number are nullable columns, but every caller here
+// filters kind='hearing' and submitted_at not null, and the 0029/0030
+// migrations' check constraints tie exactly those two conditions to both
+// columns being non-null — so the `!` assertions below never fire.
+const toHearing = (s: HearingSessionRow, names: Map<string, string>, mistakes: MistakeRow[]): Hearing => ({
   id: s.id,
   from: s.surah_number!,
   to: s.to_surah_number!,
@@ -36,6 +40,22 @@ const toHearing = (s: SessionRow, names: Map<string, string>, mistakes: MistakeR
 
 const HEARING_COLS = "id, reviewer_id, submitted_at, surah_number, to_surah_number, overall_note";
 
+type Db = Awaited<ReturnType<typeof supabaseServer>>;
+
+/**
+ * The base of every read here: a submitted hearing of this student —
+ * kind='hearing', reciter_id=studentId, submitted_at not null. Callers
+ * layer their own range filters and ordering on top.
+ */
+function submittedHearings<Cols extends string>(db: Db, studentId: string, cols: Cols) {
+  return db
+    .from("revision_sessions")
+    .select(cols)
+    .eq("reciter_id", studentId)
+    .eq("kind", "hearing")
+    .not("submitted_at", "is", null);
+}
+
 /**
  * Every submitted hearing of a student, newest first, WITHOUT mistakes —
  * what the grids need to draw heard-not-passed cells. Reads run as the
@@ -43,12 +63,9 @@ const HEARING_COLS = "id, reviewer_id, submitted_at, surah_number, to_surah_numb
  */
 export async function hearingsForStudent(studentId: string): Promise<Hearing[]> {
   const db = await supabaseServer();
-  const { data } = await db
-    .from("revision_sessions").select(HEARING_COLS)
-    .eq("reciter_id", studentId).eq("kind", "hearing")
-    .not("submitted_at", "is", null)
+  const { data } = await submittedHearings(db, studentId, HEARING_COLS)
     .order("submitted_at", { ascending: false });
-  const rows = (data ?? []) as SessionRow[];
+  const rows = (data ?? []) as HearingSessionRow[];
   const names = await namesFor([...new Set(rows.map((r) => r.reviewer_id))]);
   return rows.map((r) => toHearing(r, names, []));
 }
@@ -56,9 +73,7 @@ export async function hearingsForStudent(studentId: string): Promise<Hearing[]> 
 /** Every mistake of every submitted hearing of a student — the desk's heat. */
 export async function hearingMistakesFor(studentId: string): Promise<MistakeRow[]> {
   const db = await supabaseServer();
-  const { data: sessions } = await db
-    .from("revision_sessions").select("id")
-    .eq("reciter_id", studentId).eq("kind", "hearing").not("submitted_at", "is", null);
+  const { data: sessions } = await submittedHearings(db, studentId, "id");
   const ids = (sessions ?? []).map((s) => s.id);
   if (!ids.length) return [];
   const { data } = await db.from("revision_mistakes").select(MISTAKE_COLS).in("session_id", ids);
@@ -72,13 +87,10 @@ export async function hearingMistakesFor(studentId: string): Promise<MistakeRow[
  */
 export async function hearingsFor(studentId: string, surah: number): Promise<Hearing[]> {
   const db = await supabaseServer();
-  const { data: sessions } = await db
-    .from("revision_sessions").select(HEARING_COLS)
-    .eq("reciter_id", studentId).eq("kind", "hearing")
+  const { data: sessions } = await submittedHearings(db, studentId, HEARING_COLS)
     .gte("surah_number", surah).lte("to_surah_number", surah)
-    .not("submitted_at", "is", null)
     .order("submitted_at", { ascending: false });
-  const rows = (sessions ?? []) as SessionRow[];
+  const rows = (sessions ?? []) as HearingSessionRow[];
   if (!rows.length) return [];
   const ids = rows.map((s) => s.id);
   const [{ data: mistakes }, names] = await Promise.all([
