@@ -13,7 +13,7 @@ import { Rule } from "@/components/app/rule";
 import { teacherClass } from "@/lib/teacher/scope";
 import { timetableFor, weekdayNameFor } from "@/lib/attendance/calendar";
 import { hearingsForStudent } from "@/lib/hifz/hearing-queries";
-import { rangeSurahs } from "@/lib/hifz/hearings";
+import { heardSurahs } from "@/lib/hifz/hearings";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -136,7 +136,7 @@ export default async function StudentHifzDetail({
   }
 
   const recMap = new Map((records ?? []).map((r) => [r.surah_number, r]));
-  const heardSet = new Set(hearings.flatMap((h) => rangeSurahs(h.from, h.to)));
+  const heardSet = heardSurahs(hearings);
   const rows: MarkRow[] = list.map((s) => {
     const rec = recMap.get(s.number);
     return {

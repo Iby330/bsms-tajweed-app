@@ -1988,7 +1988,7 @@ body::after {
   /* Heard and not passed: the third state. Red, like a mark, because that is
      what it is — the student knows exactly which surah to bring back. */
   .cell.redo { background: color-mix(in oklab, var(--danger) 12%, var(--card)); }
-  .cell.redo:hover { background: color-mix(in oklab, var(--danger) 22%, var(--card)); }
+  .cell.redo:hover { background: color-mix(in oklab, var(--danger) 24%, var(--card)); }
   .cell.redo .ar-quran { color: var(--danger); }
   .cell.next { box-shadow: inset 0 0 0 2px var(--brand); }
   .cell .tag { position: absolute; top: 9px; right: 10px; font-family: var(--font-mono);

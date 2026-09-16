@@ -19,6 +19,11 @@ export function rangeSurahs(from: number, to: number): number[] {
   return Array.from({ length: from - to + 1 }, (_, i) => from - i);
 }
 
+/** Every surah any submitted hearing covered — the red cells. */
+export function heardSurahs(hearings: readonly HearingRange[]): Set<number> {
+  return new Set(hearings.flatMap((h) => rangeSurahs(h.from, h.to)));
+}
+
 /**
  * The one rule every page uses. A pass record exists only while the latest
  * word on that surah was a pass — unticking it at Finish deletes the record

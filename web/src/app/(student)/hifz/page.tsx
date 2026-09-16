@@ -12,7 +12,7 @@ import { RevisionHeatmap } from "@/components/app/revision-heatmap";
 import { revisionActivityFor } from "@/lib/hifz/activity-queries";
 import { dayKey } from "@/lib/hifz/revision-activity";
 import { hearingsForStudent } from "@/lib/hifz/hearing-queries";
-import { rangeSurahs } from "@/lib/hifz/hearings";
+import { heardSurahs } from "@/lib/hifz/hearings";
 
 export const dynamic = "force-dynamic";
 
@@ -101,7 +101,7 @@ export default async function StudentHifz({
     ]),
   );
   const passedSet = new Set(recordMap.keys());
-  const heard = new Set(hearings.flatMap((h) => rangeSurahs(h.from, h.to)));
+  const heard = heardSurahs(hearings);
 
   // hifz_records is lifetime (no year column); this year's work is exactly
   // the surahs on the student's current list. Everything the page shows —

@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { fmtDay, fmtStamp } from "@/lib/format";
 import {
-  commentToShow, covers, doneLine, endSurahFor, lastSurahOn, rangeSurahs, recordLine, summaryOf, surahState,
+  commentToShow, covers, doneLine, endSurahFor, heardSurahs, lastSurahOn, rangeSurahs, recordLine, summaryOf,
+  surahState,
 } from "./hearings";
 import type { MushafPage } from "@/lib/quran/mushaf";
 
@@ -28,6 +29,16 @@ describe("covers / rangeSurahs", () => {
   });
   it("throws when to runs past from", () => {
     expect(() => rangeSurahs(86, 88)).toThrow(RangeError);
+  });
+});
+
+describe("heardSurahs", () => {
+  it("unions overlapping ranges with no duplicates", () => {
+    const result = heardSurahs([{ from: 90, to: 87 }, { from: 88, to: 85 }]);
+    expect([...result].sort((a, b) => a - b)).toEqual([85, 86, 87, 88, 89, 90]);
+  });
+  it("is empty for no hearings", () => {
+    expect(heardSurahs([])).toEqual(new Set());
   });
 });
 
