@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MushafReader, type SurahNames } from "./mushaf-reader";
 import { MushafPager } from "./mushaf-pager";
+import { usePageInView } from "./use-page-in-view";
 import { MistakeSheet, type SheetResult } from "./mistake-sheet";
 import { HearingFinish, type Verdict } from "./hearing-finish";
 import { logMistake, removeMistake, submitSession } from "@/lib/hifz/review-actions";
@@ -73,15 +74,16 @@ export function ReviewLogger({
   surahNames?: SurahNames;
   pager?: { page: number; min: number; max: number; basePath: string; param?: string; step?: number };
   /** Hearing mode only: the range's start, the run's last surah, and what
-   *  the popup needs. `pageInView` is the page the teacher is looking at
-   *  (a later task tracks it on the desk; the per-surah page leaves it
-   *  undefined, so the end is the start). */
+   *  the popup needs. `startPage` is where to scroll on mount — set only on
+   *  the desk (Task 7), which stacks every seeded page and tracks which one
+   *  the teacher is looking at via `usePageInView` below; the per-surah page
+   *  leaves it unset, so the end stays the start. */
   hearing?: {
     from: number;
     minEnd: number;
     names: SurahNames;
     passedBefore: Record<number, string>;
-    pageInView?: number | null;
+    startPage?: number;
     onFinished?: (sessionId: string) => void;
   };
 }) {
@@ -176,10 +178,26 @@ export function ReviewLogger({
     <MushafReader pages={pages} marks={marks} heat={heat} surahNames={surahNames} onWordTap={setTapped} />
   );
 
+  const pageNumbers = useMemo(() => pages.map((p) => p.page), [pages]);
+  const observed = usePageInView(pageNumbers);
+  // With a pager there is one page and it is the one in view; without one
+  // (the desk) the observer says which of the stacked pages it is.
+  const pageInView = pager ? pager.page : observed;
+  useEffect(() => {
+    if (!hearing?.startPage) return;
+    document.getElementById(`page-${hearing.startPage}`)?.scrollIntoView?.({ block: "start" });
+  }, [hearing?.startPage]);
+
   // markKey is "surah:ayah" or "surah:ayah:position": the surah is always first.
   const markSurahs = Object.keys(marks).map((k) => Number(k.split(":")[0]));
+  // Only the desk (startPage set) feeds the observed/pager page into the end
+  // calculation. On a per-surah page (no startPage) the last surah on the
+  // page could be the NEXT surah when it starts partway down — that would
+  // widen a single-surah hearing to a range of two, so pass null there and
+  // let endSurahFor default the end to the start.
+  const pageForEnd = hearing?.startPage ? pageInView : null;
   const initialEnd = hearing
-    ? endSurahFor(hearing.from, hearing.pageInView == null ? null : lastSurahOn(pages, hearing.pageInView), markSurahs)
+    ? endSurahFor(hearing.from, pageForEnd == null ? null : lastSurahOn(pages, pageForEnd), markSurahs)
     : 0;
   const finishHearing = (v: Verdict) =>
     startTransition(() =>

@@ -109,6 +109,7 @@ export function MushafReader({
       {pages.map((p) => (
         <section
           key={p.page}
+          id={`page-${p.page}`}
           className={cn(glyphMode ? "mushaf-page" : "glass rounded-2xl px-5 py-6")}
           // This page's own natural measure. Each QCF v1 page font is cut to
           // its own engraving, so the text block's width is a per-page fact
