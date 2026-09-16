@@ -121,10 +121,13 @@ export function ReviewPanel({
   }, 0);
   const outOf = questions.filter((q) => !q.is_bonus).reduce((s, q) => s + q.points, 0);
   const needsAttention = answers.filter((a) => a.auto_marks === null).length;
-  // kept with their position so the warning can name the question
+  // kept with their position so the warning can name the question. A task is
+  // never in here: it carries no mark field, so a number out of range on one —
+  // a row left over from before the task was made worth nothing — would block
+  // approval with nothing on screen for the teacher to correct.
   const invalid = questions
     .map((q, i) => ({ q, n: i + 1, a: byQ.get(q.id) }))
-    .filter(({ a }) => a && !marks.get(a.id)!.valid);
+    .filter(({ q, a }) => a && !q.is_task && !marks.get(a.id)!.valid);
 
   return (
     <div className="space-y-4">
@@ -153,16 +156,19 @@ export function ReviewPanel({
             disabled={pending || invalid.length > 0}
             onClick={() =>
               startTransition(async () => {
-                await approveSubmission(
+                const result = await approveSubmission(
                   submissionId,
                   Object.fromEntries(finalMarks),
                   comments,
                 );
-                if (approved) {
+                if (approved && !result.redo) {
                   // an edit of released marks: stay put, show the new state
                   setEditing(false);
                   router.refresh();
                 } else {
+                  // A release, or an edit that dropped the mark under the pass
+                  // line — the second one has just blanked this very script, so
+                  // staying would leave the teacher on an empty paper.
                   router.push(backHref);
                   router.refresh();
                 }
@@ -186,9 +192,14 @@ export function ReviewPanel({
 
       {questions.map((q, i) => {
         const a = byQ.get(q.id);
-        if (!a) return null;
-        const chosen = selectedOf(a.response);
-        const text = textOf(a.response);
+        // A task keeps its place on the paper whether or not an answers row
+        // exists for it: the recording is the work, and a student who has not
+        // recorded yet leaves nothing for a row to hold. Any other question
+        // with no row is one the student never reached, and a blank section
+        // for it would only lengthen the script the teacher has to read.
+        if (!a && !q.is_task) return null;
+        const chosen = a ? selectedOf(a.response) : [];
+        const text = a ? textOf(a.response) : "";
         // auto_rubric chips carry `why` from the LLM when it explained itself;
         // otherwise fall back to the concept's own wording rather than its bare id.
         const rubricDesc = new Map((q.rubric ?? []).map((c) => [c.id, c.desc]));
@@ -205,34 +216,50 @@ export function ReviewPanel({
                 <MixedText text={q.prompt} variant="quran" className="mt-2 block text-[15px] leading-relaxed" />
               </div>
               <div className="shrink-0">
-                <label
-                  htmlFor={`mark-${a.id}`}
-                  className="text-[11px] uppercase tracking-wider text-muted-foreground"
-                >
-                  Mark
-                </label>
-                <div className="mt-1 flex items-center gap-1.5">
-                  <Input
-                    id={`mark-${a.id}`}
-                    inputMode="decimal"
-                    autoComplete="off"
-                    aria-invalid={!marks.get(a.id)!.valid}
-                    aria-describedby={`out-of-${a.id}`}
-                    disabled={locked}
-                    value={edits[a.id] ?? ""}
-                    onChange={(e) => setEdits((s) => ({ ...s, [a.id]: e.target.value }))}
-                    className="w-16 text-right tabular-nums"
-                  />
-                  {/* the denominator belongs next to the field, not in the grey
-                      meta line above the prompt where it used to live */}
-                  <span id={`out-of-${a.id}`} className="text-sm tabular-nums text-muted-foreground">
-                    / {fmtMarks(q.points)}
-                  </span>
-                </div>
-                {a.auto_marks !== null && (
-                  <p className="mt-1 text-[11px] text-muted-foreground tabular-nums">
-                    auto: {fmtMarks(a.auto_marks)}
-                  </p>
+                {a && !q.is_task ? (
+                  <>
+                    <label
+                      htmlFor={`mark-${a.id}`}
+                      className="text-[11px] uppercase tracking-wider text-muted-foreground"
+                    >
+                      Mark
+                    </label>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <Input
+                        id={`mark-${a.id}`}
+                        inputMode="decimal"
+                        autoComplete="off"
+                        aria-invalid={!marks.get(a.id)!.valid}
+                        aria-describedby={`out-of-${a.id}`}
+                        disabled={locked}
+                        value={edits[a.id] ?? ""}
+                        onChange={(e) => setEdits((s) => ({ ...s, [a.id]: e.target.value }))}
+                        className="w-16 text-right tabular-nums"
+                      />
+                      {/* the denominator belongs next to the field, not in the grey
+                          meta line above the prompt where it used to live */}
+                      <span id={`out-of-${a.id}`} className="text-sm tabular-nums text-muted-foreground">
+                        / {fmtMarks(q.points)}
+                      </span>
+                    </div>
+                    {a.auto_marks !== null && (
+                      <p className="mt-1 text-[11px] text-muted-foreground tabular-nums">
+                        auto: {fmtMarks(a.auto_marks)}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                      Mark
+                    </div>
+                    {/* A recitation is listened to, not marked: the teacher's
+                        feedback on it is the comment below. There is no number
+                        to type and so no denominator to type it against —
+                        printing "/ 0" next to a dash would only ask the
+                        question the dash is there to answer. */}
+                    <div className="mt-1 text-sm tabular-nums text-muted-foreground">—</div>
+                  </>
                 )}
               </div>
             </div>
@@ -318,7 +345,7 @@ export function ReviewPanel({
                 </>
               )}
 
-              {a.auto_rubric && (
+              {a?.auto_rubric && (
                 <ul className="flex flex-wrap gap-1.5">
                   {a.auto_rubric.map((c) => (
                     <li key={c.id} className={cn(
@@ -331,7 +358,7 @@ export function ReviewPanel({
                 </ul>
               )}
 
-              {a.auto_marks === null && !q.is_task && (
+              {a && a.auto_marks === null && !q.is_task && (
                 <p className="text-xs text-warn">
                   Needs your judgement. No answer key or rubric for this one.
                 </p>
@@ -342,8 +369,10 @@ export function ReviewPanel({
                   there is to say. Only these carry no options.
                   Saved on approval with the marks — not as you type — so the
                   student never sees feedback on an unreleased submission.
-                  Hidden once locked unless there is something to read. */}
-              {!q.options && (!locked || comments[a.id]) && (
+                  Hidden once locked unless there is something to read, and
+                  hidden on a task nobody has recorded yet: a comment is stored
+                  on the answers row, and that task has none to store it on. */}
+              {!q.options && a && (!locked || comments[a.id]) && (
                 <div>
                   <label
                     htmlFor={`comment-${a.id}`}

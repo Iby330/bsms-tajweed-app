@@ -7,7 +7,11 @@
  *   text / paragraph → {"text":"…"}
  *   grid → {"grid":{"rowLabel":"colLabel"}} — the student RPC exposes no grid
  *   structure (options are null), so the form falls back to a text answer.
+ *   task → {"voice":"<storage path>"} — a recitation. The row exists so the
+ *   teacher's comment has somewhere to live; the audio itself is in Storage.
  */
+
+import { REDO_THRESHOLD_PCT } from "@/lib/marking/redo";
 
 export type QType = "mcq" | "checkbox" | "text" | "paragraph" | "grid";
 export type SubStatus = "draft" | "submitted" | "auto_marked" | "approved";
@@ -15,7 +19,12 @@ export type SubStatus = "draft" | "submitted" | "auto_marked" | "approved";
 export type SelectedResponse = { selected: number[] };
 export type TextResponse = { text: string };
 export type GridResponse = { grid: Record<string, string> };
-export type AnswerResponse = SelectedResponse | TextResponse | GridResponse;
+export type VoiceResponse = { voice: string };
+export type AnswerResponse =
+  | SelectedResponse
+  | TextResponse
+  | GridResponse
+  | VoiceResponse;
 
 /* ── RPC payload (get_homework_for_student — answer keys stripped) ────── */
 
@@ -82,6 +91,11 @@ export function gridResponse(grid: Record<string, string>): GridResponse {
   return { grid };
 }
 
+/** The answer to a task question is the recording's path in Storage. */
+export function voiceResponse(storagePath: string): VoiceResponse {
+  return { voice: storagePath };
+}
+
 /* ── Reading stored responses back (defensive against bad shapes) ─────── */
 
 export function selectedOf(response: unknown): number[] {
@@ -96,14 +110,37 @@ export function textOf(response: unknown): string {
   return typeof t === "string" ? t : "";
 }
 
+export function voiceOf(response: unknown): string {
+  if (typeof response !== "object" || response === null) return "";
+  const v = (response as VoiceResponse).voice;
+  return typeof v === "string" ? v : "";
+}
+
 export function responseIsEmpty(response: unknown): boolean {
   if (typeof response !== "object" || response === null) return true;
-  const r = response as Partial<SelectedResponse & TextResponse & GridResponse>;
+  const r = response as Partial<
+    SelectedResponse & TextResponse & GridResponse & VoiceResponse
+  >;
   if (Array.isArray(r.selected)) return r.selected.length === 0;
   if (typeof r.text === "string") return r.text.trim() === "";
+  if (typeof r.voice === "string") return r.voice.trim() === "";
   if (r.grid && typeof r.grid === "object")
     return Object.keys(r.grid).length === 0;
   return true;
+}
+
+/**
+ * The task questions with nothing recorded against them — what stands between
+ * a student and handing in. Generic in the question so the form can run it
+ * over the paper it already holds and `submitHomework` over the one it reads
+ * back, without either shape having to match the other exactly.
+ */
+export function missingTaskRecordings<Q extends { id: string; is_task: boolean }>(
+  questions: Q[],
+  notes: { question_id: string }[],
+): Q[] {
+  const recorded = new Set(notes.map((n) => n.question_id));
+  return questions.filter((q) => q.is_task && !recorded.has(q.id));
 }
 
 /* ── Lateness ─────────────────────────────────────────────────────────── */
@@ -155,19 +192,30 @@ export function countdown(
 
 /* ── Status chips (homework index) ────────────────────────────────────── */
 
-export type ChipTone = "muted" | "warn" | "ink" | "ok";
+export type ChipTone = "muted" | "warn" | "ink" | "ok" | "danger";
 
 /**
  * Student-facing status. `auto_marked` deliberately reads as "Submitted" —
  * marking is invisible to students until the teacher approves.
+ *
+ * `redo` is the homework's attempt number, when it has one. A draft on
+ * attempt 2 or later is not work never started: it is work that came back,
+ * and saying "Draft" for it would hide the only thing the student needs to
+ * know. Past the hand-in it stops mattering — a redo with the teacher is a
+ * submission like any other — so only `draft` reads the argument at all.
  */
-export function statusChip(status: SubStatus | null | undefined): {
+export function statusChip(
+  status: SubStatus | null | undefined,
+  redo?: { attempt: number } | null,
+): {
   label: string;
   tone: ChipTone;
 } {
   switch (status) {
     case "draft":
-      return { label: "Draft", tone: "warn" };
+      return redo && redo.attempt > 1
+        ? { label: "Redo", tone: "danger" }
+        : { label: "Draft", tone: "warn" };
     case "submitted":
     case "auto_marked":
       return { label: "Submitted", tone: "ink" };
@@ -235,4 +283,61 @@ export function parseMarkInput(raw: string, max: number): ParsedMark {
   // "." alone matches the pattern but parses to NaN
   if (!Number.isFinite(n)) return { value: null, valid: false };
   return { value: n, valid: n <= max };
+}
+
+/* ── What needs the student today (home hero) ─────────────────────────── */
+
+export type AttentionKind = "redo" | "overdue";
+
+/**
+ * The one box under the greeting, which used to list overdue homework alone
+ * and now lists work sent back as well.
+ *
+ * Redos come first: that work has already been read once by a teacher who is
+ * waiting on it again. The two lists overlap — a redo's original deadline is
+ * by definition in the past, so it qualifies as overdue too — and a box that
+ * says "one thing needs you" must not then print two rows for it, hence the
+ * de-duplication by homework id.
+ *
+ * Generic in the entry so it can run over `HomeworkEntry` without this module
+ * importing the curriculum tree; all it needs is something to tell rows apart.
+ */
+export function attentionList<T extends { homework: { id: string } }>(
+  overdue: T[],
+  redos: T[],
+): { kind: AttentionKind; entry: T }[] {
+  const listed = new Set(redos.map((e) => e.homework.id));
+  return [
+    ...redos.map((entry) => ({ kind: "redo" as const, entry })),
+    ...overdue
+      .filter((e) => !listed.has(e.homework.id))
+      .map((entry) => ({ kind: "overdue" as const, entry })),
+  ];
+}
+
+/**
+ * What to call the box. Naming the single kind it holds is more useful than a
+ * catch-all, and "Needs you" is what is left when it holds both.
+ */
+export function attentionHeading(
+  items: { kind: AttentionKind }[],
+): "Redo" | "Overdue" | "Needs you" {
+  const kinds = new Set(items.map((i) => i.kind));
+  if (kinds.size === 1) return kinds.has("redo") ? "Redo" : "Overdue";
+  return "Needs you";
+}
+
+/**
+ * The line above a redo's blank form. The threshold comes from the marking
+ * rule rather than being typed out again, so the sentence a student reads and
+ * the comparison that sent them here can never disagree.
+ *
+ * `previousPct` is null only for a row that predates the column being
+ * recorded; there is still a redo to explain, just no mark to quote.
+ */
+export function redoNotice(previousPct: number | null): string {
+  if (previousPct === null) {
+    return `You need ${REDO_THRESHOLD_PCT}% to pass this homework.`;
+  }
+  return `You scored ${Math.round(previousPct)}% last time and need ${REDO_THRESHOLD_PCT}%.`;
 }

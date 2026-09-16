@@ -12,6 +12,7 @@ import { homeworkLabel } from "@/components/app/homework-row";
 import { Crumbs } from "@/components/app/crumbs";
 import { MixedText } from "@/components/app/mixed-text";
 import { ReviewPanel } from "@/components/app/review-panel";
+import { PastAttempts } from "@/components/app/past-attempts";
 import { StudentPicker } from "@/components/app/student-picker";
 import { ResultsTabs, type ResultsTab } from "@/components/app/results-tabs";
 import { ResultsSummary, type SummaryRow } from "@/components/app/results-summary";
@@ -115,18 +116,28 @@ export default async function HomeworkResults({
   const individualHref = (studentId: string) =>
     link({ tab: "individual", student: studentId });
 
-  // Drafts are the student's own business — a teacher can neither see nor mark
-  // one, so they are not "handed in" for any count on this page.
+  // Every live row for the roster, drafts included. Drafts are still the
+  // student's own business — a teacher can neither read nor mark one — but a
+  // redo draft is a state this page has to be able to report: the student
+  // handed in, was marked, and was sent back. Filtering them out in SQL left
+  // those students indistinguishable from the ones who never started.
   const studentIds = roster.map((s) => s.id);
-  const { data: subsData } = studentIds.length
+  const { data: liveData } = studentIds.length
     ? await db
         .from("submissions")
-        .select("id, student_id, status, is_late, imported_marks")
+        .select("id, student_id, status, is_late, imported_marks, attempt, previous_pct")
         .eq("homework_id", hw.id)
         .in("student_id", studentIds)
-        .in("status", ["submitted", "auto_marked", "approved"])
-    : { data: [] as { id: string; student_id: string; status: string; is_late: boolean; imported_marks: number | null }[] };
-  const subs = subsData ?? [];
+    : { data: [] as { id: string; student_id: string; status: string; is_late: boolean; imported_marks: number | null; attempt: number; previous_pct: number | null }[] };
+  const live = liveData ?? [];
+  // Everything below this line means "a submission the teacher can see", which
+  // is what `subs` has always meant — so drafts leave again here and every
+  // existing count, tab, score and picker entry is unchanged.
+  const subs = live.filter((s) => s.status !== "draft");
+  const draftByStudent = new Map(
+    live.filter((s) => s.status === "draft").map((s) => [s.student_id, s]),
+  );
+  const liveByStudent = new Map(live.map((s) => [s.student_id, s]));
 
   const hasResponses = subs.length > 0;
   const requested: ResultsTab =
@@ -157,6 +168,24 @@ export default async function HomeworkResults({
   const rows: SummaryRow[] = roster.map((s) => {
     const sub = subByStudent.get(s.id);
     const score = sub ? scoreBySub.get(sub.id) : undefined;
+
+    // Sent back: there is no submission to read, but "not submitted" would be
+    // a lie about a student who handed in and was marked. The percentage shown
+    // is the one that failed — `previous_pct`, carried on the reopened draft —
+    // and it counts towards nothing, exactly as it no longer counts in v_hw_pct.
+    const draft = sub ? undefined : draftByStudent.get(s.id);
+    if (draft && draft.attempt > 1) {
+      return {
+        studentId: s.id,
+        name: s.full_name,
+        href: individualHref(s.id),
+        state: "redo",
+        marks: null,
+        pct: draft.previous_pct === null ? null : Number(draft.previous_pct),
+        late: false,
+      };
+    }
+
     return {
       studentId: s.id,
       name: s.full_name,
@@ -224,6 +253,12 @@ export default async function HomeworkResults({
   const selected =
     view === "individual" && student ? roster.find((s) => s.id === student) ?? null : null;
   const selectedSub = selected ? subByStudent.get(selected.id) ?? null : null;
+  // The student's live row whatever its state — a redo draft has no script to
+  // mark, but it does have a history, and that history is what a teacher who
+  // picks a "redo pending" name has come to see. Read for any attempt past the
+  // first, handed in or not, so the redo can be read against what it replaced.
+  const selectedLive = selected ? liveByStudent.get(selected.id) ?? null : null;
+  const redoLive = selectedLive && selectedLive.attempt > 1 ? selectedLive : null;
 
   let review: {
     answers: {
@@ -271,6 +306,30 @@ export default async function HomeworkResults({
     };
   }
 
+  // The attempts this student already had at the paper, newest first. The
+  // approver needs its own FK hint: `submission_attempts` names a profile twice
+  // (the student and whoever released the attempt) and the bare embed fails at
+  // runtime with PGRST201 while typechecking clean — LEARNINGS.md 2026-08-12.
+  const { data: attemptRows } = redoLive
+    ? await db
+        .from("submission_attempts")
+        .select(`
+          attempt, pct, approved_at, is_late, answers, voice_notes,
+          profiles!submission_attempts_approved_by_fkey(full_name)
+        `)
+        .eq("submission_id", redoLive.id)
+        .order("attempt", { ascending: false })
+    : { data: null };
+  const pastAttempts = (attemptRows ?? []).map((a) => ({
+    attempt: a.attempt,
+    pct: a.pct === null ? null : Number(a.pct),
+    approved_at: a.approved_at,
+    approver: a.profiles?.full_name ?? null,
+    is_late: a.is_late,
+    answers: a.answers,
+    voice_notes: a.voice_notes,
+  }));
+
   const reviewQuestions = questions.map((q) => ({
     id: q.id,
     position: q.position,
@@ -296,11 +355,13 @@ export default async function HomeworkResults({
   const pickerStudents = rows.map((r) => ({
     id: r.studentId,
     label:
-      r.state === "missing"
-        ? `${r.name} · not handed in`
-        : r.pct === null
-          ? `${r.name} · not marked`
-          : `${r.name} · ${Math.round(r.pct)}%`,
+      r.state === "redo"
+        ? `${r.name} · redo pending`
+        : r.state === "missing"
+          ? `${r.name} · not handed in`
+          : r.pct === null
+            ? `${r.name} · not marked`
+            : `${r.name} · ${Math.round(r.pct)}%`,
   }));
 
   // Who actually handed in — the figure the empty state quotes when nobody is
@@ -311,6 +372,7 @@ export default async function HomeworkResults({
   const waiting = rows.filter(
     (r) => r.state === "waiting" || r.state === "provisional",
   ).length;
+  const redoPending = rows.filter((r) => r.state === "redo").length;
 
   return (
     <>
@@ -349,9 +411,15 @@ export default async function HomeworkResults({
           <MixedText text={title} className="mt-3.5 block text-sm text-muted-foreground" />
         )}
         <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Redo pending is its own figure, not folded into "not submitted":
+              a student who was marked and sent back has done more than one
+              who never started, and without it the four numbers stop adding
+              up to the roster. Shown only when there is one, so the line
+              stays as short as it was for the usual week. */}
           <p className="text-xs tabular-nums text-muted-foreground">
             {scope.label} · {marked} marked · {waiting} waiting ·{" "}
             {rows.filter((r) => r.state === "missing").length} not submitted
+            {redoPending > 0 && <> · {redoPending} redo pending</>}
           </p>
           <ClassFilter
             classes={scope.classes}
@@ -442,7 +510,25 @@ export default async function HomeworkResults({
                     </p>
                   )}
 
-                  {selected && !selectedSub && (
+                  {/* A redo still being written has no script of its own, but
+                      "hasn't handed this in" would be untrue of a student who
+                      did, and was sent back. Say what happened, then show the
+                      paper that failed — that is what the teacher picked the
+                      name to read. */}
+                  {selected && !selectedSub && redoLive && (
+                    <>
+                      <p className="empty">
+                        {selected.full_name} was sent back
+                        {redoLive.previous_pct !== null && (
+                          <> after scoring {Math.round(Number(redoLive.previous_pct))}%</>
+                        )}{" "}
+                        and hasn&apos;t handed the redo in yet.
+                      </p>
+                      <PastAttempts attempts={pastAttempts} questions={reviewQuestions} />
+                    </>
+                  )}
+
+                  {selected && !selectedSub && !redoLive && (
                     <p className="empty">
                       {selected.full_name} hasn&apos;t handed this in.
                     </p>
@@ -484,6 +570,11 @@ export default async function HomeworkResults({
                           approved={review.approved}
                           backHref={individualHref(selected.id)}
                         />
+                      )}
+                      {/* Under the live script, as on the marking screen: the
+                          redo is read against what it replaced. */}
+                      {redoLive && (
+                        <PastAttempts attempts={pastAttempts} questions={reviewQuestions} />
                       )}
                     </>
                   )}

@@ -61,6 +61,10 @@ export function HomeworkRow({
             </span>
           ) : marked ? (
             <span className="chip ok">Marked</span>
+          ) : entry.submission === "draft" && entry.redo ? (
+            /* A draft the teacher sent back is not work never started, and
+               "Draft" is the one word that would hide that. */
+            <span className="chip bad">Redo</span>
           ) : entry.submission === "draft" ? (
             <span className="chip warn">Draft</span>
           ) : null}

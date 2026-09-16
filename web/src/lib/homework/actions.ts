@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { supabaseServer, currentProfile } from "@/lib/supabase/server";
-import { isLate } from "./logic";
+import { isLate, missingTaskRecordings, parseStudentHomework } from "./logic";
 
 /**
  * Student-side homework actions. These use the *user* client, so RLS enforces
@@ -89,6 +89,10 @@ export async function saveAnswer(
  * Hand the work in. Late submissions are accepted and flagged — mid-year
  * joiners have to catch up, and lateness is a teacher's judgement (a strike),
  * not an automatic block.
+ *
+ * A task with no recording *is* a block, and it is checked here as well as in
+ * the form: the button the form disables is the only thing stopping a second
+ * tab, or a recording deleted after the page loaded.
  */
 export async function submitHomework(submissionId: string): Promise<void> {
   const db = await supabaseServer();
@@ -100,8 +104,20 @@ export async function submitHomework(submissionId: string): Promise<void> {
     .maybeSingle();
   if (!sub || sub.status !== "draft") return;
 
-  const { data: hw } = await db
-    .from("homeworks").select("due_at, number").eq("id", sub.homework_id).single();
+  // The question list comes from the student RPC — the only route a student
+  // has to the paper — with the answer keys stripped.
+  const [{ data: hw }, { data: payload }, { data: notes }] = await Promise.all([
+    db.from("homeworks").select("due_at, number").eq("id", sub.homework_id).single(),
+    db.rpc("get_homework_for_student", { hw_id: sub.homework_id }),
+    db.from("voice_notes").select("question_id").eq("submission_id", submissionId),
+  ]);
+
+  // A payload that won't parse is a fault in the RPC, not a student with work
+  // outstanding, so it lets the hand-in through rather than stranding them.
+  const parsed = parseStudentHomework(payload);
+  if (parsed && missingTaskRecordings(parsed.questions, notes ?? []).length > 0) {
+    throw new Error("Record every task before you hand in.");
+  }
 
   await db
     .from("submissions")

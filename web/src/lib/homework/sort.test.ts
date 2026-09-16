@@ -16,6 +16,7 @@ const hw = (
     title: "",
     unlocked: true,
     submission: "approved",
+    redo: null,
     homework: {
       id: `t${termId}w${week}${opts.series ?? ""}`,
       week_id: `t${termId}w${week}`,

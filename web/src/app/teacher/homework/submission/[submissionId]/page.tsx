@@ -5,6 +5,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { teacherClasses } from "@/lib/teacher/scope";
 import { markSubmission } from "@/lib/marking/actions";
 import { ReviewPanel } from "@/components/app/review-panel";
+import { PastAttempts } from "@/components/app/past-attempts";
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { moduleTitle } from "@/lib/curriculum/tree";
@@ -23,32 +24,48 @@ export default async function SubmissionReview({
     searchParams,
   ]);
   const db = await supabaseServer();
-  // Read alongside the submission: it decides whether to render, not what to
-  // fetch. See the guard below for why it is here at all.
-  const allowed = await teacherClasses();
 
   // Student, class, homework, questions, answers and voice notes all hang off
   // this submission by a foreign key, so PostgREST returns the lot in one round
   // trip. `classes` needs its hint because a class points back at a teacher
   // profile as well; `profiles` needs one because a submission names both a
   // student and its approver.
-  const { data: sub } = await db
-    .from("submissions")
-    .select(`
-      id, status, is_late, submitted_at, homework_id, student_id,
-      profiles!submissions_student_id_fkey(
-        full_name, class_id, classes!profiles_class_id_fkey(name)
-      ),
-      homeworks(
-        number, title, series, total_marks,
-        questions(id, position, prompt, points, qtype, is_bonus, is_task, options, rubric)
-      ),
-      answers(id, question_id, response, auto_marks, auto_rubric, final_marks, teacher_comment),
-      voice_notes(question_id, storage_path, duration_s)
-    `)
-    .eq("id", submissionId)
-    .order("position", { referencedTable: "homeworks.questions" })
-    .maybeSingle();
+  //
+  // Two things leave with it. The teacher's classes decide whether to render at
+  // all, not what to fetch (see the guard below). The superseded attempts are
+  // keyed by the submission id we already have, so waiting for the row above to
+  // come back would cost a round trip for nothing — and their approver needs an
+  // FK hint of its own, `submission_attempts` naming a profile twice (the
+  // student, and whoever released that attempt); the bare form fails at runtime
+  // with PGRST201 while typechecking clean. See LEARNINGS.md 2026-08-12.
+  const [allowed, { data: sub }, { data: attemptRows }] = await Promise.all([
+    teacherClasses(),
+    db
+      .from("submissions")
+      .select(`
+        id, status, is_late, submitted_at, homework_id, student_id, attempt, previous_pct,
+        profiles!submissions_student_id_fkey(
+          full_name, class_id, classes!profiles_class_id_fkey(name)
+        ),
+        homeworks(
+          number, title, series, total_marks,
+          questions(id, position, prompt, points, qtype, is_bonus, is_task, options, rubric)
+        ),
+        answers(id, question_id, response, auto_marks, auto_rubric, final_marks, teacher_comment),
+        voice_notes(question_id, storage_path, duration_s)
+      `)
+      .eq("id", submissionId)
+      .order("position", { referencedTable: "homeworks.questions" })
+      .maybeSingle(),
+    db
+      .from("submission_attempts")
+      .select(`
+        attempt, pct, approved_at, is_late, answers, voice_notes,
+        profiles!submission_attempts_approved_by_fkey(full_name)
+      `)
+      .eq("submission_id", submissionId)
+      .order("attempt", { ascending: false }),
+  ]);
   if (!sub) notFound();
 
   // A teacher marks their own section: their class, and a colleague's when
@@ -64,6 +81,16 @@ export default async function SubmissionReview({
   if (allowed.length && !allowed.some((c) => c.id === sub.profiles?.class_id)) {
     notFound();
   }
+
+  const pastAttempts = (attemptRows ?? []).map((a) => ({
+    attempt: a.attempt,
+    pct: a.pct === null ? null : Number(a.pct),
+    approved_at: a.approved_at,
+    approver: a.profiles?.full_name ?? null,
+    is_late: a.is_late,
+    answers: a.answers,
+    voice_notes: a.voice_notes,
+  }));
 
   const hw = sub.homeworks;
   const student = sub.profiles;
@@ -111,10 +138,20 @@ export default async function SubmissionReview({
           <span className="text-sm text-muted-foreground">
             {cls?.name}{hw && <> · {homeworkLabel(hw.number, hw.series)}</>}
             {sub.is_late && <span className="ml-2 rounded bg-warn/12 px-1.5 py-0.5 text-xs text-warn">late</span>}
+            {/* Muted, not a warning: a second attempt is a fact about the
+                script, and the teacher who sent it back is usually the one
+                reading it. The previous attempts below say the rest. */}
+            {sub.attempt > 1 && (
+              <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs tabular-nums">
+                attempt {sub.attempt}
+              </span>
+            )}
           </span>
         </div>
         <MixedText text={hw ? moduleTitle(hw.title) : ""} className="block text-sm text-muted-foreground" />
       </header>
+
+      <PastAttempts attempts={pastAttempts} questions={(questions ?? []) as never} />
 
       <ReviewPanel
         submissionId={sub.id}

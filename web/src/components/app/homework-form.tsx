@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { saveAnswer, submitHomework } from "@/lib/homework/actions";
 import {
   mcqResponse, checkboxResponse, textResponse,
-  selectedOf, textOf, fmtMarks,
+  selectedOf, textOf, fmtMarks, missingTaskRecordings,
   type StudentQuestion,
 } from "@/lib/homework/logic";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,7 @@ export function HomeworkForm({
   questions,
   existing,
   voiceNotes = [],
+  attempt = 1,
   status,
   readOnly,
 }: {
@@ -49,6 +50,7 @@ export function HomeworkForm({
   questions: StudentQuestion[];
   existing: ExistingAnswer[];
   voiceNotes?: ExistingVoiceNote[];
+  attempt?: number;
   status: string | null;
   readOnly: boolean;
 }) {
@@ -61,6 +63,13 @@ export function HomeworkForm({
     Object.fromEntries(existing.map((a) => [a.question_id, a.response])),
   );
   const [saved, setSaved] = useState<"idle" | "saving" | "saved">("idle");
+  // Which tasks have a recording, kept here rather than read back off the
+  // server: a student records and hands in within the same page life, and the
+  // button must unlock the moment the upload lands.
+  const [recorded, setRecorded] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(voiceNotes.map((v) => [v.question_id, true])),
+  );
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
@@ -85,6 +94,14 @@ export function HomeworkForm({
     ? existing.reduce((s, a) => s + (a.final_marks ?? 0), 0)
     : null;
   const outOf = questions.filter((q) => !q.is_bonus).reduce((s, q) => s + q.points, 0);
+  // The whole point of a task is that a teacher hears it, so an unrecorded one
+  // holds the hand-in. `submitHomework` checks the same thing server-side.
+  const missing = missingTaskRecordings(
+    questions,
+    Object.entries(recorded)
+      .filter(([, has]) => has)
+      .map(([question_id]) => ({ question_id })),
+  );
 
   return (
     <div className="field">
@@ -127,9 +144,11 @@ export function HomeworkForm({
                   <VoiceRecorder
                     submissionId={submissionId}
                     questionId={q.id}
+                    attempt={attempt}
                     initialPath={voiceByQ.get(q.id)?.storage_path ?? null}
                     initialDuration={voiceByQ.get(q.id)?.duration_s ?? null}
                     readOnly={readOnly}
+                    onRecorded={(has) => setRecorded((r) => ({ ...r, [q.id]: has }))}
                   />
                 ) : (
                   <p className="text-sm text-muted-foreground">
@@ -236,19 +255,38 @@ export function HomeworkForm({
       {!readOnly && submissionId && (
         <div className="box c12" style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
           <span className="text-xs text-muted-foreground">
-            {saved === "saving" ? "Saving…" : saved === "saved" ? "Draft saved" : "Your work saves as you type."}
+            {saved === "saving"
+              ? "Saving…"
+              : saved === "saved"
+                ? "Draft saved"
+                : missing.length > 0
+                  ? "Record every task before you hand in."
+                  : "Your work saves as you type."}
           </span>
-          <Button
-            disabled={pending}
-            onClick={() =>
-              startTransition(async () => {
-                await submitHomework(submissionId);
-                router.refresh();
-              })
-            }
-          >
-            {pending ? "Submitting…" : "Submit homework"}
-          </Button>
+          <div className="flex flex-col items-end gap-1">
+            <Button
+              disabled={pending || missing.length > 0}
+              onClick={() =>
+                startTransition(async () => {
+                  setSubmitError(null);
+                  try {
+                    await submitHomework(submissionId);
+                    router.refresh();
+                  } catch (e) {
+                    // The server refuses a hand-in with a task unrecorded — a
+                    // second tab, or a recording deleted elsewhere. Saying so
+                    // beats a button that silently does nothing.
+                    setSubmitError(
+                      e instanceof Error ? e.message : "Could not hand in. Try again.",
+                    );
+                  }
+                })
+              }
+            >
+              {pending ? "Submitting…" : "Submit homework"}
+            </Button>
+            {submitError && <p className="text-xs text-danger">{submitError}</p>}
+          </div>
         </div>
       )}
 

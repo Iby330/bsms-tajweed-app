@@ -128,6 +128,20 @@ describe("ResultsSummary", () => {
     expect(container.textContent).not.toContain("Most missed");
   });
 
+  it("says a student sent back is redo pending, with the mark that failed", () => {
+    const { getByText, container } = render1([
+      row({ studentId: "a", name: "Aisha", marks: 10, pct: 100 }),
+      row({ studentId: "b", name: "Bilal", state: "redo", marks: null, pct: 45 }),
+    ]);
+    expect(container.textContent).toContain("redo pending");
+    expect(container.textContent).toContain("scored 45%");
+    // no script on the live row to open
+    expect(getByText("Bilal").closest("a")).toBeNull();
+    // and the mark that failed is not this class's average
+    expect(container.textContent).toContain("Class average100%");
+    expect(container.textContent).toContain("of 2"); // one of two handed in
+  });
+
   it("marks a late hand-in", () => {
     const { container } = render1([row({ studentId: "a", name: "Aisha", late: true })]);
     expect(container.textContent).toContain("late");

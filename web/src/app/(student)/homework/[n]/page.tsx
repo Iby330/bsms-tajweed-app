@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { createDraftSubmission } from "@/lib/homework/actions";
-import { parseStudentHomework } from "@/lib/homework/logic";
+import { parseStudentHomework, redoNotice } from "@/lib/homework/logic";
 import { HomeworkForm } from "@/components/app/homework-form";
 import { CountdownChip } from "@/components/app/countdown-chip";
 import { MixedText } from "@/components/app/mixed-text";
@@ -52,13 +52,18 @@ export default async function HomeworkPage({
   const [{ data: payload }, { data: sub }] = await Promise.all([
     db.rpc("get_homework_for_student", { hw_id: row.id }),
     db
-      .from("submissions").select("id, status")
+      .from("submissions").select("id, status, attempt, previous_pct")
       .eq("homework_id", row.id).eq("student_id", profile.id).maybeSingle(),
   ]);
   const parsed = parseStudentHomework(payload);
   if (!parsed) notFound();
 
   const readOnly = !!sub && sub.status !== "draft";
+  // Work the teacher sent back. The paper is blank again — `open_homework_redo`
+  // deletes the old answers — so the only thing that explains the empty form is
+  // the notice below.
+  const isRedo = (sub?.attempt ?? 1) > 1;
+  const redoOpen = isRedo && sub?.status === "draft";
   // A submission of any status already answers the question — only a student
   // opening the homework for the first time pays for a write.
   const submissionId = sub ? sub.id : await createDraftSubmission(row.id);
@@ -133,19 +138,35 @@ export default async function HomeworkPage({
             {week && ` · Term ${week.term_id}`} ·{" "}
             {parsed.questions.length}{" "}
             {parsed.questions.length === 1 ? "question" : "questions"}
+            {isRedo && " · redo"}
             {readOnly && " · handed in"}
           </span>
-          {parsed.homework.due_at && !readOnly && (
+          {/* No countdown on a redo: the original deadline is long past by the
+              time a paper comes back, and a redo is never counted late. */}
+          {parsed.homework.due_at && !readOnly && !isRedo && (
             <CountdownChip dueAt={parsed.homework.due_at} />
           )}
         </div>
       </header>
+
+      {redoOpen && (
+        <div className="field see-through">
+          <section className="box c12 needs">
+            <span className="label" style={{ color: "var(--danger)" }}>Redo</span>
+            <p className="note" style={{ marginTop: 6 }}>
+              {redoNotice(sub?.previous_pct ?? null)} Answer every question again
+              — your earlier answers are not shown.
+            </p>
+          </section>
+        </div>
+      )}
 
       <HomeworkForm
         submissionId={submissionId}
         questions={parsed.questions}
         existing={(answers ?? []) as never}
         voiceNotes={voiceNotes ?? []}
+        attempt={sub?.attempt ?? 1}
         status={sub?.status ?? "draft"}
         readOnly={readOnly}
       />

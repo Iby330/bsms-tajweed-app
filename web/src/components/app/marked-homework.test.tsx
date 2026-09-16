@@ -14,6 +14,7 @@ const hw = (termId: number, week: number, pct: number | null): ScoredHomework =>
     title: "",
     unlocked: true,
     submission: "approved",
+    redo: null,
     homework: {
       id: `t${termId}w${week}`,
       week_id: `t${termId}w${week}`,

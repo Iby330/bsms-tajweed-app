@@ -17,7 +17,7 @@ import { Sparkline } from "@/components/app/sparkline";
 import { getCachedSurahs } from "@/lib/reference/cached";
 import { memorisationList, passedThisYear } from "@/lib/hifz/pace";
 import { SERIES_LABELS, seriesShort } from "@/lib/lessons/series";
-import { isLate } from "@/lib/homework/logic";
+import { isLate, attentionList, attentionHeading } from "@/lib/homework/logic";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -99,14 +99,21 @@ export default async function StudentHome() {
 
   const allHomework = listHomework(curriculum.terms);
 
-  // Overdue work from EARLIER weeks. "This week" alone hides it — a student can
-  // be four homeworks behind and see a screen that says everything is fine.
-  // Renders nothing when there's nothing overdue.
+  // The one box under the greeting: work that is genuinely on the student's
+  // plate right now, whether it is late or has been sent back for another go.
+  // "This week" alone hides both — a student can be four homeworks behind, or
+  // sitting on a failed paper, and see a screen that says everything is fine.
+  // Renders nothing when there is nothing to answer for.
   const currentWeekHwIds = new Set(hws.map((h) => h.id));
   const buckets = bucketHomework(allHomework);
   const overdue = buckets.needsYou.filter(
     (e) => isLate(now, e.homework.due_at) && !currentWeekHwIds.has(e.homework.id),
   );
+  // A redo that has already been handed in is with the teacher, not with the
+  // student, so only a draft belongs in this box — even this week's, which is
+  // the one case where work from the current week is still outstanding.
+  const redos = buckets.needsYou.filter((e) => e.redo && e.submission === "draft");
+  const attention = attentionList(overdue, redos);
 
   // Counted against homework RELEASED SO FAR, not the year's 27. In week 3
   // "2 of 3" is a figure a student can act on; "2 of 27" reads like being 25
@@ -187,40 +194,59 @@ export default async function StudentHome() {
             {week ? `Week ${week.number} · Term ${week.term_id}` : "The year hasn\u2019t started yet"}
             {profile.classes?.name ? ` · ${profile.classes.name}` : ""}
           </span>
-          {overdue.length > 0 && (
+          {attention.length > 0 && (
             <span className="label hi">
-              {overdue.length === 1 ? "One thing needs you" : `${overdue.length} things need you`}
+              {attention.length === 1
+                ? "One thing needs you"
+                : `${attention.length} things need you`}
             </span>
           )}
         </div>
         <ClassVerse className={profile.classes?.name ?? null} />
       </header>
 
-      {overdue.length > 0 && (
+      {attention.length > 0 && (
         <div className="field see-through">
           <section className="box c12 needs">
             <div className="flex items-baseline justify-between gap-4">
-              <span className="label" style={{ color: "var(--danger)" }}>Overdue</span>
+              {/* Named after what it actually holds — "Overdue" over a redo
+                  would be a lie, and "Needs you" over three late homeworks
+                  says less than the old heading did. */}
+              <span className="label" style={{ color: "var(--danger)" }}>
+                {attentionHeading(attention)}
+              </span>
               <span className="label tabular-nums" style={{ color: "var(--danger)" }}>
-                {String(overdue.length).padStart(2, "0")}
+                {String(attention.length).padStart(2, "0")}
               </span>
             </div>
             <ul className="rowlist">
-              {overdue.map((e) => (
-                <li key={e.homework.id} className="linked">
-                  {/* The whole row is the link. An "Open" chip alongside it
-                      was a second control for the one thing the row already
-                      does, and it made the rest of the row look inert. */}
-                  <Link href={`/homework/${e.homework.number}?from=home`} className="rowlink">
-                    <span className="t">{homeworkLabel(e.homework.number, e.series)}</span>
-                    <span className="meta">
-                      <span className="s bad">
-                        {seriesShort(e.series)} · week {e.weekNumber}
+              {attention.map(({ kind, entry: e }) => {
+                // A redo says so, and quotes the mark that sent it back —
+                // without that the row reads as ordinary work the student
+                // simply never started. A row from before `previous_pct` was
+                // recorded has no mark to quote and just says "Redo".
+                const scored = e.redo?.previousPct ?? null;
+                const prefix =
+                  kind === "redo"
+                    ? scored === null ? "Redo · " : `Redo · scored ${Math.round(scored)}% · `
+                    : "";
+                return (
+                  <li key={e.homework.id} className="linked">
+                    {/* The whole row is the link. An "Open" chip alongside it
+                        was a second control for the one thing the row already
+                        does, and it made the rest of the row look inert. */}
+                    <Link href={`/homework/${e.homework.number}?from=home`} className="rowlink">
+                      <span className="t">{homeworkLabel(e.homework.number, e.series)}</span>
+                      <span className="meta">
+                        <span className="s bad">
+                          {prefix}
+                          {seriesShort(e.series)} · week {e.weekNumber}
+                        </span>
                       </span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </section>
         </div>

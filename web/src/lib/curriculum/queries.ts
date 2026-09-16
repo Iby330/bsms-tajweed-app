@@ -9,7 +9,7 @@ import { getCachedTerms, getCachedWeeks } from "@/lib/reference/cached";
 import {
   buildTree, overlayProgress,
   type Term, type SubStatus, type CurriculumRows, type ClassSchedule,
-  type TermRow, type WeekRow, type LessonRow, type HomeworkRow,
+  type TermRow, type WeekRow, type LessonRow, type HomeworkRow, type RedoInfo,
 } from "./tree";
 
 /** Both content tables, with the course columns 0026 added. One template
@@ -85,6 +85,12 @@ export type StudentCurriculum = {
   /** homework_id → the student's submission status, whatever stage it is at. */
   submissionByHomeworkId: Map<string, SubStatus>;
   /**
+   * homework_id → the attempt the student is on, for work a teacher sent
+   * back. Only second and later attempts are in here, so "is this homework a
+   * redo?" is a lookup rather than a comparison every caller has to get right.
+   */
+  redoByHomeworkId: Map<string, RedoInfo>;
+  /**
    * Whether the tree was built from this student's class syllabus.
    *
    * False for a class that has none, and false for a reader exempt from the
@@ -159,7 +165,9 @@ export async function getStudentCurriculum(
     db.from("lessons").select(LESSON_COLS).order("position"),
     db.from("homeworks").select(HOMEWORK_COLS).order("number"),
     db.from("lesson_watches").select("lesson_id").eq("student_id", studentId),
-    db.from("submissions").select("homework_id, status").eq("student_id", studentId),
+    db.from("submissions")
+      .select("homework_id, status, attempt, previous_pct")
+      .eq("student_id", studentId),
     db.from("v_hw_pct").select("homework_id, pct").eq("student_id", studentId),
     getClassSchedule(me?.class_id),
   ]);
@@ -175,6 +183,17 @@ export async function getStudentCurriculum(
     watchedLessonIds: new Set((watches.data ?? []).map((w) => w.lesson_id)),
     submissionByHomeworkId: new Map(
       (subs.data ?? []).map((s) => [s.homework_id, s.status as SubStatus]),
+    ),
+    // Only rows past the first attempt. A first attempt is the ordinary case
+    // and carries no `previous_pct`, so putting it in the map would say
+    // "this came back" about every homework in the year.
+    redoByHomeworkId: new Map(
+      (subs.data ?? [])
+        .filter((s) => s.attempt > 1)
+        .map((s) => [
+          s.homework_id,
+          { attempt: s.attempt, previousPct: s.previous_pct } satisfies RedoInfo,
+        ]),
     ),
   };
 

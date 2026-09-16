@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { pickRecordingFormat } from "@/lib/voice/format";
+import { voiceObjectPath } from "@/lib/voice/path";
+import { uploadErrorMessage } from "@/lib/voice/upload-error";
 import { saveVoiceNote, deleteVoiceNote } from "@/lib/voice/actions";
 import { VoicePlayback } from "@/components/app/voice-playback";
 import { Button } from "@/components/ui/button";
@@ -25,15 +27,21 @@ function clock(seconds: number) {
 export function VoiceRecorder({
   submissionId,
   questionId,
+  attempt,
   initialPath,
   initialDuration,
   readOnly,
+  onRecorded,
 }: {
   submissionId: string;
   questionId: string;
+  attempt: number;
   initialPath: string | null;
   initialDuration: number | null;
   readOnly: boolean;
+  /** Reported up so the form can hold the Submit button until every task
+      has been recorded. */
+  onRecorded?: (hasRecording: boolean) => void;
 }) {
   const [path, setPath] = useState(initialPath);
   const [duration, setDuration] = useState(initialDuration ?? 0);
@@ -125,18 +133,22 @@ export function VoiceRecorder({
       } = await supabase.auth.getUser();
       if (!user) throw new Error("signed out");
 
-      // Storage RLS keys off the first path segment being the user's id.
-      const objectPath = `${user.id}/${submissionId}/${questionId}.${extension}`;
-      const { error: upErr } = await supabase.storage
-        .from(BUCKET)
-        .upload(objectPath, blob, { upsert: true, contentType: blob.type || undefined });
-      if (upErr) throw upErr;
+      const objectPath = voiceObjectPath(user.id, submissionId, attempt, questionId, extension);
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(objectPath, blob, {
+        upsert: true,
+        // MediaRecorder reports the codec too ("audio/webm;codecs=opus"); the
+        // bucket's allowed-mime list matches on the type alone and rejects the
+        // full string.
+        contentType: blob.type.split(";")[0] || undefined,
+      });
+      if (upErr) throw new Error(uploadErrorMessage(upErr.message) ?? upErr.message);
 
       const saved = await saveVoiceNote(submissionId, questionId, objectPath, seconds);
       if (!saved.ok) throw new Error(saved.error);
 
       setDuration(seconds);
       setPath(objectPath);
+      onRecorded?.(true);
       await loadUrl(objectPath);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed. Try again.");
@@ -153,6 +165,7 @@ export function VoiceRecorder({
     setPath(null);
     setUrl(null);
     setDuration(0);
+    onRecorded?.(false);
     setBusy(false);
   }
 

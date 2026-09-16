@@ -206,6 +206,20 @@ describe("planLlmJobs", () => {
     expect(jobs.map((j) => j.answer)).toEqual(["", "", "", ""]);
   });
 
+  // A recitation is a `{voice}` response on a task, and a task is scored 0 by
+  // code — so it never reaches the model, not even on the four questions that
+  // kept their rubric from the days when they were written answers.
+  it("never sends a recitation to the model, and scores it 0", () => {
+    const task = [question({ id: "q-task", qtype: "text", scoring: "manual", points: 0, is_task: true, rubric })];
+    const recited = [answer("a-voice", "q-task", { voice: "uid/s1/a1/q-task.webm" })];
+
+    expect(planLlmJobs(recited, task)).toEqual([]);
+    expect(planAnswerUpdates(recited, task, new Map())[0]).toMatchObject({
+      auto_marks: 0,
+      auto_rubric: null,
+    });
+  });
+
   it("agrees with planAnswerUpdates about which answers the model marks", () => {
     const jobs = planLlmJobs(answers, questions);
     const marked = planAnswerUpdates(

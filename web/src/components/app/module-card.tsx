@@ -106,7 +106,7 @@ export function ModuleCard({
   /** Approved homework percentage, when the teacher has marked it. */
   pct?: number;
 }) {
-  const chip = m.homework ? statusChip(m.submission) : null;
+  const chip = m.homework ? statusChip(m.submission, m.redo) : null;
   const lesson = m.lessons.find((l) => l.youtube_id) ?? m.lessons[0];
   const watchable = Boolean(lesson?.youtube_id);
 
@@ -179,6 +179,7 @@ export function ModuleCard({
                       chip.tone === "warn" && "bg-warn/12 text-warn",
                       chip.tone === "ink" && "bg-muted text-foreground",
                       chip.tone === "muted" && "bg-muted text-muted-foreground",
+                      chip.tone === "danger" && "bg-danger/12 text-danger",
                     )}
                   >
                     {chip.label}

@@ -1,7 +1,12 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, fireEvent, cleanup } from "@testing-library/react";
-import { ReviewPanel, type ReviewQuestion, type ReviewAnswer } from "./review-panel";
+import {
+  ReviewPanel,
+  type ReviewQuestion,
+  type ReviewAnswer,
+  type ReviewVoiceNote,
+} from "./review-panel";
 
 // The panel is what's under test, not the server action or the router.
 // The mock carries approveSubmission's parameter shape so assertions on
@@ -12,12 +17,26 @@ const approve = vi.hoisted(() =>
       _submissionId: string,
       _edits?: Record<string, number>,
       _comments?: Record<string, string>,
-    ) => {},
+    ): Promise<{ pct: number | null; redo: boolean }> => ({ pct: null, redo: false }),
   ),
 );
 vi.mock("@/lib/marking/actions", () => ({ approveSubmission: approve }));
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+// One router for the whole file, so a test can ask where approving sent the
+// teacher — a redo blanks the script they are looking at, and the panel has to
+// leave the page rather than sit on an empty paper.
+const router = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => router }));
+// VoicePlayback signs a URL out of the private bucket the moment it mounts.
+// jsdom has no Supabase and no network, so without this every recitation test
+// would sit on "Loading recording…" forever.
+vi.mock("@/lib/supabase/client", () => ({
+  supabaseBrowser: () => ({
+    storage: {
+      from: () => ({
+        createSignedUrl: async () => ({ data: { signedUrl: "blob:x" }, error: null }),
+      }),
+    },
+  }),
 }));
 
 const question = (over: Partial<ReviewQuestion> & { id: string; position: number }): ReviewQuestion => ({
@@ -56,19 +75,29 @@ function panel(
   questions: ReviewQuestion[],
   answers: ReviewAnswer[],
   approved = false,
+  voiceNotes: ReviewVoiceNote[] = [],
 ) {
   return render(
     <ReviewPanel
       submissionId="s1"
       questions={questions}
       answers={answers}
+      voiceNotes={voiceNotes}
       approved={approved}
     />,
   );
 }
 
+const note = (questionId: string): ReviewVoiceNote => ({
+  question_id: questionId,
+  storage_path: `uid/s1/a1/${questionId}.webm`,
+  duration_s: 42,
+});
+
 const markField = (c: HTMLElement, answerId: string) =>
   c.querySelector<HTMLInputElement>(`#mark-${answerId}`)!;
+/** Any mark field at all — for asserting that a question offers none. */
+const markFields = (c: HTMLElement) => c.querySelectorAll('[id^="mark-"]');
 const commentField = (c: HTMLElement, answerId: string) =>
   c.querySelector<HTMLTextAreaElement>(`#comment-${answerId}`);
 const approveButton = (c: HTMLElement) =>
@@ -76,7 +105,12 @@ const approveButton = (c: HTMLElement) =>
 const runningTotal = (c: HTMLElement) =>
   c.querySelector(".font-heading")!.textContent;
 
-beforeEach(() => approve.mockClear());
+beforeEach(() => {
+  approve.mockClear();
+  approve.mockResolvedValue({ pct: null, redo: false });
+  router.push.mockClear();
+  router.refresh.mockClear();
+});
 // This config has no `globals`, so testing-library never registers its own
 // afterEach. Left to pile up, every render stays in document.body — and jsdom
 // resolves a bare `#id` against the whole document before checking it is inside
@@ -145,6 +179,45 @@ describe("ReviewPanel — entering a mark", () => {
     fireEvent.click(approveButton(container));
     await vi.waitFor(() => expect(approve).toHaveBeenCalled());
     expect(approve.mock.calls[0][1]).toEqual({ a1: 0 });
+  });
+});
+
+describe("ReviewPanel — where approving lands", () => {
+  const editReleased = () => {
+    const { container } = panel(
+      [WRITTEN],
+      [answer({ id: "a1", question_id: "q1", final_marks: 4 })],
+      true,
+    );
+    fireEvent.click(
+      [...container.querySelectorAll("button")].find((b) => b.textContent === "Edit marks")!,
+    );
+    return container;
+  };
+
+  it("stays on the page when an edit of released marks still passes", async () => {
+    const container = editReleased();
+    fireEvent.click(approveButton(container));
+    await vi.waitFor(() => expect(approve).toHaveBeenCalled());
+    expect(router.push).not.toHaveBeenCalled();
+    expect(router.refresh).toHaveBeenCalled();
+  });
+
+  it("leaves the page when an edit drops the mark below the pass line", async () => {
+    approve.mockResolvedValue({ pct: 45, redo: true });
+    const container = editReleased();
+    fireEvent.change(markField(container, "a1"), { target: { value: "1" } });
+
+    fireEvent.click(approveButton(container));
+    await vi.waitFor(() => expect(approve).toHaveBeenCalled());
+    // the script this page was showing has just been blanked for the redo
+    await vi.waitFor(() => expect(router.push).toHaveBeenCalledWith("/teacher/homework"));
+  });
+
+  it("leaves the page on a first release, as it always did", async () => {
+    const { container } = panel([WRITTEN], [answer({ id: "a1", question_id: "q1", auto_marks: 4 })]);
+    fireEvent.click(approveButton(container));
+    await vi.waitFor(() => expect(router.push).toHaveBeenCalledWith("/teacher/homework"));
   });
 });
 
@@ -333,5 +406,87 @@ describe("ReviewPanel — multiple choice", () => {
     const right = rowFor(container, "right");
     expect(right.className).toContain("bg-ok/10");
     expect([...container.querySelectorAll("li")].every((li) => !li.className.includes("ring-1"))).toBe(true);
+  });
+});
+
+describe("ReviewPanel — recitation tasks", () => {
+  // The bug this covers: the panel used to skip every question with no
+  // `answers` row, and a task only ever had a recording — so the teacher was
+  // shown a paper with the recitation silently missing from it.
+  it("shows a recording on a task that has no answers row", async () => {
+    const { container } = panel([TASK], [], false, [note("q3")]);
+    expect(container.textContent).toContain("Student recitation");
+    await vi.waitFor(() => expect(container.querySelector("audio")).not.toBeNull());
+  });
+
+  it("offers neither a mark nor a comment on a task with no answers row", () => {
+    const { container } = panel([TASK], [], false, [note("q3")]);
+    expect(markFields(container)).toHaveLength(0);
+    expect(container.querySelector('[id^="comment-"]')).toBeNull();
+    // the column still exists, so the teacher reads "no mark" rather than
+    // wondering whether one failed to render
+    expect(container.textContent).toContain("—");
+  });
+
+  it("says so when a task has neither a row nor a recording", () => {
+    const { container } = panel([TASK], []);
+    expect(container.textContent).toContain("Nothing recorded for this task.");
+    expect(container.querySelector("audio")).toBeNull();
+  });
+
+  it("never offers a mark field on a task, even when a row exists", () => {
+    const { container } = panel(
+      [TASK],
+      [answer({ id: "a3", question_id: "q3", auto_marks: 0, response: { voice: "p" } })],
+      false,
+      [note("q3")],
+    );
+    expect(markFields(container)).toHaveLength(0);
+  });
+
+  it("keeps the comment box on a task with a row, keyed by the answer", async () => {
+    const { container } = panel(
+      [TASK],
+      [answer({ id: "a3", question_id: "q3", auto_marks: 0, response: { voice: "p" } })],
+      false,
+      [note("q3")],
+    );
+    fireEvent.change(commentField(container, "a3")!, {
+      target: { value: "Lengthen the madd." },
+    });
+
+    fireEvent.click(approveButton(container));
+    await vi.waitFor(() => expect(approve).toHaveBeenCalled());
+    expect(approve.mock.calls[0][2]).toEqual({ a3: "Lengthen the madd." });
+  });
+
+  it("still skips an ordinary question the student never answered", () => {
+    const { container } = panel([WRITTEN, TASK], [], false, [note("q3")]);
+    expect(container.textContent).not.toContain("Q1");
+    expect(container.textContent).toContain("Q2");
+  });
+
+  it("leaves a rowless task out of the running total, points and all", () => {
+    const { container } = panel(
+      [WRITTEN, TASK],
+      [answer({ id: "a1", question_id: "q1", auto_marks: 3 })],
+      false,
+      [note("q3")],
+    );
+    // 3 of the written answer's 5, out of the paper's 8 — the task contributes
+    // nothing but its own points, which is what a task worth 0 will do anyway
+    expect(runningTotal(container)).toBe("3 / 8");
+  });
+
+  it("approves a paper with a rowless task on it", async () => {
+    const { container } = panel(
+      [WRITTEN, TASK],
+      [answer({ id: "a1", question_id: "q1", auto_marks: 3 })],
+      false,
+      [note("q3")],
+    );
+    fireEvent.click(approveButton(container));
+    await vi.waitFor(() => expect(approve).toHaveBeenCalled());
+    expect(approve.mock.calls[0][1]).toEqual({ a1: 3 });
   });
 });

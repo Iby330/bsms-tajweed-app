@@ -10,7 +10,9 @@ export type SummaryRow = {
   name: string;
   /** Their own script. */
   href: string;
-  state: "approved" | "provisional" | "waiting" | "missing";
+  /** `redo` is a draft on attempt 2+: handed in, marked, and sent back. It
+   *  has no script to open and no live mark, only the one that failed. */
+  state: "approved" | "provisional" | "waiting" | "missing" | "redo";
   marks: number | null;
   pct: number | null;
   late: boolean;
@@ -86,6 +88,7 @@ const STATE_LABEL: Record<SummaryRow["state"], string> = {
   provisional: "not approved",
   waiting: "not yet marked",
   missing: "not submitted",
+  redo: "redo pending",
 };
 
 /**
@@ -113,12 +116,17 @@ export function ResultsSummary({
   mostMissed?: MissedQuestion | null;
   questionHref: string;
 }) {
-  const scored = rows.filter((r) => r.pct !== null);
+  // A redo carries the percentage that failed, which is a fact about an
+  // attempt that has been withdrawn — so it is no more part of this class's
+  // average than a homework nobody has marked yet. Same reasoning as v_hw_pct,
+  // which stops counting a submission the moment it goes back to draft.
+  const counted = rows.filter((r) => r.state !== "redo");
+  const scored = counted.filter((r) => r.pct !== null);
   const stats = spread(scored.map((r) => r.pct!));
   const bands = histogram(scored.map((r) => r.pct!));
   const most = Math.max(1, ...bands.map((b) => b.count));
 
-  const handedIn = rows.filter((r) => r.state !== "missing").length;
+  const handedIn = counted.filter((r) => r.state !== "missing").length;
   const provisional = rows.filter((r) => r.state === "provisional").length;
   const waiting = rows.filter((r) => r.state === "waiting").length;
 
@@ -266,7 +274,15 @@ export function ResultsSummary({
                   {r.late && (
                     <span className="rounded bg-warn/12 px-1.5 py-0.5 text-warn">late</span>
                   )}
-                  {r.pct !== null && (
+                  {/* The mark that sent them back, said as past tense so it is
+                      never read as where they stand now. Always the danger
+                      tone — by definition it is under the pass mark. */}
+                  {r.state === "redo" && r.pct !== null && (
+                    <span className="tabular-nums text-danger">
+                      scored {Math.round(r.pct)}%
+                    </span>
+                  )}
+                  {r.state !== "redo" && r.pct !== null && (
                     <span
                       className={cn(
                         "rounded-md px-2 py-0.5 font-medium tabular-nums",
@@ -287,8 +303,16 @@ export function ResultsSummary({
             );
             return (
               <li key={r.studentId}>
-                {r.state === "missing" ? (
-                  <div className="flex items-center justify-between gap-3 px-4 py-2.5 opacity-70">
+                {r.state === "missing" || r.state === "redo" ? (
+                  /* Nothing to open either way: the script is gone from the
+                     live row. Not faded like a missing one, though — a redo is
+                     work in hand, and the whole point of the row is to be seen. */
+                  <div
+                    className={cn(
+                      "flex items-center justify-between gap-3 px-4 py-2.5",
+                      r.state === "missing" && "opacity-70",
+                    )}
+                  >
                     {body}
                   </div>
                 ) : (

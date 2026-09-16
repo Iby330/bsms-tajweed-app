@@ -618,6 +618,7 @@ export type Database = {
         Row: {
           marked_by: string | null
           passed_at: string
+          session_id: string | null
           student_id: string
           surah_number: number
           teacher_comment: string | null
@@ -625,6 +626,7 @@ export type Database = {
         Insert: {
           marked_by?: string | null
           passed_at?: string
+          session_id?: string | null
           student_id: string
           surah_number: number
           teacher_comment?: string | null
@@ -632,6 +634,7 @@ export type Database = {
         Update: {
           marked_by?: string | null
           passed_at?: string
+          session_id?: string | null
           student_id?: string
           surah_number?: number
           teacher_comment?: string | null
@@ -642,6 +645,13 @@ export type Database = {
             columns: ["marked_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hifz_records_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "revision_sessions"
             referencedColumns: ["id"]
           },
           {
@@ -1042,29 +1052,38 @@ export type Database = {
         Row: {
           flags: string[]
           id: string
+          kind: string
           overall_note: string | null
           reciter_id: string
           reviewer_id: string
           started_at: string
           submitted_at: string | null
+          surah_number: number | null
+          to_surah_number: number | null
         }
         Insert: {
           flags?: string[]
           id?: string
+          kind?: string
           overall_note?: string | null
           reciter_id: string
           reviewer_id: string
           started_at?: string
           submitted_at?: string | null
+          surah_number?: number | null
+          to_surah_number?: number | null
         }
         Update: {
           flags?: string[]
           id?: string
+          kind?: string
           overall_note?: string | null
           reciter_id?: string
           reviewer_id?: string
           started_at?: string
           submitted_at?: string | null
+          surah_number?: number | null
+          to_surah_number?: number | null
         }
         Relationships: [
           {
@@ -1080,6 +1099,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revision_sessions_surah_number_fkey"
+            columns: ["surah_number"]
+            isOneToOne: false
+            referencedRelation: "surahs"
+            referencedColumns: ["number"]
+          },
+          {
+            foreignKeyName: "revision_sessions_to_surah_number_fkey"
+            columns: ["to_surah_number"]
+            isOneToOne: false
+            referencedRelation: "surahs"
+            referencedColumns: ["number"]
           },
         ]
       }
@@ -1183,14 +1216,107 @@ export type Database = {
           },
         ]
       }
+      submission_attempts: {
+        Row: {
+          answers: Json
+          approved_at: string | null
+          approved_by: string | null
+          attempt: number
+          homework_id: string
+          id: string
+          is_late: boolean
+          pct: number | null
+          student_id: string
+          submission_id: string
+          submitted_at: string | null
+          superseded_at: string
+          voice_notes: Json
+        }
+        Insert: {
+          answers?: Json
+          approved_at?: string | null
+          approved_by?: string | null
+          attempt: number
+          homework_id: string
+          id?: string
+          is_late?: boolean
+          pct?: number | null
+          student_id: string
+          submission_id: string
+          submitted_at?: string | null
+          superseded_at?: string
+          voice_notes?: Json
+        }
+        Update: {
+          answers?: Json
+          approved_at?: string | null
+          approved_by?: string | null
+          attempt?: number
+          homework_id?: string
+          id?: string
+          is_late?: boolean
+          pct?: number | null
+          student_id?: string
+          submission_id?: string
+          submitted_at?: string | null
+          superseded_at?: string
+          voice_notes?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submission_attempts_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submission_attempts_homework_id_fkey"
+            columns: ["homework_id"]
+            isOneToOne: false
+            referencedRelation: "homeworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submission_attempts_homework_id_fkey"
+            columns: ["homework_id"]
+            isOneToOne: false
+            referencedRelation: "v_hw_pct"
+            referencedColumns: ["homework_id"]
+          },
+          {
+            foreignKeyName: "submission_attempts_homework_id_fkey"
+            columns: ["homework_id"]
+            isOneToOne: false
+            referencedRelation: "v_hw_pct_all"
+            referencedColumns: ["homework_id"]
+          },
+          {
+            foreignKeyName: "submission_attempts_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submission_attempts_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       submissions: {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          attempt: number
           homework_id: string
           id: string
           imported_marks: number | null
           is_late: boolean
+          previous_pct: number | null
           status: Database["public"]["Enums"]["sub_status"]
           student_id: string
           submitted_at: string | null
@@ -1198,10 +1324,12 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          attempt?: number
           homework_id: string
           id?: string
           imported_marks?: number | null
           is_late?: boolean
+          previous_pct?: number | null
           status?: Database["public"]["Enums"]["sub_status"]
           student_id: string
           submitted_at?: string | null
@@ -1209,10 +1337,12 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          attempt?: number
           homework_id?: string
           id?: string
           imported_marks?: number | null
           is_late?: boolean
+          previous_pct?: number | null
           status?: Database["public"]["Enums"]["sub_status"]
           student_id?: string
           submitted_at?: string | null
@@ -1625,13 +1755,23 @@ export type Database = {
         Args: { p_delta: number; p_student: string; p_term: number }
         Returns: undefined
       }
+      can_see_content: {
+        Args: { p_course: string; p_ordinal: number; p_week: string }
+        Returns: boolean
+      }
       class_item_unlock_at: {
         Args: { p_class: string; p_course: string; p_ordinal: number }
         Returns: string
       }
       get_homework_for_student: { Args: { hw_id: string }; Returns: Json }
       is_teacher: { Args: never; Returns: boolean }
+      open_homework_redo: {
+        Args: { failed_pct: number; sub_id: string }
+        Returns: number
+      }
       sees_all_content: { Args: never; Returns: boolean }
+      voice_note_submission: { Args: { object_name: string }; Returns: string }
+      voice_note_writable: { Args: { object_name: string }; Returns: boolean }
     }
     Enums: {
       application_status_t:

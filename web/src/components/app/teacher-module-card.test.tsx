@@ -30,6 +30,7 @@ const wk = (over: Partial<Module> = {}): Module => ({
   homework: null,
   watched: false,
   submission: null,
+  redo: null,
   actionable: true,
   done: false,
   ...over,

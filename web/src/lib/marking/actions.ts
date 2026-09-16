@@ -9,6 +9,7 @@ import {
   type LlmMark, type MarkingAnswer, type MarkingQuestion,
 } from "./plan";
 import { markFreeText } from "./llm";
+import { redoVerdict } from "./redo";
 
 /**
  * The marking pipeline.
@@ -126,20 +127,49 @@ export async function markSubmission(
  * takes the automatic mark (or 0 where there wasn't one). `comments` carries
  * the teacher's written feedback, which is released to the student by this same
  * write — so a comment never exists on a submission the student can't yet see.
+ *
+ * Releasing a mark below the pass threshold sends the paper straight back for a
+ * redo, in the same press: `open_homework_redo` snapshots the attempt, clears
+ * the answers and reopens the submission as a blank draft (see
+ * docs/superpowers/specs/2026-09-15-homework-redo-design.md). That is why this
+ * returns the verdict rather than nothing — the review panel has to know
+ * whether the page it is sitting on still has a script on it.
+ *
+ * `pct` is null when no verdict was possible at all (ungraded homework, a
+ * total carried over from the spreadsheet, a paper worth no marks); it is a
+ * number on every ordinary release, pass or fail.
  */
 export async function approveSubmission(
   submissionId: string,
   edits: Record<string, number> = {},
   comments: Record<string, string> = {},
-): Promise<void> {
+): Promise<{ pct: number | null; redo: boolean }> {
   const teacher = await requireTeacher();
   const db = supabaseAdmin();
 
-  const { data: answers } = await db
-    .from("answers")
-    .select("id, submission_id, question_id, response, auto_marks")
-    .eq("submission_id", submissionId);
-  if (!answers) throw new Error("Submission not found.");
+  // The answers and the row they hang off name each other by id, so neither
+  // waits on the other.
+  const [{ data: answers }, { data: submission }] = await Promise.all([
+    db
+      .from("answers")
+      .select("id, submission_id, question_id, response, auto_marks")
+      .eq("submission_id", submissionId),
+    db
+      .from("submissions")
+      .select("attempt, imported_marks, homework_id, student_id")
+      .eq("id", submissionId)
+      .maybeSingle(),
+  ]);
+  if (!answers || !submission) throw new Error("Submission not found.");
+
+  // The paper itself can only be asked for once the submission has named it,
+  // so it is a second trip — but one trip, not two: the questions the pass
+  // mark is worked out over ride back embedded in the homework row.
+  const { data: homework } = await db
+    .from("homeworks")
+    .select("number, total_marks, is_graded, questions(id, is_bonus)")
+    .eq("id", submission.homework_id)
+    .maybeSingle();
 
   // every final mark and comment worked out in JS, then written in one go
   const rows = planFinalMarks(answers, edits, comments);
@@ -156,6 +186,30 @@ export async function approveSubmission(
 
   revalidatePath("/teacher/homework");
   revalidatePath("/teacher/roster");
+
+  // The marks that were just written, not the ones that were read — an edit of
+  // an already-released submission is the case where those differ, and it is
+  // exactly the case that can push a pass down below the line.
+  if (!homework) return { pct: null, redo: false };
+  const verdict = redoVerdict(rows, homework.questions ?? [], homework, submission);
+  if (!verdict) return { pct: null, redo: false };
+  if (!verdict.redo) return { pct: verdict.pct, redo: false };
+
+  const { error } = await db.rpc("open_homework_redo", {
+    sub_id: submissionId,
+    failed_pct: verdict.pct,
+  });
+  // Loudly: the marks are already released, so a failure here leaves a student
+  // holding a fail with no way to sit it again. Better the teacher sees it.
+  if (error) throw new Error(`Could not send this submission back: ${error.message}`);
+
+  // The student's own three views of it: the hero that lists what needs them,
+  // their progress rows, and the paper itself, now blank again.
+  revalidatePath("/home");
+  revalidatePath("/progress");
+  revalidatePath(`/homework/${homework.number}`);
+
+  return { pct: verdict.pct, redo: true };
 }
 
 /** Re-run the model on a single answer (teacher pressed "re-mark"). */

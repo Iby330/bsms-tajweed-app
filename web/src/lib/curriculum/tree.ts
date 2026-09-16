@@ -114,6 +114,13 @@ export type CurriculumRows = {
 
 /* ── Tree shapes ──────────────────────────────────────────────────────── */
 
+/**
+ * A homework the teacher sent back for another go: which attempt the student
+ * is on now, and what the attempt before it scored (null only for a row that
+ * predates `previous_pct` being recorded).
+ */
+export type RedoInfo = { attempt: number; previousPct: number | null };
+
 export type Module = {
   weekId: string;
   weekNumber: number;
@@ -126,6 +133,8 @@ export type Module = {
   /** Progress — all false/null until overlayProgress runs. */
   watched: boolean;
   submission: SubStatus | null;
+  /** Set when this module's homework is on attempt 2 or later. */
+  redo: RedoInfo | null;
   /**
    * Is there anything here the student can actually do? False when the video
    * has not been uploaded AND there is no homework. Such a module is neither
@@ -193,6 +202,13 @@ export type Term = {
 export type StudentProgress = {
   watchedLessonIds: Set<string>;
   submissionByHomeworkId: Map<string, SubStatus>;
+  /**
+   * Homeworks the teacher has sent back, by homework id — present only for
+   * attempts past the first. Optional because every reader that has no
+   * business knowing (the teacher's tree, the fixtures) should not have to
+   * pass an empty map to say so.
+   */
+  redoByHomeworkId?: Map<string, RedoInfo>;
 };
 
 /* ── Titles ───────────────────────────────────────────────────────────── */
@@ -347,6 +363,7 @@ export function buildTree(
             homework: bucket.homework,
             watched: false,
             submission: null,
+            redo: null,
             actionable: lessons.some((l) => l.youtube_id) || bucket.homework !== null,
             done: false,
           } satisfies Module;
@@ -450,6 +467,9 @@ export function overlayProgress(terms: Term[], progress: StudentProgress): Term[
         const submission = m.homework
           ? progress.submissionByHomeworkId.get(m.homework.id) ?? null
           : null;
+        const redo = m.homework
+          ? progress.redoByHomeworkId?.get(m.homework.id) ?? null
+          : null;
 
         // Most videos are not uploaded yet — youtube_id stays null until the
         // channel re-uploads. A lesson nobody CAN watch must not pin a student
@@ -466,6 +486,7 @@ export function overlayProgress(terms: Term[], progress: StudentProgress): Term[
           ...m,
           watched,
           submission,
+          redo,
           actionable,
           done: actionable && lessonsDone && homeworkDone,
         } satisfies Module;
@@ -503,6 +524,7 @@ export type HomeworkEntry = {
   unlocked: boolean;
   homework: HomeworkRow;
   submission: SubStatus | null;
+  redo: RedoInfo | null;
 };
 
 /** Every homework in the year, flattened out of the tree in teaching order
@@ -522,6 +544,7 @@ export function listHomework(terms: Term[]): HomeworkEntry[] {
           unlocked: m.unlocked,
           homework: m.homework,
           submission: m.submission,
+          redo: m.redo,
         });
       }
     }

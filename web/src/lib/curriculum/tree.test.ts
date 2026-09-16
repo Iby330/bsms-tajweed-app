@@ -431,6 +431,24 @@ describe("listHomework / bucketHomework — the worklist", () => {
     const b = bucketHomework(listed([], [["h1", "approved"], ["h3", "approved"]]));
     expect(b.marked.map((e) => e.homework.number)).toEqual([3, 1]);
   });
+
+  /* A redo is a draft carrying an attempt number. The worklist has to carry
+   * it too, or every row that wants to say "Redo" instead of "Draft" needs a
+   * second query of its own. */
+  it("carries a redo from the progress map through to the worklist", () => {
+    const entries = listHomework(
+      overlayProgress(tree(), {
+        watchedLessonIds: new Set(),
+        submissionByHomeworkId: new Map([["h2", "draft"]] as [string, never][]),
+        redoByHomeworkId: new Map([["h2", { attempt: 2, previousPct: 45 }]]),
+      }),
+    );
+    const byNumber = new Map(entries.map((e) => [e.homework.number, e]));
+    expect(byNumber.get(2)?.redo).toEqual({ attempt: 2, previousPct: 45 });
+    expect(byNumber.get(2)?.submission).toBe("draft");
+    // a homework the map says nothing about is on its first attempt
+    expect(byNumber.get(1)?.redo).toBeNull();
+  });
 });
 
 /* Home asks "what is on this week?" across every course at once — a question

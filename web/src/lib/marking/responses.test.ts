@@ -193,6 +193,17 @@ describe("questionStats", () => {
     expect(stats[0].blank).toBe(1);
   });
 
+  // A recitation carries no text and picks no option, but the student did the
+  // work — counting it blank would say a class that recorded everything left
+  // the task alone.
+  it("counts a recitation as answered rather than blank", () => {
+    const stats = questionStats(
+      [{ id: "task", points: 0 }],
+      [ans("s1", "task", { final: 0, response: { voice: "uid/s1/a1/task.webm" } })],
+    );
+    expect(stats[0]).toMatchObject({ answered: 1, blank: 0 });
+  });
+
   it("keeps a row for a question nobody answered", () => {
     const stats = questionStats(questions, [ans("s1", "q1", { final: 4 })]);
     expect(stats[1]).toMatchObject({ questionId: "q2", answered: 0, mean: 0, pctOfMax: 0 });
