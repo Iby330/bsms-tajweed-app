@@ -15,8 +15,8 @@ begin
     json_build_object('sub', teacher, 'role', 'authenticated')::text, true);
   set local role authenticated;
 
-  insert into revision_sessions (reviewer_id, reciter_id, kind, surah_number)
-    values (teacher, student, 'hearing', 114) returning id into sid;
+  insert into revision_sessions (reviewer_id, reciter_id, kind, surah_number, to_surah_number)
+    values (teacher, student, 'hearing', 114, 113) returning id into sid;
   insert into revision_mistakes (session_id, surah_number, ayah_number, word_position, category, detail)
     values (sid, 114, 1, 1, 'hifz', 'forgot');
 
@@ -42,8 +42,8 @@ begin
 
   -- a student cannot create a hearing
   begin
-    insert into revision_sessions (reviewer_id, reciter_id, kind, surah_number)
-      values (student, teacher, 'hearing', 114);
+    insert into revision_sessions (reviewer_id, reciter_id, kind, surah_number, to_surah_number)
+      values (student, teacher, 'hearing', 114, 114);
     raise exception 'student was allowed to insert a hearing';
   exception when insufficient_privilege or check_violation then null;
   end;
@@ -54,7 +54,7 @@ begin
   perform set_config('request.jwt.claims',
     json_build_object('sub', teacher, 'role', 'authenticated')::text, true);
   set local role authenticated;
-  update revision_sessions set submitted_at = now(), outcome = 'not_passed' where id = sid;
+  update revision_sessions set submitted_at = now() where id = sid;
   reset role;
 
   perform set_config('request.jwt.claims',
