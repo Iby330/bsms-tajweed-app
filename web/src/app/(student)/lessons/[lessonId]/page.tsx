@@ -42,7 +42,14 @@ export default async function Lesson({
   const week = lesson.weeks;
   // A locked week's lesson is simply not there yet, as far as a student is
   // concerned — no teasing them with a title they can't open.
-  if (!week || Date.parse(week.unlock_at) > Date.now()) notFound();
+  //
+  // Except for a reader exempt from the calendar (`profiles.unlock_all`). RLS
+  // has already handed them the row — `sees_all_content()` is what let the
+  // query above return anything — so without this the page fetches a lesson
+  // the database agreed they could see and then throws it away. Every lesson
+  // 404'd on the demo account, since the year has not opened yet.
+  const locked = Date.parse(week?.unlock_at ?? "") > Date.now();
+  if (!week || (locked && !profile.unlock_all)) notFound();
 
   // Both lists are narrowed to this lesson's SERIES, not just its week. A week
   // can carry two courses at once — Term 3 week 1 has Tajweed 16 and TFP 1 —
