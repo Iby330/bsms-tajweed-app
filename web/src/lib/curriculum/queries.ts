@@ -93,6 +93,15 @@ export type StudentCurriculum = {
    * another class, without one it is simply this student's next term.
    */
   hasSyllabus: boolean;
+  /**
+   * The reader is exempt from the calendar (`profiles.unlock_all`).
+   *
+   * Exposed because a demo account has to be shown the app as a student in
+   * term would see it, and before the year opens that is not what the clock
+   * says. Home uses it to fall back to the first week rather than announcing
+   * that the year has not started.
+   */
+  unlockAll: boolean;
 };
 
 /**
@@ -175,6 +184,7 @@ export async function getStudentCurriculum(
     terms: overlayProgress(buildTree(rows, now, schedule, unlockAll), progress),
     // The same condition `buildTree` applies, so the two cannot disagree.
     hasSyllabus: !unlockAll && (schedule?.courses.length ?? 0) > 0,
+    unlockAll,
     pctByHomeworkId: new Map(
       (pcts.data ?? []).map((r) => [r.homework_id as string, Number(r.pct)]),
     ),

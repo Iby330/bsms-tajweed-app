@@ -609,7 +609,24 @@ export function currentModules(terms: Term[], now: Date = new Date()): Module[] 
       }
     }
   }
-  if (latest === Number.NEGATIVE_INFINITY) return [];
+  if (latest === Number.NEGATIVE_INFINITY) {
+    // Nothing has opened by the clock. For a real student that is the honest
+    // answer and Home says the year has not started. A reader exempt from the
+    // calendar (`profiles.unlock_all`) has every module marked unlocked while
+    // its date is still months away, and showing them an empty week would
+    // defeat the flag — so fall back to the earliest module they can open.
+    let earliest = Number.POSITIVE_INFINITY;
+    for (const t of terms) {
+      for (const c of t.courses) {
+        for (const m of c.modules) {
+          const at = Date.parse(m.unlockAt);
+          if (m.unlocked && at < earliest) earliest = at;
+        }
+      }
+    }
+    if (earliest === Number.POSITIVE_INFINITY) return [];
+    latest = earliest;
+  }
   const out: Module[] = [];
   for (const t of terms) {
     for (const c of t.courses) {

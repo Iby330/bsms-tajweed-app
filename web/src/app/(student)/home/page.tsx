@@ -44,7 +44,17 @@ export default async function StudentHome() {
 
   const { terms, weeks } = curriculum.rows;
   const termId = currentTermId(terms, now);
-  const week = currentWeek(weeks, now);
+  /**
+   * The week the student is in.
+   *
+   * A reader exempt from the calendar (`profiles.unlock_all`, the demo flag)
+   * falls back to the first week of the year rather than being told the year
+   * has not started. That account exists to show the app as a student in term
+   * sees it, and an empty "this week" with a "not started yet" banner is the
+   * one thing it cannot demonstrate. Nobody else is affected: for every real
+   * student this is exactly `currentWeek` as it was.
+   */
+  const week = currentWeek(weeks, now) ?? (curriculum.unlockAll ? weeks[0] ?? null : null);
 
   // The cohort scope is the student's own section and only ever that — the
   // views filter on it in SQL, so this label describes what is shown rather
