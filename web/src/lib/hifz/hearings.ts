@@ -1,4 +1,3 @@
-// web/src/lib/hifz/hearings.ts
 import { fmtDay, fmtStamp } from "@/lib/format";
 import type { MushafPage } from "@/lib/quran/mushaf";
 
@@ -14,8 +13,11 @@ export const covers = (h: HearingRange, surah: number): boolean =>
   h.from >= surah && surah >= h.to;
 
 /** The surahs of a range, in memorisation order: from down to to. */
-export const rangeSurahs = (from: number, to: number): number[] =>
-  Array.from({ length: from - to + 1 }, (_, i) => from - i);
+export function rangeSurahs(from: number, to: number): number[] {
+  // Memorisation order runs down the mushaf, so to can never exceed from.
+  if (to > from) throw new RangeError(`rangeSurahs: ${from} → ${to} runs the wrong way`);
+  return Array.from({ length: from - to + 1 }, (_, i) => from - i);
+}
 
 /**
  * The one rule every page uses. A pass record exists only while the latest
@@ -23,6 +25,10 @@ export const rangeSurahs = (from: number, to: number): number[] =>
  * — so a record wins outright. A covering hearing without one is a fail.
  * Nothing is nothing. Passes from before hearings existed have no covering
  * hearing and read as passed.
+ *
+ * Enforced in submitHearing (hearing-actions.ts): unticking deletes the
+ * record — any new pass path must keep that, or this rule reads a revoked
+ * surah as passed.
  */
 export function surahState(
   surah: number,

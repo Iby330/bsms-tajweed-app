@@ -1,4 +1,3 @@
-// web/src/lib/hifz/hearings.test.ts
 import { describe, it, expect } from "vitest";
 import { fmtDay, fmtStamp } from "@/lib/format";
 import {
@@ -18,9 +17,17 @@ describe("covers / rangeSurahs", () => {
     expect(covers({ from: 88, to: 86 }, 89)).toBe(false);
     expect(covers({ from: 88, to: 86 }, 85)).toBe(false);
   });
+  it("a single-surah range covers only that surah", () => {
+    expect(covers({ from: 88, to: 88 }, 88)).toBe(true);
+    expect(covers({ from: 88, to: 88 }, 87)).toBe(false);
+    expect(covers({ from: 88, to: 88 }, 89)).toBe(false);
+  });
   it("lists a range in memorisation order", () => {
     expect(rangeSurahs(88, 86)).toEqual([88, 87, 86]);
     expect(rangeSurahs(88, 88)).toEqual([88]);
+  });
+  it("throws when to runs past from", () => {
+    expect(() => rangeSurahs(86, 88)).toThrow(RangeError);
   });
 });
 
@@ -53,6 +60,9 @@ describe("endSurahFor", () => {
   });
   it("marks behind the start cannot widen backwards", () => {
     expect(endSurahFor(88, 88, [90])).toBe(88);
+  });
+  it("a mark on the start surah itself does not widen it", () => {
+    expect(endSurahFor(88, 88, [88])).toBe(88);
   });
 });
 
