@@ -192,10 +192,11 @@ hearing's note when the surah is not passed, the pass comment when it is.
   confirm payload), logger hearing tests updated for Finish, journey and
   grid draw `redo` cells.
 - The page-in-view hook (`use-page-in-view.ts`) is scoped to the logger's
-  own root element and has no effect under `IntersectionObserver`-less
-  jsdom, so it is exercised only as a no-op in the test suite; scrolling to
-  the start page and proposing the end from the page in view are verified
-  by hand, not by test.
+  own root element. Its test installs a fake `IntersectionObserver` and
+  checks that the most-visible page wins, that a later update moves it,
+  that it disconnects on unmount, and that it stays null without the API;
+  scrolling to the start page and proposing the end from the page in view
+  on a real screen are verified by hand, not by test.
 - Live RLS check (`hearings_rls.sql`) updated: the hearing insert carries
   `to_surah_number`, and the submit update no longer touches the dropped
   `outcome` column.
