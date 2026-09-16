@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getCachedSurahs } from "@/lib/reference/cached";
+import { memorisationList, type Surah } from "@/lib/hifz/pace";
 import { requireOwnStudent, requireTeacher } from "@/lib/teacher/guards";
 import { rangeSurahs } from "./hearings";
 
@@ -41,7 +43,9 @@ export type HearingVerdict = { to: number; passed: number[]; note?: string };
  * on a re-pass); unticked → any record is deleted, which is what revokes an
  * earlier pass — surahState (hearings.ts) relies on exactly that. Records
  * first, then the session, so a failed record write leaves the hearing
- * open rather than a submitted hearing that lies.
+ * open rather than a submitted hearing that lies. A retry after a mid-range
+ * failure is safe: the upsert simply replays over the same row, and
+ * deleting a record that is already gone deletes nothing.
  */
 export async function submitHearing(sessionId: string, verdict: HearingVerdict): Promise<void> {
   const me = await requireTeacher();
@@ -57,6 +61,17 @@ export async function submitHearing(sessionId: string, verdict: HearingVerdict):
   const from = s.surah_number;
   const { to, passed } = verdict;
   if (!Number.isInteger(to) || to > from) throw new Error("The range ends before it starts.");
+
+  // The range must lie on the student's own run — a crafted `to` cannot
+  // reach into surahs the student was never assigned.
+  const { data: hp } = await db
+    .from("hifz_profiles").select("start_surah, target_count")
+    .eq("student_id", s.reciter_id).maybeSingle();
+  const surahs = await getCachedSurahs();
+  const run = hp ? memorisationList(hp.start_surah, hp.target_count, surahs as Surah[]) : [];
+  const onRun = new Set(run.map((r) => r.number));
+  if (!onRun.has(from) || !onRun.has(to)) throw new Error("The range is not on this student's run.");
+
   const range = rangeSurahs(from, to);
   const ticked = new Set(passed);
   for (const p of ticked) if (!range.includes(p)) throw new Error("A ticked surah is outside the range.");
@@ -65,6 +80,8 @@ export async function submitHearing(sessionId: string, verdict: HearingVerdict):
   for (const surah of range) {
     if (ticked.has(surah)) {
       const { error } = await db.from("hifz_records").upsert(
+        // session_id repoints to the most recent hearing that confirmed
+        // this surah, not the first one that ever passed it.
         { student_id: s.reciter_id, surah_number: surah, teacher_comment: trimmed, marked_by: me.id, session_id: s.id },
         { onConflict: "student_id,surah_number" },
       );

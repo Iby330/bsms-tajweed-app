@@ -26,9 +26,9 @@ export const dynamic = "force-dynamic";
  * One surah, ready to be heard.
  *
  * This page IS the Thursday lesson: the student presents the surah, the
- * teacher taps each slip on the printed page as it happens, and ends with
- * Passed or Not passed. There is no start step — opening the page creates
- * nothing; the first tap or the first verdict does (see startHearing).
+ * teacher taps each slip on the printed page as it happens, and Finish opens
+ * the range popup to sign off. There is no start step — opening the page
+ * creates nothing; the first tap or Finish does (see startHearing).
  * Words earlier hearings marked sit tinted underneath, so a slip that keeps
  * coming back is visible while it is being heard again.
  */
