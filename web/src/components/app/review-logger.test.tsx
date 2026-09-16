@@ -50,17 +50,18 @@ describe("ReviewLogger", () => {
 
 describe("ReviewLogger in hearing mode", () => {
   const ensure = () => vi.fn(async () => "h1");
+  const hearing = { from: 114, minEnd: 78, names: { 114: { en: "An-Nas", ar: "الناس" } }, passedBefore: {} };
 
   it("creates the draft on the first tap, then logs into it", async () => {
     const ensureSession = ensure();
     render(
       <ReviewLogger
         mode="hearing" sessionId={null} ensureSession={ensureSession}
-        reciterName="Aisha" pages={pages} initialMistakes={[]}
+        reciterName="Aisha" pages={pages} initialMistakes={[]} hearing={hearing}
       />,
     );
     expect(screen.getByText(/Hearing/)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Finish" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Finish" })).not.toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "قُلْ" }));
     fireEvent.click(screen.getByRole("button", { name: "Hifdh" }));
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
@@ -70,59 +71,32 @@ describe("ReviewLogger in hearing mode", () => {
       "h1", { surah: 114, ayah: 1, position: 1 }, "hifz", undefined, "");
   }, SLOW);
 
-  it("passes with a note through the verdict popup, creating the draft if needed", async () => {
+  it("finishes through the range popup, creating the draft if needed", async () => {
     const ensureSession = ensure();
-    render(
-      <ReviewLogger
-        mode="hearing" sessionId={null} ensureSession={ensureSession}
-        reciterName="Aisha" pages={pages} initialMistakes={[]}
-      />,
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Passed" }));
+    render(<ReviewLogger mode="hearing" sessionId={null} ensureSession={ensureSession}
+      reciterName="Aisha" pages={pages} initialMistakes={[]} hearing={hearing} />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
     fireEvent.change(screen.getByPlaceholderText("Note for the student (optional)"), {
-      target: { value: "cleaner than last week" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Confirm pass" }));
-    await vi.waitFor(() => expect(submitHearing).toHaveBeenCalledWith("h1", "passed", "cleaner than last week"));
+      target: { value: "cleaner than last week" } });
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    await vi.waitFor(() => expect(submitHearing).toHaveBeenCalledWith("h1", { to: 114, passed: [114], note: "cleaner than last week" }));
     expect(ensureSession).toHaveBeenCalledTimes(1);
   }, SLOW);
 
-  it("reuses an existing draft for Not passed", async () => {
-    const ensureSession = ensure();
-    render(
-      <ReviewLogger
-        mode="hearing" sessionId="draft-9" ensureSession={ensureSession}
-        reciterName="Aisha" pages={pages} initialMistakes={[]}
-      />,
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Not passed" }));
-    fireEvent.click(screen.getByRole("button", { name: "Confirm not passed" }));
-    await vi.waitFor(() => expect(submitHearing).toHaveBeenCalledWith("draft-9", "not_passed", ""));
-    expect(ensureSession).not.toHaveBeenCalled();
-  }, SLOW);
-
-  it("drops a note left in an abandoned verdict popup", async () => {
-    render(
-      <ReviewLogger
-        mode="hearing" sessionId="draft-9" ensureSession={ensure()}
-        reciterName="Aisha" pages={pages} initialMistakes={[]}
-      />,
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Passed" }));
-    fireEvent.change(screen.getByPlaceholderText("Note for the student (optional)"), {
-      target: { value: "note that should not survive" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
-    fireEvent.click(screen.getByRole("button", { name: "Not passed" }));
-    fireEvent.click(screen.getByRole("button", { name: "Confirm not passed" }));
-    await vi.waitFor(() => expect(submitHearing).toHaveBeenCalledWith("draft-9", "not_passed", ""));
+  it("an unticked surah is not passed, on an existing draft", async () => {
+    render(<ReviewLogger mode="hearing" sessionId="draft-9" ensureSession={ensure()}
+      reciterName="Aisha" pages={pages} initialMistakes={[]} hearing={hearing} />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
+    fireEvent.click(screen.getByLabelText(/An-Nas/));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    await vi.waitFor(() => expect(submitHearing).toHaveBeenCalledWith("draft-9", { to: 114, passed: [], note: "" }));
   }, SLOW);
 
   it("shows earlier marks for a hot word inside the sheet", () => {
     render(
       <ReviewLogger
         mode="hearing" sessionId="draft-9" ensureSession={ensure()}
-        reciterName="Aisha" pages={pages} initialMistakes={[]}
+        reciterName="Aisha" pages={pages} initialMistakes={[]} hearing={hearing}
         heat={{ "114:1:1": "bg-warn/20" }}
         history={{ "114:1:1": [{ label: "Hifdh — Forgot it", note: null, date: "2026-09-10T00:00:00Z" }] }}
       />,

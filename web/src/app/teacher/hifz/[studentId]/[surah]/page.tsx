@@ -9,10 +9,10 @@ import { fromRow, groupIntoPages } from "@/lib/quran/mushaf";
 import { pageWithin } from "@/lib/quran/page-within";
 import { memorisationList, type Surah } from "@/lib/hifz/pace";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
-import { draftHearing, hearingsFor } from "@/lib/hifz/hearing-queries";
+import { hearingsFor, hearingsForStudent, openDraftFor } from "@/lib/hifz/hearing-queries";
 import { startHearing } from "@/lib/hifz/hearing-actions";
 import type { MistakeRow } from "@/lib/hifz/mistakes";
-import { recordLine, summaryOf } from "@/lib/hifz/hearings";
+import { recordLine, summaryOf, surahState } from "@/lib/hifz/hearings";
 import { spreadHeat } from "@/lib/hifz/heat-spread";
 import { teacherClass } from "@/lib/teacher/scope";
 import { ReviewLogger, type SessionProps } from "@/components/app/review-logger";
@@ -46,16 +46,16 @@ export default async function TeacherSurahPage({
   const profile = (await currentProfile())!;
   const db = await supabaseServer();
 
-  const [mine, { data: student }, { data: hp }, surahs, { data: record }, hearings, draft, range] =
+  const [mine, { data: student }, { data: hp }, surahs, { data: records }, hearings, allHearings, draft, range] =
     await Promise.all([
       teacherClass(),
       db.from("profiles").select("full_name, class_id").eq("id", studentId).maybeSingle(),
       db.from("hifz_profiles").select("start_surah, target_count").eq("student_id", studentId).maybeSingle(),
       getCachedSurahs(),
-      db.from("hifz_records").select("passed_at, teacher_comment")
-        .eq("student_id", studentId).eq("surah_number", number).maybeSingle(),
+      db.from("hifz_records").select("surah_number, passed_at, teacher_comment").eq("student_id", studentId),
       hearingsFor(studentId, number),
-      draftHearing(profile.id, studentId, number),
+      hearingsForStudent(studentId),
+      openDraftFor(profile.id, studentId),
       getCachedSurahPageRange(number),
     ]);
   if (!student) notFound();
@@ -78,14 +78,22 @@ export default async function TeacherSurahPage({
     surahs.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]),
   );
 
+  const record = records?.find((r) => r.surah_number === number) ?? null;
+  const passedSet = new Set((records ?? []).map((r) => r.surah_number));
+  const passedBefore: Record<number, string> = Object.fromEntries(
+    (records ?? []).map((r) => [r.surah_number, r.passed_at]),
+  );
+  const state = surahState(number, passedSet, allHearings);
   const latest = hearings[0] ?? null;
   const line = recordLine(
+    state,
     record ? { passedAt: record.passed_at, comment: record.teacher_comment } : null,
     summaryOf(latest),
   );
+  const minEnd = list[list.length - 1].number;
   const basePath = `/teacher/hifz/${studentId}/${number}`;
 
-  const session: SessionProps & { initialMistakes: MistakeRow[] } = draft
+  const session: SessionProps & { initialMistakes: MistakeRow[] } = draft && draft.from === number
     ? { sessionId: draft.id, initialMistakes: draft.mistakes }
     : {
         sessionId: null,
@@ -122,18 +130,28 @@ export default async function TeacherSurahPage({
 
       <Rule label={latest ? "Hear it again" : "Hear it"} />
       <div className="field">
-        <section className="box c12" aria-label="The mushaf">
-          <ReviewLogger
-            mode="hearing"
-            {...session}
-            reciterName={student.full_name}
-            pages={groupIntoPages(words)}
-            heat={heat}
-            history={history}
-            surahNames={surahNames}
-            pager={{ page, min: range.from, max: range.to, basePath, param: "p" }}
-          />
-        </section>
+        {draft && draft.from !== number ? (
+          <section className="box c12">
+            <p className="note">
+              A hearing is in progress from {surahs.find((s) => s.number === draft.from)?.name_en ?? draft.from}.{" "}
+              <Link href={`/teacher/hifz/hear?student=${studentId}`} className="underline">Continue it at the desk</Link>.
+            </p>
+          </section>
+        ) : (
+          <section className="box c12" aria-label="The mushaf">
+            <ReviewLogger
+              mode="hearing"
+              {...session}
+              reciterName={student.full_name}
+              pages={groupIntoPages(words)}
+              heat={heat}
+              history={history}
+              surahNames={surahNames}
+              pager={{ page, min: range.from, max: range.to, basePath, param: "p" }}
+              hearing={{ from: number, minEnd, names: surahNames, passedBefore }}
+            />
+          </section>
+        )}
       </div>
     </>
   );

@@ -8,10 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { MushafReader, type SurahNames } from "./mushaf-reader";
 import { MushafPager } from "./mushaf-pager";
 import { MistakeSheet, type SheetResult } from "./mistake-sheet";
+import { HearingFinish, type Verdict } from "./hearing-finish";
 import { logMistake, removeMistake, submitSession } from "@/lib/hifz/review-actions";
 import { submitHearing } from "@/lib/hifz/hearing-actions";
 import { SESSION_FLAGS, type Category } from "@/lib/hifz/mistake-taxonomy";
-import type { HearingOutcome } from "@/lib/hifz/hearings";
+import { endSurahFor, lastSurahOn } from "@/lib/hifz/hearings";
 import type { WordHistoryEntry } from "@/lib/hifz/heat-spread";
 import { markKey, wordKey, type MushafPage, type QuranWord } from "@/lib/quran/mushaf";
 import type { MistakeRow } from "@/lib/hifz/mistakes";
@@ -34,11 +35,13 @@ const targetOf = (w: QuranWord) => ({
  * Two modes, one logger:
  *  · `peer` — a partner listening. "Listening to B · Finish" on top; Finish
  *    asks for flags and a note.
- *  · `hearing` — the teacher, on the Thursday lesson. "Hearing B" on top,
- *    the verdict bar below: Passed / Not passed, each with a note. The
- *    draft may not exist yet: `sessionId` is null until the first tap or
- *    verdict, when `ensureSession` creates it. `heat`/`history` paint what
- *    earlier hearings said about the same words.
+ *  · `hearing` — the teacher, on the Thursday lesson. "Hearing B" on top.
+ *    Finish opens the range popup: the range as rows, a tick per surah, and
+ *    a note; Confirm signs off the ticked surahs and leaves the unticked
+ *    ones heard-not-passed. The draft may not exist yet: `sessionId` is
+ *    null until the first tap or Finish, when `ensureSession` creates it.
+ *    `heat`/`history` paint what earlier hearings said about the same
+ *    words.
  */
 export type SessionProps =
   // A session already exists (peer mode always, hearing mode once heard
@@ -59,6 +62,7 @@ export function ReviewLogger({
   history,
   surahNames,
   pager,
+  hearing,
 }: SessionProps & {
   mode?: "peer" | "hearing";
   reciterName: string;
@@ -68,6 +72,18 @@ export function ReviewLogger({
   history?: Record<string, WordHistoryEntry[]>;   // …and what they said
   surahNames?: SurahNames;
   pager?: { page: number; min: number; max: number; basePath: string; param?: string; step?: number };
+  /** Hearing mode only: the range's start, the run's last surah, and what
+   *  the popup needs. `pageInView` is the page the teacher is looking at
+   *  (a later task tracks it on the desk; the per-surah page leaves it
+   *  undefined, so the end is the start). */
+  hearing?: {
+    from: number;
+    minEnd: number;
+    names: SurahNames;
+    passedBefore: Record<number, string>;
+    pageInView?: number | null;
+    onFinished?: (sessionId: string) => void;
+  };
 }) {
   const router = useRouter();
   const [sid, setSid] = useState<string | null>(sessionId);
@@ -81,7 +97,6 @@ export function ReviewLogger({
   );
   const [tapped, setTapped] = useState<QuranWord | null>(null);
   const [wrapUp, setWrapUp] = useState(false);
-  const [verdict, setVerdict] = useState<HearingOutcome | null>(null);
   const [flags, setFlags] = useState<string[]>([]);
   const [overallNote, setOverallNote] = useState("");
   const [pending, startTransition] = useTransition();
@@ -151,19 +166,6 @@ export function ReviewLogger({
       }),
     );
 
-  const confirmVerdict = () => {
-    const outcome = verdict;
-    if (!outcome) return;
-    startTransition(() =>
-      withSession(async (id) => {
-        await submitHearing(id, outcome, overallNote);
-        setVerdict(null);
-        setOverallNote("");
-        router.refresh();
-      }),
-    );
-  };
-
   const count = Object.keys(marks).length;
   const plural = count === 1 ? "mistake" : "mistakes";
   const existing = tapped ? marks[markKey(targetOf(tapped))] : undefined;
@@ -173,6 +175,21 @@ export function ReviewLogger({
   const reader = (
     <MushafReader pages={pages} marks={marks} heat={heat} surahNames={surahNames} onWordTap={setTapped} />
   );
+
+  // markKey is "surah:ayah" or "surah:ayah:position": the surah is always first.
+  const markSurahs = Object.keys(marks).map((k) => Number(k.split(":")[0]));
+  const initialEnd = hearing
+    ? endSurahFor(hearing.from, hearing.pageInView == null ? null : lastSurahOn(pages, hearing.pageInView), markSurahs)
+    : 0;
+  const finishHearing = (v: Verdict) =>
+    startTransition(() =>
+      withSession(async (id) => {
+        await submitHearing(id, v);
+        setWrapUp(false);
+        router.refresh();
+        hearing?.onFinished?.(id);
+      }),
+    );
 
   return (
     <div className="space-y-3">
@@ -184,35 +201,10 @@ export function ReviewLogger({
             {count} {plural}
           </span>
         </p>
-        {mode === "peer" && (
-          <Button size="sm" disabled={pending} onClick={() => setWrapUp(true)}>Finish</Button>
-        )}
+        <Button size="sm" disabled={pending} onClick={() => setWrapUp(true)}>Finish</Button>
       </div>
 
       {pager ? <MushafPager {...pager}>{reader}</MushafPager> : reader}
-
-      {mode === "hearing" && (
-        <div className="glass sticky bottom-2 z-10 flex items-center justify-between rounded-xl px-4 py-2.5">
-          {/* Bare count, not "N mistakes" — the header above already
-              spells that out, and repeating the exact phrase here reads
-              as noise beside the verdict buttons. The word is still there
-              for a screen reader (sr-only), split into its own node so it
-              doesn't itself read back as "N mistakes" and collide with
-              the header's text in a lookup by that phrase. */}
-          <p className="text-xs tabular-nums text-muted-foreground">
-            {count}
-            <span className="sr-only"> {plural}</span>
-          </p>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" disabled={pending} onClick={() => setVerdict("not_passed")}>
-              Not passed
-            </Button>
-            <Button size="sm" disabled={pending} onClick={() => setVerdict("passed")}>
-              Passed
-            </Button>
-          </div>
-        </div>
-      )}
 
       <MistakeSheet
         key={tapped ? markKey(targetOf(tapped)) : "closed"}
@@ -224,57 +216,46 @@ export function ReviewLogger({
         onClose={() => setTapped(null)}
       />
 
-      <Dialog open={wrapUp} onOpenChange={setWrapUp}>
-        <DialogContent className="space-y-3">
-          <DialogHeader><DialogTitle>Finish session</DialogTitle></DialogHeader>
-          <div className="space-y-1.5">
-            {SESSION_FLAGS.map((f) => (
-              <label key={f.id} className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={flags.includes(f.id)}
-                  onChange={(e) =>
-                    setFlags((cur) =>
-                      e.target.checked ? [...cur, f.id] : cur.filter((x) => x !== f.id),
-                    )
-                  }
-                />
-                {f.label}
-              </label>
-            ))}
-          </div>
-          <Textarea value={overallNote} onChange={(e) => setOverallNote(e.target.value)}
-            placeholder="Overall note for the session (optional)" rows={3} />
-          <Button disabled={pending} onClick={submit}>
-            {pending ? "Submitting…" : `Submit ${count} ${plural}`}
-          </Button>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={verdict !== null}
-        onOpenChange={(o) => {
-          if (o) return;
-          // A note typed under one verdict and then abandoned must not
-          // silently ride along with a later, different verdict.
-          setVerdict(null);
-          setOverallNote("");
-        }}
-      >
-        <DialogContent className="max-w-sm space-y-3">
-          <DialogHeader>
-            <DialogTitle>{verdict === "passed" ? "Passed" : "Not passed"}</DialogTitle>
-          </DialogHeader>
-          <p className="text-xs text-muted-foreground">
-            {count} {plural} marked. The note is optional and the student sees it.
-          </p>
-          <Textarea value={overallNote} onChange={(e) => setOverallNote(e.target.value)}
-            placeholder="Note for the student (optional)" rows={3} />
-          <Button disabled={pending} onClick={confirmVerdict}>
-            {pending ? "Saving…" : verdict === "passed" ? "Confirm pass" : "Confirm not passed"}
-          </Button>
-        </DialogContent>
-      </Dialog>
+      {mode === "hearing" && hearing ? (
+        <HearingFinish
+          open={wrapUp}
+          onOpenChange={setWrapUp}
+          from={hearing.from}
+          initialEnd={initialEnd}
+          minEnd={hearing.minEnd}
+          names={hearing.names}
+          passedBefore={hearing.passedBefore}
+          pending={pending}
+          onConfirm={finishHearing}
+        />
+      ) : (
+        <Dialog open={wrapUp} onOpenChange={setWrapUp}>
+          <DialogContent className="space-y-3">
+            <DialogHeader><DialogTitle>Finish session</DialogTitle></DialogHeader>
+            <div className="space-y-1.5">
+              {SESSION_FLAGS.map((f) => (
+                <label key={f.id} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={flags.includes(f.id)}
+                    onChange={(e) =>
+                      setFlags((cur) =>
+                        e.target.checked ? [...cur, f.id] : cur.filter((x) => x !== f.id),
+                      )
+                    }
+                  />
+                  {f.label}
+                </label>
+              ))}
+            </div>
+            <Textarea value={overallNote} onChange={(e) => setOverallNote(e.target.value)}
+              placeholder="Overall note for the session (optional)" rows={3} />
+            <Button disabled={pending} onClick={submit}>
+              {pending ? "Submitting…" : `Submit ${count} ${plural}`}
+            </Button>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

@@ -6,8 +6,8 @@ import { getCachedSurahs, getCachedSurahPageRange } from "@/lib/reference/cached
 import { memorisationList } from "@/lib/hifz/pace";
 import { hizbOf } from "@/lib/hifz/hizb";
 import { pageWithin } from "@/lib/quran/page-within";
-import { hearingsFor } from "@/lib/hifz/hearing-queries";
-import { commentToShow, recordLine, summaryOf } from "@/lib/hifz/hearings";
+import { hearingsFor, hearingsForStudent } from "@/lib/hifz/hearing-queries";
+import { commentToShow, recordLine, summaryOf, surahState } from "@/lib/hifz/hearings";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
 import { SURAH_INFO } from "@/lib/hifz/surah-info";
 import { SURAH_SUMMARY, REVIEWED } from "@/lib/hifz/surah-summary";
@@ -55,7 +55,7 @@ export default async function SurahPage({
   const profile = (await currentProfile())!;
   const db = await supabaseServer();
 
-  const [surahs, hp, rec, hearings, range] = await Promise.all([
+  const [surahs, hp, rec, hearings, allHearings, range] = await Promise.all([
     getCachedSurahs(),
     db
       .from("hifz_profiles")
@@ -64,11 +64,10 @@ export default async function SurahPage({
       .maybeSingle(),
     db
       .from("hifz_records")
-      .select("passed_at, teacher_comment")
-      .eq("student_id", profile.id)
-      .eq("surah_number", number)
-      .maybeSingle(),
+      .select("surah_number, passed_at, teacher_comment")
+      .eq("student_id", profile.id),
     hearingsFor(profile.id, number),
+    hearingsForStudent(profile.id),
     getCachedSurahPageRange(number),
   ]);
 
@@ -84,21 +83,27 @@ export default async function SurahPage({
   const meta = SURAH_META[number];
   const info = SURAH_INFO[number];
   const summary = SURAH_SUMMARY[number];
-  const record = rec.data;
+  const records = rec.data ?? [];
+  const record = records.find((r) => r.surah_number === number) ?? null;
+  const passedSet = new Set(records.map((r) => r.surah_number));
+  const state = surahState(number, passedSet, allHearings);
 
   // The latest submitted hearing carries the date and count; the record
   // carries the truth about "passed". recordLine reconciles the two.
   const latest = hearings[0] ?? null;
   const line = recordLine(
+    state,
     record ? { passedAt: record.passed_at, comment: record.teacher_comment } : null,
     summaryOf(latest),
   );
+  const statLabel = state === "passed" ? "Passed" : state === "not_passed" ? "Not passed" : "Not yet";
   const hearingMistakes = hearings.flatMap((h) => h.mistakes);
   // A Not passed note is the latest word until the next hearing passes; a
   // pass comment otherwise. Both render in the same blockquote.
   const comment = commentToShow(
+    state,
     record ? { comment: record.teacher_comment, passedAt: record.passed_at } : null,
-    latest ? { note: latest.note, outcome: latest.outcome, submittedAt: latest.submittedAt } : null,
+    latest ? { note: latest.note, submittedAt: latest.submittedAt } : null,
   );
   const surahNames: SurahNames = Object.fromEntries(
     surahs.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]),
@@ -143,7 +148,7 @@ export default async function SurahPage({
           {record ? (
             <>
               <div className="stat">
-                <span className="v sm">Passed</span>
+                <span className="v sm">{statLabel}</span>
               </div>
               <div className="note">{line}.</div>
               {comment ? (
@@ -163,7 +168,7 @@ export default async function SurahPage({
           ) : (
             <>
               <div className="stat">
-                <span className="v sm">Not yet</span>
+                <span className={`v sm${state === "not_passed" ? " text-danger" : ""}`}>{statLabel}</span>
               </div>
               <div className="note">
                 {latest
