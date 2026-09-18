@@ -7,7 +7,7 @@ import {
  * The bar only has room for five cells, and everything that does not fit has
  * to be reachable some other way. Before the More tab, five teacher pages
  * (curriculum, calendar, classes, applications, deposits) had no phone route
- * to them at all — no link anywhere in the app. These tests are here so that
+ * to them at all: no link anywhere in the app. These tests are here so that
  * cannot come back the next time an item joins the nav.
  */
 describe("mobileNavFor", () => {

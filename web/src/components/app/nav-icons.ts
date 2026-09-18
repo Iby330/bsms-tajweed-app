@@ -10,7 +10,7 @@ import type { IconName } from "@/lib/nav";
  * so the mapping has to happen on the client.
  *
  * It sits in its own module because both the shell and the More sheet draw
- * nav items, and the shell already imports the sheet — putting the map in
+ * nav items, and the shell already imports the sheet: putting the map in
  * either one would make them import each other.
  */
 export const ICONS: Record<IconName, LucideIcon> = {

@@ -7,7 +7,7 @@ import type { NavItem } from "@/lib/nav";
 const { pathname } = vi.hoisted(() => ({ pathname: { value: "/teacher/home" } }));
 vi.mock("next/navigation", () => ({ usePathname: () => pathname.value }));
 
-// Dialog renders are slow under full-suite worker contention — the default
+// Dialog renders are slow under full-suite worker contention: the default
 // 5s timeout flakes even though every interaction completes.
 const SLOW = 20_000;
 
@@ -17,7 +17,7 @@ const items: NavItem[] = [
   { href: "/coming-soon/notifications", label: "Notifications", icon: "bell", comingSoon: true },
 ];
 
-// The sheet portals into document.body, so `screen` is the only way to see it —
+// The sheet portals into document.body, so `screen` is the only way to see it,
 // and with no global setup file there is no auto-cleanup.
 afterEach(() => {
   cleanup();

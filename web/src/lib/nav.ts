@@ -30,7 +30,7 @@ export const MAX_TABS = 5;
  * The rule the app used to follow was `slice(0, 5)`, which quietly stranded
  * everything after the fifth item: on a phone there was no link to it at all.
  * Now the tab bar is chosen (`tab: true`) rather than taken off the top, and
- * whatever is left goes under More — which costs a cell, so it only appears
+ * whatever is left goes under More, which costs a cell, so it only appears
  * when there is something live to put in it.
  */
 export function mobileNavFor(nav: NavItem[]): MobileNav {
@@ -63,7 +63,7 @@ export const studentNav: NavItem[] = [
 export const studentMobileNav: MobileNav = mobileNavFor(studentNav);
 
 // `tab: true` marks the four that hold a phone cell; the More sheet reaches
-// the rest. Order here is the rail's order, which is not the bar's — the bar
+// the rest. Order here is the rail's order, which is not the bar's: the bar
 // is whatever is pinned, in this order, and the sheet is the remainder.
 export const teacherNav: NavItem[] = [
   { href: "/teacher/home", label: "Home", icon: "home", tab: true },

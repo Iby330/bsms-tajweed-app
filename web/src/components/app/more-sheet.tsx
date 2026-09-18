@@ -27,7 +27,7 @@ export function initialsOf(name: string) {
  * The fifth cell of the phone tab bar: everything the other four cannot hold.
  *
  * Without it a teacher on a phone had no route to curriculum, calendar,
- * classes, applications or deposits — the rail those live in is hidden below
+ * classes, applications or deposits: the rail those live in is hidden below
  * 1024px and nothing else linked to them.
  */
 export function MoreTab({
@@ -38,7 +38,7 @@ export function MoreTab({
   /** the nav items that did not win a cell */
   items: NavItem[];
   userName: string;
-  /** signed URL for their picture, or null — initials stand in when absent */
+  /** signed URL for their picture, or null: initials stand in when absent */
   avatarSrc?: string | null;
 }) {
   const pathname = usePathname();
