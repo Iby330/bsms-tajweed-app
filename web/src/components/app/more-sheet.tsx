@@ -83,7 +83,7 @@ export function MoreTab({
         <Ellipsis className="size-[19px]" />
         <span>More</span>
       </DialogTrigger>
-      <DialogContent frameClassName="max-w-sm">
+      <DialogContent>
         <DialogTitle>More</DialogTitle>
         <div className="grid gap-1">
           {/* The rail reaches /account through the name in its foot. That is

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Moon, Sun, User, LogOut, PanelLeftClose } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -106,6 +106,29 @@ export function AppShell({
     });
   };
 
+  // The phone's chrome, measured rather than assumed. The values feed sticky
+  // offsets and scroll margins on phones, where the top bar would otherwise
+  // cover a sticky bar or the top of whatever was just scrolled to. On
+  // desktop both bars are display:none, so they report 0 and every offset
+  // built on them collapses to nothing.
+  const rootRef = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLElement>(null);
+  const tabsRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const measure = () => {
+      root.style.setProperty("--chrome-top", `${topRef.current?.offsetHeight ?? 0}px`);
+      root.style.setProperty("--chrome-bottom", `${tabsRef.current?.offsetHeight ?? 0}px`);
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measure);
+    if (topRef.current) ro.observe(topRef.current);
+    if (tabsRef.current) ro.observe(tabsRef.current);
+    return () => ro.disconnect();
+  }, []);
+
   // "Coming soon" entries are grouped under their own heading rather than
   // left to look like broken links among the live ones.
   const live = nav.filter((n) => !n.comingSoon);
@@ -128,7 +151,7 @@ export function AppShell({
   };
 
   return (
-    <div className="appshell" data-rail={railOff ? "off" : "on"}>
+    <div ref={rootRef} className="appshell" data-rail={railOff ? "off" : "on"}>
       {/* Twelve nav links stand between the top of the page and the content.
           Hidden until focused, so it only appears for the keyboard users it
           is for. */}
@@ -185,7 +208,7 @@ export function AppShell({
 
       <div className="shellmain">
         {backdrop}
-        <header className="topbar">
+        <header ref={topRef} className="topbar">
           <span className="mark" role="img" aria-label="BSMS Tajweed" />
           <span className="flex items-center gap-1.5">
             {/* The rail is hidden at this width, so the name-as-link route to
@@ -198,9 +221,12 @@ export function AppShell({
           </span>
         </header>
 
-        <main id="content" tabIndex={-1} className="shellview">{children}</main>
+        {/* The skip link's target, and what the router brings into view on a
+            navigation. The scroll margin keeps the top of the page clear of
+            the phone's top bar, which would otherwise cover it. */}
+        <main id="content" tabIndex={-1} className="shellview scroll-mt-[var(--chrome-top,0px)]">{children}</main>
 
-        <nav className="tabs">
+        <nav ref={tabsRef} className="tabs">
           {mobileNav.tabs.map((item) => {
             const Icon = ICONS[item.icon];
             return (

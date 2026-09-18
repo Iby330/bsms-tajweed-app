@@ -1315,6 +1315,11 @@ body::after {
 @layer components {
   .appshell {
     --rail-w: 248px;
+    /* The phone chrome's measured height, written by the shell's observer.
+       Sticky offsets and scroll margins read them; desktop hides both bars,
+       so 0 is the right resting value. */
+    --chrome-top: 0px;
+    --chrome-bottom: 0px;
     display: grid; grid-template-columns: var(--rail-w) 1fr; min-height: 100dvh;
     transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -1395,6 +1400,12 @@ body::after {
 
   @media (max-width: 1023px) {
     .appshell { grid-template-columns: 1fr; }
+    /* First-paint values, before the shell's observer has measured anything;
+       the observer refines them to the real heights. */
+    .appshell {
+      --chrome-top: 70px;
+      --chrome-bottom: calc(56px + env(safe-area-inset-bottom));
+    }
     .rail { display: none; }
     .topbar {
       display: flex; align-items: center; justify-content: space-between; gap: 14px;
@@ -2167,7 +2178,11 @@ html {
   [data-slot="button"][data-size="sm"],
   [data-slot="button"][data-size="lg"],
   [data-slot="button"][data-size="xs"] { min-height: 2.75rem; padding-inline: 1rem; }
-  [data-slot="button"][data-size^="icon"] { min-width: 2.75rem; min-height: 2.75rem; }
+  /* The dialog close button renders through Base UI's `render` prop, so it
+     carries data-slot="dialog-close" rather than "button" and the rule above
+     never reaches it. */
+  [data-slot="button"][data-size^="icon"],
+  [data-slot="dialog-close"] { min-width: 2.75rem; min-height: 2.75rem; }
   a.chip, button.chip { min-height: 2.25rem; padding-inline: 14px; display: inline-flex; align-items: center; }
   .tabs a, .tabs button { min-height: 3rem; }
 }

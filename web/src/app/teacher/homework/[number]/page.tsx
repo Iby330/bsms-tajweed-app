@@ -481,7 +481,7 @@ export default async function HomeworkResults({
                       student" is an instruction with nothing to pick with.
                       Sticky because a script runs well past a screen, and
                       `bg-page` so the marks do not show through it. */}
-                  <div className="sticky top-0 z-20 -mx-1 flex flex-wrap items-baseline justify-between gap-3 bg-page px-1 py-2">
+                  <div className="sticky top-[var(--chrome-top,0px)] z-20 -mx-1 flex flex-wrap items-baseline justify-between gap-3 bg-page px-1 py-2">
                     {/* The name IS the picker. It was a heading with a separate
                         control above it saying the same word; one of them was
                         redundant and it was not the name. */}

@@ -104,7 +104,7 @@ export function ReviewLogger({
 
   return (
     <div className="space-y-3">
-      <div className="glass sticky top-2 z-10 flex items-center justify-between rounded-xl px-4 py-2.5">
+      <div className="glass sticky top-[calc(var(--chrome-top,0px)+0.5rem)] z-10 flex items-center justify-between rounded-xl px-4 py-2.5">
         <p className="text-sm">
           Listening to <span className="font-medium">{reciterName}</span>
           <span className="ml-2 text-xs tabular-nums text-muted-foreground">
