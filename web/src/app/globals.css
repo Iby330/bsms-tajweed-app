@@ -667,32 +667,28 @@ body::after {
   font-variant-numeric: tabular-nums;
   color: var(--muted-foreground);
 }
-/* The desk: one printed page at a time. The reader's pages stack inside a
-   viewport-tall box that scrolls and snaps page by page, and the page's one
-   knob, font-size, is capped so the framed page fits the box's height. The
-   em height comes from the page geometry above: 758px at the 1.45rem cap is
-   32.7em, plus the page's own block padding. */
+/* The desk: one printed page per screen, side by side, turning forward to
+   the left as the print does. The box is a horizontal snap scroller; each
+   page is sized to fit the box's width and the viewport's height, and the
+   width it does not use becomes equal inline margins, so the slot is the
+   box and mandatory snapping lands on one page. Sizes derive from the page
+   geometry above: 35.4em tall, 24.8em wide, .mushaf-page padding included.
+   cqw is the box's own width (it is a container), not the viewport's. */
 .desk-mushaf {
-  height: calc(100dvh - 11rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scroll-snap-type: y mandatory;
+  container-type: inline-size;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
 }
-.desk-mushaf .mushaf-spread { flex-direction: column; flex-wrap: nowrap; align-items: center; gap: 0; }
+.desk-mushaf .mushaf-spread { flex-direction: row; flex-wrap: nowrap; align-items: flex-start; gap: 0; }
 .desk-mushaf .mushaf-page {
+  flex: 0 0 auto;
   scroll-snap-align: center;
   scroll-snap-stop: always;
-  /* Fit both ways. From the page geometry above: the framed page is 758px
-     tall and 530px wide at 23.2px (1.45rem) — 32.7em by 22.8em — and
-     .mushaf-page adds 1.2em + 1.5em of block padding and 1em + 1em inline,
-     so the whole page is 35.4em tall and 24.8em wide. The box is
-     100dvh - 11rem tall; the page gets 1rem less so its margins below are
-     never negative; the width term keeps it inside the viewport on a phone. */
-  font-size: min(calc((100vw - 5rem) / 24.8), calc((100dvh - 12rem) / 35.4));
-  /* The slot is the box: whatever height the page does not use becomes
-     equal margins above and below, so exactly one page sits centred per
-     screen and mandatory snapping lands on it. */
-  margin-block: max(0px, calc((100dvh - 11rem - 35.4em) / 2));
+  font-size: min(calc((100cqw - 2rem) / 24.8), calc((100dvh - 12rem) / 35.4));
+  margin-inline: max(0px, calc((100cqw - 24.8em) / 2));
+  margin-block: 0;
 }
 /* an open mushaf: two facing pages, lower (even) page on the right as in
    any RTL book; stacks when the viewport can't fit the pair */

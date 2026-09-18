@@ -75,16 +75,17 @@ export function ReviewLogger({
   surahNames?: SurahNames;
   pager?: { page: number; min: number; max: number; basePath: string; param?: string; step?: number };
   /** Applied to the scrollable `<div ref={root}>` around the reader — the
-   *  desk uses it to turn that div into a viewport-tall, page-snapping box
-   *  (`.desk-mushaf` in globals.css). Unset elsewhere, so every other
-   *  reader (per-surah pages, the peer logger, the heat viewer) is
+   *  desk uses it to turn that div into a horizontally scrolling,
+   *  page-snapping box (`.desk-mushaf` in globals.css) — one printed page
+   *  per screen, turning forward to the left. Unset elsewhere, so every
+   *  other reader (per-surah pages, the peer logger, the heat viewer) is
    *  unaffected. */
   readerClassName?: string;
   /** Hearing mode only: the range's start, the run's last surah, and what
    *  the popup needs. `startPage` is where to scroll on mount — set only on
-   *  the desk (Task 7), which stacks every seeded page and tracks which one
-   *  the teacher is looking at via `usePageInView` below; the per-surah page
-   *  leaves it unset, so the end stays the start. */
+   *  the desk (Task 7), which lays out every seeded page side by side and
+   *  tracks which one the teacher is looking at via `usePageInView` below;
+   *  the per-surah page leaves it unset, so the end stays the start. */
   hearing?: {
     from: number;
     minEnd: number;
@@ -193,11 +194,11 @@ export function ReviewLogger({
   const pageNumbers = useMemo(() => pages.map((p) => p.page), [pages]);
   const observed = usePageInView(root, pageNumbers);
   // With a pager there is one page and it is the one in view; without one
-  // (the desk) the observer says which of the stacked pages it is.
+  // (the desk) the observer says which of the laid-out pages it is.
   const pageInView = pager ? pager.page : observed;
   useEffect(() => {
     if (!hearing?.startPage) return;
-    root.current?.querySelector(`[id="page-${hearing.startPage}"]`)?.scrollIntoView?.({ block: "start" });
+    root.current?.querySelector(`[id="page-${hearing.startPage}"]`)?.scrollIntoView?.({ inline: "center", block: "nearest" });
   }, [hearing?.startPage]);
 
   // markKey is "surah:ayah" or "surah:ayah:position": the surah is always first.

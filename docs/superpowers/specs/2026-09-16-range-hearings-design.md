@@ -17,8 +17,9 @@ as heard and not passed, with its marks, so they know what to bring back.
 ## Decisions (user-confirmed)
 
 - **The whole mushaf, scrolling.** No pager on the desk. All seeded pages
-  render as one column and the view jumps to where the student's next surah
-  begins. The mushaf is the picker.
+  render side by side, one per screen, turning forward to the left as the
+  print does, and the view jumps to where the student's next surah begins.
+  The mushaf is the picker.
 - **Start is the next surah, changeable.** A chip names it; the teacher can
   change it before the first tap. Once a draft has marks, the start is fixed.
 - **End is worked out at Finish, then confirmed.** The surah on the page in
@@ -90,13 +91,13 @@ Top to bottom:
    repo's `FilterSelect` (the roster, each with their next surah beside the
    name; the start, "Starting at Al-Ghashiyah", disabled once the draft has
    a mark); the mistake count; **Finish**.
-2. **The mushaf.** Every seeded page in one scrolling column, rendered by
-   the logger itself — the desk has no separate `DeskLogger` component, just
-   the chrome (pickers, done line, next-student link) around `ReviewLogger`
-   in hearing mode. On load the view scrolls to the page where the start
-   surah begins. Words marked in earlier hearings of this student are
-   tinted underneath, as on the per-surah page; tapping classifies as it
-   does everywhere.
+2. **The mushaf.** Every seeded page side by side, one per screen, turning
+   forward to the left, rendered by the logger itself — the desk has no
+   separate `DeskLogger` component, just the chrome (pickers, done line,
+   next-student link) around `ReviewLogger` in hearing mode. On load the
+   view scrolls to the page where the start surah begins. Words marked in
+   earlier hearings of this student are tinted underneath, as on the
+   per-surah page; tapping classifies as it does everywhere.
 3. **Finish** opens the popup, titled "Finish hearing" with the range
    summary in a line beneath:
    - the range, "Al-Ghashiyah → Al-A'la · 2 surahs";
