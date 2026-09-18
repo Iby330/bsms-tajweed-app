@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# screenshot harness (scripts/screenshots.mjs)
+/screenshots
+/screenshots-baseline
+/.playwright
