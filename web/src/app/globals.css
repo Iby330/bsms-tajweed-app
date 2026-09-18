@@ -681,6 +681,9 @@ body::after {
   scroll-snap-stop: always;
   font-size: min(clamp(0.95rem, 2.5vw, 1.3rem), calc((100dvh - 12rem) / 35.5));
 }
+/* One page per row inside the box, whatever the width: the spread layout
+   is for the peer pages, not the desk. */
+.desk-mushaf .mushaf-spread { flex-direction: column; flex-wrap: nowrap; align-items: center; }
 /* an open mushaf: two facing pages, lower (even) page on the right as in
    any RTL book; stacks when the viewport can't fit the pair */
 .mushaf-spread {
