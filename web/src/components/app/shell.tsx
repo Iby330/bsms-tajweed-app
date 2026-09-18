@@ -5,25 +5,12 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Moon, Sun, Home, PlaySquare, ClipboardList, BookOpenCheck, User, Library,
-  Landmark, Bell, CheckSquare, Users, GraduationCap, Settings2, CalendarDays,
-  CalendarRange,
-  LogOut, PanelLeftClose, Wallet, UserPlus, type LucideIcon,
-} from "lucide-react";
+import { Moon, Sun, User, LogOut, PanelLeftClose } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import type { NavItem, IconName } from "@/lib/nav";
-
-/** Names → components. The nav config crosses the RSC boundary as plain
- *  data, so the mapping has to happen here on the client. */
-const ICONS: Record<IconName, LucideIcon> = {
-  home: Home, video: PlaySquare, clipboard: ClipboardList, book: BookOpenCheck,
-  user: User, library: Library, landmark: Landmark, bell: Bell,
-  check: CheckSquare, users: Users, graduation: GraduationCap,
-  settings: Settings2, calendar: CalendarDays, "calendar-range": CalendarRange,
-  wallet: Wallet, "user-plus": UserPlus,
-};
+import { ICONS } from "./nav-icons";
+import { MoreTab, initialsOf } from "./more-sheet";
+import type { NavItem, MobileNav } from "@/lib/nav";
 
 /**
  * AppShell — 2026 identity.
@@ -78,15 +65,6 @@ function SignOutIcon({ className }: { className?: string }) {
   );
 }
 
-function initialsOf(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
 export function AppShell({
   nav,
   mobileNav,
@@ -97,8 +75,8 @@ export function AppShell({
   children,
 }: {
   nav: NavItem[];
-  /** the first items only — the bottom tab bar has room for five */
-  mobileNav: NavItem[];
+  /** the five phone cells, and whatever the More sheet has to carry */
+  mobileNav: MobileNav;
   userName: string;
   roleLabel: string;
   /** signed URL for their picture, or null — initials stand in when absent */
@@ -223,7 +201,7 @@ export function AppShell({
         <main id="content" tabIndex={-1} className="shellview">{children}</main>
 
         <nav className="tabs">
-          {mobileNav.map((item) => {
+          {mobileNav.tabs.map((item) => {
             const Icon = ICONS[item.icon];
             return (
               <Link
@@ -236,6 +214,9 @@ export function AppShell({
               </Link>
             );
           })}
+          {mobileNav.more.length > 0 && (
+            <MoreTab items={mobileNav.more} userName={userName} avatarSrc={avatarSrc} />
+          )}
         </nav>
       </div>
     </div>
