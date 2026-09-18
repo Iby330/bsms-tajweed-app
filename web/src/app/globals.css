@@ -668,12 +668,12 @@ body::after {
   color: var(--muted-foreground);
 }
 /* The desk: one printed page per screen, side by side, turning forward to
-   the left as the print does. The box is a horizontal snap scroller; each
-   page is sized to fit the box's width and the viewport's height, and the
-   width it does not use becomes equal inline margins, so the slot is the
-   box and mandatory snapping lands on one page. Sizes derive from the page
-   geometry above: 35.4em tall, 24.8em wide, .mushaf-page padding included.
-   cqw is the box's own width (it is a container), not the viewport's. */
+   the left as the print does. The box is a horizontal snap scroller. The
+   page keeps the reader's own size (the .mushaf-page clamp above), the same
+   as on the surah pages; the width the box does not use becomes equal
+   inline margins, so the slot is the box and mandatory snapping lands on
+   one page. 24.8em is the page's width from the geometry above, padding
+   included. cqw is the box's own width (it is a container). */
 .desk-mushaf {
   container-type: inline-size;
   overflow-x: auto;
@@ -686,7 +686,6 @@ body::after {
   flex: 0 0 auto;
   scroll-snap-align: center;
   scroll-snap-stop: always;
-  font-size: min(calc((100cqw - 2rem) / 24.8), calc((100dvh - 12rem) / 35.4));
   margin-inline: max(0px, calc((100cqw - 24.8em) / 2));
   margin-block: 0;
 }
