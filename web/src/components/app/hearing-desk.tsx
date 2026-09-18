@@ -80,7 +80,11 @@ export function HearingDesk({
         </div>
       )}
 
+      {/* Remount on a change of student or start: sid/marks (session id, the
+          mistake set) and the finish popup's end must never survive onto a
+          different student's or a different start's draft. */}
       <ReviewLogger
+        key={`${studentId}:${from}`}
         mode="hearing"
         {...session}
         reciterName={reciterName}

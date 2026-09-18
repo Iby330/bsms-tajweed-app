@@ -34,20 +34,27 @@ export function HearingFinish({
   const [end, setEnd] = useState(initialEnd);
   const [unticked, setUnticked] = useState<Set<number>>(new Set());
   const [note, setNote] = useState("");
-  // A fresh open starts from the computed end with everything ticked. Reset
-  // during render (not an effect) when `open` flips true, so the popup never
-  // paints the previous hearing's state first — the React-recommended way to
-  // adjust state in response to a prop change without a cascading effect.
-  const [wasOpen, setWasOpen] = useState(open);
-  if (open !== wasOpen) {
-    setWasOpen(open);
-    if (open) {
-      setEnd(initialEnd);
-      setUnticked(new Set());
-    }
+  // A fresh open starts from the computed end with everything ticked, and a
+  // new `from`/`initialEnd` (the desk's start select, or a re-widened range)
+  // must never be read against a stale `end` left over from before — that's
+  // how an inverted range reached rangeSurahs and crashed the page. Reset
+  // during render (not an effect) whenever any of the three tracked props
+  // changes, so the popup never paints stale state first — the
+  // React-recommended way to adjust state in response to a prop change
+  // without a cascading effect.
+  const [tracked, setTracked] = useState({ open, from, initialEnd });
+  if (open !== tracked.open || from !== tracked.from || initialEnd !== tracked.initialEnd) {
+    setTracked({ open, from, initialEnd });
+    setEnd(initialEnd);
+    setUnticked(new Set());
   }
 
-  const surahs = rangeSurahs(from, end);
+  // Belt-and-braces: even if some future caller re-renders this component
+  // with a stale `end` that the reset above didn't catch, clamp it into
+  // [minEnd, from] before it ever reaches rangeSurahs — an inverted or
+  // out-of-run value must never get that far.
+  const safeEnd = Math.min(Math.max(end, minEnd), from);
+  const surahs = rangeSurahs(from, safeEnd);
   const toggle = (s: number) =>
     setUnticked((cur) => {
       const next = new Set(cur);
@@ -75,7 +82,7 @@ export function HearingFinish({
           <DialogTitle>Finish hearing</DialogTitle>
         </DialogHeader>
         <p className="text-sm font-medium">
-          {count === 1 ? name(from) : `${name(from)} → ${name(end)} · ${count} surahs`}
+          {count === 1 ? name(from) : `${name(from)} → ${name(safeEnd)} · ${count} surahs`}
         </p>
 
         <ul className="max-h-56 space-y-1 overflow-y-auto" aria-label="Surahs heard">
@@ -107,7 +114,7 @@ export function HearingFinish({
         <Textarea value={note} onChange={(e) => setNote(e.target.value)}
           placeholder="Note for the student (optional)" rows={3} />
         <Button disabled={pending}
-          onClick={() => onConfirm({ to: end, passed: surahs.filter((s) => !unticked.has(s)), note })}>
+          onClick={() => onConfirm({ to: safeEnd, passed: surahs.filter((s) => !unticked.has(s)), note })}>
           {pending ? "Saving…" : "Confirm"}
         </Button>
       </DialogContent>

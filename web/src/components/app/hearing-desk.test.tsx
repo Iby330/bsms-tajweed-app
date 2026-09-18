@@ -1,11 +1,23 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { useEffect } from "react";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { HearingDesk } from "./hearing-desk";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, refresh: vi.fn() }) }));
-vi.mock("./review-logger", () => ({ ReviewLogger: () => <div>logger</div> }));
+// Records mounts (not renders) so the test can tell a remount (a fresh
+// component instance, triggered by the desk's `key`) apart from a same-
+// instance re-render — the very distinction the key fix depends on.
+const { mountCount } = vi.hoisted(() => ({ mountCount: { value: 0 } }));
+vi.mock("./review-logger", () => ({
+  ReviewLogger: () => {
+    useEffect(() => {
+      mountCount.value++;
+    }, []);
+    return <div>logger</div>;
+  },
+}));
 
 const roster = [
   { id: "s1", name: "Aisha", nextSurah: 88, nextName: "Al-Ghashiyah" },
@@ -25,6 +37,7 @@ const loggerProps = {
   hearing: { from: 88, minEnd: 72, passedBefore: {} },
 };
 
+beforeEach(() => { mountCount.value = 0; });
 afterEach(() => { cleanup(); push.mockClear(); });
 
 describe("HearingDesk", () => {
@@ -65,5 +78,16 @@ describe("HearingDesk", () => {
         done={{ text: "Heard Al-Layl · 1 passed · 0 not passed" }} {...loggerProps} />,
     );
     expect(screen.queryByRole("link", { name: /Next student/ })).toBeNull();
+  });
+
+  it("remounts the logger when the student changes, so its state can't leak across students", () => {
+    const { rerender } = render(
+      <HearingDesk roster={roster} studentId="s1" from={88} draftStarted={false} run={[]} done={null} {...loggerProps} />,
+    );
+    expect(mountCount.value).toBe(1);
+    rerender(
+      <HearingDesk roster={roster} studentId="s2" from={88} draftStarted={false} run={[]} done={null} {...loggerProps} />,
+    );
+    expect(mountCount.value).toBe(2);
   });
 });

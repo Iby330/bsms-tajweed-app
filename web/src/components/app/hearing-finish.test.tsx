@@ -78,4 +78,19 @@ describe("HearingFinish", () => {
     expect((screen.getByRole("button", { name: "One more" }) as HTMLButtonElement).disabled).toBe(true);
     expect((screen.getByRole("button", { name: "One fewer" }) as HTMLButtonElement).disabled).toBe(true);
   });
+
+  it("a new start resets the end and never inverts the range", () => {
+    const onConfirm = vi.fn();
+    const { rerender } = render(<HearingFinish {...base} from={88} initialEnd={86} onConfirm={onConfirm} />);
+    // The "Starting at" select moved to a lower start than the stale `end`
+    // (85 < 86) — this used to reach rangeSurahs(85, 86) and throw.
+    expect(() =>
+      rerender(<HearingFinish {...base} from={85} initialEnd={85} onConfirm={onConfirm} />),
+    ).not.toThrow();
+    const boxes = screen.getAllByRole("checkbox");
+    expect(boxes.length).toBe(1);
+    expect(screen.getByLabelText(/Al-Buruj/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    expect(onConfirm).toHaveBeenCalledWith({ to: 85, passed: [85], note: "" });
+  });
 });
