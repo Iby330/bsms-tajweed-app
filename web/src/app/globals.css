@@ -2151,3 +2151,23 @@ html {
   --chart-scale-pattern-color: color-mix(in oklab, var(--ok) 12%, var(--card));
   --chart-tooltip-background: var(--card);
 }
+
+/* ─── Phone sizing ────────────────────────────────────────────────────
+   Unlayered on purpose: in Tailwind v4 unlayered CSS beats every @layer
+   rule, so these win over a `text-xs` or `h-7` at a call site without
+   touching hundreds of them. Above 767px the whole block is inert, so
+   the signed-off desktop density is untouched. */
+@media (max-width: 767px) {
+  /* iOS Safari zooms the page when a focused field is under 16px. */
+  [data-slot="input"], [data-slot="textarea"], select { font-size: 1rem; }
+  select[data-size="lg"] { font-size: 1.25rem; }
+  [data-slot="input"], select { min-height: 2.5rem; }
+  /* 44px targets. Buttons keep their desktop scale; only the phone grows them. */
+  [data-slot="button"][data-size="default"],
+  [data-slot="button"][data-size="sm"],
+  [data-slot="button"][data-size="lg"],
+  [data-slot="button"][data-size="xs"] { min-height: 2.75rem; padding-inline: 1rem; }
+  [data-slot="button"][data-size^="icon"] { min-width: 2.75rem; min-height: 2.75rem; }
+  a.chip, button.chip { min-height: 2.25rem; padding-inline: 14px; display: inline-flex; align-items: center; }
+  .tabs a, .tabs button { min-height: 3rem; }
+}

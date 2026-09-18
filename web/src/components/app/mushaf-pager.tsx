@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
  * RTL page turning around the rendered mushaf. The next page (higher
  * number) lies to the LEFT, as in a physical mushaf — the left arrow and a
  * rightward swipe both advance; the right arrow and a leftward swipe go
- * back. Arrows sit mid-height at the sides, like holding the book's edges.
+ * back. From md up the arrows sit mid-height at the sides, like holding the
+ * book's edges; on a phone they would cover the text, so they sit in a row
+ * under the page instead.
  * `step` is 2 for a two-page spread. Neighbours are prefetched so a turn
  * feels immediate.
  */
@@ -58,10 +60,13 @@ export function MushafPager({
       >
         {children}
       </div>
+      {/* md:contents dissolves this row, so from md up the arrows position
+          against the relative wrapper exactly as before. */}
+      <div className="mt-2 flex justify-between gap-2 md:contents">
       <Button
         size="sm"
         variant="outline"
-        className="absolute left-0 top-1/2 z-10 -translate-y-1/2"
+        className="md:absolute md:left-0 md:top-1/2 md:z-10 md:-translate-y-1/2"
         disabled={page + step > max}
         onClick={() => go(page + step)}
         aria-label="Next page"
@@ -71,13 +76,14 @@ export function MushafPager({
       <Button
         size="sm"
         variant="outline"
-        className="absolute right-0 top-1/2 z-10 -translate-y-1/2"
+        className="md:absolute md:right-0 md:top-1/2 md:z-10 md:-translate-y-1/2"
         disabled={page - step < min}
         onClick={() => go(page - step)}
         aria-label="Previous page"
       >
         <ChevronRight className="size-4" aria-hidden />
       </Button>
+      </div>
     </div>
   );
 }

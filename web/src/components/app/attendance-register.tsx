@@ -161,7 +161,7 @@ export function AttendanceRegister({
                     type="button"
                     onClick={() => setPresent(s.id, true)}
                     className={cn(
-                      "px-3 py-1.5 text-xs transition-colors",
+                      "min-h-11 px-4 text-sm transition-colors md:min-h-0 md:px-3 md:py-1.5 md:text-xs",
                       row?.present === true
                         ? "bg-ok/15 font-medium text-ok"
                         : "hover:bg-muted text-muted-foreground",
@@ -173,7 +173,7 @@ export function AttendanceRegister({
                     type="button"
                     onClick={() => setPresent(s.id, false)}
                     className={cn(
-                      "border-l border-line px-3 py-1.5 text-xs transition-colors",
+                      "min-h-11 border-l border-line px-4 text-sm transition-colors md:min-h-0 md:px-3 md:py-1.5 md:text-xs",
                       row?.present === false
                         ? "bg-danger/15 font-medium text-danger"
                         : "hover:bg-muted text-muted-foreground",
@@ -191,9 +191,9 @@ export function AttendanceRegister({
                     placeholder="Reason (illness, travel, no reason given…)"
                     onChange={(e) => patch(s.id, { reason: e.target.value })}
                     onBlur={() => void save(s.id, { ...rows[s.id] })}
-                    className="h-8 max-w-sm flex-1 text-xs"
+                    className="max-w-sm flex-1 md:h-8 md:text-xs"
                   />
-                  <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
+                  <label className="flex min-h-11 cursor-pointer items-center gap-1.5 px-1 text-xs text-muted-foreground md:min-h-0">
                     <input
                       type="checkbox"
                       checked={row.strike}
@@ -202,7 +202,7 @@ export function AttendanceRegister({
                         patch(s.id, next);
                         void save(s.id, next);
                       }}
-                      className="size-3.5 accent-[var(--danger)]"
+                      className="size-5 accent-[var(--danger)] md:size-3.5"
                     />
                     Issue a strike
                   </label>

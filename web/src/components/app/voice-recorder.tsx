@@ -184,7 +184,7 @@ export function VoiceRecorder({
       <div className="flex flex-wrap items-center gap-2">
         {recording ? (
           <>
-            <Button variant="destructive" onClick={stop} size="sm">
+            <Button variant="destructive" onClick={stop} size="default">
               Stop recording
             </Button>
             <span className="flex items-center gap-1.5 text-sm tabular-nums text-danger">
@@ -194,7 +194,7 @@ export function VoiceRecorder({
           </>
         ) : (
           <>
-            <Button variant={path ? "outline" : "default"} size="sm" disabled={busy} onClick={start}>
+            <Button variant={path ? "outline" : "default"} size="default" disabled={busy} onClick={start}>
               {busy ? "Saving…" : path ? "Record again" : "Record my recitation"}
             </Button>
             {path && (

@@ -54,6 +54,7 @@ export function FilterSelect({
       <span className="relative inline-flex">
         <select
           id={id}
+          data-size={size}
           value={value}
           aria-controls={controls}
           onChange={(e) => onChange(e.target.value)}
@@ -63,7 +64,8 @@ export function FilterSelect({
             size === "lg"
               ? // reads as the heading it replaces until you go near it
                 "border border-transparent bg-transparent py-0.5 pl-1.5 pr-9 text-xl font-medium hover:border-line"
-              : "border border-line py-1 pl-2.5 pr-7 text-xs hover:border-ink/30",
+              : // taller and 16px on a phone, desktop density from md up
+                "border border-line py-2.5 pl-3 pr-8 md:py-1 md:pl-2.5 md:pr-7 md:text-xs hover:border-ink/30",
           )}
         >
           {options.map((o) => (
@@ -76,7 +78,7 @@ export function FilterSelect({
           aria-hidden
           className={cn(
             "pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground",
-            size === "lg" ? "right-3 text-[11px]" : "right-2 text-[9px]",
+            size === "lg" ? "right-3 text-[11px]" : "right-2.5 text-[9px] md:right-2",
           )}
         >
           ▼
