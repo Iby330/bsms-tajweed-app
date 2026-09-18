@@ -72,7 +72,9 @@ export default async function TeacherHifz() {
         </p>
       </header>
 
-      <TeacherHifdhTabs active="overview" />
+      <div className="mb-6">
+        <TeacherHifdhTabs active="overview" />
+      </div>
 
       <PairingPanel pairs={pairs} unpaired={unpaired} />
 

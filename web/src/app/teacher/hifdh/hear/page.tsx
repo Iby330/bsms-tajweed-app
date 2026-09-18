@@ -78,7 +78,9 @@ export default async function HearingDeskPage({
         <h1><span>Hifdh register</span></h1>
         <p>Hear a student: pick them, tap as they recite, finish once.</p>
       </header>
-      <TeacherHifdhTabs active="hear" />
+      <div className="mb-6">
+        <TeacherHifdhTabs active="hear" />
+      </div>
       <HearingDesk
         roster={deskRoster}
         studentId={studentId}
