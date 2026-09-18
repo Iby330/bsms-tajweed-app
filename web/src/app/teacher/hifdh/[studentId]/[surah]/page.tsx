@@ -91,7 +91,7 @@ export default async function TeacherSurahPage({
     summaryOf(latest),
   );
   const minEnd = list[list.length - 1].number;
-  const basePath = `/teacher/hifz/${studentId}/${number}`;
+  const basePath = `/teacher/hifdh/${studentId}/${number}`;
 
   const session: SessionProps & { initialMistakes: MistakeRow[] } = draft && draft.from === number
     ? { sessionId: draft.id, initialMistakes: draft.mistakes }
@@ -104,7 +104,7 @@ export default async function TeacherSurahPage({
   return (
     <>
       <header className="masthead">
-        <Link href={`/teacher/hifz/${studentId}`} className="backstep">
+        <Link href={`/teacher/hifdh/${studentId}`} className="backstep">
           <ArrowLeft className="size-[13px]" aria-hidden />
           {student.full_name}
         </Link>
@@ -134,7 +134,7 @@ export default async function TeacherSurahPage({
           <section className="box c12">
             <p className="note">
               A hearing is in progress from {surahs.find((s) => s.number === draft.from)?.name_en ?? draft.from}.{" "}
-              <Link href={`/teacher/hifz/hear?student=${studentId}`} className="underline">Continue it at the desk</Link>.
+              <Link href={`/teacher/hifdh/hear?student=${studentId}`} className="underline">Continue it at the desk</Link>.
             </p>
           </section>
         ) : (

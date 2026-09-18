@@ -36,7 +36,7 @@ export async function ReviewTab({
         </p>
         <section className="space-y-2">
           <h2 className="text-lg">Your feedback</h2>
-          <ReviewFeedback studentId={userId} heat={heat} basePath="/hifz?tab=review" />
+          <ReviewFeedback studentId={userId} heat={heat} basePath="/hifdh?tab=review" />
         </section>
       </div>
     );
@@ -71,7 +71,7 @@ export async function ReviewTab({
     logging = (
       <div className="space-y-3">
         <SurahJump
-          basePath={`/hifz?tab=review${heatQuery}`}
+          basePath={`/hifdh?tab=review${heatQuery}`}
           options={range.map((s) => ({
             number: s.number,
             name: s.name_en,
@@ -85,7 +85,7 @@ export async function ReviewTab({
           pages={groupIntoPages(rows.map(fromRow))}
           initialMistakes={mistakes}
           surahNames={surahNames}
-          pager={{ page, min: firstPage, max: LAST_PAGE, basePath: `/hifz?tab=review${heatQuery}` }}
+          pager={{ page, min: firstPage, max: LAST_PAGE, basePath: `/hifdh?tab=review${heatQuery}` }}
         />
       </div>
     );
@@ -123,7 +123,7 @@ export async function ReviewTab({
       </section>
       <section className="space-y-2">
         <h2 className="text-lg">Your feedback</h2>
-        <ReviewFeedback studentId={userId} heat={heat} basePath={`/hifz?tab=review${pageQuery}`} />
+        <ReviewFeedback studentId={userId} heat={heat} basePath={`/hifdh?tab=review${pageQuery}`} />
       </section>
     </div>
   );

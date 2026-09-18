@@ -3,7 +3,7 @@ import { SURAH_INFO } from "@/lib/hifz/surah-info";
 import type { PaceStatus } from "@/lib/hifz/pace";
 import type { CheckStatus, HizbBlock, JuzProgress } from "@/lib/hifz/hizb";
 
-/** Top card of /hifz: current surah, juz-framed ring, hizb block bars, and
+/** Top card of /hifdh: current surah, juz-framed ring, hizb block bars, and
  *  the distance to the next hizb check. Everything is precomputed by the
  *  page; this only renders. */
 export function HifzHero({

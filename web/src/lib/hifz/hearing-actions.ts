@@ -99,12 +99,12 @@ export async function submitHearing(sessionId: string, verdict: HearingVerdict):
     .eq("id", s.id).is("submitted_at", null);
   if (error) throw new Error(error.message);
 
-  revalidatePath("/hifz");
-  revalidatePath("/teacher/hifz");
-  revalidatePath("/teacher/hifz/hear");
-  revalidatePath(`/teacher/hifz/${s.reciter_id}`);
+  revalidatePath("/hifdh");
+  revalidatePath("/teacher/hifdh");
+  revalidatePath("/teacher/hifdh/hear");
+  revalidatePath(`/teacher/hifdh/${s.reciter_id}`);
   for (const surah of range) {
-    revalidatePath(`/hifz/${surah}`);
-    revalidatePath(`/teacher/hifz/${s.reciter_id}/${surah}`);
+    revalidatePath(`/hifdh/${surah}`);
+    revalidatePath(`/teacher/hifdh/${s.reciter_id}/${surah}`);
   }
 }

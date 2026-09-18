@@ -95,7 +95,7 @@ open draft per student per surah; `startHearing` reuses it.
 
 ## Pages
 
-### Teacher: `/teacher/hifz/[studentId]/[surah]`
+### Teacher: `/teacher/hifdh/[studentId]/[surah]`
 
 Reached by tapping a surah cell on the student's hifdh page. The cell keeps
 its speech mark for "has a comment" and links here instead of opening the
@@ -134,7 +134,7 @@ the common case for a well-prepared student and must be one press.
 record's comment and `session_id`; Not passed submits the hearing and leaves
 the record alone. The pass date is never reset by a re-hearing.
 
-### Student: `/hifz/[surah]`
+### Student: `/hifdh/[surah]`
 
 The page that exists today, with the mushaf added between the record and the
 introduction:

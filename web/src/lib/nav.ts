@@ -54,7 +54,7 @@ export const studentNav: NavItem[] = [
   { href: "/home", label: "Home", icon: "home", tab: true },
   { href: "/courses", label: "Courses", icon: "video", tab: true },
   { href: "/progress", label: "Progress", icon: "clipboard", tab: true },
-  { href: "/hifz", label: "Hifdh", icon: "book", tab: true },
+  { href: "/hifdh", label: "Hifdh", icon: "book", tab: true },
   { href: "/calendar", label: "Calendar", icon: "calendar", tab: true },
   { href: "/coming-soon/resources", label: "Resources", icon: "library", comingSoon: true },
   { href: "/coming-soon/seerah", label: "Seerah", icon: "landmark", comingSoon: true },
@@ -72,7 +72,7 @@ export const teacherNav: NavItem[] = [
   // and homework above it is not.
   { href: "/teacher/attendance", label: "Register", icon: "calendar", tab: true },
   { href: "/teacher/roster", label: "My students", icon: "users", tab: true },
-  { href: "/teacher/hifz", label: "Hifdh", icon: "book", tab: true },
+  { href: "/teacher/hifdh", label: "Hifdh", icon: "book", tab: true },
   // Curriculum came off the rail when it was setup work — attach a lesson
   // video, check a rubric, done once for the year. It is the teaching side of
   // the courses now: the grid a class sees, each lesson playing in the app, and

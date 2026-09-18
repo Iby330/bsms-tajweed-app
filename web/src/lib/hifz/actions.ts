@@ -27,8 +27,8 @@ export async function markSurahPassed(
     },
     { onConflict: "student_id,surah_number" },
   );
-  revalidatePath("/teacher/hifz");
-  revalidatePath("/hifz");
+  revalidatePath("/teacher/hifdh");
+  revalidatePath("/hifdh");
 }
 
 /**
@@ -54,10 +54,10 @@ export async function setSurahComment(
     .eq("student_id", studentId)
     .eq("surah_number", surahNumber);
   if (error) throw new Error(error.message);
-  revalidatePath("/teacher/hifz");
-  revalidatePath("/hifz");
-  revalidatePath(`/hifz/${surahNumber}`);
-  revalidatePath(`/teacher/hifz/${studentId}/${surahNumber}`);
+  revalidatePath("/teacher/hifdh");
+  revalidatePath("/hifdh");
+  revalidatePath(`/hifdh/${surahNumber}`);
+  revalidatePath(`/teacher/hifdh/${studentId}/${surahNumber}`);
 }
 
 export async function unmarkSurah(studentId: string, surahNumber: number): Promise<void> {
@@ -66,10 +66,10 @@ export async function unmarkSurah(studentId: string, surahNumber: number): Promi
   const db = await supabaseServer();
   await db.from("hifz_records").delete()
     .eq("student_id", studentId).eq("surah_number", surahNumber);
-  revalidatePath("/teacher/hifz");
-  revalidatePath("/hifz");
-  revalidatePath(`/hifz/${surahNumber}`);
-  revalidatePath(`/teacher/hifz/${studentId}/${surahNumber}`);
+  revalidatePath("/teacher/hifdh");
+  revalidatePath("/hifdh");
+  revalidatePath(`/hifdh/${surahNumber}`);
+  revalidatePath(`/teacher/hifdh/${studentId}/${surahNumber}`);
 }
 
 /** The target must land between the start surah and the end of the run, or
@@ -101,8 +101,8 @@ export async function setStudentHifzProfile(
     student_id: studentId, start_surah: startSurah, target_count: targetCount,
   });
   if (error) throw new Error(error.message);
-  revalidatePath("/teacher/hifz");
-  revalidatePath("/hifz");
+  revalidatePath("/teacher/hifdh");
+  revalidatePath("/hifdh");
 }
 
 /**
@@ -146,7 +146,7 @@ export async function setTargetForStudents(
     );
     if (error) throw new Error(error.message);
   }
-  revalidatePath("/teacher/hifz");
-  revalidatePath("/hifz");
+  revalidatePath("/teacher/hifdh");
+  revalidatePath("/hifdh");
   return { applied: plans.length, skipped: skipped.map((id) => nameOf.get(id) ?? id) };
 }

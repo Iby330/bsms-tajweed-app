@@ -41,7 +41,7 @@ export default async function StudentHifz({
           <h1><span>Hifdh</span></h1>
           <p>Peer revision with your partner.</p>
         </header>
-        <HifzTabs basePath="/hifz" active="review" />
+        <HifzTabs basePath="/hifdh" active="review" />
         <ReviewTab userId={profile.id} pageParam={page} heatParam={heat} />
       </>
     );
@@ -70,7 +70,7 @@ export default async function StudentHifz({
         <h1><span>Hifdh</span></h1>
         <p>Your memorisation journey.</p>
       </header>
-      <HifzTabs basePath="/hifz" active="overview" />
+      <HifzTabs basePath="/hifdh" active="overview" />
       <EmptyState message={message} />
     </>
   );
@@ -153,7 +153,7 @@ export default async function StudentHifz({
         </div>
       </header>
 
-      <HifzTabs basePath="/hifz" active="overview" />
+      <HifzTabs basePath="/hifdh" active="overview" />
 
       <div className="divider">
         <span className="label">Where you are</span>

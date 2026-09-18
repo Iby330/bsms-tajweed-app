@@ -33,7 +33,7 @@ describe("HearingDesk", () => {
       <HearingDesk roster={roster} studentId="s1" from={88} draftStarted={false} run={[]} done={null} {...loggerProps} />,
     );
     fireEvent.change(screen.getByLabelText("Student"), { target: { value: "s2" } });
-    expect(push).toHaveBeenCalledWith("/teacher/hifz/hear?student=s2");
+    expect(push).toHaveBeenCalledWith("/teacher/hifdh/hear?student=s2");
   });
 
   it("lets the start change until the draft has marks", () => {
@@ -42,7 +42,7 @@ describe("HearingDesk", () => {
       <HearingDesk roster={roster} studentId="s1" from={88} draftStarted={false} run={run} done={null} {...loggerProps} />,
     );
     fireEvent.change(screen.getByLabelText("Starting at"), { target: { value: "87" } });
-    expect(push).toHaveBeenCalledWith("/teacher/hifz/hear?student=s1&from=87");
+    expect(push).toHaveBeenCalledWith("/teacher/hifdh/hear?student=s1&from=87");
     rerender(
       <HearingDesk roster={roster} studentId="s1" from={88} draftStarted={true} run={run} done={null} {...loggerProps} />,
     );
@@ -56,7 +56,7 @@ describe("HearingDesk", () => {
         done={{ text: "Heard Al-Ghashiyah → Al-A'la · 2 passed · 0 not passed" }} {...loggerProps} />,
     );
     expect(screen.getByText(/2 passed/)).toBeTruthy();
-    expect(screen.getByRole("link", { name: /Next student/ }).getAttribute("href")).toBe("/teacher/hifz/hear?student=s2");
+    expect(screen.getByRole("link", { name: /Next student/ }).getAttribute("href")).toBe("/teacher/hifdh/hear?student=s2");
   });
 
   it("has no next-student link when the chosen student is the last with a target", () => {

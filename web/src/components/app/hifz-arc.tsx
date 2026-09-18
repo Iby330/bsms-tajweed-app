@@ -26,7 +26,7 @@ const TONE = {
  * student's position at the head of the lit stretch, and the pace marker
  * placed on the same road so "behind" is a distance rather than a word.
  *
- * The full list with names and teacher comments lives on /hifz — this is the
+ * The full list with names and teacher comments lives on /hifdh — this is the
  * glance version for Home.
  */
 export function HifzArc({

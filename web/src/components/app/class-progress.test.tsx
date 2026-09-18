@@ -102,7 +102,7 @@ describe("ClassProgress", () => {
   it("links each student to their hifz detail page", () => {
     const { container } = render(<ClassProgress rows={rows} termId={2} />);
     const hrefs = [...container.querySelectorAll("a")].map((a) => a.getAttribute("href"));
-    expect(hrefs).toContain("/teacher/hifz/aisha");
+    expect(hrefs).toContain("/teacher/hifdh/aisha");
   });
 
   it("says so when the class is empty instead of rendering a bare list", () => {

@@ -34,8 +34,8 @@ export async function assignPair(studentA: string, studentB: string): Promise<vo
     .from("revision_pairs")
     .insert({ student_a: a, student_b: b, assigned_by: teacher.id });
   if (error) throw new Error(error.message);
-  revalidatePath("/teacher/hifz");
-  revalidatePath("/hifz");
+  revalidatePath("/teacher/hifdh");
+  revalidatePath("/hifdh");
 }
 
 export async function unassignPair(pairId: string): Promise<void> {
@@ -43,8 +43,8 @@ export async function unassignPair(pairId: string): Promise<void> {
   const db = await supabaseServer();
   const { error } = await db.from("revision_pairs").update({ active: false }).eq("id", pairId);
   if (error) throw new Error(error.message);
-  revalidatePath("/teacher/hifz");
-  revalidatePath("/hifz");
+  revalidatePath("/teacher/hifdh");
+  revalidatePath("/hifdh");
 }
 
 /** Open (or resume) a draft session reviewing `reciterId`. RLS re-checks the
@@ -70,7 +70,7 @@ export async function startSession(reciterId: string): Promise<string> {
     .insert({ reviewer_id: me.id, reciter_id: reciterId })
     .select("id").single();
   if (error) throw new Error(error.message);
-  revalidatePath("/hifz");
+  revalidatePath("/hifdh");
   return data.id;
 }
 
@@ -150,6 +150,6 @@ export async function submitSession(
     .select("id");
   if (error) throw new Error(error.message);
   if (!data?.length) throw new Error("Session already submitted or not yours.");
-  revalidatePath("/hifz");
-  revalidatePath("/teacher/hifz");
+  revalidatePath("/hifdh");
+  revalidatePath("/teacher/hifdh");
 }

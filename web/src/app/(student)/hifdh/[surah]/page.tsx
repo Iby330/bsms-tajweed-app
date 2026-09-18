@@ -114,7 +114,7 @@ export default async function SurahPage({
       <header className="masthead">
         {/* Same step-up affordance as the course pages, so going back looks
             the same wherever you are. */}
-        <Link href="/hifz" className="backstep">
+        <Link href="/hifdh" className="backstep">
           <ArrowLeft className="size-[13px]" aria-hidden />
           Back to your hifdh
         </Link>
@@ -210,7 +210,7 @@ export default async function SurahPage({
                 page={pageWithin(p, range)}
                 range={range}
                 mistakes={hearingMistakes}
-                basePath={`/hifz/${number}`}
+                basePath={`/hifdh/${number}`}
                 surahNames={surahNames}
               />
             </section>
@@ -258,7 +258,7 @@ export default async function SurahPage({
       )}
 
       <div className="signoff">
-        <Link href="/hifz" className="lines">
+        <Link href="/hifdh" className="lines">
           ← Your hifdh
         </Link>
         <span className="wm" role="img" aria-label="BSMS Tajweed" />

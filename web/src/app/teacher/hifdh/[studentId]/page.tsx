@@ -79,7 +79,7 @@ export default async function StudentHifzDetail({
   const shell = (body: ReactNode) => (
     <>
       <header className="masthead">
-        <Link href="/teacher/hifz" className="backstep">
+        <Link href="/teacher/hifdh" className="backstep">
           <ArrowLeft className="size-[13px]" aria-hidden />
           Hifdh register
         </Link>
@@ -94,9 +94,9 @@ export default async function StudentHifzDetail({
       </header>
 
       <HifzTabs
-        basePath={`/teacher/hifz/${studentId}`}
+        basePath={`/teacher/hifdh/${studentId}`}
         active={review ? "review" : "overview"}
-        hearHref={`/teacher/hifz/hear?student=${studentId}`}
+        hearHref={`/teacher/hifdh/hear?student=${studentId}`}
       />
 
       {body}
@@ -110,7 +110,7 @@ export default async function StudentHifzDetail({
         <ReviewFeedback
           studentId={studentId}
           heat={heat ? Number(heat) : undefined}
-          basePath={`/teacher/hifz/${studentId}?tab=review`}
+          basePath={`/teacher/hifdh/${studentId}?tab=review`}
         />
       </>,
     );
@@ -125,7 +125,7 @@ export default async function StudentHifzDetail({
         <div className="field">
           <p className="box c12 note">
             No target set yet. Choose one on the{" "}
-            <Link href="/teacher/hifz" className="underline">
+            <Link href="/teacher/hifdh" className="underline">
               register
             </Link>{" "}
             and this student’s run appears here.

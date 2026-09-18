@@ -33,8 +33,8 @@ export function MushafPager({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  // basePath may already carry a query (`/hifz?tab=review`) or be bare
-  // (`/hifz/88`); start the string or extend it accordingly.
+  // basePath may already carry a query (`/hifdh?tab=review`) or be bare
+  // (`/hifdh/88`); start the string or extend it accordingly.
   const href = (p: number) => `${basePath}${basePath.includes("?") ? "&" : "?"}${param}=${p}`;
   const go = (p: number) => {
     if (p >= min && p <= max) router.push(href(p), { scroll: false });

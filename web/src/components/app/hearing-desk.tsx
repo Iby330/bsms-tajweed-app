@@ -46,7 +46,7 @@ export function HearingDesk({
         <FilterSelect
           label="Student"
           value={studentId}
-          onChange={(v) => router.push(`/teacher/hifz/hear?student=${v}`)}
+          onChange={(v) => router.push(`/teacher/hifdh/hear?student=${v}`)}
           options={roster.map((s) => ({
             value: s.id,
             label: `${s.name}${s.nextName ? ` · ${s.nextName}` : " · no target set"}`,
@@ -56,7 +56,7 @@ export function HearingDesk({
         <FilterSelect
           label="Starting at"
           value={String(from)}
-          onChange={(v) => router.push(`/teacher/hifz/hear?student=${studentId}&from=${v}`)}
+          onChange={(v) => router.push(`/teacher/hifdh/hear?student=${studentId}&from=${v}`)}
           options={run.map((s) => ({ value: String(s.number), label: s.name_en }))}
           disabled={draftStarted}
           title={draftStarted ? "The start is fixed once a mark is logged" : undefined}
@@ -73,7 +73,7 @@ export function HearingDesk({
         <div className="glass flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-2.5 text-sm">
           <span>{done.text}</span>
           {next && (
-            <Link href={`/teacher/hifz/hear?student=${next.id}`} className="underline">
+            <Link href={`/teacher/hifdh/hear?student=${next.id}`} className="underline">
               Next student · {next.name} →
             </Link>
           )}
@@ -91,7 +91,7 @@ export function HearingDesk({
         hearing={{
           ...hearing,
           names: surahNames,
-          onFinished: (id) => router.push(`/teacher/hifz/hear?student=${studentId}&done=${id}`),
+          onFinished: (id) => router.push(`/teacher/hifdh/hear?student=${studentId}&done=${id}`),
         }}
       />
     </div>

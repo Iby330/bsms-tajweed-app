@@ -78,7 +78,7 @@ instead of a second logger, so two drafts for one student never exist.
 
 ## Pages
 
-### The desk: `/teacher/hifz/hear`
+### The desk: `/teacher/hifdh/hear`
 
 Reached from a "Hear a student" link on the hifdh register and a third tab,
 Hear, on the teacher's student page (which opens the desk with that student

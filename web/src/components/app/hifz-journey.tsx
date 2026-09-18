@@ -129,7 +129,7 @@ export function HifzJourney({
                 return (
                   <Link
                     key={s.number}
-                    href={`/hifz/${s.number}`}
+                    href={`/hifdh/${s.number}`}
                     className={cn("cell", isDone(item) && "done", isRedo(item) && "redo", isNext && "next")}
                   >
                     {/* Numbered by position in the whole run, not in this

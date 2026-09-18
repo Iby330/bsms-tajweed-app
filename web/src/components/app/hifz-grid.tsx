@@ -96,7 +96,7 @@ export function HifzGrid({
                 return (
                   <Link
                     key={r.number}
-                    href={`/teacher/hifz/${studentId}/${r.number}`}
+                    href={`/teacher/hifdh/${studentId}/${r.number}`}
                     // The surah page is force-dynamic with real Supabase reads;
                     // left to prefetch, a 43-cell grid would fire most of them
                     // on viewport alone.

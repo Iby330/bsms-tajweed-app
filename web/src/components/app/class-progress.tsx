@@ -14,7 +14,7 @@ const SORTS: { value: ClassSort; label: string; announce: string }[] = [
   { value: "lowest-hw", label: "Lowest homework", announce: "lowest homework average first" },
 ];
 
-/** Same words as /teacher/hifz. One status, one vocabulary. */
+/** Same words as /teacher/hifdh. One status, one vocabulary. */
 const PACE_LABEL = { ok: "ahead", warn: "on pace", danger: "behind" } as const;
 
 const PACE_TINT: Record<PaceStatus, string> = {
@@ -168,7 +168,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
                 />
               )}
               <Link
-                href={`/teacher/hifz/${r.studentId}`}
+                href={`/teacher/hifdh/${r.studentId}`}
                 className={cn(
                   COLS,
                   "classrow grid px-4 py-3.5 lg:px-5",

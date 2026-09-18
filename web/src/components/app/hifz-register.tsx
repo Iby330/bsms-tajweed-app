@@ -181,7 +181,7 @@ export function HifzRegister({ rows, surahs }: { rows: RegisterRow[]; surahs: Su
               aria-label={`Select ${r.name}`}
             />
             <Link
-              href={`/teacher/hifz/${r.studentId}`}
+              href={`/teacher/hifdh/${r.studentId}`}
               className="flex min-w-0 flex-1 items-center justify-between gap-4 py-3 pr-4 transition-colors hover:bg-muted/60"
             >
               <span className="min-w-0">

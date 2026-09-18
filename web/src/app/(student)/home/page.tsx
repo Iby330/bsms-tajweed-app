@@ -175,7 +175,7 @@ export default async function StudentHome() {
   const hifzDone = passedThisYear(surahs, hifzList, progress.hifz?.passedSurahs ?? []);
   const lastPassed = hifzDone.last;
 
-  // Clamped to the list, as /hifz does: a target set beyond the surahs the
+  // Clamped to the list, as /hifdh does: a target set beyond the surahs the
   // list actually holds would otherwise expect work that is not on it.
   const expected = progress.hifz
     ? expectedPassed(now, weeks, Math.min(progress.hifz.target, hifzList.length))
@@ -404,7 +404,7 @@ export default async function StudentHome() {
                   </span></>
                 )}
               </div>
-              <Link href="/hifz" className="note underline underline-offset-4">
+              <Link href="/hifdh" className="note underline underline-offset-4">
                 Every surah and your teacher&rsquo;s feedback →
               </Link>
             </>

@@ -68,7 +68,7 @@ export default async function TeacherHifz() {
         <h1><span>Hifdh register</span></h1>
         <p>
           {label} · {recitationDay} recitation. Colour shows each student against the calendar.
-          Select students to set their target. <Link href="/teacher/hifz/hear" className="underline">Hear a student</Link>
+          Select students to set their target. <Link href="/teacher/hifdh/hear" className="underline">Hear a student</Link>
         </p>
       </header>
 

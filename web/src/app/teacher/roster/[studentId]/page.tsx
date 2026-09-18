@@ -329,7 +329,7 @@ export default async function StudentRecord({
               )}
             </p>
           )}
-          <Link href={`/teacher/hifz/${studentId}`} className="backstep" style={{ marginTop: 4 }}>
+          <Link href={`/teacher/hifdh/${studentId}`} className="backstep" style={{ marginTop: 4 }}>
             Open the register to sign a surah off
           </Link>
         </div>
