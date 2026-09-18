@@ -676,6 +676,10 @@ body::after {
    included. cqw is the box's own width (it is a container). */
 .desk-mushaf {
   container-type: inline-size;
+  /* The pages inside run right to left. The scroll box must too: a box
+     that reads left to right cannot scroll to content that overflows past
+     its left edge, which is where every page after the first would sit. */
+  direction: rtl;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
