@@ -667,32 +667,6 @@ body::after {
   font-variant-numeric: tabular-nums;
   color: var(--muted-foreground);
 }
-/* The desk: one printed page per screen, side by side, turning forward to
-   the left as the print does. The box is a horizontal snap scroller. The
-   page keeps the reader's own size (the .mushaf-page clamp above), the same
-   as on the surah pages; the width the box does not use becomes equal
-   inline margins, so the slot is the box and mandatory snapping lands on
-   one page. 24.8em is the page's width from the geometry above, padding
-   included. cqw is the box's own width (it is a container). */
-.desk-mushaf {
-  container-type: inline-size;
-  /* The pages inside run right to left. The scroll box must too: a box
-     that reads left to right cannot scroll to content that overflows past
-     its left edge, which is where every page after the first would sit. */
-  direction: rtl;
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-}
-.desk-mushaf .mushaf-spread { flex-direction: row; flex-wrap: nowrap; align-items: flex-start; gap: 0; }
-.desk-mushaf .mushaf-page {
-  flex: 0 0 auto;
-  scroll-snap-align: center;
-  scroll-snap-stop: always;
-  margin-inline: max(0px, calc((100cqw - 24.8em) / 2));
-  margin-block: 0;
-}
 /* an open mushaf: two facing pages, lower (even) page on the right as in
    any RTL book; stacks when the viewport can't fit the pair */
 .mushaf-spread {

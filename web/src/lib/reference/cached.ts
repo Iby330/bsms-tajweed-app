@@ -168,33 +168,3 @@ export const getCachedSurahPageSpans = unstable_cache(
   ["ref-surah-page-spans-v1"],
   { tags: ["reference"], revalidate: 3600 },
 );
-
-/** Every seeded word, in reading order — the desk renders the whole mushaf.
- *  Surah order is page order here (Al-Mulk on 562 up to An-Nas on 604).
- *
- *  Paginated deliberately, same reason as getCachedSurahPageSpans above:
- *  PostgREST caps a response at 1000 rows and the seeded range holds several
- *  thousand words, so a single select would silently return a fraction of
- *  the mushaf. Loop with .range() until a batch comes back short, keeping
- *  the same ordering clauses on every request so the concatenated result
- *  stays in page order. */
-export const getCachedAllPageWords = unstable_cache(
-  async () => {
-    const db = supabaseAdmin();
-    const CHUNK = 1000;
-    const all: Awaited<ReturnType<typeof getCachedPageWords>> = [];
-    for (let from = 0; ; from += CHUNK) {
-      const { data, error } = await db
-        .from("quran_words")
-        .select("surah_number, ayah_number, word_position, text_uthmani, code_v1, code_v2, is_end, page_number, line_number")
-        .order("page_number").order("line_number").order("surah_number").order("ayah_number").order("word_position")
-        .range(from, from + CHUNK - 1);
-      if (error) throw error;
-      all.push(...(data ?? []));
-      if (!data || data.length < CHUNK) break;
-    }
-    return all;
-  },
-  ["ref-all-page-words-v1"],
-  { tags: ["reference"], revalidate: 3600 },
-);

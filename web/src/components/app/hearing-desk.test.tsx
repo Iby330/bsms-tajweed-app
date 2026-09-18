@@ -34,6 +34,7 @@ const loggerProps = {
   heat: {},
   history: {},
   surahNames: {},
+  pager: { page: 592, min: 562, max: 604, basePath: "/teacher/hifdh/hear?student=s1&from=88", param: "p" },
   hearing: { from: 88, minEnd: 72, passedBefore: {} },
 };
 

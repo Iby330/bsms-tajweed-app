@@ -20,7 +20,7 @@ export type DeskStudent = { id: string; name: string; nextSurah: number | null; 
  */
 export function HearingDesk({
   roster, studentId, from, draftStarted, run, done,
-  session, reciterName, pages, heat, history, surahNames, hearing,
+  session, reciterName, pages, heat, history, surahNames, pager, hearing,
 }: {
   roster: DeskStudent[];
   studentId: string;
@@ -34,7 +34,8 @@ export function HearingDesk({
   heat: Record<string, string>;
   history: Record<string, WordHistoryEntry[]>;
   surahNames: SurahNames;
-  hearing: { from: number; minEnd: number; passedBefore: Record<number, string>; startPage?: number };
+  pager: { page: number; min: number; max: number; basePath: string; param?: string; step?: number };
+  hearing: { from: number; minEnd: number; passedBefore: Record<number, string>; endFromPage?: boolean };
 }) {
   const router = useRouter();
   const idx = roster.findIndex((s) => s.id === studentId);
@@ -82,7 +83,9 @@ export function HearingDesk({
 
       {/* Remount on a change of student or start: sid/marks (session id, the
           mistake set) and the finish popup's end must never survive onto a
-          different student's or a different start's draft. */}
+          different student's or a different start's draft. The pager's `p`
+          is deliberately NOT in this key — turning a page must not remount
+          the logger, since marks span pages. */}
       <ReviewLogger
         key={`${studentId}:${from}`}
         mode="hearing"
@@ -92,7 +95,7 @@ export function HearingDesk({
         heat={heat}
         history={history}
         surahNames={surahNames}
-        readerClassName="desk-mushaf"
+        pager={pager}
         hearing={{
           ...hearing,
           names: surahNames,

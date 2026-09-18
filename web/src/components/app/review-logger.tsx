@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MushafReader, type SurahNames } from "./mushaf-reader";
 import { MushafPager } from "./mushaf-pager";
-import { usePageInView } from "./use-page-in-view";
 import { MistakeSheet, type SheetResult } from "./mistake-sheet";
 import { HearingFinish, type Verdict } from "./hearing-finish";
 import { logMistake, removeMistake, submitSession } from "@/lib/hifz/review-actions";
@@ -64,7 +63,6 @@ export function ReviewLogger({
   surahNames,
   pager,
   hearing,
-  readerClassName,
 }: SessionProps & {
   mode?: "peer" | "hearing";
   reciterName: string;
@@ -74,24 +72,17 @@ export function ReviewLogger({
   history?: Record<string, WordHistoryEntry[]>;   // …and what they said
   surahNames?: SurahNames;
   pager?: { page: number; min: number; max: number; basePath: string; param?: string; step?: number };
-  /** Applied to the scrollable `<div ref={root}>` around the reader — the
-   *  desk uses it to turn that div into a horizontally scrolling,
-   *  page-snapping box (`.desk-mushaf` in globals.css) — one printed page
-   *  per screen, turning forward to the left. Unset elsewhere, so every
-   *  other reader (per-surah pages, the peer logger, the heat viewer) is
-   *  unaffected. */
-  readerClassName?: string;
   /** Hearing mode only: the range's start, the run's last surah, and what
-   *  the popup needs. `startPage` is where to scroll on mount — set only on
-   *  the desk (Task 7), which lays out every seeded page side by side and
-   *  tracks which one the teacher is looking at via `usePageInView` below;
-   *  the per-surah page leaves it unset, so the end stays the start. */
+   *  the popup needs. `endFromPage` proposes the end of the range from the
+   *  page on screen — set only on the desk, which turns pages one at a time
+   *  via `pager`; the per-surah page leaves it unset, so the end stays the
+   *  start. */
   hearing?: {
     from: number;
     minEnd: number;
     names: SurahNames;
     passedBefore: Record<number, string>;
-    startPage?: number;
+    endFromPage?: boolean;
     onFinished?: (sessionId: string) => void;
   };
 }) {
@@ -186,29 +177,14 @@ export function ReviewLogger({
     <MushafReader pages={pages} marks={marks} heat={heat} surahNames={surahNames} onWordTap={setTapped} />
   );
 
-  // Scoped to this logger's own subtree: the Review tab renders a second
-  // MushafReader (the feedback heat viewer) alongside this one, so two
-  // `id="page-604"` sections can coexist in the document — the hook and the
-  // scroll-to both search inside `root`, never `document`.
-  const root = useRef<HTMLDivElement>(null);
-  const pageNumbers = useMemo(() => pages.map((p) => p.page), [pages]);
-  const observed = usePageInView(root, pageNumbers);
-  // With a pager there is one page and it is the one in view; without one
-  // (the desk) the observer says which of the laid-out pages it is.
-  const pageInView = pager ? pager.page : observed;
-  useEffect(() => {
-    if (!hearing?.startPage) return;
-    root.current?.querySelector(`[id="page-${hearing.startPage}"]`)?.scrollIntoView?.({ inline: "center", block: "nearest" });
-  }, [hearing?.startPage]);
-
   // markKey is "surah:ayah" or "surah:ayah:position": the surah is always first.
   const markSurahs = Object.keys(marks).map((k) => Number(k.split(":")[0]));
-  // Only the desk (startPage set) feeds the observed/pager page into the end
-  // calculation. On a per-surah page (no startPage) the last surah on the
+  // Only the desk (endFromPage set) feeds the pager's page into the end
+  // calculation. On a per-surah page (no endFromPage) the last surah on the
   // page could be the NEXT surah when it starts partway down — that would
   // widen a single-surah hearing to a range of two, so pass null there and
   // let endSurahFor default the end to the start.
-  const pageForEnd = hearing?.startPage ? pageInView : null;
+  const pageForEnd = hearing?.endFromPage && pager ? pager.page : null;
   const initialEnd = hearing
     ? endSurahFor(hearing.from, pageForEnd == null ? null : lastSurahOn(pages, pageForEnd), markSurahs)
     : 0;
@@ -235,9 +211,7 @@ export function ReviewLogger({
         <Button size="sm" disabled={pending} onClick={() => setWrapUp(true)}>Finish</Button>
       </div>
 
-      <div ref={root} className={readerClassName}>
-        {pager ? <MushafPager {...pager}>{reader}</MushafPager> : reader}
-      </div>
+      {pager ? <MushafPager {...pager}>{reader}</MushafPager> : reader}
 
       <MistakeSheet
         key={tapped ? markKey(targetOf(tapped)) : "closed"}

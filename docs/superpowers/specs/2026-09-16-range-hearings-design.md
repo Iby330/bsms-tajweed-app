@@ -16,10 +16,10 @@ as heard and not passed, with its marks, so they know what to bring back.
 
 ## Decisions (user-confirmed)
 
-- **The whole mushaf, scrolling.** No pager on the desk. All seeded pages
-  render side by side, one per screen, turning forward to the left as the
-  print does, and the view jumps to where the student's next surah begins.
-  The mushaf is the picker.
+- **One page at a time, like the surah pages.** The desk uses the same
+  pager as the per-surah pages: side arrows and a swipe turn the page,
+  forward to the left, `?p=` names the page. It opens on the start surah's
+  first page. The mushaf is the picker.
 - **Start is the next surah, changeable.** A chip names it; the teacher can
   change it before the first tap. Once a draft has marks, the start is fixed.
 - **End is worked out at Finish, then confirmed.** The surah on the page in
@@ -43,9 +43,6 @@ as heard and not passed, with its marks, so they know what to bring back.
 
 - No per-surah verdict stored separately from the pass record; the state is
   derived (below). No new table.
-- No lazy rendering of pages yet. Forty-three pages render at once; if that
-  drags on the school tablets, pages can be mounted as they scroll into
-  view without changing this design.
 - No change to peer review or to the timed-session design.
 
 ## Data
@@ -91,13 +88,14 @@ Top to bottom:
    repo's `FilterSelect` (the roster, each with their next surah beside the
    name; the start, "Starting at Al-Ghashiyah", disabled once the draft has
    a mark); the mistake count; **Finish**.
-2. **The mushaf.** Every seeded page side by side, one per screen, turning
-   forward to the left, rendered by the logger itself — the desk has no
+2. **The mushaf.** One page at a time, the same `MushafPager` the per-surah
+   pages use — side arrows and a swipe turn the page, forward to the left,
+   `?p=` names the page — rendered by the logger itself — the desk has no
    separate `DeskLogger` component, just the chrome (pickers, done line,
-   next-student link) around `ReviewLogger` in hearing mode. On load the
-   view scrolls to the page where the start surah begins. Words marked in
-   earlier hearings of this student are tinted underneath, as on the
-   per-surah page; tapping classifies as it does everywhere.
+   next-student link) around `ReviewLogger` in hearing mode. It opens on the
+   start surah's first page. Words marked in earlier hearings of this
+   student are tinted underneath, as on the per-surah page; tapping
+   classifies as it does everywhere.
 3. **Finish** opens the popup, titled "Finish hearing" with the range
    summary in a line beneath:
    - the range, "Al-Ghashiyah → Al-A'la · 2 surahs";
@@ -160,12 +158,14 @@ hearing's note when the surah is not passed, the pass comment when it is.
 - `lib/hifz/roster.ts`: `rosterWithNext()` — the teacher's roster with each
   student's own run and next-to-hear surah, computed once and shared by the
   register (`teacher/hifz`) and the desk, so the rule lives in one place.
-- `lib/reference/cached.ts`: `getCachedAllPageWords()` for the desk.
+- `components/app/mushaf-pager.tsx`: the pager the per-surah pages use,
+  reused by the desk — arrows, swipe, and the `?p=` query param.
 - `components/app/hearing-finish.tsx`: the popup, used by both logger modes
   of hearing. `components/app/review-logger.tsx`: hearing mode gains `from`,
-  `pages` may be the whole mushaf, tracks the page in view, and renders
-  `HearingFinish` itself — the desk has no separate `DeskLogger`; the
-  verdict bar goes.
+  an `endFromPage` flag that proposes the range's end from the pager's page
+  (the desk) rather than defaulting it to the start (the per-surah page),
+  and renders `HearingFinish` itself — the desk has no separate
+  `DeskLogger`; the verdict bar goes.
 
 ## Edge cases
 
@@ -191,12 +191,11 @@ hearing's note when the surah is not passed, the pass comment when it is.
 - Component: `HearingFinish` (rows and ticks, revoke label, end movers,
   confirm payload), logger hearing tests updated for Finish, journey and
   grid draw `redo` cells.
-- The page-in-view hook (`use-page-in-view.ts`) is scoped to the logger's
-  own root element. Its test installs a fake `IntersectionObserver` and
-  checks that the most-visible page wins, that a later update moves it,
-  that it disconnects on unmount, and that it stays null without the API;
-  scrolling to the start page and proposing the end from the page in view
-  on a real screen are verified by hand, not by test.
+- The desk's pager is the same `MushafPager` component the per-surah pages
+  use, so it needs no separate test; the logger test covers `endFromPage`
+  proposing the range's end from the pager's page (a page whose last word
+  is a different, lower-numbered surah than the start) rather than the
+  start alone.
 - Live RLS check (`hearings_rls.sql`) updated: the hearing insert carries
   `to_surah_number`, and the submit update no longer touches the dropped
   `outcome` column.

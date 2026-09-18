@@ -4,7 +4,7 @@ import { render, fireEvent, screen, cleanup } from "@testing-library/react";
 import { ReviewLogger } from "./review-logger";
 import { groupIntoPages, type QuranWord } from "@/lib/quran/mushaf";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn(), push: vi.fn(), prefetch: vi.fn() }) }));
 vi.mock("@/lib/hifz/review-actions", () => ({
   logMistake: vi.fn(async () => "new-id"),
   removeMistake: vi.fn(async () => {}),
@@ -20,6 +20,13 @@ const w = (over: Partial<QuranWord>): QuranWord => ({
   surah: 114, ayah: 1, position: 1, text: "قُلْ", glyph: null, isEnd: false, page: 604, line: 12, ...over,
 });
 const pages = groupIntoPages([w({}), w({ position: 2, text: "أَعُوذُ" })]);
+// A page that also carries the start of the surah before it, the way the
+// last page of a run does — used to check the desk proposes the end from
+// the page on screen, not from the start surah alone.
+const pagesWithNextSurah = groupIntoPages([
+  w({}), w({ position: 2, text: "أَعُوذُ" }),
+  w({ surah: 113, ayah: 1, position: 1, text: "قُلْ", line: 14 }),
+]);
 
 beforeEach(() => vi.clearAllMocks());
 afterEach(cleanup);
@@ -90,6 +97,22 @@ describe("ReviewLogger in hearing mode", () => {
     fireEvent.click(screen.getByLabelText(/An-Nas/));
     fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
     await vi.waitFor(() => expect(submitHearing).toHaveBeenCalledWith("draft-9", { to: 114, passed: [], note: "" }));
+  }, SLOW);
+
+  it("at the desk, proposes the end from the page on screen (pager), not just the start", async () => {
+    const ensureSession = ensure();
+    render(
+      <ReviewLogger
+        mode="hearing" sessionId={null} ensureSession={ensureSession}
+        reciterName="Aisha" pages={pagesWithNextSurah} initialMistakes={[]}
+        pager={{ page: 604, min: 562, max: 604, basePath: "/teacher/hifdh/hear?student=s1&from=114" }}
+        hearing={{ ...hearing, endFromPage: true }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    await vi.waitFor(() =>
+      expect(submitHearing).toHaveBeenCalledWith("h1", { to: 113, passed: [114, 113], note: "" }));
   }, SLOW);
 
   it("shows earlier marks for a hot word inside the sheet", () => {

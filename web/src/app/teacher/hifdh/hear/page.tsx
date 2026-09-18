@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
-import { getCachedAllPageWords, getCachedSurahs, getCachedSurahStartPages } from "@/lib/reference/cached";
+import { getCachedPageWords, getCachedSurahs, getCachedSurahStartPages } from "@/lib/reference/cached";
 import { fromRow, groupIntoPages } from "@/lib/quran/mushaf";
+import { pageWithin } from "@/lib/quran/page-within";
 import { hearingMistakesFor, hearingsForStudent, openDraftFor } from "@/lib/hifz/hearing-queries";
 import { doneLine } from "@/lib/hifz/hearings";
 import { startHearing } from "@/lib/hifz/hearing-actions";
@@ -15,17 +16,21 @@ import type { MistakeRow } from "@/lib/hifz/mistakes";
 
 export const dynamic = "force-dynamic";
 
+/** The seeded mushaf runs An-Nas back to Al-Mulk — pages 562–604. */
+const LAST_PAGE = 604;
+
 /**
  * The hearing desk: the Thursday lesson from one page. Pick the student,
- * the whole mushaf opens at their next surah, tap as they recite, Finish
- * once. The URL carries the student and, until the first mark, the start.
+ * the mushaf opens at the start surah's first page, tap as they recite,
+ * turn pages with the same pager as the per-surah pages, Finish once. The
+ * URL carries the student, the start (until the first mark), and the page.
  */
 export default async function HearingDeskPage({
   searchParams,
 }: {
-  searchParams: Promise<{ student?: string; from?: string; done?: string }>;
+  searchParams: Promise<{ student?: string; from?: string; done?: string; p?: string }>;
 }) {
-  const { student: studentParam, from: fromParam, done: doneParam } = await searchParams;
+  const { student: studentParam, from: fromParam, done: doneParam, p } = await searchParams;
   const profile = (await currentProfile())!;
   const db = await supabaseServer();
 
@@ -40,12 +45,11 @@ export default async function HearingDeskPage({
   const run = chosen.run;
   if (!run.length) notFound();
 
-  const [draft, allHearings, hearingMistakes, { data: records }, rows, startPages] = await Promise.all([
+  const [draft, allHearings, hearingMistakes, { data: records }, startPages] = await Promise.all([
     openDraftFor(profile.id, studentId),
     hearingsForStudent(studentId),
     hearingMistakesFor(studentId),
     db.from("hifz_records").select("surah_number, passed_at").eq("student_id", studentId),
-    getCachedAllPageWords(),
     getCachedSurahStartPages(),
   ]);
 
@@ -56,6 +60,13 @@ export default async function HearingDeskPage({
     ?? (run.some((s) => s.number === requested) ? requested : (chosen.next?.number ?? run[run.length - 1].number));
   const minEnd = run[run.length - 1].number;
 
+  // The pages the desk can turn: from the run's last surah's first page
+  // through the end of the seeded mushaf. Without ?p, open on the start
+  // surah's own first page rather than the range's minimum.
+  const range = { from: startPages[minEnd], to: LAST_PAGE };
+  const page = p ? pageWithin(p, range) : (startPages[from] ?? range.from);
+
+  const rows = await getCachedPageWords(page);
   const words = rows.map(fromRow);
   const pages = groupIntoPages(words);
   const { heat, history } = spreadHeat(words, hearingMistakes, new Date());
@@ -94,7 +105,11 @@ export default async function HearingDeskPage({
         heat={heat}
         history={history}
         surahNames={surahNames}
-        hearing={{ from, minEnd, passedBefore, startPage: startPages[from] }}
+        pager={{
+          page, min: range.from, max: range.to,
+          basePath: `/teacher/hifdh/hear?student=${studentId}&from=${from}`, param: "p",
+        }}
+        hearing={{ from, minEnd, passedBefore, endFromPage: true }}
       />
     </>
   );
