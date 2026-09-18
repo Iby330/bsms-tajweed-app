@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { getCachedSurahs } from "@/lib/reference/cached";
@@ -8,6 +7,7 @@ import { timetableFor, weekdayNameFor } from "@/lib/attendance/calendar";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { HifzRegister, type RegisterRow } from "@/components/app/hifz-register";
 import { PairingPanel, type PairRow, type UnpairedStudent } from "@/components/app/pairing-panel";
+import { TeacherHifdhTabs } from "@/components/app/teacher-hifdh-tabs";
 
 export const dynamic = "force-dynamic";
 
@@ -68,9 +68,11 @@ export default async function TeacherHifz() {
         <h1><span>Hifdh register</span></h1>
         <p>
           {label} · {recitationDay} recitation. Colour shows each student against the calendar.
-          Select students to set their target. <Link href="/teacher/hifdh/hear" className="underline">Hear a student</Link>
+          Select students to set their target.
         </p>
       </header>
+
+      <TeacherHifdhTabs active="overview" />
 
       <PairingPanel pairs={pairs} unpaired={unpaired} />
 

@@ -8,6 +8,7 @@ import { startHearing } from "@/lib/hifz/hearing-actions";
 import { spreadHeat } from "@/lib/hifz/heat-spread";
 import { rosterWithNext } from "@/lib/hifz/roster";
 import { HearingDesk, type DeskStudent } from "@/components/app/hearing-desk";
+import { TeacherHifdhTabs } from "@/components/app/teacher-hifdh-tabs";
 import type { SessionProps } from "@/components/app/review-logger";
 import type { SurahNames } from "@/components/app/mushaf-reader";
 import type { MistakeRow } from "@/lib/hifz/mistakes";
@@ -74,9 +75,10 @@ export default async function HearingDeskPage({
   return (
     <>
       <header className="masthead">
-        <h1><span>Hear</span></h1>
-        <p>The lesson, from one page: pick the student, tap as they recite, finish once.</p>
+        <h1><span>Hifdh register</span></h1>
+        <p>Hear a student: pick them, tap as they recite, finish once.</p>
       </header>
+      <TeacherHifdhTabs active="hear" />
       <HearingDesk
         roster={deskRoster}
         studentId={studentId}

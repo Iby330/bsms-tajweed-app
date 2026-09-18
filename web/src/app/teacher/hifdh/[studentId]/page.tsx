@@ -96,7 +96,6 @@ export default async function StudentHifzDetail({
       <HifzTabs
         basePath={`/teacher/hifdh/${studentId}`}
         active={review ? "review" : "overview"}
-        hearHref={`/teacher/hifdh/hear?student=${studentId}`}
       />
 
       {body}

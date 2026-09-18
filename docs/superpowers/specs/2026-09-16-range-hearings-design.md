@@ -80,10 +80,9 @@ instead of a second logger, so two drafts for one student never exist.
 
 ### The desk: `/teacher/hifdh/hear`
 
-Reached from a "Hear a student" link on the hifdh register and a third tab,
-Hear, on the teacher's student page (which opens the desk with that student
-chosen). `?student=<id>` names the student; without it the roster's first
-student with a target is chosen.
+Reached from the Hear tab beside Overview on the hifdh register; a student's
+own page has no Hear tab. `?student=<id>` names the student; without it the
+roster's first student with a target is chosen.
 
 Top to bottom:
 
