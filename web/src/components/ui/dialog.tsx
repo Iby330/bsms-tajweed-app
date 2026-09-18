@@ -52,8 +52,14 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Popup
         data-slot="dialog-content"
+        // Below sm this is a bottom sheet, not a centred box: tall dialogs
+        // (the hearing finish sheet, say) have to scroll rather than be
+        // clipped by the viewport, and a centred dialog with a text field
+        // ends up under the iOS keyboard. Every translate class is
+        // sm:-prefixed on purpose: unprefixed, -translate-x-1/2 would shove
+        // the full-width sheet half off the screen.
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed z-50 grid w-full gap-4 bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none overflow-y-auto overscroll-contain inset-x-0 bottom-0 max-h-[calc(100dvh-3rem)] rounded-t-2xl pb-[max(1rem,env(safe-area-inset-bottom))] data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-4 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-4 motion-reduce:data-open:animate-none motion-reduce:data-closed:animate-none sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:pb-4 sm:max-h-[calc(100dvh-4rem)] sm:data-open:zoom-in-95 sm:data-open:slide-in-from-bottom-0 sm:data-closed:zoom-out-95 sm:data-closed:slide-out-to-bottom-0",
           className
         )}
         {...props}

@@ -132,7 +132,7 @@ export function ReviewLogger({
       />
 
       <Dialog open={wrapUp} onOpenChange={setWrapUp}>
-        <DialogContent className="max-w-sm space-y-3">
+        <DialogContent className="space-y-3">
           <DialogHeader><DialogTitle>Finish session</DialogTitle></DialogHeader>
           <div className="space-y-1.5">
             {SESSION_FLAGS.map((f) => (

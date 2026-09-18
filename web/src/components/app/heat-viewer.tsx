@@ -25,7 +25,7 @@ export function HeatViewer({
     <>
       <MushafReader pages={pages} heat={heat} surahNames={surahNames} onWordTap={onTap} />
       <Dialog open={open !== null} onOpenChange={(o) => !o && setOpen(null)}>
-        <DialogContent className="max-w-sm space-y-2">
+        <DialogContent className="space-y-2">
           <DialogHeader>
             <DialogTitle dir="rtl" lang="ar" className="ar-quran text-center">
               {open?.word.text}

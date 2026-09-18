@@ -53,7 +53,7 @@ export function MistakeSheet({
 
   return (
     <Dialog open={word !== null} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-sm space-y-3">
+      <DialogContent className="space-y-3">
         <DialogHeader>
           {wholeAyah ? (
             <DialogTitle className="text-center text-base">
@@ -101,7 +101,7 @@ export function MistakeSheet({
           </div>
         )}
         <Input value={note} onChange={(e) => setNote(e.target.value)}
-          placeholder="Note (optional)" className="h-8 text-sm" />
+          placeholder="Note (optional)" className="md:h-8" />
         <div className="flex items-center justify-between gap-2">
           {onRemove ? (
             <Button size="sm" variant="outline" onClick={onRemove}>Remove</Button>

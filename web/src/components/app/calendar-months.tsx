@@ -173,7 +173,7 @@ export function CalendarMonths({
       </div>
 
       <Dialog open={openDate !== null} onOpenChange={(next) => !next && setOpenDate(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{openDate ? long(openDate) : ""}</DialogTitle>
           </DialogHeader>
