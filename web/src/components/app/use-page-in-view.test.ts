@@ -12,7 +12,10 @@ class FakeIntersectionObserver {
   callback: (entries: Entry[]) => void;
   observed: Element[] = [];
   disconnected = false;
-  constructor(callback: (entries: Entry[]) => void) {
+  // options (the `{ root }` the hook now passes) is accepted and ignored —
+  // this fake only ever reports ratios the test feeds it via `trigger`.
+  constructor(callback: (entries: Entry[]) => void, options?: IntersectionObserverInit) {
+    void options;
     this.callback = callback;
     FakeIntersectionObserver.instances.push(this);
   }

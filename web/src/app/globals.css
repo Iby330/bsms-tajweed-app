@@ -665,6 +665,22 @@ body::after {
   font-variant-numeric: tabular-nums;
   color: var(--muted-foreground);
 }
+/* The desk: one printed page at a time. The reader's pages stack inside a
+   viewport-tall box that scrolls and snaps page by page, and the page's one
+   knob, font-size, is capped so the framed page fits the box's height. The
+   em height comes from the page geometry above: 758px at the 1.45rem cap is
+   32.7em, plus the page's own block padding. */
+.desk-mushaf {
+  height: calc(100dvh - 11rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+}
+.desk-mushaf .mushaf-page {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  font-size: min(clamp(0.95rem, 2.5vw, 1.3rem), calc((100dvh - 12rem) / 35.5));
+}
 /* an open mushaf: two facing pages, lower (even) page on the right as in
    any RTL book; stacks when the viewport can't fit the pair */
 .mushaf-spread {

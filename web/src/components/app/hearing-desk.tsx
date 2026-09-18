@@ -42,7 +42,7 @@ export function HearingDesk({
 
   return (
     <div className="space-y-3">
-      <div className="glass sticky top-2 z-20 flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5">
+      <div className="glass flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5">
         <FilterSelect
           label="Student"
           value={studentId}
@@ -88,6 +88,7 @@ export function HearingDesk({
         heat={heat}
         history={history}
         surahNames={surahNames}
+        readerClassName="desk-mushaf"
         hearing={{
           ...hearing,
           names: surahNames,

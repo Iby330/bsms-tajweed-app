@@ -64,6 +64,7 @@ export function ReviewLogger({
   surahNames,
   pager,
   hearing,
+  readerClassName,
 }: SessionProps & {
   mode?: "peer" | "hearing";
   reciterName: string;
@@ -73,6 +74,12 @@ export function ReviewLogger({
   history?: Record<string, WordHistoryEntry[]>;   // …and what they said
   surahNames?: SurahNames;
   pager?: { page: number; min: number; max: number; basePath: string; param?: string; step?: number };
+  /** Applied to the scrollable `<div ref={root}>` around the reader — the
+   *  desk uses it to turn that div into a viewport-tall, page-snapping box
+   *  (`.desk-mushaf` in globals.css). Unset elsewhere, so every other
+   *  reader (per-surah pages, the peer logger, the heat viewer) is
+   *  unaffected. */
+  readerClassName?: string;
   /** Hearing mode only: the range's start, the run's last surah, and what
    *  the popup needs. `startPage` is where to scroll on mount — set only on
    *  the desk (Task 7), which stacks every seeded page and tracks which one
@@ -227,7 +234,9 @@ export function ReviewLogger({
         <Button size="sm" disabled={pending} onClick={() => setWrapUp(true)}>Finish</Button>
       </div>
 
-      <div ref={root}>{pager ? <MushafPager {...pager}>{reader}</MushafPager> : reader}</div>
+      <div ref={root} className={readerClassName}>
+        {pager ? <MushafPager {...pager}>{reader}</MushafPager> : reader}
+      </div>
 
       <MistakeSheet
         key={tapped ? markKey(targetOf(tapped)) : "closed"}

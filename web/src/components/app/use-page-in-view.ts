@@ -36,7 +36,7 @@ export function usePageInView(root: RefObject<HTMLElement | null>, pageNumbers: 
         for (const [n, r] of ratios) if (r > bestRatio) { best = n; bestRatio = r; }
         if (best !== null) setPage(best);
       },
-      { threshold: [0, 0.25, 0.5, 0.75, 1] },
+      { root: container, threshold: [0, 0.25, 0.5, 0.75, 1] },
     );
     for (const n of pageNumbers) {
       const el = container.querySelector(`[id="page-${n}"]`);
