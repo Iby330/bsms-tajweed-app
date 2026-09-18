@@ -40,7 +40,7 @@ their target is.
 **Peer review sits alongside this, in its own tables (added 2026-08-15).** Teacher-assigned
 revision pairs, word-level mistake logging on a mushaf-style text (seeded `quran_words`,
 chapters 72–114), and a per-student pattern tracker + heatmap live in `revision_pairs` /
-`revision_sessions` / `revision_mistakes`. Both `/hifz` and `/teacher/hifz/[studentId]`
+`revision_sessions` / `revision_mistakes`. Both `/hifdh` and `/teacher/hifdh/[studentId]`
 are now Overview | Review tabs. Spec:
 `docs/superpowers/specs/2026-08-14-hifz-peer-review-design.md`. It keys mistakes on
 `surah:ayah:word` and never touches `hifz_profiles`/`hifz_records` semantics, so the
@@ -54,7 +54,7 @@ rework items below are unaffected.
 
 Target-setting shipped, then reworked to selection-based the same day (spec:
 `docs/superpowers/specs/2026-08-14-hifz-target-setting-design.md`): the register at
-`/teacher/hifz` has a checkbox per student plus select-all, and one panel applies an
+`/teacher/hifdh` has a checkbox per student plus select-all, and one panel applies an
 **end surah** to the selection — each student's `target_count` derives from their own
 start via `planTargets` in `lib/hifz/targets.ts`, and anyone already past the chosen
 end is skipped and named, never reset backwards. Selecting exactly one student also

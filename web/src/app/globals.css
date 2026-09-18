@@ -637,9 +637,11 @@ body::after {
      (b) the print's page geometry from the KFGQPC vectors — page
          382.7×547.1 units, text block 244.6×399.6 at (69.0, 76.6).
      Margins: side 69.0/244.6, top 76.6/244.6, bottom 70.9/244.6 of the
-     measure. At the 1.45rem cap the framed page is 530×758px — the
-     physical mushaf's 14×20cm — aspect 0.70. One knob (font-size)
-     scales the whole object. */
+     measure. The framed page is 530×758px — the physical mushaf's 14×20cm
+     — aspect 0.70 — as measured at a 1.45rem cap (23.2px); the live clamp
+     below caps at 1.3rem, but the em figures derived from 758px stand
+     regardless of which cap is in force. One knob (font-size) scales the
+     whole object. */
   position: relative;
   inline-size: fit-content;
   margin-inline: auto;
@@ -676,14 +678,22 @@ body::after {
   overscroll-behavior: contain;
   scroll-snap-type: y mandatory;
 }
+.desk-mushaf .mushaf-spread { flex-direction: column; flex-wrap: nowrap; align-items: center; gap: 0; }
 .desk-mushaf .mushaf-page {
-  scroll-snap-align: start;
+  scroll-snap-align: center;
   scroll-snap-stop: always;
-  font-size: min(clamp(0.95rem, 2.5vw, 1.3rem), calc((100dvh - 12rem) / 35.5));
+  /* Fit both ways. From the page geometry above: the framed page is 758px
+     tall and 530px wide at 23.2px (1.45rem) — 32.7em by 22.8em — and
+     .mushaf-page adds 1.2em + 1.5em of block padding and 1em + 1em inline,
+     so the whole page is 35.4em tall and 24.8em wide. The box is
+     100dvh - 11rem tall; the page gets 1rem less so its margins below are
+     never negative; the width term keeps it inside the viewport on a phone. */
+  font-size: min(calc((100vw - 5rem) / 24.8), calc((100dvh - 12rem) / 35.4));
+  /* The slot is the box: whatever height the page does not use becomes
+     equal margins above and below, so exactly one page sits centred per
+     screen and mandatory snapping lands on it. */
+  margin-block: max(0px, calc((100dvh - 11rem - 35.4em) / 2));
 }
-/* One page per row inside the box, whatever the width: the spread layout
-   is for the peer pages, not the desk. */
-.desk-mushaf .mushaf-spread { flex-direction: column; flex-wrap: nowrap; align-items: center; }
 /* an open mushaf: two facing pages, lower (even) page on the right as in
    any RTL book; stacks when the viewport can't fit the pair */
 .mushaf-spread {
