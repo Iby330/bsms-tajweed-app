@@ -61,21 +61,36 @@ export function MixedText({
   variant?: "ui" | "quran";
   className?: string;
 }) {
-  const runs = splitRuns(text);
   const arClass = variant === "quran" ? "ar-quran" : "ar-ui";
+
+  // Line breaks in the source are meaningful and HTML throws them away.
+  // A question written as "What rule is involved in this ayah?\nوَجَنَّٰتٍ
+  // أَلْفَافًا" is asking in English ABOUT the verse below it, and collapsing
+  // the newline runs the two together as one line. Each line becomes its own
+  // block, so the ayah sits under the question as it was written.
+  //
+  // Only when there IS more than one line: a title or a label is a single run
+  // and must stay inline, or every one of them would start a new line.
+  const lines = text.trim().split(/\n+/);
+  const multi = lines.length > 1;
+
   return (
     <span className={className}>
-      {runs.map((run, i) =>
-        run.ar ? (
-          <span key={i} dir="rtl" lang="ar" className={arClass}>
-            {run.text}
-          </span>
-        ) : (
-          <span key={i} dir="ltr">
-            {run.text}
-          </span>
-        ),
-      )}
+      {lines.map((line, li) => (
+        <span key={li} className={multi ? "block" : undefined}>
+          {splitRuns(line).map((run, i) =>
+            run.ar ? (
+              <span key={i} dir="rtl" lang="ar" className={arClass}>
+                {run.text}
+              </span>
+            ) : (
+              <span key={i} dir="ltr">
+                {run.text}
+              </span>
+            ),
+          )}
+        </span>
+      ))}
     </span>
   );
 }
