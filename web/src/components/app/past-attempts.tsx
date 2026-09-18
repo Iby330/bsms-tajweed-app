@@ -130,7 +130,7 @@ export function PastAttempts({
     <section className="box c12 mb-4">
       <span className="label">Previous attempts</span>
       <p className="text-xs text-muted-foreground">
-        Sent back for a redo. The student cannot see any of this — not their
+        Sent back for a redo. The student cannot see any of this: not their
         answers, not the marks, not the comments.
       </p>
 

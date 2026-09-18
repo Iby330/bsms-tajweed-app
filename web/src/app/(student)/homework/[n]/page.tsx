@@ -154,8 +154,8 @@ export default async function HomeworkPage({
           <section className="box c12 needs">
             <span className="label" style={{ color: "var(--danger)" }}>Redo</span>
             <p className="note" style={{ marginTop: 6 }}>
-              {redoNotice(sub?.previous_pct ?? null)} Answer every question again
-              — your earlier answers are not shown.
+              {redoNotice(sub?.previous_pct ?? null)} Answer every question again.
+              Your earlier answers are not shown.
             </p>
           </section>
         </div>

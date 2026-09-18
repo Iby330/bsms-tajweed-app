@@ -8,7 +8,7 @@
  */
 export function uploadErrorMessage(message: string): string | null {
   if (/\b413\b|payload too large|size/i.test(message)) {
-    return "That recording is too big — keep it under 25 MB.";
+    return "That recording is too big. Keep it under 25 MB.";
   }
   if (/mime|content.?type/i.test(message)) {
     return "That recording format isn't accepted.";

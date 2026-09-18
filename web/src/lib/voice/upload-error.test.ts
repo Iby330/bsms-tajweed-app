@@ -3,7 +3,7 @@ import { uploadErrorMessage } from "./upload-error";
 
 describe("uploadErrorMessage", () => {
   it("turns the bucket's size refusal into the limit a student can act on", () => {
-    const readable = "That recording is too big — keep it under 25 MB.";
+    const readable = "That recording is too big. Keep it under 25 MB.";
     expect(uploadErrorMessage("The object exceeded the maximum allowed size")).toBe(readable);
     expect(uploadErrorMessage("Payload too large")).toBe(readable);
     expect(uploadErrorMessage("413")).toBe(readable);
