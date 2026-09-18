@@ -17,6 +17,8 @@ type YTNamespace = {
     el: HTMLElement,
     opts: {
       videoId: string;
+      width?: string | number;
+      height?: string | number;
       playerVars?: Record<string, string | number>;
       events?: {
         onReady?: (e: { target: YTPlayer }) => void;
@@ -160,6 +162,11 @@ export function LessonPlayer({
 
       player = new YT.Player(mountRef.current, {
         videoId: youtubeId,
+        // The API replaces this div with an iframe of its own, and that iframe
+        // arrives at a fixed 640x390 unless we ask for these — which on a phone
+        // is wider than the screen and gets cropped by the wrapper.
+        width: "100%",
+        height: "100%",
         playerVars: {
           rel: 0,
           modestbranding: 1,
@@ -221,8 +228,9 @@ export function LessonPlayer({
   return (
     <div className="space-y-3">
       <div className="overflow-hidden rounded-lg border border-line bg-ink">
-        {/* The API replaces this div with the iframe, so the ratio lives on the wrapper. */}
-        <div className="aspect-video w-full">
+        {/* The API replaces this div with the iframe, so the ratio lives on the
+            wrapper — and so does the rule stretching whatever replaces it. */}
+        <div className="aspect-video w-full [&>iframe]:size-full">
           <div ref={mountRef} className="size-full" />
         </div>
       </div>
