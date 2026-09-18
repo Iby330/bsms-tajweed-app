@@ -193,7 +193,7 @@ export function QuestionBreakdown({
                             >
                               {t.correct ? "✓" : ""}
                             </span>
-                            <MixedText text={t.value} className="min-w-0 flex-1" />
+                            <MixedText text={t.value} variant="quran" className="min-w-0 flex-1" />
                             {rows.length > 0 && (
                               <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
                                 {t.count}
@@ -264,7 +264,7 @@ export function QuestionBreakdown({
                               No answer given.
                             </span>
                           ) : (
-                            <MixedText text={text} className="block text-sm leading-relaxed" />
+                            <MixedText text={text} variant="quran" className="block text-sm leading-relaxed" />
                           )}
                         </div>
                         <span className="shrink-0 text-xs tabular-nums text-muted-foreground">

@@ -213,7 +213,7 @@ export function PastAttempts({
                                   .filter((o) => chosen.includes(o.position))
                                   .map((o) => (
                                     <li key={o.position}>
-                                      <MixedText text={o.value} />
+                                      <MixedText text={o.value} variant="quran" />
                                     </li>
                                   ))}
                               </ul>
@@ -236,7 +236,7 @@ export function PastAttempts({
                               </p>
                             )
                           ) : text ? (
-                            <MixedText text={text} className="block leading-relaxed" />
+                            <MixedText text={text} variant="quran" className="block leading-relaxed" />
                           ) : (
                             <p className="italic text-muted-foreground">No answer given.</p>
                           )}

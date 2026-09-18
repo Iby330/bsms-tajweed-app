@@ -179,7 +179,7 @@ export function HomeworkForm({
                           <input type="radio" name={q.id} disabled={readOnly} checked={checked}
                             onChange={() => update(q.id, mcqResponse(o.position))}
                             className="mt-0.5 size-4 accent-[var(--ink)]" />
-                          <MixedText text={o.value ?? o.label} />
+                          <MixedText text={o.value ?? o.label} variant="quran" />
                         </label>
                       </li>
                     );
@@ -202,7 +202,7 @@ export function HomeworkForm({
                               e.target.checked ? [...sel, o.position] : sel.filter((p) => p !== o.position),
                             ))}
                             className="mt-0.5 size-4 accent-[var(--ink)]" />
-                          <MixedText text={o.value ?? o.label} />
+                          <MixedText text={o.value ?? o.label} variant="quran" />
                         </label>
                       </li>
                     );

@@ -395,7 +395,16 @@ body::after {
   unicode-bidi: isolate;
 }
 .ar-quran {
-  font-family: var(--font-quran);
+  /* Uthmanic Hafs FIRST, Amiri only as the fallback.
+     Amiri Quran has no glyph for several marks the Madani text uses — U+06ED,
+     the small low meem that rides with a tanwīn, is the one that bites — and
+     the browser answers a missing glyph by substituting from another face,
+     which draws the mark loose and in the wrong place. Every verse in the
+     question bank is Madani text, so every homework was showing it. The
+     mushaf reader, the tap passage and the class verse had already been moved
+     to this face one at a time; this is the same move for the rule they all
+     share. */
+  font-family: "Uthmanic Hafs", var(--font-quran), serif;
   font-size: 1.35em;
   line-height: 2;
   unicode-bidi: isolate;
@@ -413,10 +422,11 @@ body::after {
 .ar-quran.ar-figure { font-size: clamp(2rem, 3.6vw, 2.7rem); line-height: 1.06; align-self: start; }
 .ar-quran.ar-panel { font-size: 2rem; line-height: 1.4; }
 
-/* The mushaf itself — KFGQPC Uthmanic Hafs, the King Fahd Complex face the
-   printed Madani page is set in. The review reader, the tap
-   passage and the class verse use it; everything else stays on Amiri Quran
-   (--font-quran). */
+/* KFGQPC Uthmanic Hafs, the King Fahd Complex face the printed Madani page is
+   set in. Every Qur'anic run uses it now — `.ar-quran` above names it first —
+   so the reader, the tap passage, the class verse and every verse in a
+   homework question are all set in the same face. Amiri Quran stays behind it
+   as the fallback. */
 @font-face {
   font-family: "Uthmanic Hafs";
   /* woff2 first — a third the size of the ttf, and now that the class verse

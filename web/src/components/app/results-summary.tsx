@@ -216,7 +216,7 @@ export function ResultsSummary({
                     {Math.round(mostMissed.pctOfMax)}%
                   </span>
                 </span>
-                <MixedText text={mostMissed.prompt} className="line-clamp-3 text-sm" />
+                <MixedText text={mostMissed.prompt} variant="quran" className="line-clamp-3 text-sm" />
                 <p className="note">
                   {mostMissed.dropped} of {mostMissed.marked} marked{" "}
                   {mostMissed.marked === 1 ? "script" : "scripts"} dropped a mark here
@@ -244,7 +244,7 @@ export function ResultsSummary({
                       <span className="shrink-0 text-xs uppercase tracking-wider text-muted-foreground">
                         Q{q.n}
                       </span>
-                      <MixedText text={q.prompt} className="line-clamp-2 min-w-0 text-sm" />
+                      <MixedText text={q.prompt} variant="quran" className="line-clamp-2 min-w-0 text-sm" />
                     </span>
                     <span
                       className={cn(

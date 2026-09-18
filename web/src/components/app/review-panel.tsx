@@ -293,7 +293,7 @@ export function ReviewPanel({
                         <span className="w-14 shrink-0 text-xs text-muted-foreground">
                           {picked && o.correct ? "chose ✓" : picked ? "chose ✗" : o.correct ? "answer" : ""}
                         </span>
-                        <MixedText text={o.value} />
+                        <MixedText text={o.value} variant="quran" />
                       </li>
                     );
                   })}
@@ -319,7 +319,7 @@ export function ReviewPanel({
                         </p>
                       )
                     ) : text ? (
-                      <MixedText text={text} className="mt-1.5 block text-sm leading-relaxed" />
+                      <MixedText text={text} variant="quran" className="mt-1.5 block text-sm leading-relaxed" />
                     ) : (
                       <p className="mt-1.5 text-sm italic text-muted-foreground">No answer given.</p>
                     )}
