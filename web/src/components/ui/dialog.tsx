@@ -41,15 +41,26 @@ function DialogOverlay({
 
 function DialogContent({
   className,
+  frameClassName,
   children,
   showCloseButton = true,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
+  frameClassName?: string
 }) {
   return (
     <DialogPortal>
       <DialogOverlay />
+      {/* Two boxes, not one. The Popup is the frame: fixed, height-capped,
+          and it never scrolls, so the close button pinned to it stays on
+          screen however long the sheet gets. The scrolling happens one level
+          in, on dialog-body, which also carries the padding.
+
+          Where a consumer class lands follows one rule: `className` goes on
+          the body, because nearly every call site passes spacing for the
+          children (space-y-*); `frameClassName` goes on the Popup, for the
+          size of the box itself (sm:max-w-md and the like). */}
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         // Below sm this is a bottom sheet, not a centred box: tall dialogs
@@ -59,19 +70,29 @@ function DialogContent({
         // sm:-prefixed on purpose: unprefixed, -translate-x-1/2 would shove
         // the full-width sheet half off the screen.
         className={cn(
-          "fixed z-50 grid w-full gap-4 bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none overflow-y-auto overscroll-contain inset-x-0 bottom-0 max-h-[calc(100dvh-3rem)] rounded-t-2xl pb-[max(1rem,env(safe-area-inset-bottom))] data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-4 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-4 motion-reduce:data-open:animate-none motion-reduce:data-closed:animate-none sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:pb-4 sm:max-h-[calc(100dvh-4rem)] sm:data-open:zoom-in-95 sm:data-open:slide-in-from-bottom-0 sm:data-closed:zoom-out-95 sm:data-closed:slide-out-to-bottom-0",
-          className
+          "fixed z-50 flex w-full flex-col bg-popover text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none inset-x-0 bottom-0 max-h-[calc(100dvh-3rem)] rounded-t-2xl data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-4 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-4 motion-reduce:data-open:animate-none motion-reduce:data-closed:animate-none sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:max-h-[calc(100dvh-4rem)] sm:data-open:zoom-in-95 sm:data-open:slide-in-from-bottom-0 sm:data-closed:zoom-out-95 sm:data-closed:slide-out-to-bottom-0",
+          frameClassName
         )}
         {...props}
       >
-        {children}
+        <div
+          data-slot="dialog-body"
+          className={cn(
+            "grid min-h-0 gap-4 overflow-y-auto overscroll-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4",
+            className
+          )}
+        >
+          {children}
+        </div>
         {showCloseButton && (
+          // On the frame rather than the body, and above it, so it neither
+          // scrolls away nor is painted over by the content passing under.
           <DialogPrimitive.Close
             data-slot="dialog-close"
             render={
               <Button
                 variant="ghost"
-                className="absolute top-2 right-2"
+                className="absolute top-2 right-2 z-10"
                 size="icon-sm"
               />
             }
@@ -90,7 +111,9 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2", className)}
+      // pr-10 keeps the title clear of the close button, which is 44px square
+      // on a phone and sits 8px in from the frame's top right corner.
+      className={cn("flex flex-col gap-2 pr-10", className)}
       {...props}
     />
   )
@@ -108,7 +131,11 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
+        // The negative bottom margin has to cancel the body's own bottom
+        // padding exactly, safe area included, or a strip of popover
+        // background shows under the footer above a home indicator. A sheet
+        // has no bottom corners to round either; the centred dialog does.
+        "-mx-4 -mb-[max(1rem,env(safe-area-inset-bottom))] flex flex-col-reverse gap-2 rounded-b-none border-t bg-muted/50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:-mb-4 sm:flex-row sm:justify-end sm:rounded-b-xl sm:pb-4",
         className
       )}
       {...props}

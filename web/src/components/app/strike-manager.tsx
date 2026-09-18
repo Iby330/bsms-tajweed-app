@@ -121,7 +121,7 @@ export function StrikeManager({
             </button>
           }
         />
-        <DialogContent className="sm:max-w-md">
+        <DialogContent frameClassName="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Issue a strike · {studentName}</DialogTitle>
             <DialogDescription>
