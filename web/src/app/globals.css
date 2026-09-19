@@ -1123,7 +1123,7 @@ body::after {
   .classverse .src { display: block; }
   /* the class's own word, in the accent the masthead already uses for `.hi` */
   .classverse .w { color: var(--brand); }
-  @media (max-width: 900px) { .classverse { max-width: 100%; } }
+  .classverse { @variant max-md { max-width: 100%; } }
 
   /* — the hairline grid: panels share 1px rules, no floating cards — */
   .field {
@@ -1155,7 +1155,10 @@ body::after {
   .c12 { grid-column: span 12 } .c9 { grid-column: span 9 } .c8 { grid-column: span 8 }
   .c7 { grid-column: span 7 } .c6 { grid-column: span 6 } .c5 { grid-column: span 5 }
   .c4 { grid-column: span 4 } .c3 { grid-column: span 3 }
-  @media (max-width: 800px) { .c3,.c4,.c5,.c6,.c7,.c8,.c9 { grid-column: span 12 } }
+  /* Panels collapse to one column where Tailwind's `md:` utilities switch.
+     `max-md` reads the breakpoint from the theme, so the stylesheet and the
+     components can never drift onto two different numbers. */
+  .c3,.c4,.c5,.c6,.c7,.c8,.c9 { @variant max-md { grid-column: span 12 } }
 
   /* — figures: thin, large, on a shared baseline — */
   .stat { display: flex; align-items: baseline; gap: 9px; line-height: 0.84; }
@@ -1167,7 +1170,7 @@ body::after {
   .trend { color: var(--brand); font-weight: 600; }
 
   /* — the same figures, compressed into a single row —
-     Four `.box.c4` tiles stack below 800px, and four stacked tiles at
+     Four `.box.c4` tiles stack below `md`, and four stacked tiles at
      3.4rem each push everything under them off the screen. A strip keeps
      its row at every width and shrinks the figures instead. */
   .statstrip {
@@ -1650,10 +1653,8 @@ body::after {
   .signoff .wm { margin: 0 auto; }
   .signoff .lines { text-align: left; }
   .signoff .lines.right { text-align: right; }
-  @media (max-width: 640px) {
-    .signoff { grid-template-columns: 1fr; justify-items: center; text-align: center; }
-    .signoff .lines, .signoff .lines.right { text-align: center; }
-  }
+  .signoff { @variant max-sm { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
+  .signoff .lines, .signoff .lines.right { @variant max-sm { text-align: center; } }
 }
 
 /* — the report card: term bars legend and the exact-marks table — */
@@ -1789,9 +1790,7 @@ body::after {
     font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em;
     color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums;
   }
-  @media (max-width: 640px) {
-    .timeline li { grid-template-columns: minmax(0, 1fr); }
-  }
+  .timeline li { @variant max-sm { grid-template-columns: minmax(0, 1fr); } }
 
   /* Brothers / sisters within the roster. Quieter than the page-level tabs
      so the two levels stay distinguishable. */
@@ -2063,7 +2062,7 @@ body::after {
             font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase;
             color: var(--brand); text-decoration: none; border-bottom: 1px solid currentColor;
             padding-bottom: 2px; }
-  @media (max-width: 760px) { .detail { grid-template-columns: 1fr; } }
+  .detail { @variant max-md { grid-template-columns: 1fr; } }
 }
 
 /* — the surah being memorised now, in context — */
