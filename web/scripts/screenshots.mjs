@@ -25,6 +25,15 @@
  * `BLOCKED` below refuses the navigation outright, so no discovered link can
  * walk us into one by accident.
  *
+ * ── AD-HOC BROWSER PROBES ─────────────────────────────────────────────────
+ * Need a one-off page probe rather than a screenshot? Do NOT write a throwaway
+ * script in /tmp or the scratchpad: node there resolves neither `playwright`
+ * nor `@playwright/test` by bare name, and the installed `@playwright/test` is
+ * CJS, so an absolute-path ESM import has no named `chromium` export either.
+ * Put the probe under `web/` as a `.cjs` file and
+ * `const { chromium } = require("@playwright/test")`, or just drive this
+ * harness with `--routes`.
+ *
  * ── CREDENTIALS ───────────────────────────────────────────────────────────
  * `login` and `shoot` use, in order:
  *   1. SHOT_STUDENT_EMAIL / SHOT_STUDENT_PASSWORD and
@@ -580,6 +589,11 @@ const STATIC_ROUTES = {
     "/teacher/classes",
     "/teacher/applications",
     "/teacher/deposits",
+    // /teacher/deposits opens on the Money tab, so the roster and costs ledger
+    // tables are never in the bare shot. Tabs are query state; slugFor keeps the
+    // query, so these land as `teacher-deposits?tab=roster.png` etc.
+    "/teacher/deposits?tab=roster",
+    "/teacher/deposits?tab=costs",
     "/account",
   ],
 };
