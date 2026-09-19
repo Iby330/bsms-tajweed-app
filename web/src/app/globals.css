@@ -419,6 +419,25 @@ body::after {
 .ar-inline {
   margin-inline: 0.35em;
 }
+/* A verse being WORKED ON, rather than one being listed or labelled.
+   Prompts and options set at 1.35em come out around 20px against the 15px
+   question text, which is legible for a word but not for a full ayah the
+   student has to scan for a rule — they are counting instances of ikhfā’ in
+   it, mark by mark. `.qn` goes on the question container, so one rule covers
+   the prompt and every option without each call site asking for a size.
+
+   Not the tap-the-word passage: that is `.ar-tap`, already at
+   clamp(1.5rem, 3.4vw, 2rem) with the line-height its tap targets need, and
+   it is untouched by anything here. Not the compact lists either — the
+   results summary clamps its verses to two lines and would break.
+
+   Unlayered on purpose. `.ar-quran` is unlayered, and an unlayered
+   declaration outranks every layered one however specific, so this rule has
+   to sit out here beside it to win. */
+.qn .ar-quran {
+  font-size: 1.7em;
+  line-height: 1.95;
+}
 /* Size variants for the Qur'anic face, here beside the base rule rather than
    with the components that use them. `.ar-quran` above is UNLAYERED, and an
    unlayered declaration outranks every layered one however specific it is —

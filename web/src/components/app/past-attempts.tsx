@@ -174,7 +174,7 @@ export function PastAttempts({
                     const note = voiceByQ.get(q.id);
 
                     return (
-                      <li key={q.id} className="rounded-md border border-line bg-page p-3">
+                      <li key={q.id} className="qn rounded-md border border-line bg-page p-3">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">
                             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
