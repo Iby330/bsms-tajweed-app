@@ -67,7 +67,7 @@ export function TeacherModuleCard({
             aria-label={`Open week ${m.weekNumber}`}
           >
             <ModulePoster youtubeId={poster.youtube_id} series={series} />
-            <span className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2 pt-6 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+            <span className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2 pt-6 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 touch:opacity-100">
               <span aria-hidden>▸</span> {poster.youtube_id ? "Watch" : "Open"}
             </span>
           </Link>

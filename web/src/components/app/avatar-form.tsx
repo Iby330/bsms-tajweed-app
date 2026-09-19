@@ -115,7 +115,7 @@ export function AvatarForm({
         ) : (
           <Camera className="size-6" />
         )}
-        <span className="pointer-events-none absolute inset-0 grid place-items-center bg-black/45 text-[10px] font-semibold tracking-wide text-white opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="pointer-events-none absolute inset-0 grid place-items-center bg-black/45 text-[10px] font-semibold tracking-wide text-white opacity-0 transition-opacity group-hover:opacity-100 touch:bg-black/25 touch:opacity-100">
           {shown ? "CHANGE" : "ADD"}
         </span>
       </button>
