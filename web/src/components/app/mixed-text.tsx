@@ -76,21 +76,37 @@ export function MixedText({
 
   return (
     <span className={className}>
-      {lines.map((line, li) => (
-        <span key={li} className={multi ? "block" : undefined}>
-          {splitRuns(line).map((run, i) =>
-            run.ar ? (
-              <span key={i} dir="rtl" lang="ar" className={arClass}>
-                {run.text}
-              </span>
-            ) : (
-              <span key={i} dir="ltr">
-                {run.text}
-              </span>
-            ),
-          )}
-        </span>
-      ))}
+      {lines.map((line, li) => {
+        const runs = splitRuns(line);
+        // An Arabic run sharing its line with English is being read INSIDE an
+        // English sentence — "which rule applies to نْ here?" — and the eye
+        // needs a beat either side of it to switch direction and switch back.
+        // A line that is nothing but Arabic is a verse on its own line and
+        // wants no such indent, so the spacing is asked for per line rather
+        // than set on `.ar-quran` for every run in the app.
+        const inlineMix = runs.some((r) => r.ar) && runs.some((r) => !r.ar && r.text.trim());
+
+        return (
+          <span key={li} className={multi ? "block" : undefined}>
+            {runs.map((run, i) =>
+              run.ar ? (
+                <span
+                  key={i}
+                  dir="rtl"
+                  lang="ar"
+                  className={inlineMix ? `${arClass} ar-inline` : arClass}
+                >
+                  {run.text}
+                </span>
+              ) : (
+                <span key={i} dir="ltr">
+                  {run.text}
+                </span>
+              ),
+            )}
+          </span>
+        );
+      })}
     </span>
   );
 }

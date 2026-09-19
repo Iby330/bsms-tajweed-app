@@ -409,6 +409,16 @@ body::after {
   line-height: 2;
   unicode-bidi: isolate;
 }
+/* An Arabic run quoted mid-sentence, set by <MixedText> only when the line
+   also carries English. `unicode-bidi: isolate` already stops the run from
+   reordering the Latin around it, but isolation is a bidi rule, not a spatial
+   one: the two scripts still butt up against each other and the reader gets no
+   signal that direction is about to flip. A third of a space either side is
+   enough to read as a quotation. It is deliberately NOT on `.ar-quran`
+   itself — a verse alone on its line would then carry a stray indent. */
+.ar-inline {
+  margin-inline: 0.35em;
+}
 /* Size variants for the Qur'anic face, here beside the base rule rather than
    with the components that use them. `.ar-quran` above is UNLAYERED, and an
    unlayered declaration outranks every layered one however specific it is —
