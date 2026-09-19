@@ -3,7 +3,7 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, fireEvent, cleanup } from "@testing-library/react";
 import { HoverTip } from "./hover-tip";
 
-/** jsdom's matchMedia always reports false — stub it to claim the opposite. */
+/** jsdom's matchMedia always reports false. Stub it to claim the opposite. */
 function stubHoverNone(none: boolean) {
   vi.stubGlobal("matchMedia", (query: string) => ({
     matches: query.includes("hover: none") ? none : false,
