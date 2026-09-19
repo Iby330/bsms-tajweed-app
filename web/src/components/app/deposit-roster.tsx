@@ -8,7 +8,15 @@ import {
   addPayment, deleteEntry, removeLastPayment, setEntryNotes, setStillIn, setStrikeCount,
 } from "@/lib/deposits/actions";
 import type { DepositRow } from "@/lib/deposits/queries";
+import { DEPOSIT_COLS, type DepositColKey } from "@/lib/deposits/columns";
 import { AddPersonForm } from "@/components/app/season-figures";
+
+/** Every cell carries its column's key and label: the header is what a mouse
+ *  reads, the label is what the phone's card layout prints above the value. */
+function cell(key: DepositColKey, extra?: string) {
+  const col = DEPOSIT_COLS.find((c) => c.key === key)!;
+  return { "data-col": key, "data-label": col.label, className: cn(col.align, extra) };
+}
 
 /**
  * The roster, as a table rather than a list of cards.
@@ -17,7 +25,8 @@ import { AddPersonForm } from "@/components/app/season-figures";
  * screens, which is legible but reads as noise once there are seventy of them.
  * A real table puts the names once along the top and lets the eye run down a
  * column — which is the one thing a spreadsheet does well and the reason this
- * screen is replacing one.
+ * screen is replacing one. Under 768px the CSS folds the same rows back into
+ * cards, where eleven columns cannot fit.
  */
 function EntryRow({ row, price }: { row: DepositRow; price: number }) {
   const [pending, startTransition] = useTransition();
@@ -29,8 +38,8 @@ function EntryRow({ row, price }: { row: DepositRow; price: number }) {
   const run = (fn: () => Promise<unknown>) => startTransition(() => void fn());
 
   return (
-    <tr className={cn(!stillIn && "out", pending && "opacity-60")}>
-      <td className="nm">
+    <tr role="row" className={cn(!stillIn && "out", pending && "opacity-60")}>
+      <td role="cell" {...cell("name", "nm")}>
         <span className="flex items-center gap-2">
           <span className="font-semibold">{row.full_name}</span>
           {!row.student_id && (
@@ -44,7 +53,7 @@ function EntryRow({ row, price }: { row: DepositRow; price: number }) {
         </span>
       </td>
 
-      <td className="c">
+      <td role="cell" {...cell("in")}>
         <button
           type="button"
           className="yn"
@@ -62,15 +71,15 @@ function EntryRow({ row, price }: { row: DepositRow; price: number }) {
         </button>
       </td>
 
-      <td className="r font-semibold">£{row.total.toFixed(2)}</td>
+      <td role="cell" {...cell("total", "font-semibold")}>£{row.total.toFixed(2)}</td>
 
       {/* What they actually paid, not the current price — those differ the
           moment the deposit is re-priced mid-year. */}
-      <td className="r">
+      <td role="cell" {...cell("first")}>
         {row.first_amount === null ? "–" : `£${row.first_amount.toFixed(2)}`}
       </td>
 
-      <td className="c">
+      <td role="cell" {...cell("reentry")}>
         {row.re_entries > 0 ? (
           <span className="tabular-nums">{row.re_entries}</span>
         ) : (
@@ -78,7 +87,7 @@ function EntryRow({ row, price }: { row: DepositRow; price: number }) {
         )}
       </td>
 
-      <td className="c">
+      <td role="cell" {...cell("pay")}>
         <span className="flex items-center justify-center gap-0.5">
           {/* The price is named here rather than left implicit: it is the one
               place the season's deposit figure actually bites, so it should be
@@ -102,7 +111,7 @@ function EntryRow({ row, price }: { row: DepositRow; price: number }) {
       </td>
 
       {([1, 2, 3] as const).map((term) => (
-        <td key={term} className="c">
+        <td key={term} role="cell" {...cell(`t${term}`)}>
           <Input
             type="number" min={0} max={9}
             aria-label={`Term ${term} strikes for ${row.full_name}`}
@@ -115,14 +124,14 @@ function EntryRow({ row, price }: { row: DepositRow; price: number }) {
             }}
             onBlur={() => run(() => setStrikeCount(row.id, term, strikes[term - 1]))}
             className={cn(
-              "h-6 w-10 px-1 text-center tabular-nums",
+              "h-10 w-10 px-1 text-center tabular-nums md:h-6",
               strikes[term - 1] >= 3 && "border-danger/50 text-danger",
             )}
           />
         </td>
       ))}
 
-      <td>
+      <td role="cell" {...cell("notes")}>
         <Input
           value={notes} disabled={pending} placeholder="–"
           aria-label={`Notes for ${row.full_name}`}
@@ -131,11 +140,11 @@ function EntryRow({ row, price }: { row: DepositRow; price: number }) {
           title={notes || undefined}
           onChange={(e) => setNotes(e.target.value)}
           onBlur={() => run(() => setEntryNotes(row.id, notes))}
-          className="h-6 w-full min-w-[7rem] border-transparent bg-transparent px-1 text-sm hover:border-line focus:border-line"
+          className="h-10 w-full border-transparent bg-transparent px-1 text-sm hover:border-line focus:border-line md:h-6 md:min-w-[7rem]"
         />
       </td>
 
-      <td className="c">
+      <td role="cell" {...cell("remove")}>
         {/* Two taps to delete. The Y/N above is how someone leaves the course;
             this is only for a row that should never have been here. */}
         {confirming ? (
@@ -232,23 +241,20 @@ export function DepositRoster({
               </span>
             </div>
             <div className="twrap">
-              <table className="ledger">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th className="c">In</th>
-                    <th className="r">Total</th>
-                    <th className="r">First</th>
-                    <th className="c">Re-ent</th>
-                    <th className="c">Pay</th>
-                    <th className="c">T1</th>
-                    <th className="c">T2</th>
-                    <th className="c">T3</th>
-                    <th>Notes</th>
-                    <th className="c" />
+              {/* The roles are spelled out because the phone layout changes
+                  `display`, and Chrome drops a table's implicit semantics the
+                  moment it does. */}
+              <table className="ledger" role="table">
+                <thead role="rowgroup">
+                  <tr role="row">
+                    {DEPOSIT_COLS.map((col) => (
+                      <th key={col.key} role="columnheader" className={cn(col.align)}>
+                        {col.label}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody role="rowgroup">
                   {group.map((row) => (
                     <EntryRow key={row.id} row={row} price={price} />
                   ))}

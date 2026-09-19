@@ -1831,9 +1831,9 @@ body::after {
      ring has to be the pale letterform colour to be visible at all. */
   .railbtn:focus-visible { outline-color: var(--sidebar-foreground); }
 
-  /* Pointer affordances. This is a desktop-first tool, so these matter less
-     than the focus rings above — but they cost nothing and help on the
-     touchscreen laptops and tablets that do get used. */
+  /* Pointer affordances. The desk work is still done at a desktop, but below
+     768px these same rows read as cards on a phone (see the end of this
+     block), so touch is a way in rather than an afterthought. */
   .iconbtn, .tickbox, .yn, .railbtn,
   table.ledger button, .timeline button {
     touch-action: manipulation;
@@ -1862,6 +1862,70 @@ body::after {
                          background: color-mix(in oklab, var(--ok) 15%, transparent); color: var(--ok); }
   .yn:hover { transform: scale(1.06); }
   .yn:disabled { opacity: .45; cursor: default; transform: none; }
+
+  /* ---- the phone: the same table, read as cards -----------------------
+     Eleven columns will not fit 390px, and side-scrolling a sheet to reach
+     an 18px tickbox is not a control anyone can work one-handed. One DOM
+     serves both: only `display` changes here, the row components and their
+     optimistic state are the same, and each cell prints the header it lost
+     from its own `data-label`. Layered, not unlayered, because this only
+     restyles the table and must not fight a utility at a call site. */
+  @media (max-width: 767px) {
+    table.ledger, table.ledger tbody, table.ledger tfoot { display: block; }
+    /* The labels come from data-label, so the header row is dead weight. */
+    table.ledger thead { display: none; }
+    table.ledger tbody tr {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px 12px;
+      padding: 14px 0; border-bottom: 1px solid var(--hair);
+    }
+    table.ledger td {
+      display: block; padding: 0; border: 0; position: static; text-align: left;
+    }
+    /* The `r` and `c` classes align a column against its neighbours; in a card
+       there are no neighbours, only a label and the value under it. */
+    table.ledger td.r, table.ledger td.c { text-align: left; }
+    table.ledger td[data-label]::before {
+      content: attr(data-label); display: block; margin-bottom: 2px;
+      font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--ink-3);
+    }
+    /* The name heads the card and the delete button closes it; neither needs
+       a label to say so. */
+    table.ledger td[data-col="name"],
+    table.ledger td[data-col="what"] { grid-column: 1 / 3; font-weight: 600; }
+    /* Nowrap is what keeps the desktop rows the same height; in a card it is
+       just a name running off the side of the phone. */
+    table.ledger td[data-col="name"] { white-space: normal; }
+    table.ledger td[data-col="name"]::before,
+    table.ledger td[data-col="what"]::before,
+    table.ledger td[data-col="remove"]::before { content: none; }
+    table.ledger td[data-col="in"],
+    table.ledger td[data-col="repaid"] { grid-column: 3; justify-self: end; }
+    /* Pinned to the first row so the tick sits beside what it was spent on,
+       rather than being flowed after the category. */
+    table.ledger td[data-col="repaid"] { grid-row: 1; }
+    table.ledger td[data-col="notes"] { grid-column: 1 / -1; }
+    /* The pay buttons centre themselves inside a centred column; in a card
+       they belong under their label. */
+    table.ledger td[data-col="pay"] > span { justify-content: flex-start; }
+    table.ledger td[data-col="remove"] { grid-column: 3; justify-self: end; }
+    /* The empty-state line spans the card rather than sitting in column one. */
+    table.ledger tbody td[colspan] { grid-column: 1 / -1; }
+    table.ledger tbody tr:hover td { background: transparent; }
+    table.ledger tr.band { display: block; }
+    table.ledger tr.band th { display: block; position: static; }
+    table.ledger tfoot tr {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px 12px;
+      padding: 14px 0; border-top: 1px solid var(--foreground);
+    }
+    table.ledger tfoot td { display: block; border: 0; padding: 0; }
+    table.ledger tfoot td[data-col="count"] { grid-column: 1 / 3; }
+    table.ledger tfoot td[data-col="total"] { grid-column: 3; justify-self: end; }
+    /* The 18 and 22px targets of a mouse tool, sized for a thumb. */
+    .tickbox { width: 28px; height: 28px; }
+    .iconbtn { width: 40px; height: 40px; }
+    .yn { min-height: 36px; min-width: 48px; }
+  }
 }
 
 /* — hifz: the year as a mushaf index — */
