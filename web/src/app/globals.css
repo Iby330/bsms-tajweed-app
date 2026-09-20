@@ -7,18 +7,29 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-archivo);
+  /* Helvetica Neue is the brand face — see docs/brand-system.md. It is not a
+     webfont and does not need to be: on the iPhones and Macs most of the
+     cohort carry this resolves to the real face with nothing to download, and
+     Arial substitutes at near-identical metrics everywhere else, so line
+     breaks hold. The social posts are set in it; the product now matches. */
+  --font-sans: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
+  --font-heading: var(--font-sans);
+  /* Sticky-note device only (docs/brand-system.md). Times New Roman MT
+     Condensed is a Monotype licence, so the web falls back to plain Times —
+     same family, not condensed, present on every machine. */
+  --font-note: "Times New Roman MT Condensed", "Times New Roman", Times, serif;
   /* "Geist Mono" by name, NOT var(--font-geist-mono).
      Geist Mono carries no Latin Extended — not ā, not ū, not ṣ, not ṭ — and
      this programme's vocabulary is full of them, in exactly the uppercase
      labels this token sets: FĀṬIR 35:33, ṢIFĀT, MUDŪD. Archivo has them all,
-     so it is named next.
+     so it is named next. THIS is the only reason the Archivo webfont is still
+     loaded now that --font-sans is a system stack: do not drop the import
+     without checking those glyphs survive in whatever replaces it.
      The variable cannot be used here: next/font packs a metric-matched
      "Geist Mono Fallback" inside it, which is local Arial carrying no
      unicode-range, so it answers for every missing glyph before Archivo is
      ever consulted. That is what set the Ṭ in Arial mid-label. */
   --font-mono: "Geist Mono", var(--font-archivo), ui-monospace, monospace;
-  --font-heading: var(--font-archivo);
   --font-arabic: var(--font-plex-arabic);
   --font-quran: var(--font-amiri-quran);
   /* brand tokens → Tailwind utilities (bg-ink, text-ok, border-line, …) */
@@ -203,6 +214,18 @@
    ──────────────────────────────────────────────────────────────────── */
 
 :root[data-brand="navy"] {
+  /* Sage, the brand's third colour. Four tokens rather than one, because the
+     same green cannot be text in one mode and a fill in the other — no colour
+     can: navy text needs the fill bright, lavender text needs it dark, and
+     those two requirements do not overlap at any hue. See
+     docs/brand-system.md. Note --tertiary-surface and --tertiary-foreground
+     are IDENTICAL in both modes on purpose: an accent chip keeps its own
+     foreground the way a road sign does not change colour at night. */
+  --tertiary: #404d1f;             /* sage-700, as text on lavender  7.39:1 */
+  --tertiary-surface: #b2c58c;     /* sage-300, the brand sage as a fill    */
+  --tertiary-foreground: #00004d;  /* navy on that fill             10.17:1 */
+  --tertiary-muted: #dbeac0;       /* sage-100, tints and hovers            */
+
   /* raw brand — the wordmark inverted: navy on pale lavender */
   --ink: #00004d;
   --ink-2: #3a3a85;
@@ -273,6 +296,14 @@
 }
 
 :root[data-brand="navy"].dark {
+  /* Sage again. Only --tertiary moves: on a navy ground the brand sage IS
+     readable as text at 10.17:1, so it needs no darkening. The fill and its
+     foreground deliberately do not flip. */
+  --tertiary: #b2c58c;             /* sage-300, as text on navy     10.17:1 */
+  --tertiary-surface: #b2c58c;     /* unchanged — the chip is a light island */
+  --tertiary-foreground: #00004d;  /* still navy                    10.17:1 */
+  --tertiary-muted: #273207;       /* sage-800, tints and hovers            */
+
   /* the wordmark as it stands — open the app and it is the logo */
   --ink: #e5e5ff;
   --ink-2: #a8a8dc;
