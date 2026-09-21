@@ -1,5 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, IBM_Plex_Sans_Arabic, Amiri_Quran, Geist_Mono } from "next/font/google";
+import {
+  Archivo,
+  IBM_Plex_Sans_Arabic,
+  Amiri_Quran,
+  Geist_Mono,
+  Fraunces,
+} from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { headers } from "next/headers";
 import { SURFACE_HEADER } from "@/lib/theme/surface";
@@ -46,6 +52,29 @@ const amiriQuran = Amiri_Quran({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// The display serif, and ONLY for display. The brand voice is still Helvetica
+// Neue — this does not touch `--font-heading`, so nothing in the product
+// changes. It is loaded here because next/font has to run at the module top
+// level, and used by the marketing pages alone, where a page has to hold a
+// visitor who owes us nothing rather than serve a student who is already in.
+//
+// No `weight`, for the same reason Archivo above has none: pinning it
+// downloads fixed cuts, and this page runs 300 for headlines against 400 for
+// the figures in the stat row. Omitting it ships the variable axis so both
+// render instead of snapping to whichever cut was fetched.
+//
+// `axes` is also why `weight` cannot be here — next/font rejects the pair, and
+// the build fails on it rather than warning. `opsz` earns its place: it is
+// what stops a 58px headline and a 22px card title being the same drawing at
+// two sizes, which is most of what makes a display serif look drawn rather
+// than stretched.
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  axes: ["opsz"],
 });
 
 export const metadata: Metadata = {
@@ -117,7 +146,7 @@ export default async function RootLayout({
     <html
       lang="en"
       data-brand="navy"
-      className={`${archivo.variable} ${plexArabic.variable} ${amiriQuran.variable} ${geistMono.variable} h-full${darkOnly ? " dark" : ""}`}
+      className={`${archivo.variable} ${plexArabic.variable} ${amiriQuran.variable} ${geistMono.variable} ${fraunces.variable} h-full${darkOnly ? " dark" : ""}`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col antialiased">

@@ -45,6 +45,25 @@ const PUBLIC_PATHS = [
   "/reset-password",
   "/welcome",
   "/auth/confirm",
+  /* A design surface, not a product route: the hero animation on its own so
+     it can be opened and screenshotted while it is being worked on. It reads
+     no data and shows nothing a signed-out visitor could not see on the
+     landing page. */
+  "/preview/hero",
+  /* The landing page being designed, before it replaces the splash at "/".
+     Same reasoning: it reads no data and says nothing a signed-out visitor
+     would not read on the real landing page. It carries noindex, so it is
+     reachable by link and by nothing else. */
+  "/preview/landing",
+  /* The shaped glyph geometry the hero animates, drawn flat. A build artifact
+     made visible: no data, no text a visitor could not read in the mushaf.
+     It is also the page a teacher reviews the rule marking on, which is a
+     reason to keep it reachable without an account. */
+  "/preview/geometry",
+  /* The hero animation full-bleed, for tuning the motion. Same reasoning as
+     the others: no data, nothing a signed-out visitor could not see on the
+     landing page itself. */
+  "/preview/ayah",
 ];
 
 export async function proxy(request: NextRequest) {
