@@ -96,34 +96,42 @@ const PAINT: Array<Map<number, GlyphPaint[]>> = baked.sections.map((s, si) => {
 });
 
 /**
- * The key entries for each section: one per rule NAME, in the order the ball
- * reaches them. Each keeps every instance's own words separately, so an entry
- * lights only while the ball is on a word that rule covers — a Qalqalah on
- * word 4 and another on word 6 light twice, with the key dark on word 5 in
- * between, instead of staying lit across all three.
+ * The key: EVERY rule named in the ayah, one entry per rule name, in the order
+ * the ball first reaches them. It never changes — the whole set is on screen
+ * from the first frame to the last, and an entry brightens while the ball is
+ * on a word that rule covers.
+ *
+ * Each entry keeps every instance separately, per section, so it lights only
+ * for that instance's own words: a Qalqalah on word 4 and another on word 6
+ * light twice with the key dark on word 5, instead of staying lit across all
+ * three (which is what grouping by mushaf colour used to do).
  */
-type KeyEntry = { label: string; colour: string; first: number; spans: number[][] };
-const SECTION_KEYS: KeyEntry[][] = baked.sections.map((s, si) => {
-  const meta = MAIDAH_95[si];
+type KeyEntry = { label: string; colour: string; spans: number[][][] };
+const KEY: KeyEntry[] = (() => {
   const byLabel = new Map<string, KeyEntry>();
-  for (const r of s.rules) {
-    const rule = meta.rules.find((x) => x.id === r.id);
-    if (!rule) continue;
-    const words = [...new Set(r.g.map((gi) => s.glyphs[gi].w))];
-    const label = keyLabel(rule);
-    const sw = swatchFor(rule);
-    const entry = byLabel.get(label) ?? {
-      label,
-      colour: sw ? SWATCH[sw].hex : SAGE,
-      first: Infinity,
-      spans: [],
-    };
-    entry.first = Math.min(entry.first, ...words);
-    entry.spans.push(words);
-    byLabel.set(label, entry);
-  }
-  return [...byLabel.values()].sort((a, b) => a.first - b.first);
-});
+  baked.sections.forEach((s, si) => {
+    const meta = MAIDAH_95[si];
+    for (const r of s.rules) {
+      const rule = meta.rules.find((x) => x.id === r.id);
+      if (!rule) continue;
+      const label = keyLabel(rule);
+      const sw = swatchFor(rule);
+      const entry = byLabel.get(label) ?? {
+        label,
+        colour: sw ? SWATCH[sw].hex : SAGE,
+        spans: baked.sections.map(() => []),
+      };
+      entry.spans[si].push([...new Set(r.g.map((gi) => s.glyphs[gi].w))]);
+      byLabel.set(label, entry);
+    }
+  });
+  // Map insertion order is first-reached order: sections in sequence, and
+  // within a section in rule order — so the key reads the way the ball moves.
+  return [...byLabel.values()];
+})();
+
+/** Phone labels drop "counts" — "Madd Asli · 2" — so three fit to a row. */
+const shortLabel = (label: string) => label.replace(/ counts?$/, "");
 
 export const TajweedAyah: React.FC<{
   variant?: Variant;
@@ -185,30 +193,17 @@ export const TajweedAyah: React.FC<{
         />
       ) : null}
 
-      {/* The key follows its section out and the next one in, like the verse,
-          so its entries never swap while visible. Without the gloss it rises
-          toward the verse it explains; on the page, whatever sits below the
-          hero must not read as the key's caption. */}
+      {/* One key for the whole piece. It does not fade with the sections —
+          only its highlights change — so the set of rules is always there to
+          read. Without the gloss it rises toward the verse it explains. */}
       <Key
         si={current.section}
         t={t}
-        opacity={1 - outP}
         width={width}
         height={height}
         mobile={mobile}
-        lift={gloss ? 0 : mobile ? 0 : 0.06}
+        lift={gloss ? 0 : mobile ? 0 : 0.05}
       />
-      {inP > 0 ? (
-        <Key
-          si={next.section}
-          t={next.start}
-          opacity={inP}
-          width={width}
-          height={height}
-          mobile={mobile}
-          lift={gloss ? 0 : mobile ? 0 : 0.06}
-        />
-      ) : null}
     </AbsoluteFill>
   );
 };
@@ -432,22 +427,26 @@ const Gloss: React.FC<{ si: number; mobile: boolean }> = ({ si, mobile }) => (
 );
 
 /**
- * The key: the rules in THIS section, by name, dimmed; the one the ball is on
- * brightens. Section-scoped because the ayah names about eighteen different
- * rules — far too many to show at once without crowding the verse — while no
- * section carries more than seven.
+ * All sixteen rules, dimmed, the live one bright.
+ *
+ * Laid out as centred rows that WRAP, not a grid: the labels run from "Iqlab"
+ * to "Madd Muttasil · 4 counts", and a grid sizes every column to its widest
+ * label, which wastes a row or two. Nothing reflows while it plays — the list
+ * is fixed and lighting an entry changes only colour and a transform.
  */
 const Key: React.FC<{
   si: number;
   t: number;
-  opacity: number;
   width: number;
   height: number;
   mobile: boolean;
   lift: number;
-}> = ({ si, t, opacity, width, height, mobile, lift }) => {
+}> = ({ si, t, width, height, mobile, lift }) => {
   const beat = TIMELINE.sections[si];
-  const entries = SECTION_KEYS[si];
+  /* Sized for the SCALED result, not the composition: the phone composition
+     is 1080 wide and lands at roughly 375–430 CSS px, so 33 here is ~12px. */
+  const font = mobile ? 33 : 24;
+  const dot = mobile ? 22 : 18;
 
   return (
     <div
@@ -455,49 +454,46 @@ const Key: React.FC<{
         position: "absolute",
         left: 0,
         right: 0,
-        bottom: height * ((mobile ? 0.08 : 0.07) + lift),
-        display: "grid",
-        gridTemplateColumns: mobile ? "repeat(2, auto)" : "repeat(4, auto)",
+        bottom: height * ((mobile ? 0.06 : 0.07) + lift),
+        display: "flex",
+        flexWrap: "wrap",
         justifyContent: "center",
-        columnGap: mobile ? 48 : width * 0.028,
-        rowGap: mobile ? 26 : 18,
-        opacity,
-        padding: `0 ${width * 0.07}px`,
+        columnGap: mobile ? 34 : 40,
+        rowGap: mobile ? 14 : 12,
+        padding: `0 ${width * (mobile ? 0.05 : 0.09)}px`,
       }}
     >
-      {entries.map((e) => {
+      {KEY.map((e) => {
         let on = 0;
-        for (const words of e.spans) on = Math.max(on, ruleIntensity(beat, t, words));
+        for (const words of e.spans[si]) on = Math.max(on, ruleIntensity(beat, t, words));
         return (
           <div
             key={e.label}
             style={{
               display: "flex",
               alignItems: "center",
-              gap: mobile ? 10 : 14,
-              opacity: 0.3 + on * 0.7,
+              gap: mobile ? 9 : 12,
+              opacity: 0.32 + on * 0.68,
             }}
           >
             <span
               style={{
-                width: mobile ? 24 : 20,
-                height: mobile ? 24 : 20,
+                width: dot,
+                height: dot,
                 borderRadius: "50%",
                 background: e.colour,
                 flex: "none",
-                transform: `scale(${1 + on * 0.25})`,
+                transform: `scale(${1 + on * 0.3})`,
               }}
             />
             <span
               style={{
                 color: on > 0.5 ? LAVENDER : LAV_MUTED,
-                /* Sized for the SCALED result, not the composition: 1080 wide
-                   lands at ~375 on a phone, so 34 here is ~12 CSS px. */
-                font: `${mobile ? 34 : 26}px/1.2 -apple-system, system-ui, sans-serif`,
+                font: `${font}px/1.2 -apple-system, system-ui, sans-serif`,
                 whiteSpace: "nowrap",
               }}
             >
-              {e.label}
+              {mobile ? shortLabel(e.label) : e.label}
             </span>
           </div>
         );

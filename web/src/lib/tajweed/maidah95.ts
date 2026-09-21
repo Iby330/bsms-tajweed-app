@@ -174,7 +174,7 @@ export const MAIDAH_95: readonly Section[] = [
         kind: "madd",
         name: "Madd Asli",
         arabic: "مد أصلي",
-        gloss: "The natural madd on the waw of ءَامَنُوا۟: two counts, no more.",
+        gloss: "The natural madd on the alif after the hamzah and on the waw of ءَامَنُوا۟: two counts, no more.",
         from: 2,
         to: 2,
         counts: "2 counts",

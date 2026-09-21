@@ -87,7 +87,12 @@ export const LETTERS: Record<string, LetterSpan[]> = {
   "s1-idgham": [{ w: 7, t: "ٌ" }],
   // Madd Asli: the madd letter itself lights, not the letter carrying the vowel.
   "s1-asli-1": [{ w: 1, t: "ي" }],
-  "s1-asli-2": [{ w: 2, t: "و" }],
+  // Both madds in ءَامَنُوا۟: the alif after the hamzah, and the waw after the
+  // nun. The FIRST alif (nth 0); the last one carries the silent ring.
+  "s1-asli-2": [
+    { w: 2, t: "ا", nth: 0 },
+    { w: 2, t: "و" },
+  ],
   "s1-asli-3": [{ w: 3, t: "ا" }],
 
   /* ── s2 · وَمَن قَتَلَهُۥ مِنكُم مُّتَعَمِّدًا فَجَزَآءٌ مِّثْلُ مَا قَتَلَ مِنَ ٱلنَّعَمِ ── */
