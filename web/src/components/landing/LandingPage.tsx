@@ -625,8 +625,28 @@ html {
    button all land on the first screen of a typical handset; on a short one
    the screen simply runs past the fold, which proximity snapping allows. */
 @media (max-width: 767px) {
-  .lp-hero { flex: none; height: min(122vw, 60svh); min-height: 0; }
-  .lp-intro { padding: 12px 20px 36px; }
+  /* iOS Safari floats its address bar OVER the bottom of the page rather than
+     shrinking the viewport, so anything laid out to end at the fold sits under
+     it — which is exactly where "Apply to join" was. So on a phone:
+       · screen one is the SMALLEST viewport (svh), which does not jump as the
+         bar shows and hides;
+       · the intro reserves the bar's zone at the bottom (plus the home
+         indicator inset where the browser reports one);
+       · the hero flexes into whatever is left, capped at the size it had, so
+         a tall phone keeps the full verse and a short one gives up a little
+         height rather than letting the button slide under the bar. */
+  .lp-screen-top { min-height: 100svh; }
+  .lp-hero { flex: 1 1 0; height: auto; min-height: 300px; max-height: 122vw; }
+  /* Scoped under .lp-screen-top on purpose: the base .lp-intro rule is
+     declared further down this stylesheet, and at equal specificity it won —
+     silently discarding this padding on every phone. */
+  .lp-screen-top .lp-intro { padding: 8px 20px calc(104px + env(safe-area-inset-bottom, 0px)); }
+}
+/* A short phone (the SE and its like) cannot hold the verse, the key, a
+   two-line headline, a three-line subline AND clear the bar. The subline is
+   the one thing that is said again lower down, so it is what gives way. */
+@media (max-width: 767px) and (max-height: 700px) {
+  .lp-screen-top .lp-intro > p { display: none; }
 }
 .lp-shot .lp-hero { flex: 0 0 560px; }
 .lp-shot, .lp-shot .lp-screen, .lp-shot .lp-band { min-height: 0; }
