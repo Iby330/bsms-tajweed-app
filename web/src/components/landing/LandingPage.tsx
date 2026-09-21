@@ -121,7 +121,8 @@ const QUESTIONS = [
 const INCLUDED = [
   "Two taught evenings a week",
   "Weekly homework, marked",
-  "Voice notes from your teacher",
+  "Weekly reflections",
+  "In-person teaching",
   "Hifdh tracking and revision dates",
   "A teacher you can ask directly",
   "Termly events",
