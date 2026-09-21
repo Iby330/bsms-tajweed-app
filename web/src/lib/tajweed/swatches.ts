@@ -181,3 +181,51 @@ export function swatchFor(rule: RuleLike): SwatchKey | null {
 
   return null; // makhraj, and anything new
 }
+
+/**
+ * What the key calls a rule.
+ *
+ * The key names RULES, not the mushaf's colour groups. It used to show the
+ * eight printed swatches, which made Idgham, Iqlab, Ikhfa' and Ghunnah all
+ * light up as "Ikhfa' and ghunnah", put Hamzat al-Wasl under "what is not
+ * pronounced", and left rules the mushaf does not colour (the heavy lam,
+ * Idhar) with no entry at all. Worse, two rules sharing a colour shared one
+ * entry, so a Qalqalah on word 4 and another on word 6 kept the key lit
+ * through word 5. The teacher's review asked for each rule by name; the
+ * letters keep their mushaf colours.
+ *
+ * Names follow the teacher's usage: Madd Asli rather than Tabi'i, Idhar with a
+ * D, both idghams of the nun simply "Idgham", every variant of ikhfa' simply
+ * "Ikhfa'".
+ */
+export function keyLabel(rule: RuleLike): string {
+  const { kind, name, counts } = rule;
+  switch (kind) {
+    case "madd":
+      if (name.includes("Muttasil")) return counts ? `Madd Muttasil · ${counts}` : "Madd Muttasil";
+      if (name.includes("Leen")) return "Madd Leen";
+      if (name.includes("Asli")) return "Madd Asli · 2 counts";
+      if (name.includes("'Arid")) return "Madd 'Arid";
+      return name;
+    case "ikhfa":
+      return "Ikhfa'";
+    case "ghunnah":
+      return "Ghunnah";
+    case "iqlab":
+      return "Iqlab";
+    case "qalqalah":
+      return "Qalqalah";
+    case "idgham":
+      return name.includes("Shafawi") ? "Idgham Shafawi" : "Idgham";
+    case "izhar":
+      return name.includes("Shafawi") ? "Idhar Shafawi" : "Idhar Halqi";
+    case "hamzah":
+      return name.includes("Wasl") ? "Hamzat al-Wasl" : name;
+    case "lam":
+      return name.includes("heavy") ? "Heavy lam" : name;
+    case "raa":
+      return name.includes("Mufakhkhamah") ? "Heavy raa" : "Light raa";
+    default:
+      return name;
+  }
+}

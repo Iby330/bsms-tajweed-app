@@ -18,7 +18,7 @@ import { TajweedAyah } from "./TajweedAyah";
 import baked from "@/lib/tajweed/maidah95.geometry.json";
 import { MAIDAH_95, type Rule } from "@/lib/tajweed/maidah95";
 import { LETTERS } from "@/lib/tajweed/maidah95.letters";
-import { SWATCH, SAGE, swatchFor } from "@/lib/tajweed/swatches";
+import { SWATCH, SAGE, swatchFor, keyLabel } from "@/lib/tajweed/swatches";
 import { TIMELINE, FPS, ruleWindow } from "@/lib/tajweed/timeline";
 
 const NAVY = "#00004D";
@@ -309,7 +309,7 @@ function RuleLine({ row, si, w }: { row: RuleRow; si: number; w: number }) {
           ) : null}
         </div>
         <div style={{ color: MUTED, fontSize: 12 }}>
-          {colourName}
+          key: <span style={{ color: LAVENDER }}>{keyLabel(rule)}</span> · {colourName}
           {letters ? (
             <>
               {" "}

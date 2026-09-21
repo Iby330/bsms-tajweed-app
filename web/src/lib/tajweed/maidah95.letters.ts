@@ -85,6 +85,10 @@ export const LETTERS: Record<string, LetterSpan[]> = {
   "s1-ikhfa": [{ w: 6, t: "نت" }],
   // The tanween that merges into the waw opening the next section.
   "s1-idgham": [{ w: 7, t: "ٌ" }],
+  // Madd Asli: the madd letter itself lights, not the letter carrying the vowel.
+  "s1-asli-1": [{ w: 1, t: "ي" }],
+  "s1-asli-2": [{ w: 2, t: "و" }],
+  "s1-asli-3": [{ w: 3, t: "ا" }],
 
   /* ── s2 · وَمَن قَتَلَهُۥ مِنكُم مُّتَعَمِّدًا فَجَزَآءٌ مِّثْلُ مَا قَتَلَ مِنَ ٱلنَّعَمِ ── */
 
@@ -107,6 +111,9 @@ export const LETTERS: Record<string, LetterSpan[]> = {
     { w: 4, t: "ٌ" },
     { w: 5, t: "م" },
   ],
+  "s2-asli": [{ w: 6, t: "ا" }],
+  // The nun with shadda in ٱلنَّعَمِ — marks come along, so the shadda lights too.
+  "s2-ghunnah-2": [{ w: 9, t: "ن" }],
 
   /* ── s3 · يَحْكُمُ بِهِۦ ذَوَا عَدْلٍ مِّنكُمْ هَدْيًۢا بَـٰلِغَ ٱلْكَعْبَةِ ── */
 
@@ -120,6 +127,9 @@ export const LETTERS: Record<string, LetterSpan[]> = {
   "s3-qalqalah-2": [{ w: 5, t: "دْ" }],
   // The small high meem that records the iqlab.
   "s3-iqlab": [{ w: 5, t: "ۢ" }],
+  "s3-asli-1": [{ w: 2, t: "ا" }],
+  // The small (dagger) alif — the "alif extension".
+  "s3-asli-2": [{ w: 6, t: "ٰ" }],
 
   /* ── s4 · أَوْ كَفَّـٰرَةٌ طَعَامُ مَسَـٰكِينَ أَوْ عَدْلُ ذَٰلِكَ صِيَامًا لِّيَذُوقَ وَبَالَ أَمْرِهِۦ ── */
 
@@ -131,14 +141,21 @@ export const LETTERS: Record<string, LetterSpan[]> = {
     { w: 8, t: "ل" },
   ],
   "s4-raa-light": [{ w: 10, t: "ر" }],
+  "s4-asli-1": [{ w: 1, t: "ٰ" }],
+  "s4-asli-2": [{ w: 2, t: "ا" }],
+  // Both madds in مَسَـٰكِينَ: the small alif after the sin, the ya after the kaf.
+  "s4-asli-3": [
+    { w: 3, t: "ٰ" },
+    { w: 3, t: "ي" },
+  ],
+  "s4-asli-4": [{ w: 6, t: "ٰ" }],
+  // The FIRST alif of صِيَامًا (after the ya); the second is the tanween's.
+  "s4-asli-5": [{ w: 7, t: "ا", nth: 0 }],
+  "s4-asli-6": [{ w: 8, t: "و" }],
+  "s4-asli-7": [{ w: 9, t: "ا" }],
 
   /* ── s5 · عَفَا ٱللَّهُ عَمَّا سَلَفَ ── */
 
-  // Two sukun-bearing letters meeting across the word join.
-  "s5-sakinayn": [
-    { w: 0, t: "ا" },
-    { w: 1, t: "ٱ" },
-  ],
   // The doubled lam of the Name — the second lam, the one carrying the shadda.
   "s5-lam-heavy": [{ w: 1, t: "ل", nth: 1 }],
   "s5-ghunnah": [{ w: 2, t: "م" }],
@@ -150,13 +167,14 @@ export const LETTERS: Record<string, LetterSpan[]> = {
   "s6-ikhfa": [{ w: 2, t: "نت" }],
   "s6-lam-heavy": [{ w: 3, t: "ل", nth: 1 }],
   "s6-izhar-2": [{ w: 4, t: "نْ" }],
+  "s6-asli": [{ w: 1, t: "ا" }],
 
   /* ── s7 · وَٱللَّهُ عَزِيزٌ ذُو ٱنتِقَامٍ ── */
 
   "s7-lam-heavy": [{ w: 0, t: "ل", nth: 1 }],
   "s7-ikhfa-light": [{ w: 1, t: "ٌ" }],
-  "s7-dropped": [{ w: 2, t: "و" }],
   "s7-ikhfa": [{ w: 3, t: "نت" }],
   // The alif stretched because the reciter stops on the meem after it.
   "s7-arid": [{ w: 3, t: "ا" }],
+  "s7-asli": [{ w: 1, t: "ي" }],
 };

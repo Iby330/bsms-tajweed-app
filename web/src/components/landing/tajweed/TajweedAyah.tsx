@@ -33,7 +33,7 @@
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, Easing } from "remotion";
 import baked from "@/lib/tajweed/maidah95.geometry.json";
 import { MAIDAH_95 } from "@/lib/tajweed/maidah95";
-import { SWATCH, SAGE, swatchFor, type SwatchKey } from "@/lib/tajweed/swatches";
+import { SWATCH, SAGE, swatchFor, keyLabel } from "@/lib/tajweed/swatches";
 import {
   TIMELINE,
   FPS,
@@ -95,19 +95,34 @@ const PAINT: Array<Map<number, GlyphPaint[]>> = baked.sections.map((s, si) => {
   return m;
 });
 
-/** Which swatches each section can light, for the key underneath. */
-const SECTION_SWATCHES: Array<Map<SwatchKey, number[]>> = baked.sections.map((s, si) => {
+/**
+ * The key entries for each section: one per rule NAME, in the order the ball
+ * reaches them. Each keeps every instance's own words separately, so an entry
+ * lights only while the ball is on a word that rule covers — a Qalqalah on
+ * word 4 and another on word 6 light twice, with the key dark on word 5 in
+ * between, instead of staying lit across all three.
+ */
+type KeyEntry = { label: string; colour: string; first: number; spans: number[][] };
+const SECTION_KEYS: KeyEntry[][] = baked.sections.map((s, si) => {
   const meta = MAIDAH_95[si];
-  const m = new Map<SwatchKey, number[]>();
+  const byLabel = new Map<string, KeyEntry>();
   for (const r of s.rules) {
     const rule = meta.rules.find((x) => x.id === r.id);
     if (!rule) continue;
-    const sw = swatchFor(rule);
-    if (!sw) continue;
     const words = [...new Set(r.g.map((gi) => s.glyphs[gi].w))];
-    m.set(sw, [...(m.get(sw) ?? []), ...words]);
+    const label = keyLabel(rule);
+    const sw = swatchFor(rule);
+    const entry = byLabel.get(label) ?? {
+      label,
+      colour: sw ? SWATCH[sw].hex : SAGE,
+      first: Infinity,
+      spans: [],
+    };
+    entry.first = Math.min(entry.first, ...words);
+    entry.spans.push(words);
+    byLabel.set(label, entry);
   }
-  return m;
+  return [...byLabel.values()].sort((a, b) => a.first - b.first);
 });
 
 export const TajweedAyah: React.FC<{
@@ -170,19 +185,30 @@ export const TajweedAyah: React.FC<{
         />
       ) : null}
 
+      {/* The key follows its section out and the next one in, like the verse,
+          so its entries never swap while visible. Without the gloss it rises
+          toward the verse it explains; on the page, whatever sits below the
+          hero must not read as the key's caption. */}
       <Key
         si={current.section}
         t={t}
-        /* Dips and comes back, rather than stepping when the section swaps. */
-        fade={1 - 0.6 * Math.sin(Math.PI * handover)}
+        opacity={1 - outP}
         width={width}
         height={height}
         mobile={mobile}
-        /* Without the gloss the key rises toward the verse it explains, and
-           leaves clear space beneath it — on the page, whatever sits below the
-           hero must not read as the key's caption. */
         lift={gloss ? 0 : mobile ? 0 : 0.06}
       />
+      {inP > 0 ? (
+        <Key
+          si={next.section}
+          t={next.start}
+          opacity={inP}
+          width={width}
+          height={height}
+          mobile={mobile}
+          lift={gloss ? 0 : mobile ? 0 : 0.06}
+        />
+      ) : null}
     </AbsoluteFill>
   );
 };
@@ -406,23 +432,22 @@ const Gloss: React.FC<{ si: number; mobile: boolean }> = ({ si, mobile }) => (
 );
 
 /**
- * The key. All eight rules are always present and dimmed; the one the ball is
- * standing on brightens. Showing only the live rule would teach the colour
- * without ever teaching the set, and hiding the rest would make the hero feel
- * like it was withholding something.
+ * The key: the rules in THIS section, by name, dimmed; the one the ball is on
+ * brightens. Section-scoped because the ayah names about eighteen different
+ * rules — far too many to show at once without crowding the verse — while no
+ * section carries more than seven.
  */
 const Key: React.FC<{
   si: number;
   t: number;
-  fade: number;
+  opacity: number;
   width: number;
   height: number;
   mobile: boolean;
   lift: number;
-}> = ({ si, t, fade, width, height, mobile, lift }) => {
+}> = ({ si, t, opacity, width, height, mobile, lift }) => {
   const beat = TIMELINE.sections[si];
-  const live = SECTION_SWATCHES[si];
-  const keys = Object.keys(SWATCH) as SwatchKey[];
+  const entries = SECTION_KEYS[si];
 
   return (
     <div
@@ -434,27 +459,31 @@ const Key: React.FC<{
         display: "grid",
         gridTemplateColumns: mobile ? "repeat(2, auto)" : "repeat(4, auto)",
         justifyContent: "center",
-        columnGap: mobile ? 56 : width * 0.028,
+        columnGap: mobile ? 48 : width * 0.028,
         rowGap: mobile ? 26 : 18,
-        opacity: fade,
+        opacity,
         padding: `0 ${width * 0.07}px`,
       }}
     >
-      {keys.map((k) => {
-        const words = live.get(k);
-        const on = words ? ruleIntensity(beat, t, words) : 0;
-        const dim = 0.3 + on * 0.7;
+      {entries.map((e) => {
+        let on = 0;
+        for (const words of e.spans) on = Math.max(on, ruleIntensity(beat, t, words));
         return (
           <div
-            key={k}
-            style={{ display: "flex", alignItems: "center", gap: mobile ? 10 : 14, opacity: dim }}
+            key={e.label}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: mobile ? 10 : 14,
+              opacity: 0.3 + on * 0.7,
+            }}
           >
             <span
               style={{
                 width: mobile ? 24 : 20,
                 height: mobile ? 24 : 20,
                 borderRadius: "50%",
-                background: SWATCH[k].hex,
+                background: e.colour,
                 flex: "none",
                 transform: `scale(${1 + on * 0.25})`,
               }}
@@ -468,7 +497,7 @@ const Key: React.FC<{
                 whiteSpace: "nowrap",
               }}
             >
-              {mobile ? SWATCH[k].short : SWATCH[k].en}
+              {e.label}
             </span>
           </div>
         );
