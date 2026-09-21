@@ -168,21 +168,30 @@ export function secondsFromLanding(sec: SectionBeat, t: number): number {
 const LIGHT_IN = s(0.12);
 const LIGHT_OUT = s(0.24);
 
-/** 0 → 1 → 0 for one rule at time `t` within its section. */
-export function ruleIntensity(sec: SectionBeat, t: number, words: number[]): number {
-  if (!words.length) return 0;
+/**
+ * When a rule covering `words` is lit, in frames within its section:
+ * starts rising at `rise`, is fully on at `on` (the ball's landing), starts
+ * fading at `fade` and is gone at `off`. Exported so the review page shows the
+ * SAME numbers the animation runs on, rather than a copy that could drift.
+ */
+export function ruleWindow(sec: SectionBeat, words: number[]) {
+  if (!words.length) return null;
   const lo = Math.min(...words);
   const hi = Math.max(...words);
   const first = sec.beats[lo];
   const afterLast = sec.beats[hi + 1];
-  if (!first) return 0;
-
+  if (!first) return null;
   const on = first.land;
   const off = afterLast ? afterLast.land : sec.end;
-  if (t < on - LIGHT_IN || t > off) return 0;
+  return { rise: on - LIGHT_IN, on, fade: off - LIGHT_OUT, off };
+}
 
-  const rise = clamp01((t - (on - LIGHT_IN)) / LIGHT_IN);
-  const fall = clamp01((off - t) / LIGHT_OUT);
+/** 0 → 1 → 0 for one rule at time `t` within its section. */
+export function ruleIntensity(sec: SectionBeat, t: number, words: number[]): number {
+  const w = ruleWindow(sec, words);
+  if (!w || t < w.rise || t > w.off) return 0;
+  const rise = clamp01((t - w.rise) / LIGHT_IN);
+  const fall = clamp01((w.off - t) / LIGHT_OUT);
   return Math.min(rise, fall);
 }
 

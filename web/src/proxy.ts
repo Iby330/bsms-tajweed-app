@@ -59,6 +59,10 @@ const PUBLIC_PATHS = [
      the others: no data, nothing a signed-out visitor could not see on the
      landing page itself. */
   "/preview/ayah",
+  /* The review desk: each word, its rules and their timing, beside the
+     animation slowed down. For a teacher signing off the marking — reachable
+     without an account for the same reason as the geometry proof. */
+  "/preview/review",
 ];
 
 export async function proxy(request: NextRequest) {
