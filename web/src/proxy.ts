@@ -45,15 +45,10 @@ const PUBLIC_PATHS = [
   "/reset-password",
   "/welcome",
   "/auth/confirm",
-  /* A design surface, not a product route: the hero animation on its own so
-     it can be opened and screenshotted while it is being worked on. It reads
-     no data and shows nothing a signed-out visitor could not see on the
-     landing page. */
-  "/preview/hero",
-  /* The landing page being designed, before it replaces the splash at "/".
-     Same reasoning: it reads no data and says nothing a signed-out visitor
-     would not read on the real landing page. It carries noindex, so it is
-     reachable by link and by nothing else. */
+  /* The landing page as a design surface. It renders the same component as
+     "/" and adds the ?shot lens for screenshots; it reads no data and says
+     nothing a signed-out visitor would not read on the real page. It carries
+     noindex, so it is reachable by link and by nothing else. */
   "/preview/landing",
   /* The shaped glyph geometry the hero animates, drawn flat. A build artifact
      made visible: no data, no text a visitor could not read in the mushaf.
@@ -127,9 +122,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(login);
   }
 
-  // Already signed in — skip the landing and login screens entirely. This is
-  // what makes returning to the app feel like it just opens.
-  if (claims && (pathname === "/" || pathname === "/login")) {
+  // Already signed in — skip the login screen. It used to skip `/` as well,
+  // which meant nobody with an account could ever see the domain's own front
+  // page: typing bsmstajweed.com bounced a teacher straight to /teacher/home.
+  //
+  // That was right when `/` was a splash with nothing on it but a Sign in
+  // button. It is wrong now that `/` is the landing page — the thing you send
+  // people to, and the thing you want to look at yourself. Signing in is a
+  // link in the nav instead of an automatic detour.
+  if (claims && pathname === "/login") {
     const home = request.nextUrl.clone();
     home.pathname = "/home";
     home.search = "";
