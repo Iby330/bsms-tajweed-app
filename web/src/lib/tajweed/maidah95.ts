@@ -97,18 +97,17 @@ export const MAIDAH_95: readonly Section[] = [
            built from called it munfasil — separated — but in Uthmani
            orthography يَـٰٓأَيُّهَا is written as ONE word, so the madd letter
            and the hamzah that follows it are inside the same word, which is
-           the definition of muttasil. The mushaf settles it: page ١٢٣ prints
-           this maddah in the bright red of مدّ واجب ٤ أو ٥ حركات, not the
-           orange of the permissible madd. Sampled and classified, not read by
-           eye — see maidah95.letters.ts. */
+           the definition of muttasil. The mushaf prints it in the red of the
+           obligatory madd. Name and length set by the programme's teacher on
+           review: "Madd Muttasil", 4 counts — kept simple on purpose. */
         id: "s1-muttasil",
         kind: "madd",
-        name: "Madd Wajib Muttasil",
-        arabic: "مد واجب متصل",
-        gloss: "The madd letter and the hamzah are in one word — stretch it, and you must.",
+        name: "Madd Muttasil",
+        arabic: "مد متصل",
+        gloss: "The madd letter and the hamzah are in one word — stretch it four counts.",
         from: 0,
         to: 0,
-        counts: "4 or 5 counts",
+        counts: "4 counts",
       },
       {
         id: "s1-wasl",
@@ -121,16 +120,6 @@ export const MAIDAH_95: readonly Section[] = [
         condition: "on continuing",
       },
       {
-        id: "s1-badal",
-        kind: "madd",
-        name: "Madd Badal",
-        arabic: "مد بدل",
-        gloss: "A hamzah swapped for a madd letter. Two counts, no more.",
-        from: 2,
-        to: 2,
-        counts: "2 counts",
-      },
-      {
         id: "s1-qalqalah",
         kind: "qalqalah",
         name: "Qalqalah",
@@ -138,15 +127,6 @@ export const MAIDAH_95: readonly Section[] = [
         gloss: "The qaf carries sukun, so it bounces off the makhraj.",
         from: 4,
         to: 4,
-      },
-      {
-        id: "s1-shamsiyyah",
-        kind: "lam",
-        name: "Lam Shamsiyyah",
-        arabic: "لام شمسية",
-        gloss: "Sad is a sun letter, so the lam vanishes into it and is never heard.",
-        from: 5,
-        to: 5,
       },
       {
         id: "s1-leen",
@@ -210,16 +190,6 @@ export const MAIDAH_95: readonly Section[] = [
         counts: "2 counts",
       },
       {
-        id: "s2-silah",
-        kind: "madd",
-        name: "Madd Silah Sughra",
-        arabic: "مد صلة صغرى",
-        gloss: "The ha of the pronoun links forward with a short waw sound.",
-        from: 1,
-        to: 1,
-        counts: "2 counts",
-      },
-      {
         id: "s2-ikhfa-2",
         kind: "ikhfa",
         name: "Ikhfa'",
@@ -269,15 +239,6 @@ export const MAIDAH_95: readonly Section[] = [
         to: 5,
         counts: "2 counts",
       },
-      {
-        id: "s2-shamsiyyah",
-        kind: "lam",
-        name: "Lam Shamsiyyah",
-        arabic: "لام شمسية",
-        gloss: "Nun is a sun letter. The lam is written but not spoken.",
-        from: 9,
-        to: 9,
-      },
     ],
   },
 
@@ -295,16 +256,6 @@ export const MAIDAH_95: readonly Section[] = [
     ],
     english: "Two just men among you judge it, as an offering brought to the Ka'bah.",
     rules: [
-      {
-        id: "s3-silah",
-        kind: "madd",
-        name: "Madd Silah Sughra",
-        arabic: "مد صلة صغرى",
-        gloss: "A short ya is heard after the ha, linking into the next word.",
-        from: 1,
-        to: 1,
-        counts: "2 counts",
-      },
       {
         id: "s3-qalqalah",
         kind: "qalqalah",
@@ -337,7 +288,7 @@ export const MAIDAH_95: readonly Section[] = [
       {
         id: "s3-izhar-shafawi",
         kind: "izhar",
-        name: "Izhar Shafawi",
+        name: "Idhar Shafawi",
         arabic: "إظهار شفوي",
         gloss: "Meem sakinah before ha. Show it clearly — no ghunnah, no merging.",
         from: 4,
@@ -361,24 +312,6 @@ export const MAIDAH_95: readonly Section[] = [
         from: 5,
         to: 6,
         counts: "2 counts",
-      },
-      {
-        id: "s3-raa-light",
-        kind: "lam",
-        name: "Lam Muraqqaqah",
-        arabic: "لام مرققة",
-        gloss: "An ordinary lam stays thin. Do not let it thicken.",
-        from: 6,
-        to: 6,
-      },
-      {
-        id: "s3-qamariyyah",
-        kind: "lam",
-        name: "Lam Qamariyyah",
-        arabic: "لام قمرية",
-        gloss: "Kaf is a moon letter, so this lam is pronounced in full.",
-        from: 7,
-        to: 7,
       },
     ],
   },
@@ -430,15 +363,6 @@ export const MAIDAH_95: readonly Section[] = [
         to: 5,
       },
       {
-        id: "s4-makhraj",
-        kind: "makhraj",
-        name: "Makhraj of Dhal",
-        arabic: "مخرج الذال",
-        gloss: "Tongue tip between the front teeth. Not a zay, not a dal — a third sound.",
-        from: 6,
-        to: 6,
-      },
-      {
         id: "s4-idgham-lam",
         kind: "idgham",
         name: "Idgham bila Ghunnah",
@@ -455,17 +379,6 @@ export const MAIDAH_95: readonly Section[] = [
         gloss: "Raa with kasrah is thin. Same letter, opposite weight.",
         from: 10,
         to: 10,
-      },
-      {
-        id: "s4-silah",
-        kind: "madd",
-        name: "Madd Silah Sughra",
-        arabic: "مد صلة صغرى",
-        gloss: "Heard only if you carry on. Most readers stop here and it disappears.",
-        from: 10,
-        to: 10,
-        counts: "2 counts",
-        condition: "on continuing",
       },
     ],
   },
@@ -524,7 +437,7 @@ export const MAIDAH_95: readonly Section[] = [
       {
         id: "s6-izhar",
         kind: "izhar",
-        name: "Izhar Halqi",
+        name: "Idhar Halqi",
         arabic: "إظهار حلقي",
         gloss: "Nun sakinah before 'ayn, a throat letter. Say it plainly, no ghunnah.",
         from: 0,
@@ -552,7 +465,7 @@ export const MAIDAH_95: readonly Section[] = [
       {
         id: "s6-izhar-2",
         kind: "izhar",
-        name: "Izhar Halqi",
+        name: "Idhar Halqi",
         arabic: "إظهار حلقي",
         gloss: "Nun sakinah before ha. Another throat letter, shown clearly.",
         from: 4,

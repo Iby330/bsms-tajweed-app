@@ -71,9 +71,8 @@ export type LetterSpan = {
  *     our call and not the mushaf's.
  *   · `s3-iqlab` — marked on the small high meem ۢ, which is the sign that
  *     records the iqlab, rather than on the tanween it converts.
- *   · `s4-makhraj` and the lam/raa quality rules carry no mushaf colour at
- *     all; they are marked so the callout can point somewhere, and they render
- *     in the sage accent.
+ *   · The lam and raa quality rules (the heavy lam of Allah, the light raa)
+ *     carry no mushaf colour; they render in the sage accent.
  */
 export const LETTERS: Record<string, LetterSpan[]> = {
   /* ── s1 · يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ لَا تَقْتُلُوا۟ ٱلصَّيْدَ وَأَنتُمْ حُرُمٌ ── */
@@ -81,12 +80,7 @@ export const LETTERS: Record<string, LetterSpan[]> = {
   // The madd sign over the dagger alif — the mark the mushaf prints in red.
   "s1-muttasil": [{ w: 0, t: "ٰٓ" }],
   "s1-wasl": [{ w: 1, t: "ٱ" }],
-  // The alif that the hamzah turned into. Written "ءَا" so it cannot match the
-  // other alif later in ءَامَنُوا۟.
-  "s1-badal": [{ w: 2, t: "ءَا" }],
   "s1-qalqalah": [{ w: 4, t: "قْ" }],
-  // The lam that vanishes into the sad. First lam of the word.
-  "s1-shamsiyyah": [{ w: 5, t: "ل" }],
   "s1-leen": [{ w: 5, t: "يْ" }],
   "s1-ikhfa": [{ w: 6, t: "نت" }],
   // The tanween that merges into the waw opening the next section.
@@ -95,7 +89,6 @@ export const LETTERS: Record<string, LetterSpan[]> = {
   /* ── s2 · وَمَن قَتَلَهُۥ مِنكُم مُّتَعَمِّدًا فَجَزَآءٌ مِّثْلُ مَا قَتَلَ مِنَ ٱلنَّعَمِ ── */
 
   "s2-ikhfa-1": [{ w: 0, t: "ن" }],
-  "s2-silah": [{ w: 1, t: "ۥ" }],
   "s2-ikhfa-2": [{ w: 2, t: "نك" }],
   // The LAST meem of مِنكُم — hence nth — merging into the meem of مُّتَعَمِّدًا.
   "s2-idgham-mim": [
@@ -114,11 +107,9 @@ export const LETTERS: Record<string, LetterSpan[]> = {
     { w: 4, t: "ٌ" },
     { w: 5, t: "م" },
   ],
-  "s2-shamsiyyah": [{ w: 9, t: "ل" }],
 
   /* ── s3 · يَحْكُمُ بِهِۦ ذَوَا عَدْلٍ مِّنكُمْ هَدْيًۢا بَـٰلِغَ ٱلْكَعْبَةِ ── */
 
-  "s3-silah": [{ w: 1, t: "ۦ" }],
   "s3-qalqalah": [{ w: 3, t: "دْ" }],
   "s3-idgham": [
     { w: 3, t: "ٍ" },
@@ -129,21 +120,17 @@ export const LETTERS: Record<string, LetterSpan[]> = {
   "s3-qalqalah-2": [{ w: 5, t: "دْ" }],
   // The small high meem that records the iqlab.
   "s3-iqlab": [{ w: 5, t: "ۢ" }],
-  "s3-raa-light": [{ w: 6, t: "لِ" }],
-  "s3-qamariyyah": [{ w: 7, t: "لْ" }],
 
   /* ── s4 · أَوْ كَفَّـٰرَةٌ طَعَامُ مَسَـٰكِينَ أَوْ عَدْلُ ذَٰلِكَ صِيَامًا لِّيَذُوقَ وَبَالَ أَمْرِهِۦ ── */
 
   "s4-raa-heavy": [{ w: 1, t: "ر" }],
   "s4-ikhfa-heavy": [{ w: 1, t: "ٌ" }],
   "s4-qalqalah": [{ w: 5, t: "دْ" }],
-  "s4-makhraj": [{ w: 6, t: "ذ" }],
   "s4-idgham-lam": [
     { w: 7, t: "ً" },
     { w: 8, t: "ل" },
   ],
   "s4-raa-light": [{ w: 10, t: "ر" }],
-  "s4-silah": [{ w: 10, t: "ۦ" }],
 
   /* ── s5 · عَفَا ٱللَّهُ عَمَّا سَلَفَ ── */
 

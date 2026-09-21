@@ -28,9 +28,8 @@
  * legend entry for the live rule lights up and names it.
  *
  * ── What is NOT in here ────────────────────────────────────────────────────
- * The mushaf colours eight things. Our rule set names forty-five, including
- * hamzat al-wasl, lam shamsiyyah and the makhraj of dhal, which that mushaf
- * leaves black. Those return `null` from `swatchFor` and are drawn in the sage
+ * The mushaf colours eight things. Our rule set names thirty-six, including
+ * rules such as the heavy lam of Allah, which that mushaf leaves black. Those return `null` from `swatchFor` and are drawn in the sage
  * accent instead, so the hero never invents a colour the mushaf would
  * contradict. See `swatchFor` for the mapping and its uncertain cases.
  */
@@ -161,7 +160,9 @@ export function swatchFor(rule: RuleLike): SwatchKey | null {
 
   if (kind === "madd") {
     if (counts?.startsWith("6")) return "maddLazim";
-    if (counts?.startsWith("4 or 5")) return "maddWajib";
+    // Muttasil, the obligatory madd. Written "4 or 5 counts" or, as the
+    // teacher simplified it for the hero, "4 counts" — both the mushaf's red.
+    if (counts?.startsWith("4")) return "maddWajib";
     if (counts?.startsWith("2, 4 or 6") || counts?.startsWith("2 or 4")) return "maddJaiz";
     if (counts?.startsWith("2")) return "maddTabee";
     return null; // e.g. "Madd dropped" — nothing is stretched, nothing is coloured
