@@ -209,7 +209,8 @@ export function termsFor(section: Section): { title: string; body: string }[] {
       title: "The fee",
       body:
         `${feeLabel()} once, covering the whole year. It is not a termly or monthly `
-        + `charge, and there is nothing further to pay.`,
+        + `charge. The only time it is paid again is to rejoin after being removed `
+        + `from the course for strikes.`,
     },
     {
       title: "When classes run",

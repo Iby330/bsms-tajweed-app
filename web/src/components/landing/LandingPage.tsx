@@ -107,7 +107,7 @@ const QUESTIONS = [
   },
   {
     q: `Is ${feeLabel()} really the whole cost?`,
-    a: "Yes. One payment covering the full year. Not a termly charge, not a monthly one, and there is nothing further to pay for materials or exams.",
+    a: "Yes, for the full year. One payment, not a termly or monthly charge, and nothing further to pay for materials or exams. The only time anyone pays again is to rejoin after being removed for three strikes in a term.",
   },
   {
     q: "I have started something like this before and stopped.",
@@ -255,7 +255,7 @@ const INCLUDED = [
   "An end-of-year ceremony, with awards",
   "A room full of Muslims your own age",
   "Company that keeps you on it",
-  "No second invoice, ever",
+  "Materials and exams, included",
 ];
 
 /**
@@ -653,7 +653,7 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
           <div className="lp-head lp-head-dark">
             <span className="lp-label">What {feeLabel()} covers</span>
             <h2>
-              All of it. <em>There is no second invoice.</em>
+              All of it. <em>One fee, for the whole year.</em>
             </h2>
           </div>
           <ul>
