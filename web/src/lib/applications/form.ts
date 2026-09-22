@@ -151,20 +151,21 @@ export const feeLabel = () =>
   FEE_PENCE % 100 === 0 ? `£${FEE_PENCE / 100}` : `£${(FEE_PENCE / 100).toFixed(2)}`;
 
 /**
- * Where the "Pay the fee" button goes.
+ * Where the "Pay the fee" button goes: a Monzo request, supplied 2026-09-22.
  *
- * ⚠️ NOT YET SUPPLIED — paste the payment link here and the form completes
- * itself. It is deliberately a plain constant rather than an env var so that
- * it is version-controlled and reviewable, and deliberately nullable rather
- * than a placeholder URL, because a wrong link takes money to the wrong place
- * and a missing one does not.
+ * A plain constant rather than an env var so that it is version-controlled
+ * and reviewable. Nullable because a wrong link takes money to the wrong
+ * place and a missing one does not: set to null, the form still takes
+ * applications, says payment details follow, and stops asking anyone to tick
+ * that they have paid.
  *
- * While it is null the form still works and still takes applications: the fee
- * is stated, and the page says payment details follow by email instead of
- * asking anyone to tick that they have paid. Set it and the button and the
- * confirmation tick both appear, with no other change needed.
+ * THE AMOUNT IS IN THE URL (the "15.00" path segment), so it is a second
+ * copy of FEE_PENCE. A test holds the two together: change the fee without
+ * a new link and the build fails rather than applicants being asked for the
+ * old amount.
  */
-export const PAYMENT_LINK: string | null = null;
+export const PAYMENT_LINK: string | null =
+  "https://monzo.me/daniyalthakur/15.00?h=stJkXO&d=BSMS%20TAJWEED%20REGISTRATION&account_type=personal";
 
 /* ── The WhatsApp groups ──────────────────────────────────────────────── */
 
@@ -174,8 +175,8 @@ export const PAYMENT_LINK: string | null = null;
  *
  * ⚠️ NOT YET SUPPLIED. Paste each side's chat.whatsapp.com invite link here.
  * Null for the same reason PAYMENT_LINK is: a wrong link puts a brother in the
- * sisters' group, and a missing one only leaves the button out of the email,
- * which then says we'll message them on WhatsApp instead.
+ * sisters' group, and a missing one only leaves the group section out of the
+ * email (the teacher screen warns while either is missing).
  *
  * Keyed by side, never shared: the two groups are separate, and the side is
  * already on the application, derived from the gender answer.

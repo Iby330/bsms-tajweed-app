@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { validateApplication, type ApplicationInput } from "./validate";
 import {
-  CLOSES_LABEL, FEE_PENCE, HEARD_FROM, OPENING_VERSE, OTHER, SIGNUPS_CLOSE,
+  CLOSES_LABEL, FEE_PENCE, PAYMENT_LINK, HEARD_FROM, OPENING_VERSE, OTHER, SIGNUPS_CLOSE,
   TAJWEED_LEVELS, UNIVERSITIES, YEARS, signupsOpen, termsFor,
 } from "./form";
 import { SISTERS_HIFDH_DAY_PROVISIONAL } from "@/lib/attendance/calendar";
@@ -345,5 +345,14 @@ describe("the country list", () => {
   it("turns an ISO code into the right flag emoji", () => {
     expect(flagFor("GB")).toBe("\u{1F1EC}\u{1F1E7}");
     expect(flagFor("PK")).toBe("\u{1F1F5}\u{1F1F0}");
+  });
+});
+
+describe("the payment link", () => {
+  it("asks for the same amount as the fee", () => {
+    // monzo.me/<name>/<amount>: the amount is the path segment after the name.
+    if (!PAYMENT_LINK) return;
+    const amount = new URL(PAYMENT_LINK).pathname.split("/")[2];
+    expect(amount).toBe((FEE_PENCE / 100).toFixed(2));
   });
 });
