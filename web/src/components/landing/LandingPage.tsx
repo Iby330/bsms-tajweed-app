@@ -195,14 +195,16 @@ const TESTIMONIALS: readonly Testimonial[] = [
  * a row: free is cheaper, and a cross against it would be the one row a reader
  * knows is false. The price is argued further down, where it can be.
  */
+/* Seven rows is what fits one laptop screen under the heading; an eighth
+   pushes the table below the fold at 1440×900. */
 const COMPARISON: readonly string[] = [
   "Someone hears you recite",
-  "Your mistakes corrected as you make them",
-  "A syllabus, in order",
-  "Someone notices if you stop",
+  "Your mistakes corrected",
+  "A proven, structured syllabus",
+  "Accountability",
   "A teacher you can ask directly",
-  "Memorisation scheduled, with revision dates",
-  "A room of people doing it with you",
+  "A strict schedule for progress",
+  "A supportive community",
 ];
 
 /* Tick and cross for the comparison. Drawn, not typed: ✓ and ✗ differ in
@@ -328,15 +330,15 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
           competitor, so it is named, not hinted at. */}
       <section className="lp-band">
         <div className="lp-head">
-          <span className="lp-label">If you have tried before</span>
+          <span className="lp-label">Why a teacher</span>
           <h2>
-            You can learn this from a screen. <em>Almost nobody does.</em>
+            Learn in the way <em>of the scholars.</em>
           </h2>
           <p>
-            A video, an app, a promise to yourself to do a page a day. The
-            information has been free for years and it was never the problem.
-            What is missing is someone who hears you recite, and a reason to
-            come back next week.
+            On your own, you never really know whether you are saying it right.
+            A teacher does: they hear every letter, correct it before it sets
+            in, and notice when you slip. That is how the Qur&apos;an has always
+            been passed on, from teacher to student.
           </p>
         </div>
 
