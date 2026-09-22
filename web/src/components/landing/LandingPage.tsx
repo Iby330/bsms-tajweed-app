@@ -3,6 +3,9 @@ import { feeLabel, VENUE } from "@/lib/applications/form";
 import TajweedHeroPlayer from "@/components/landing/tajweed/TajweedHeroPlayer";
 import { FULL_VERSE } from "@/lib/tajweed/maidah95";
 import { TIMELINE } from "@/lib/tajweed/timeline";
+import HifdhProjection from "@/components/landing/HifdhProjection";
+import Reveal from "@/components/landing/Reveal";
+import CountUp from "@/components/landing/CountUp";
 
 /* In `?shot=1` the hero is posed rather than played: headless Chrome produces
    almost no animation frames, so an unposed capture is always the empty first
@@ -118,6 +121,71 @@ const QUESTIONS = [
   },
 ];
 
+/**
+ * Student testimonials.
+ *
+ * `src` and `poster` are null until the real files land in /public/testimonials.
+ * A card with no `src` renders as an obvious empty slot rather than a fake
+ * player — a play button that does nothing is worse than a labelled gap, and
+ * this way the section can be judged at full size before the videos exist.
+ *
+ * Drop a file in, set the two paths, and the card becomes a real player with
+ * no other change. Poster images matter more than usual here: the video is
+ * NOT autoplayed, so the poster is what sells the click.
+ */
+const TESTIMONIALS: readonly {
+  name: string;
+  detail: string;
+  line: string;
+  src: string | null;
+  poster: string | null;
+}[] = [
+  {
+    name: "[STUDENT NAME]",
+    detail: "Second year · Brothers",
+    line: "Came in unable to read the letters.",
+    src: null,
+    poster: null,
+  },
+  {
+    name: "[STUDENT NAME]",
+    detail: "First year · Sisters",
+    line: "Finished the year having memorised Juz 'Amma.",
+    src: null,
+    poster: null,
+  },
+  {
+    name: "[STUDENT NAME]",
+    detail: "Third year · Brothers",
+    line: "Had tried twice before and stopped both times.",
+    src: null,
+    poster: null,
+  },
+];
+
+/**
+ * Us against the thing people actually do instead.
+ *
+ * The competitor is never another course — it is YouTube, an app, and "I'll
+ * get round to it". That is the free default, and a page that does not name it
+ * leaves the visitor to make the comparison themselves, badly, later.
+ *
+ * The last row has to stay honest. Free is genuinely cheaper, and pretending
+ * otherwise loses the reader; what free actually costs is that almost nobody
+ * finishes. Say that, and the £15 stops being a price and becomes the cheap
+ * part.
+ */
+const COMPARISON: readonly { row: string; alone: string; here: string }[] = [
+  { row: "Someone hears you recite", alone: "No", here: "Every week, in person" },
+  { row: "Your mistakes get named", alone: "You cannot hear your own", here: "Out loud, as you make them" },
+  { row: "What to learn next", alone: "Whatever comes up next", here: "A syllabus, in order" },
+  { row: "If you stop", alone: "Nobody notices", here: "Your teacher does, in week two" },
+  { row: "Questions", alone: "A comments section", here: "A person who knows you" },
+  { row: "Memorisation", alone: "Whenever you remember", here: "Scheduled, with revision dates" },
+  { row: "Cost", alone: "Free", here: `${feeLabel()} for the year` },
+  { row: "How many finish", alone: "Very few", here: "Most of a cohort" },
+];
+
 const INCLUDED = [
   "Two taught evenings a week",
   "Weekly homework, marked",
@@ -206,6 +274,53 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
 
       </div>
 
+      {/* Three boxes, straight off the hero: the whole commitment in the time
+          it takes to scroll past. Deliberately not a feature list — each one
+          answers a different question a visitor is actually asking (what do I
+          do, what am I turning up to, and what stops me drifting). */}
+      <section className="lp-band">
+        <div className="lp-head">
+          <span className="lp-label">How it works</span>
+          <h2>
+            Small commitment, <em>big results.</em>
+          </h2>
+        </div>
+
+        <Reveal>
+        <div className="lp-three">
+          <article className="lp-card">
+            <span className="lp-step">01</span>
+            <h3>Apply</h3>
+            <p className="lp-muted">
+              One form and your university email. {feeLabel()} once, covering the
+              whole year, with payment details following by email.
+            </p>
+          </article>
+          <article className="lp-card">
+            <span className="lp-step">02</span>
+            <h3>Turn up</h3>
+            <p className="lp-muted">
+              Two evenings a week at {VENUE} — one for tajweed, one for
+              memorisation, each with a teacher who hears you read.
+            </p>
+          </article>
+          <article className="lp-card">
+            <span className="lp-step">03</span>
+            <h3>Stay consistent</h3>
+            <p className="lp-muted">
+              Homework set weekly and marked, attendance taken every session, and
+              your progress recorded rather than remembered.
+            </p>
+          </article>
+        </div>
+        </Reveal>
+      </section>
+
+      {/* Two juz, and how they add up. */}
+      <section className="lp-band lp-band-marquee">
+        <HifdhProjection />
+      </section>
+
       <section id="course" className="lp-band">
         <div className="lp-head">
           <span className="lp-label">The programme</span>
@@ -224,10 +339,10 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
           </article>
 
           <article className="lp-card">
-            <h3>Memorisation</h3>
+            <h3>Hifdh</h3>
             <p className="lp-muted">
-              Start or continue your Qur&apos;an memorisation journey, in a
-              structured and supportive format.
+              Start or continue your hifdh, in a structured and supportive
+              format.
             </p>
           </article>
         </div>
@@ -334,6 +449,128 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
         </div>
       </section>
 
+      {/* The "you would not be the first" beat — what an awards row does on a
+          commercial page, done with the only currency that means anything to a
+          student: how many people like them already did it, and for how long.
+
+          Two figures, not four. The stat row under the hero already carries
+          four, and repeating that shape would read as filler; this one is
+          fewer, larger and making a single point. */}
+      <section className="lp-band">
+        <div className="lp-head lp-head-mid">
+          <span className="lp-label">Not the first</span>
+          <h2>
+            Over a hundred students <em>have already done this.</em>
+          </h2>
+          <p>
+            Six years of the same two evenings a week. Whatever you are weighing
+            up, somebody in the room has already weighed it up and come anyway.
+          </p>
+        </div>
+
+        <Reveal>
+          <div className="lp-figures">
+            <div>
+              <strong>
+                <CountUp value={100} suffix="+" />
+              </strong>
+              <span>Students taught</span>
+            </div>
+            <div>
+              <strong>
+                <CountUp value={6} suffix=" years" />
+              </strong>
+              <span>Running, without a gap</span>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+      <section className="lp-band">
+        <div className="lp-head lp-head-mid">
+          <span className="lp-label">From the people doing it</span>
+          <h2>
+            Ask someone who was <em>where you are now.</em>
+          </h2>
+        </div>
+
+        <Reveal>
+        <div className="lp-three">
+          {TESTIMONIALS.map((t) => (
+            <figure key={t.line} className="lp-vid">
+              {t.src && t.poster ? (
+                <video
+                  className="lp-vid-player"
+                  src={t.src}
+                  poster={t.poster}
+                  controls
+                  preload="none"
+                  playsInline
+                />
+              ) : (
+                /* No file yet. A labelled slot, not a dead play button. */
+                <div className="lp-vid-slot">
+                  <span className="lp-label">Video to come</span>
+                </div>
+              )}
+              <figcaption>
+                <strong>{t.line}</strong>
+                <span className="lp-muted">
+                  {t.name} · {t.detail}
+                </span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+        </Reveal>
+      </section>
+
+      {/* Answers "how is this different from teaching myself?" — and it sits
+          here, after the videos, because the comparison only lands once you
+          already believe the thing works. */}
+      <section className="lp-band">
+        <div className="lp-head">
+          <span className="lp-label">Against doing it alone</span>
+          <h2>
+            You can learn this from a screen. <em>Almost nobody does.</em>
+          </h2>
+          <p>
+            Everything below is available free, and has been for years. What is
+            missing from the free version is not the information, it is the
+            structure and the accountability.
+          </p>
+        </div>
+
+        <Reveal>
+        <table className="lp-cmp">
+          <thead>
+            <tr>
+              <th scope="col">
+                <span className="lp-sr">Compared</span>
+              </th>
+              <th scope="col">On your own</th>
+              <th scope="col">Here</th>
+            </tr>
+          </thead>
+          <tbody>
+            {COMPARISON.map((c) => (
+              <tr key={c.row}>
+                <th scope="row">{c.row}</th>
+                <td className="lp-cmp-alone">{c.alone}</td>
+                <td className="lp-cmp-here">{c.here}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        </Reveal>
+      </section>
+
+      {/* The price sits HERE, and the position is the argument.
+          It was above the three proof sections, which meant a visitor met the
+          number before they had any reason to think it was worth paying. Now
+          it lands after the scale, the faces and the comparison — so what they
+          are weighing it against is "free, and almost nobody finishes" rather
+          than nothing at all. */}
       <section className="lp-band">
         <div className="lp-included">
           <div className="lp-head lp-head-dark">
@@ -515,7 +752,7 @@ html {
 
 .lp-head { display: flex; flex-direction: column; gap: 18px; max-width: 800px; }
 .lp-head h2 { font-size: clamp(2rem, 4.4vw, 3.25rem); line-height: 1.04; }
-.lp-head > p { font-size: clamp(1rem, 1.4vw, 1.125rem); line-height: 1.6; color: ${MUTED}; max-width: 42em; }
+.lp-head > p { font-size: clamp(1.125rem, 1.7vw, 1.4375rem); line-height: 1.6; color: ${MUTED}; max-width: 42em; }
 .lp-head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
 
 .lp-label {
@@ -703,7 +940,7 @@ html {
 .lp-stats > div:first-child { padding-left: 0; }
 .lp-stats > div:last-child { padding-right: 0; }
 .lp-stats strong { font-family: var(--display); font-weight: 400; font-size: clamp(1.25rem, 2.4vw, 2.125rem); letter-spacing: -0.02em; }
-.lp-stats span { font-size: 0.9375rem; color: ${MUTED}; line-height: 1.5; }
+.lp-stats span { font-size: clamp(1rem, 1.3vw, 1.125rem); color: ${MUTED}; line-height: 1.5; }
 /* Inside the programme band: the band already supplies the column and its
    gutters, so the row drops its own, and a hairline ABOVE it separates the
    figures from the cards rather than one below closing off the screen. */
@@ -719,6 +956,113 @@ html {
 }
 
 /* ── Cards ────────────────────────────────────────────────────────────── */
+/* ── The comparison ───────────────────────────────────────────────────── */
+/* A real <table> with real row headers, not a grid of divs. Three columns of
+   related values IS tabular data, and a screen reader announcing "Cost — on
+   your own, free — here, £15 for the year" is the whole argument; a div grid
+   reads it as eight loose fragments. */
+.lp-cmp { width: 100%; border-collapse: collapse; text-align: left; }
+.lp-cmp thead th {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: ${MUTED};
+  padding: 0 0 16px;
+  border-bottom: 1px solid ${RULE};
+}
+.lp-cmp tbody th {
+  font-weight: 400;
+  font-size: clamp(1.0625rem, 1.5vw, 1.25rem);
+  color: ${MUTED};
+  width: 34%;
+}
+.lp-cmp td { font-size: clamp(1.0625rem, 1.5vw, 1.25rem); width: 33%; }
+.lp-cmp :is(td, tbody th) { padding: 20px 24px 20px 0; border-bottom: 1px solid ${RULE}; vertical-align: top; }
+.lp-cmp-alone { color: ${MUTED}; }
+/* The winning column carries the accent, once, on the whole column — this is
+   the one place on the page where sage is doing comparison rather than
+   decoration. */
+.lp-cmp-here { color: ${SAGE}; font-weight: 700; }
+@media (max-width: 720px) {
+  .lp-cmp thead { display: none; }
+  .lp-cmp tr { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 16px 0; border-bottom: 1px solid ${RULE}; }
+  .lp-cmp :is(td, tbody th) { width: auto; padding: 0; border: 0; }
+  .lp-cmp-alone::before { content: "On your own: "; color: ${MUTED}; }
+  .lp-cmp-here::before { content: "Here: "; color: ${MUTED}; font-weight: 400; }
+}
+
+/* ── Scroll reveal ────────────────────────────────────────────────────── */
+/* The hidden state is applied by JS after mount, never in the markup, so a
+   reader without JS sees the page rather than a blank screen. */
+.rv { transition: opacity 620ms ease, transform 620ms cubic-bezier(.22,.61,.36,1); }
+.rv-hidden { opacity: 0; transform: translateY(18px); }
+@media (prefers-reduced-motion: reduce) {
+  /* One place decides. The component applies the class freely; this makes it
+     mean nothing, so there is no second code path to keep in step. */
+  .rv { transition: none; }
+  .rv-hidden { opacity: 1; transform: none; }
+}
+
+/* Two figures, centred, at display size — the point is the number, so nothing
+   else in the band competes with it. */
+.lp-figures {
+  display: flex;
+  justify-content: center;
+  gap: clamp(40px, 9vw, 120px);
+  flex-wrap: wrap;
+  text-align: center;
+}
+.lp-figures > div { display: flex; flex-direction: column; gap: 8px; }
+.lp-figures strong {
+  font-family: var(--display);
+  font-weight: 300;
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.lp-figures span { font-size: clamp(1.125rem, 1.7vw, 1.5rem); color: ${MUTED}; }
+
+.lp-three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+@media (max-width: 900px) { .lp-three { grid-template-columns: minmax(0, 1fr); } }
+
+/* The number sits above the title rather than beside it, so all three cards
+   start their prose on the same line whatever the title's length. */
+.lp-step {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: ${PAPER_MUTED};
+}
+
+/* The marquee bleeds to both screen edges, so this band drops the column's
+   side padding and keeps only its vertical rhythm. */
+.lp-band-marquee { padding-inline: 0; max-width: none; align-items: center; }
+
+/* ── Testimonial videos ───────────────────────────────────────────────── */
+.lp-vid { margin: 0; display: flex; flex-direction: column; gap: 16px; }
+.lp-vid-player, .lp-vid-slot {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 24px;
+  background: #0A0A5E;
+  border: 1px solid ${RULE};
+  display: block;
+  object-fit: cover;
+}
+.lp-vid-slot { display: grid; place-items: center; }
+.lp-vid figcaption { display: flex; flex-direction: column; gap: 6px; }
+.lp-vid figcaption strong {
+  font-family: var(--display);
+  font-weight: 300;
+  font-size: clamp(1.125rem, 1.7vw, 1.375rem);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+.lp-vid figcaption span { font-size: 1rem; }
+
 .lp-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 @media (max-width: 860px) { .lp-two { grid-template-columns: minmax(0, 1fr); } }
 
@@ -737,7 +1081,7 @@ html {
   gap: 18px;
 }
 .lp-card h3 { font-size: clamp(1.5rem, 2.4vw, 2rem); line-height: 1.1; }
-.lp-card p { font-size: clamp(0.9375rem, 1.2vw, 1.0625rem); line-height: 1.6; }
+.lp-card p { font-size: clamp(1.0625rem, 1.5vw, 1.25rem); line-height: 1.6; }
 .lp-card hr { width: 100%; height: 1px; border: 0; background: ${PAPER_RULE}; margin: 6px 0; }
 .lp-card .lp-label, .lp-card .lp-muted { color: ${PAPER_MUTED}; }
 
@@ -768,7 +1112,7 @@ html {
 }
 .lp-steps li:last-child { border-bottom: 1px solid ${RULE}; }
 .lp-steps h3 { font-size: clamp(1.25rem, 1.9vw, 1.625rem); }
-.lp-steps p { font-size: clamp(0.9375rem, 1.2vw, 1.0625rem); line-height: 1.6; }
+.lp-steps p { font-size: clamp(1.0625rem, 1.4vw, 1.1875rem); line-height: 1.6; }
 .lp-num { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em; color: ${MUTED}; }
 @media (max-width: 860px) {
   .lp-steps li { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 24px 0; }
@@ -815,7 +1159,7 @@ html {
 }
 .lp-head-dark > .lp-label { color: ${PAPER_MUTED}; }
 .lp-included ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 40px; }
-.lp-included li { padding: 20px 0; border-top: 1px solid ${PAPER_RULE}; font-size: 1.0625rem; }
+.lp-included li { padding: 22px 0; border-top: 1px solid ${PAPER_RULE}; font-size: clamp(1.0625rem, 1.4vw, 1.25rem); }
 @media (max-width: 860px) { .lp-included ul { grid-template-columns: minmax(0, 1fr); } }
 
 /* ── Questions ────────────────────────────────────────────────────────── */
@@ -853,7 +1197,7 @@ html {
 .lp-qs summary::-webkit-details-marker { display: none; }
 .lp-qs summary:focus-visible { outline: 2px solid ${SAGE}; outline-offset: 4px; }
 .lp-qs h3 { font-size: clamp(1.0625rem, 1.5vw, 1.375rem); line-height: 1.25; }
-.lp-qs p { font-size: clamp(0.9375rem, 1.2vw, 1.0625rem); line-height: 1.6; padding-bottom: 28px; max-width: 62ch; }
+.lp-qs p { font-size: clamp(1.0625rem, 1.4vw, 1.1875rem); line-height: 1.6; padding-bottom: 28px; max-width: 62ch; }
 
 /* A plus that becomes a minus: one bar fixed, one rotating. Cheaper than two
    icons and it cannot fall out of step with the open state. */
