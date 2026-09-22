@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type SyntheticEvent } from "react";
+import { useRef, useState, type ReactNode, type SyntheticEvent } from "react";
 import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
 export type Testimonial = {
@@ -27,8 +27,11 @@ export type Testimonial = {
  */
 export default function TestimonialRail({
   items,
+  aside,
 }: {
   items: readonly Testimonial[];
+  /** Shares the arrows' row, on the left — where the page puts its ask. */
+  aside?: ReactNode;
 }) {
   const rail = useRef<HTMLDivElement>(null);
   const reduced = usePrefersReducedMotion();
@@ -92,6 +95,8 @@ export default function TestimonialRail({
         ))}
       </div>
       <div className="lp-rail-nav">
+        {aside}
+        <div className="lp-rail-arrows">
         <button
           type="button"
           className="lp-rail-btn"
@@ -112,6 +117,7 @@ export default function TestimonialRail({
         >
           →
         </button>
+        </div>
       </div>
     </div>
   );

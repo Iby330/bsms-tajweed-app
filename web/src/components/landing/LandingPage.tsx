@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { feeLabel, VENUE } from "@/lib/applications/form";
+import { CLOSES_LABEL, feeLabel, VENUE } from "@/lib/applications/form";
 import TajweedHeroPlayer from "@/components/landing/tajweed/TajweedHeroPlayer";
 import { FULL_VERSE } from "@/lib/tajweed/maidah95";
 import { TIMELINE } from "@/lib/tajweed/timeline";
@@ -190,21 +190,35 @@ const TESTIMONIALS: readonly Testimonial[] = [
  * get round to it". That is the free default, and a page that does not name it
  * leaves the visitor to make the comparison themselves, badly, later.
  *
- * The last row has to stay honest. Free is genuinely cheaper, and pretending
- * otherwise loses the reader; what free actually costs is that almost nobody
- * finishes. Say that, and the £15 stops being a price and becomes the cheap
- * part.
+ * Every row is a cross on your own and a tick here, so each one has to be
+ * something the free route genuinely cannot give you. That is why cost is not
+ * a row: free is cheaper, and a cross against it would be the one row a reader
+ * knows is false. The price is argued further down, where it can be.
  */
-const COMPARISON: readonly { row: string; alone: string; here: string }[] = [
-  { row: "Someone hears you recite", alone: "No", here: "Every week, in person" },
-  { row: "Your mistakes get named", alone: "You cannot hear your own", here: "Out loud, as you make them" },
-  { row: "What to learn next", alone: "Whatever comes up next", here: "A syllabus, in order" },
-  { row: "If you stop", alone: "Nobody notices", here: "Your teacher does, in week two" },
-  { row: "Questions", alone: "A comments section", here: "A person who knows you" },
-  { row: "Memorisation", alone: "Whenever you remember", here: "Scheduled, with revision dates" },
-  { row: "Cost", alone: "Free", here: `${feeLabel()} for the year` },
-  { row: "How many finish", alone: "Very few", here: "Most of a cohort" },
+const COMPARISON: readonly string[] = [
+  "Someone hears you recite",
+  "Your mistakes corrected as you make them",
+  "A syllabus, in order",
+  "Someone notices if you stop",
+  "A teacher you can ask directly",
+  "Memorisation scheduled, with revision dates",
+  "A room of people doing it with you",
 ];
+
+/* Tick and cross for the comparison. Drawn, not typed: ✓ and ✗ differ in
+   weight and size from font to font, and these have to sit as a pair. */
+const TICK = (
+  <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+    <circle cx="12" cy="12" r="11" fill="currentColor" />
+    <path d="M7 12.4l3.2 3.2L17 8.8" fill="none" stroke="#00004D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const CROSS = (
+  <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+    <circle cx="12" cy="12" r="10.3" fill="none" stroke="currentColor" strokeWidth="1.4" />
+    <path d="M8.5 8.5l7 7M15.5 8.5l-7 7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
 
 const INCLUDED = [
   "Two taught evenings a week",
@@ -294,15 +308,184 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
 
       </div>
 
-      {/* Three boxes, straight off the hero: the whole commitment in the time
-          it takes to scroll past. Deliberately not a feature list — each one
-          answers a different question a visitor is actually asking (what do I
-          do, what am I turning up to, and what stops me drifting). */}
+      {/* ── The journey ──────────────────────────────────────────────────────
+          The page is one argument, told in this order, and each section hands
+          the reader to the next:
+            1. hero       — this is for me
+            2. problem    — "that is exactly me" (this section)
+            3. outcome    — what you leave with, and the two-juz chart
+            4. proof      — 100+ students, then their own faces, then a nudge
+                            to apply for the reader who is already sold
+            5. how        — what it asks of you, a week, the app
+            6. offer      — what the fee covers
+            7. objections — the questions
+            8. the ask
+          Moving a section breaks the hand-offs in its first paragraph; re-read
+          the neighbours before reordering.
+
+          The problem comes first because nobody wants a solution to a problem
+          they have not been reminded they have. The free route is the real
+          competitor, so it is named, not hinted at. */}
+      <section className="lp-band">
+        <div className="lp-head">
+          <span className="lp-label">If you have tried before</span>
+          <h2>
+            You can learn this from a screen. <em>Almost nobody does.</em>
+          </h2>
+          <p>
+            A video, an app, a promise to yourself to do a page a day. The
+            information has been free for years and it was never the problem.
+            What is missing is someone who hears you recite, and a reason to
+            come back next week.
+          </p>
+        </div>
+
+        <Reveal>
+        <table className="lp-cmp">
+          <thead>
+            <tr>
+              <th scope="col">
+                <span className="lp-sr">Compared</span>
+              </th>
+              <th scope="col">On your own</th>
+              <th scope="col">BSMS Tajweed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {COMPARISON.map((row) => (
+              <tr key={row}>
+                <th scope="row">{row}</th>
+                <td className="lp-cmp-alone">
+                  {CROSS}
+                  <span className="lp-sr">No</span>
+                </td>
+                <td className="lp-cmp-here">
+                  {TICK}
+                  <span className="lp-sr">Yes</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        </Reveal>
+      </section>
+
+      {/* The answer to the problem above, as outcomes: what you leave with.
+          The chart that follows makes the hifdh half concrete. */}
+      <section id="course" className="lp-band">
+        <div className="lp-head">
+          <span className="lp-label">What you learn</span>
+          <h2>
+            Two things, <em>taught in person.</em>
+          </h2>
+          <p>
+            Tajweed, so each letter comes out the way it was revealed. Hifdh, so
+            more of the Qur&apos;an stays with you. Both with a teacher in the
+            room, every week of the year.
+          </p>
+        </div>
+
+        <div className="lp-two">
+          <article className="lp-card">
+            <h3>Tajweed rules</h3>
+            <p className="lp-muted">
+              Perfecting your Qur&apos;an recitation with the rules derived from
+              its revelation.
+            </p>
+          </article>
+
+          <article className="lp-card">
+            <h3>Hifdh</h3>
+            <p className="lp-muted">
+              Start or continue your hifdh, in a structured and supportive
+              format.
+            </p>
+          </article>
+        </div>
+
+      </section>
+
+      {/* Two juz, and how they add up. */}
+      <section className="lp-band lp-band-marquee">
+        <HifdhProjection />
+      </section>
+
+      {/* The "you would not be the first" beat — what an awards row does on a
+          commercial page, done with the only currency that means anything to a
+          student: how many people like them already did it, and for how long.
+
+          Two figures, not four. The practical stat row further down carries
+          four, and repeating that shape would read as filler; this one is
+          fewer, larger and making a single point. */}
+      <section className="lp-band">
+        <div className="lp-head lp-head-mid">
+          <span className="lp-label">Not the first</span>
+          <h2>
+            Over a hundred students <em>have already done this.</em>
+          </h2>
+          <p>
+            Six years of the same two evenings a week. Whatever you are weighing
+            up, somebody in the room has already weighed it up and come anyway.
+          </p>
+        </div>
+
+        <Reveal>
+          <div className="lp-figures">
+            <div>
+              <strong>
+                <CountUp value={100} suffix="+" />
+              </strong>
+              <span>Students taught</span>
+            </div>
+            <div>
+              <strong>
+                <CountUp value={6} suffix=" years" />
+              </strong>
+              <span>Running, without a gap</span>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+      <section className="lp-band">
+        <div className="lp-head lp-head-mid">
+          <span className="lp-label">From the people doing it</span>
+          <h2>
+            Ask someone who was <em>where you are now.</em>
+          </h2>
+        </div>
+
+        {/* The first ask since the hero, for the reader the proof has already
+            convinced. Everything after this is for the reader still deciding;
+            neither should have to scroll past the other to act. It rides in
+            the arrows' row so it lands on the same screen as the faces. */}
+        <Reveal>
+        <TestimonialRail
+          items={TESTIMONIALS}
+          aside={
+            <div className="lp-midcta">
+              <Link href="/apply" className="lp-btn lp-btn-light lp-btn-apply">
+                Apply to join
+              </Link>
+              <p className="lp-muted">
+                {feeLabel()} for the year · Sign-ups close {CLOSES_LABEL}
+              </p>
+            </div>
+          }
+        />
+        </Reveal>
+      </section>
+
+      {/* The start of "how", right after the proof: they did it, and this is
+          what it asked of them. Three boxes, deliberately not a feature list —
+          each answers a question a visitor is actually asking (what do I do,
+          what am I turning up to, and what stops me drifting). The week and
+          the app below zoom in on boxes two and three. */}
       <section className="lp-band">
         <div className="lp-head">
           <span className="lp-label">How it works</span>
           <h2>
-            Small commitment, <em>big results.</em>
+            Here is <em>what it asks of you.</em>
           </h2>
         </div>
 
@@ -334,43 +517,8 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
           </article>
         </div>
         </Reveal>
-      </section>
-
-      {/* Two juz, and how they add up. */}
-      <section className="lp-band lp-band-marquee">
-        <HifdhProjection />
-      </section>
-
-      <section id="course" className="lp-band">
-        <div className="lp-head">
-          <span className="lp-label">The programme</span>
-          <h2>
-            What do <em>you learn?</em>
-          </h2>
-        </div>
-
-        <div className="lp-two">
-          <article className="lp-card">
-            <h3>Tajweed rules</h3>
-            <p className="lp-muted">
-              Perfecting your Qur&apos;an recitation with the rules derived from
-              its revelation.
-            </p>
-          </article>
-
-          <article className="lp-card">
-            <h3>Hifdh</h3>
-            <p className="lp-muted">
-              Start or continue your hifdh, in a structured and supportive
-              format.
-            </p>
-          </article>
-        </div>
-
-        {/* The four figures that answer the first practical questions. They
-            used to sit under the hero on screen one; they belong with the
-            programme they describe, and screen one is now the verse and the
-            headline alone. */}
+        {/* The four figures that answer the first practical questions, with
+            the commitment they describe. */}
         <section className="lp-stats" aria-label="At a glance">
         <div>
           <strong>{feeLabel()}</strong>
@@ -399,10 +547,9 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
               Someone notices <em>before you drift.</em>
             </h2>
             <p>
-              The same shape of week for six years, because it works. Most
-              courses fail quietly — you miss one, then two, and nobody says
-              anything. Two lessons, homework in between, and a register that
-              means your absence is noticed rather than assumed.
+              The same shape of week for six years, because it works. Two
+              lessons, homework in between, and a register, so if you miss one,
+              somebody asks where you were.
             </p>
           </div>
           <p className="lp-note">Two lessons every week</p>
@@ -469,102 +616,10 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
         </div>
       </section>
 
-      {/* The "you would not be the first" beat — what an awards row does on a
-          commercial page, done with the only currency that means anything to a
-          student: how many people like them already did it, and for how long.
-
-          Two figures, not four. The stat row under the hero already carries
-          four, and repeating that shape would read as filler; this one is
-          fewer, larger and making a single point. */}
-      <section className="lp-band">
-        <div className="lp-head lp-head-mid">
-          <span className="lp-label">Not the first</span>
-          <h2>
-            Over a hundred students <em>have already done this.</em>
-          </h2>
-          <p>
-            Six years of the same two evenings a week. Whatever you are weighing
-            up, somebody in the room has already weighed it up and come anyway.
-          </p>
-        </div>
-
-        <Reveal>
-          <div className="lp-figures">
-            <div>
-              <strong>
-                <CountUp value={100} suffix="+" />
-              </strong>
-              <span>Students taught</span>
-            </div>
-            <div>
-              <strong>
-                <CountUp value={6} suffix=" years" />
-              </strong>
-              <span>Running, without a gap</span>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      <section className="lp-band">
-        <div className="lp-head lp-head-mid">
-          <span className="lp-label">From the people doing it</span>
-          <h2>
-            Ask someone who was <em>where you are now.</em>
-          </h2>
-        </div>
-
-        <Reveal>
-        <TestimonialRail items={TESTIMONIALS} />
-        </Reveal>
-      </section>
-
-      {/* Answers "how is this different from teaching myself?" — and it sits
-          here, after the videos, because the comparison only lands once you
-          already believe the thing works. */}
-      <section className="lp-band">
-        <div className="lp-head">
-          <span className="lp-label">Against doing it alone</span>
-          <h2>
-            You can learn this from a screen. <em>Almost nobody does.</em>
-          </h2>
-          <p>
-            Everything below is available free, and has been for years. What is
-            missing from the free version is not the information, it is the
-            structure and the accountability.
-          </p>
-        </div>
-
-        <Reveal>
-        <table className="lp-cmp">
-          <thead>
-            <tr>
-              <th scope="col">
-                <span className="lp-sr">Compared</span>
-              </th>
-              <th scope="col">On your own</th>
-              <th scope="col">Here</th>
-            </tr>
-          </thead>
-          <tbody>
-            {COMPARISON.map((c) => (
-              <tr key={c.row}>
-                <th scope="row">{c.row}</th>
-                <td className="lp-cmp-alone">{c.alone}</td>
-                <td className="lp-cmp-here">{c.here}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        </Reveal>
-      </section>
-
       {/* The price sits HERE, and the position is the argument.
-          It was above the three proof sections, which meant a visitor met the
-          number before they had any reason to think it was worth paying. Now
-          it lands after the scale, the faces and the comparison — so what they
-          are weighing it against is "free, and almost nobody finishes" rather
-          than nothing at all. */}
+          It lands after the problem, the proof and the how — so what a visitor
+          weighs it against is "free, and almost nobody finishes" and a room of
+          people who did, rather than nothing at all. */}
       <section className="lp-band">
         <div className="lp-included">
           <div className="lp-head lp-head-dark">
@@ -618,7 +673,7 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
             and your place is held while that is arranged.
           </p>
           <p className="lp-deadline">
-            Sign-ups close <mark>30 September</mark>
+            Sign-ups close <mark>{CLOSES_LABEL}</mark>
           </p>
         </div>
         <div className="lp-cta">
@@ -952,9 +1007,9 @@ html {
 /* ── Cards ────────────────────────────────────────────────────────────── */
 /* ── The comparison ───────────────────────────────────────────────────── */
 /* A real <table> with real row headers, not a grid of divs. Three columns of
-   related values IS tabular data, and a screen reader announcing "Cost — on
-   your own, free — here, £15 for the year" is the whole argument; a div grid
-   reads it as eight loose fragments. */
+   related values IS tabular data, and a screen reader announcing "Someone
+   hears you recite — on your own, no — BSMS Tajweed, yes" is the whole
+   argument; a div grid of icons reads it as a row of unlabelled pictures. */
 .lp-cmp { width: 100%; border-collapse: collapse; text-align: left; }
 .lp-cmp thead th {
   font-family: var(--font-mono);
@@ -966,25 +1021,27 @@ html {
   padding: 0 0 16px;
   border-bottom: 1px solid ${RULE};
 }
+.lp-cmp thead th:not(:first-child) { text-align: center; }
 .lp-cmp tbody th {
   font-weight: 400;
   font-size: clamp(1.0625rem, 1.5vw, 1.25rem);
-  color: ${MUTED};
-  width: 34%;
+  color: ${LAVENDER};
 }
-.lp-cmp td { font-size: clamp(1.0625rem, 1.5vw, 1.25rem); width: 33%; }
-.lp-cmp :is(td, tbody th) { padding: 20px 24px 20px 0; border-bottom: 1px solid ${RULE}; vertical-align: top; }
+/* Two narrow icon columns, the same on every width: a tick and a cross fit a
+   phone, so the table never has to be restacked into prose. */
+.lp-cmp :is(td, thead th:not(:first-child)) { width: clamp(88px, 18%, 180px); }
+.lp-cmp td { text-align: center; line-height: 0; }
+.lp-cmp td svg { display: inline-block; }
+.lp-cmp :is(td, tbody th) { padding: 18px 0; border-bottom: 1px solid ${RULE}; vertical-align: middle; }
+.lp-cmp tbody th { padding-right: 16px; }
 .lp-cmp-alone { color: ${MUTED}; }
 /* The winning column carries the accent, once, on the whole column — this is
    the one place on the page where sage is doing comparison rather than
    decoration. */
-.lp-cmp-here { color: ${SAGE}; font-weight: 700; }
+.lp-cmp-here { color: ${SAGE}; }
 @media (max-width: 720px) {
-  .lp-cmp thead { display: none; }
-  .lp-cmp tr { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 16px 0; border-bottom: 1px solid ${RULE}; }
-  .lp-cmp :is(td, tbody th) { width: auto; padding: 0; border: 0; }
-  .lp-cmp-alone::before { content: "On your own: "; color: ${MUTED}; }
-  .lp-cmp-here::before { content: "Here: "; color: ${MUTED}; font-weight: 400; }
+  .lp-cmp thead th { font-size: 0.6875rem; letter-spacing: 0.12em; }
+  .lp-cmp td svg { width: 24px; height: 24px; }
 }
 
 /* ── Scroll reveal ────────────────────────────────────────────────────── */
@@ -1070,7 +1127,8 @@ html {
    uncapped on a laptop it pushed the arrows below the fold. 34svh wide is
    42.5svh tall — the section, caption and arrows then fit one screen. */
 @media (min-width: 1000px) { .lp-rail > .lp-vid { flex-basis: min(calc((100% - 60px) / 3.3), 34svh); } }
-.lp-rail-nav { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+.lp-rail-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px 24px; margin-top: 20px; flex-wrap: wrap; }
+.lp-rail-arrows { display: flex; gap: 12px; margin-left: auto; }
 .lp-rail-btn {
   width: 48px;
   height: 48px;
@@ -1270,6 +1328,8 @@ html {
 .lp-deadline { font-size: clamp(1rem, 1.4vw, 1.125rem); }
 .lp-deadline mark { background: ${SAGE}; color: ${NAVY}; padding: 0.04em 0.22em; font-weight: 700; }
 .lp-cta { display: flex; flex-direction: column; gap: 12px; }
+.lp-midcta { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
+.lp-midcta p { font-size: 0.9375rem; }
 .lp-fine { font-size: 0.875rem; line-height: 1.5; text-align: center; margin-top: 10px; }
 
 /* ── Footer ───────────────────────────────────────────────────────────── */
