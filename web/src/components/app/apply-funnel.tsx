@@ -476,7 +476,10 @@ export function ApplyFunnel() {
         </Button>
         <p className="mt-3 text-xs text-muted-foreground">
           {STEPS.length} questions · {feeLabel()} one time fee for the full year ·{" "}
-          closes {CLOSES_LABEL}
+          {/* The deadline, in the brand's highlighter. Same device and same
+              phrase the landing page marks, so the one date that matters
+              looks the same wherever somebody meets it. */}
+          <mark>closes {CLOSES_LABEL}</mark>
         </p>
       </div>
       </>

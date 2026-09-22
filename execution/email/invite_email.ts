@@ -7,8 +7,8 @@
  *
  * The palette is lifted from the navy scheme in web/src/app/globals.css so the
  * mail and the app are visibly the same product:
- *   page  #ededfc   card  #ffffff   ink    #00004d
- *   border #d8d8f0  muted #3a3a85   accent #2f4fd0
+ *   page  #e5e5ff   card  #ffffff   ink    #00004d
+ *   border #c8c8dc  muted #3a3a85   accent #2f4fd0
  *
  * The logo is the deployed one rather than an attachment: a remote image can
  * be blocked by the client, and a CID attachment trips some spam filters. It
@@ -96,7 +96,7 @@ export function inviteHtml(i: Invite): string {
 <meta name="supported-color-schemes" content="light">
 <title>${esc(inviteSubject())}</title>
 </head>
-<body style="margin:0;padding:0;background:#ededfc;">
+<body style="margin:0;padding:0;background:#e5e5ff;">
 
 <!-- Preheader: the grey line of text a client shows next to the subject.
      Left empty it would scrape the first words of the markup instead. -->
@@ -105,12 +105,12 @@ export function inviteHtml(i: Invite): string {
 </div>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-       style="background:#ededfc;margin:0;padding:0;">
+       style="background:#e5e5ff;margin:0;padding:0;">
   <tr>
     <td align="center" style="padding:32px 12px;">
 
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
-             style="width:100%;max-width:600px;background:#ffffff;border:1px solid #d8d8f0;border-radius:14px;overflow:hidden;">
+             style="width:100%;max-width:600px;background:#ffffff;border:1px solid #c8c8dc;border-radius:14px;overflow:hidden;">
 
         <!-- brand band ------------------------------------------------- -->
         <tr>
@@ -137,7 +137,7 @@ export function inviteHtml(i: Invite): string {
         <tr>
           <td style="padding:6px 34px 0 34px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-                   style="background:#ededfc;border:1px solid #d8d8f0;border-radius:10px;">
+                   style="background:#e5e5ff;border:1px solid #c8c8dc;border-radius:10px;">
               <tr>
                 <td style="padding:18px 20px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
                   <div style="font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#2f4fd0;font-weight:700;">
@@ -172,7 +172,7 @@ export function inviteHtml(i: Invite): string {
               <tr>
                 <td align="center" bgcolor="#00004d" style="border-radius:9px;">
                   <a href="${link}"
-                     style="display:inline-block;padding:15px 34px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#ededfc;text-decoration:none;border-radius:9px;">
+                     style="display:inline-block;padding:15px 34px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#e5e5ff;text-decoration:none;border-radius:9px;">
                     Set up your account
                   </a>
                 </td>
@@ -193,7 +193,7 @@ export function inviteHtml(i: Invite): string {
         <tr>
           <td style="padding:24px 34px 0 34px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-                   style="border-top:1px solid #d8d8f0;">
+                   style="border-top:1px solid #c8c8dc;">
               <tr>
                 <td style="padding-top:18px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
                   <p style="margin:0 0 12px 0;font-size:13px;line-height:1.6;color:#3a3a85;">

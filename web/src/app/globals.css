@@ -14,6 +14,14 @@
      breaks hold. The social posts are set in it; the product now matches. */
   --font-sans: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
   --font-heading: var(--font-sans);
+  /* The display face, as the landing page pairs it: Fraunces against
+     Helvetica, serif headline over grotesque everything-else. It was
+     confined to the marketing pages; from 2026-09-22 the page titles across
+     the app use it too, so the product reads as the same publication as the
+     page that sold it. Georgia is the fallback with the closest colour on a
+     machine with no webfonts. Small UI headings stay Helvetica: see the
+     h1/h2 rule in the base layer. */
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
   /* Sticky-note device only (docs/brand-system.md). Times New Roman MT
      Condensed is a Monotype licence, so the web falls back to plain Times —
      same family, not condensed, present on every machine. */
@@ -222,16 +230,20 @@
      are IDENTICAL in both modes on purpose: an accent chip keeps its own
      foreground the way a road sign does not change colour at night. */
   --tertiary: #404d1f;             /* sage-700, as text on lavender  7.39:1 */
-  --tertiary-surface: #b2c58c;     /* sage-300, the brand sage as a fill    */
-  --tertiary-foreground: #00004d;  /* navy on that fill             10.17:1 */
+  /* Sampled from the Instagram posts themselves (#BECC99 after their
+     compression), which is what the sticky notes on the landing page have
+     always used. The ramp's sage-300 #B2C58C was a shade too dark and grey,
+     so the app's chips never quite matched the posts. 2026-09-22. */
+  --tertiary-surface: #bece99;     /* the brand sage as a fill              */
+  --tertiary-foreground: #00004d;  /* navy on that fill             11.27:1 */
   --tertiary-muted: #dbeac0;       /* sage-100, tints and hovers            */
 
   /* raw brand — the wordmark inverted: navy on pale lavender */
   --ink: #00004d;
   --ink-2: #3a3a85;
-  --slate: #c9c9e8;
+  --slate: #c8c8dc;
   --ink-3: #7676ac;
-  --hair: #c9c9e8;
+  --hair: #c8c8dc;
   /* State is state and accent is accent. Green / orange / red carry pass,
      pending and fail exactly as the first version of this app did; the
      scheme's own indigo carries every decorative and "this one" use, so a
@@ -241,14 +253,17 @@
   --danger: #8c3b2e;  /* red — below target, overdue, wrong, strikes (6.5:1) */
   --brand: #2f4fd0;   /* indigo — highlights, links, current, focus  (5.75:1) */
 
-  --background: #ededfc;
+  /* lavender-100, the brand's second colour and the posts' own ground
+     (they measure #E1E1F5). It was #EDEDFC, a lighter, bluer lavender that
+     belonged to no ramp and made the app read colder than the posts. */
+  --background: #e5e5ff;
   --foreground: #00004d;
   --card: #ffffff;
   --card-foreground: #00004d;
   --popover: #ffffff;
   --popover-foreground: #00004d;
   --primary: #00004d;
-  --primary-foreground: #ededfc;
+  --primary-foreground: #e5e5ff;
   --secondary: #e0e0f7;
   --secondary-foreground: #00004d;
   --muted: #e0e0f7;
@@ -256,8 +271,8 @@
   --accent: #dcdcf6;
   --accent-foreground: #00004d;
   --destructive: #8c3b2e;
-  --border: #d8d8f0;
-  --input: #d8d8f0;
+  --border: #c8c8dc;   /* lavender-200, the hairline the brand doc specifies */
+  --input: #c8c8dc;
   --ring: #2f4fd0;
   --chart-1: #00004d;
   --chart-2: #2f4fd0;
@@ -279,7 +294,7 @@
   --sidebar-ring: #7b93f0;
 
   --glass-bg: #ffffff;
-  --glass-border: #d8d8f0;
+  --glass-border: #c8c8dc;
   --glow-1: #2f4fd0;
   --glow-2: #2e5e4e;
   --glow-3: #9a5314;
@@ -299,8 +314,8 @@
   /* Sage again. Only --tertiary moves: on a navy ground the brand sage IS
      readable as text at 10.17:1, so it needs no darkening. The fill and its
      foreground deliberately do not flip. */
-  --tertiary: #b2c58c;             /* sage-300, as text on navy     10.17:1 */
-  --tertiary-surface: #b2c58c;     /* unchanged — the chip is a light island */
+  --tertiary: #bece99;             /* the brand sage, as text on navy 11.27:1 */
+  --tertiary-surface: #bece99;     /* unchanged — the chip is a light island */
   --tertiary-foreground: #00004d;  /* still navy                    10.17:1 */
   --tertiary-muted: #273207;       /* sage-800, tints and hovers            */
 
@@ -410,6 +425,42 @@
     font-family: var(--font-heading);
     letter-spacing: -0.02em;
     font-weight: 700;
+  }
+
+  /* ── Headlines follow the landing page ────────────────────────────────
+     The two big headings on a screen are display type and take the serif at
+     the landing's own weight (300, not the 700 above); h3 and h4 are working
+     UI, sit in dense places, and stay Helvetica. Anything that sets its own
+     family — `.label` (mono), the Arabic classes — is unaffected, and
+     `.masthead h1` keeps its own finer weights below. */
+  h1, h2 {
+    font-family: var(--font-display);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── The highlighter ───────────────────────────────────────────────────
+     The posts' most repeated device: a sage marker laid behind the words
+     that carry the promise, with navy on top. It was on Instagram and on
+     one line of the landing page and nowhere else, so the app never looked
+     like the account that advertises it.
+
+     Identical in both modes, like every other sage fill: the chip is a
+     light island on a dark page, the way a road sign does not change
+     colour at night (docs/brand-system.md). Navy on it is 11.27:1.
+
+     `box-decoration-break` is what makes a phrase that wraps across two
+     lines get the marker on both, rather than one long box behind the gap.
+     Kept to a phrase, never a sentence: a highlighter that covers
+     everything highlights nothing. */
+  mark {
+    background: var(--tertiary-surface);
+    color: var(--tertiary-foreground);
+    padding: 0.04em 0.22em;
+    border-radius: 0.1em;
+    font-weight: 700;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
   }
   /* Tailwind v4's preflight puts `cursor: default` on buttons. Everything
      clickable shows the hand instead — one rule here rather than a
@@ -1025,12 +1076,15 @@ body::after {
   }
 
   .masthead { padding: clamp(40px, 7vw, 88px) 0 clamp(24px, 3.5vw, 40px); }
+  /* Set in the display serif (the h1 rule above), so the weights are the
+     landing's: 300 against 600, not the 250/200 a grotesque could carry.
+     Fraunces at 200 is a hairline that disappears on a phone. */
   .masthead h1 {
-    margin: 0; font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 250;
-    letter-spacing: -0.04em; line-height: 1.02; text-wrap: balance;
+    margin: 0; font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 300;
+    letter-spacing: -0.03em; line-height: 1.04; text-wrap: balance;
   }
   .masthead h1 b { font-weight: 600; }
-  .masthead h1 span { color: var(--ink-3); font-weight: 200; }
+  .masthead h1 span { color: var(--ink-3); font-weight: 300; }
   .masthead p { margin: 14px 0 0; color: var(--muted-foreground); max-width: 52ch; }
   .masthead .meta { display: flex; align-items: baseline; justify-content: space-between;
                     gap: 26px; margin-top: 22px; flex-wrap: wrap; }

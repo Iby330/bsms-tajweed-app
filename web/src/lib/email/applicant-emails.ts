@@ -36,8 +36,8 @@ const LINK_VALID_HOURS = 24;
  *  text/border steps. Light only: the shell declares color-scheme light. */
 const C = {
   page: "#e5e5ff", card: "#ffffff", ink: "#00004d",
-  border: "#c8c8dc", muted: "#58586d",
-  sage: "#b2c58c", sageText: "#404d1f",
+  border: "#c8c8dc", muted: "#3a3a85",
+  sage: "#bece99", sageText: "#404d1f",
 } as const;
 const FONT = "'Helvetica Neue',Helvetica,Arial,sans-serif";
 

@@ -2,30 +2,22 @@
  * Which screens are pinned to the dark scheme, whatever the viewer's device
  * prefers.
  *
- * The signed-out screens are the programme's shop window — the splash, the
- * application form, and the auth pages between them. They are seen once, by
- * someone who has never seen the app, and what they look like should be a
- * decision we made rather than one their laptop made at sunrise. So they are
- * always the deep navy the logo is drawn on.
+ * ONLY THE SPLASH, since 2026-09-22. It is the one page whose colours are
+ * written into the page itself (components/landing/LandingPage.tsx paints its
+ * own navy ground and lavender ink rather than reading the tokens), so it has
+ * no light version to offer and pinning it is honest.
  *
- * The signed-in app is deliberately NOT in here. Students are in it daily and
- * at night, the rail carries a theme toggle, and taking that away to make a
- * marketing point would be a poor trade.
+ * Everything else that used to be here — /apply, the auth screens — now
+ * follows the device, because the advertising does. Every Instagram post is
+ * lavender paper with navy ink, so a student tapping a light post from a
+ * light phone was being dropped onto a dark form; the two now match. Both
+ * schemes are the brand's own colours, swapped, which is the system rather
+ * than an exception to it (docs/brand-system.md).
  *
- * The auth pages earn their place for a second reason: the splash is dark and
- * "Sign in" leads straight to /login. Leaving that one page on the system
- * scheme would flash white in the middle of the only journey a new student
- * makes.
+ * The signed-in app was never in here: students are in it daily and at
+ * night, and the rail carries a theme toggle.
  */
-export const DARK_ONLY_PATHS: readonly string[] = [
-  "/",
-  "/apply",
-  "/login",
-  "/locked",
-  "/forgot-password",
-  "/reset-password",
-  "/welcome",
-];
+export const DARK_ONLY_PATHS: readonly string[] = ["/"];
 
 export function isDarkOnlyPath(pathname: string): boolean {
   return DARK_ONLY_PATHS.includes(pathname);

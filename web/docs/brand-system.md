@@ -24,7 +24,7 @@ system, not an exception to it.
 | --- | --- | --- | --- | --- |
 | Primary | Navy | `#00004D` | ink | ground |
 | Secondary | Lavender | `#E5E5FF` | ground | ink |
-| Tertiary | Sage | `#B2C58C` | accent | accent |
+| Tertiary | Sage | `#BECE99` | accent | accent |
 
 There is no fourth colour. An early draft of this document listed a sand
 `#DBD6CA`; that was a sampling error — anti-aliased blend pixels from a narrow
@@ -45,7 +45,8 @@ lavender  50 #f5f5ff  100 #e5e5ff ←  200 #c8c8dc  300 #aaaabf  400 #8e8ea4
           500 #727289 600 #58586d  700 #403f52  800 #282838  900 #13131f
           950 #030309
 
-sage      50 #f0fdd7  100 #dbeac0  200 #c7d7aa  300 #b2c58c ←  400 #94a573
+sage      50 #f0fdd7  100 #dbeac0  200 #c7d7aa  250 #bece99 ←  300 #b2c58c
+          400 #94a573
           500 #768752 600 #5a6a36  700 #404d1f  800 #273207  900 #111a00
           950 #020500
 ```
@@ -61,7 +62,7 @@ shape a shadow, a texture or a navy edge. The sticky notes in the posts work
 for exactly that reason: the tape and the drop shadow do the separating that
 colour cannot.
 
-**2. A sage fill keeps navy type in both modes — 10.17:1.**
+**2. A sage fill keeps navy type in both modes — 11.27:1.**
 No single colour can carry navy text in one mode and lavender text in the
 other: navy text needs the fill bright (luminance ≥ 0.199), lavender text needs
 it dark (≤ 0.139), and those windows do not overlap at any hue. So the accent
@@ -73,7 +74,7 @@ sign does not change colour at night. One value, 10.17:1 everywhere.
 | Job | Token | Ratio |
 | --- | --- | --- |
 | Sage as text, light mode | sage-700 `#404D1F` | 7.39:1 |
-| Sage as text, dark mode | sage-300 `#B2C58C` | 10.17:1 |
+| Sage as text, dark mode | sage `#BECE99` | 11.27:1 |
 | Muted text, light mode | lavender-600 `#58586D` | 5.60:1 |
 | Muted text, dark mode | lavender-300 `#AAAABF` | 8.32:1 |
 | Hairline border, light | lavender-200 `#C8C8DC` | 1.33:1 |
@@ -82,6 +83,22 @@ sign does not change colour at night. One value, 10.17:1 everywhere.
 The two border rows are meant to be low. A hairline at 4.5:1 stops being a
 hairline and becomes a frame around everything. Only text and interactive
 elements need to clear 4.5:1.
+
+### The sage measured off the posts
+
+`#BECE99` is sampled from the published posts themselves (they measure
+`#BECC99` once Instagram has compressed them) and is what the landing page's
+sticky notes always used. The ramp's `#B2C58C` was the value in the tokens
+until September 2026: half a step darker and greyer, enough that a chip in
+the app never quite matched a highlight in a post. Navy on it is 11.27:1,
+better than the value it replaced.
+
+### The lavender ground is lavender-100
+
+`#E5E5FF`, the ramp's own step and within a hair of the posts' ground
+(`#E1E1F5`). The app's light mode ran on `#EDEDFC` until September 2026,
+which belonged to no ramp and read colder than the advertising. Hairlines
+went the same way: `#C8C8DC`, not `#D8D8F0`.
 
 ### Semantic colour is not brand colour
 
@@ -113,6 +130,23 @@ hold. The app previously ran Archivo; it moved to this stack in September 2026.
 > carries no Latin Extended — no ā, ū, ṣ or ṭ — and the uppercase labels are
 > full of them (`FĀṬIR 35:33`, `ṢIFĀT`, `MUDŪD`). Dropping it puts those glyphs
 > in whatever the browser finds, mid-label.
+
+### Fraunces — the display face
+
+Page titles and section headings, paired against Helvetica for everything
+else. It began as a landing-page exception and became the house headline
+treatment in September 2026, because that pairing is what the programme
+looks like at its best. Weight 300, tracking -0.02em, `opsz` on the variable
+axis so a 58px headline and a 22px card title are not the same drawing
+scaled.
+
+```css
+--font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+```
+
+It goes on `h1` and `h2` only. `h3`, `h4`, labels, buttons, tables and every
+other working part of the interface stay Helvetica: a serif in a dense screen
+is decoration, and this one earns its place by being rare.
 
 ### Times New Roman MT Condensed — the note face
 
