@@ -374,8 +374,37 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* html carries the page colour too, not just body: Safari 26 paints the
+     areas behind its clock and toolbar with the ROOT background, not with
+     the page's pixels. So the root has to be the colour the page LOOKS, and
+     the page does not look like --background: the film grain on body::after
+     (below) lifts it about 3% towards white in the dark scheme (screen
+     blend) and darkens it about 2% in the light one (multiply). Measured on
+     an iPhone: bands at #00004d read (0,0,73), the page read (8,8,79).
+     Body paints over all of this, so it is only ever seen in those bands and
+     in overscroll. */
   html {
     @apply font-sans;
+    background-color: color-mix(in srgb, var(--background) 98%, black);
+  }
+  html.dark {
+    background-color: color-mix(in srgb, var(--background) 97%, white);
+  }
+  /* Setting html alone changed nothing on an iPhone: at the top of the page
+     Safari paints those bands from BODY's background (scrolled, it shows the
+     page through a fade instead). The landing page paints its own ground over
+     body, so body there can take the same lifted colour without showing. */
+  html.dark body:has(.lp) {
+    background-color: color-mix(in srgb, var(--background) 97%, white);
+  }
+  /* The viewport is edge to edge (viewportFit "cover" in app/layout.tsx), so
+     a page with no header of its own would start under the clock. The app
+     shell and the landing page clear the insets in their own headers, so
+     they are exempt; everything else — login, apply, welcome — is padded
+     here. The padding shows the page's own background, so it reads as page. */
+  body:not(:has(.appshell, .lp)) {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   h1, h2, h3, h4 {
     font-family: var(--font-heading);
@@ -1325,7 +1354,12 @@ body::after {
     .rail { display: none; }
     .topbar {
       display: flex; align-items: center; justify-content: space-between; gap: 14px;
-      padding: 12px var(--gutter); position: sticky; top: 0; z-index: 35;
+      /* The bar runs up under the iPhone clock and pads its content clear of
+         it, so the status area is the header's own colour rather than a band
+         of something else. Safari 26 also samples this sticky bar to tint
+         its own chrome. */
+      padding: calc(12px + env(safe-area-inset-top, 0px)) var(--gutter) 12px;
+      position: sticky; top: 0; z-index: 35;
       background: var(--sidebar); color: var(--sidebar-foreground);
     }
     .topbar .mark {

@@ -746,6 +746,8 @@ const PAPER_SAGE = "#404D1F"; /* sage-700 — sage only reads on lavender this d
 const CSS = `
 .lp {
   --display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
   interpolate-size: allow-keywords;
   position: relative;
   isolation: isolate;
@@ -817,11 +819,15 @@ html {
 .lp-muted { color: ${MUTED}; }
 
 /* ── Nav ──────────────────────────────────────────────────────────────── */
+/* --safe-top/--safe-bottom: the iPhone clock and home bar. The page runs
+   edge to edge under them (viewportFit "cover" in app/layout.tsx), so the
+   nav and the footer step clear while the navy ground carries on beneath. */
 .lp-nav {
   position: absolute;
   inset: 0 0 auto;
   z-index: 2;
-  height: 92px;
+  height: calc(92px + var(--safe-top));
+  padding-top: var(--safe-top);
   padding-inline: clamp(20px, 4vw, 80px);
   display: flex;
   align-items: center;
@@ -906,7 +912,7 @@ html {
   /* The nav is absolutely positioned over the top of the page. Starting the
      hero under it rather than behind it keeps the ball's arc clear of the
      links — the arc is the one thing in the piece that rises. */
-  margin-top: 92px;
+  margin-top: calc(92px + var(--safe-top));
 }
 /* On a phone the verse wraps to as many as three lines and the key stacks
    two-up, so the hero needs a fixed, tall share of the screen rather than
@@ -1339,7 +1345,7 @@ html {
    than a change of colour — there is no darker navy left to go to. */
 .lp-foot {
   border-top: 1px solid ${RULE};
-  padding: clamp(40px, 5vw, 56px) 20px 44px;
+  padding: clamp(40px, 5vw, 56px) 20px calc(44px + var(--safe-bottom));
 }
 .lp-foot-top, .lp-foot-base { width: 100%; max-width: 1280px; margin-inline: auto; }
 .lp-foot-top { display: flex; justify-content: space-between; gap: 48px; flex-wrap: wrap; }

@@ -85,6 +85,11 @@ export const metadata: Metadata = {
   // 307-redirects here.
   metadataBase: new URL("https://www.bsmstajweed.com"),
   title: { default: "BSMS Tajweed", template: "%s · BSMS Tajweed" },
+  // Added to a home screen, iOS draws its own status bar above the page
+  // unless told the page runs under it. "black-translucent" does that, and
+  // the same safe-area padding that serves Safari (viewportFit "cover",
+  // below) keeps the content clear of the clock.
+  appleWebApp: { capable: true, title: "BSMS Tajweed", statusBarStyle: "black-translucent" },
   description:
     "Tajweed and Qur'an memorisation platform for the Brighton Sussex Muslim Students programme.",
 };
@@ -93,6 +98,14 @@ export const metadata: Metadata = {
  * The browser chrome around the page — the address bar on mobile, the title
  * bar of an installed window. Two values so it follows the theme rather than
  * leaving a pale strip above a dark page.
+ *
+ * `viewportFit: "cover"` is what actually colours those bars on an iPhone.
+ * Safari 26 (iOS 26, Liquid Glass) IGNORES theme-color: without "cover" it
+ * paints solid bands behind the clock and its floating toolbar, and the page
+ * looks cut off top and bottom. With it the page runs under both, and every
+ * surface that touches an edge must clear the insets itself — see the
+ * safe-area rules in globals.css. theme-color stays for older Safari and
+ * Android Chrome.
  *
  * This is the one part of the scheme that CANNOT key off data-brand: it is
  * static metadata, read before any CSS runs. So unlike globals.css these are
@@ -106,9 +119,10 @@ export async function generateViewport(): Promise<Viewport> {
   // a pale address bar directly above a navy page — the exact strip this
   // export exists to prevent, just the other way round.
   if ((await headers()).get(SURFACE_HEADER) === "dark-only") {
-    return { themeColor: "#00004d" };
+    return { themeColor: "#00004d", viewportFit: "cover" };
   }
   return {
+    viewportFit: "cover",
     themeColor: [
       { media: "(prefers-color-scheme: light)", color: "#ededfc" },
       { media: "(prefers-color-scheme: dark)", color: "#00004d" },
