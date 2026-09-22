@@ -6,6 +6,7 @@ import { TIMELINE } from "@/lib/tajweed/timeline";
 import HifdhProjection from "@/components/landing/HifdhProjection";
 import Reveal from "@/components/landing/Reveal";
 import CountUp from "@/components/landing/CountUp";
+import TestimonialRail, { type Testimonial } from "@/components/landing/TestimonialRail";
 
 /* In `?shot=1` the hero is posed rather than played: headless Chrome produces
    almost no animation frames, so an unposed capture is always the empty first
@@ -124,42 +125,61 @@ const QUESTIONS = [
 /**
  * Student testimonials.
  *
- * `src` and `poster` are null until the real files land in /public/testimonials.
- * A card with no `src` renders as an obvious empty slot rather than a fake
- * player — a play button that does nothing is worse than a labelled gap, and
- * this way the section can be judged at full size before the videos exist.
+ * Every `line` is the student's own words, lifted from the captions burned
+ * into their video — never a paraphrase. A quote that the video does not
+ * actually contain is the one thing a visitor can check and catch.
  *
- * Drop a file in, set the two paths, and the card becomes a real player with
- * no other change. Poster images matter more than usual here: the video is
- * NOT autoplayed, so the poster is what sells the click.
+ * The files in /public/testimonials are 4:5 crops of the 9:16 originals,
+ * which live in the git-ignored testimonials-incoming/ at the repo root (this
+ * repo is public; raw footage never goes in it). Wala's is the exception: a
+ * graphic with text top to bottom, so it is fitted into 4:5 on its own pink
+ * (#EDD5D8) instead of cropped. Posters matter more than
+ * usual: the video is NOT autoplayed, so the poster is what sells the click.
+ *
+ * `detail` is as of filming, September 2025 — a year count goes stale.
  */
-const TESTIMONIALS: readonly {
-  name: string;
-  detail: string;
-  line: string;
-  src: string | null;
-  poster: string | null;
-}[] = [
+const TESTIMONIALS: readonly Testimonial[] = [
   {
-    name: "[STUDENT NAME]",
-    detail: "Second year · Brothers",
-    line: "Came in unable to read the letters.",
-    src: null,
-    poster: null,
+    name: "Nadir",
+    detail: "Brothers · three years in",
+    line: "Two years ago, I didn't even know the alphabet.",
+    src: "/testimonials/nadir.mp4",
+    poster: "/testimonials/nadir.jpg",
   },
   {
-    name: "[STUDENT NAME]",
-    detail: "First year · Sisters",
-    line: "Finished the year having memorised Juz 'Amma.",
-    src: null,
-    poster: null,
+    name: "Sajeda",
+    detail: "Sisters · one year in",
+    line: "It meant I had a reason to regularly read the Qur'an.",
+    src: "/testimonials/sajeda.mp4",
+    poster: "/testimonials/sajeda.jpg",
   },
   {
-    name: "[STUDENT NAME]",
-    detail: "Third year · Brothers",
-    line: "Had tried twice before and stopped both times.",
-    src: null,
-    poster: null,
+    name: "Shayir",
+    detail: "Brothers · graduate, now working",
+    line: "Is it the best use of my time? I can 100% say wholeheartedly, it was.",
+    src: "/testimonials/shayir.mp4",
+    poster: "/testimonials/shayir.jpg",
+  },
+  {
+    name: "Wala",
+    detail: "Sisters · one year in",
+    line: "Small and consistent steps do go a long way.",
+    src: "/testimonials/wala.mp4",
+    poster: "/testimonials/wala.jpg",
+  },
+  {
+    name: "Zaid",
+    detail: "Brothers",
+    line: "You just need to show up. Everything is put together.",
+    src: "/testimonials/zaid.mp4",
+    poster: "/testimonials/zaid.jpg",
+  },
+  {
+    name: "Abir",
+    detail: "Brothers · four years in",
+    line: "It's kept me grounded, it's given me routine and structure.",
+    src: "/testimonials/abir.mp4",
+    poster: "/testimonials/abir.jpg",
   },
 ];
 
@@ -495,33 +515,7 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
         </div>
 
         <Reveal>
-        <div className="lp-three">
-          {TESTIMONIALS.map((t) => (
-            <figure key={t.line} className="lp-vid">
-              {t.src && t.poster ? (
-                <video
-                  className="lp-vid-player"
-                  src={t.src}
-                  poster={t.poster}
-                  controls
-                  preload="none"
-                  playsInline
-                />
-              ) : (
-                /* No file yet. A labelled slot, not a dead play button. */
-                <div className="lp-vid-slot">
-                  <span className="lp-label">Video to come</span>
-                </div>
-              )}
-              <figcaption>
-                <strong>{t.line}</strong>
-                <span className="lp-muted">
-                  {t.name} · {t.detail}
-                </span>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
+        <TestimonialRail items={TESTIMONIALS} />
         </Reveal>
       </section>
 
@@ -1052,7 +1046,44 @@ html {
   display: block;
   object-fit: cover;
 }
-.lp-vid-slot { display: grid; place-items: center; }
+/* The rail. It runs to the band's edge (cancelling the band's 20px gutter) so
+   a card slides out of view rather than being clipped mid-page, and the
+   scroll-padding puts the gutter back for wherever a card snaps to. Each width
+   leaves part of the next card showing — that sliver is the only "swipe me"
+   the rail has, so no breakpoint may land on a whole number of cards. */
+.lp-rail {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 20px;
+  margin-inline: -20px;
+  padding: 4px 20px;
+  scrollbar-width: none;
+}
+.lp-rail::-webkit-scrollbar { display: none; }
+.lp-rail:focus-visible { outline: 2px solid ${LAVENDER}; outline-offset: 4px; border-radius: 8px; }
+.lp-rail > .lp-vid { flex: 0 0 78%; scroll-snap-align: start; }
+@media (min-width: 640px) { .lp-rail > .lp-vid { flex-basis: calc((100% - 40px) / 2.35); } }
+/* Capped by height as well as width: a 4:5 card is taller than it is wide, and
+   uncapped on a laptop it pushed the arrows below the fold. 34svh wide is
+   42.5svh tall — the section, caption and arrows then fit one screen. */
+@media (min-width: 1000px) { .lp-rail > .lp-vid { flex-basis: min(calc((100% - 60px) / 3.3), 34svh); } }
+.lp-rail-nav { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+.lp-rail-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 1px solid ${LAVENDER};
+  background: transparent;
+  color: ${LAVENDER};
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.lp-rail-btn:hover:not(:disabled) { background: ${LAVENDER}; color: ${NAVY}; }
+.lp-rail-btn:disabled { opacity: 0.3; cursor: default; }
 .lp-vid figcaption { display: flex; flex-direction: column; gap: 6px; }
 .lp-vid figcaption strong {
   font-family: var(--display);

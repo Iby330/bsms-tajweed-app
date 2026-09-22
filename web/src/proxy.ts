@@ -155,7 +155,11 @@ export const config = {
      * signed out, and without the exemption the proxy answers that fetch with
      * a redirect to /login. The browser then parses an HTML page as JSON,
      * fails, and drops the install prompt — with nothing on screen to say so.
+     *
+     * `testimonials/` is the same trap for video: the landing page's .mp4s
+     * were answered with a redirect to /login for every signed-out visitor,
+     * so the posters showed and the play button did nothing.
      */
-    "/((?!_next/static|_next/image|favicon.ico|brand/|fonts/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf|webmanifest)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|brand/|fonts/|testimonials/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf|webmanifest)$).*)",
   ],
 };
