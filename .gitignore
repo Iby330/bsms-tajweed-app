@@ -40,3 +40,7 @@ execution/node_modules
 # real people's addresses and rosters — this repo is public
 execution/*.local.json
 execution/roster*.json
+
+# raw testimonial footage of real students — this repo is public. Only the
+# compressed, consented cuts go into web/public/testimonials/.
+testimonials-incoming/
