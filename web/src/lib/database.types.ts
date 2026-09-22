@@ -1767,6 +1767,7 @@ export type Database = {
       }
     }
     Functions: {
+      resend_api_key: { Args: never; Returns: string }
       apply_deposit_strike_delta: {
         Args: { p_delta: number; p_student: string; p_term: number }
         Returns: undefined

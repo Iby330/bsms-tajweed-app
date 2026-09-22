@@ -1,4 +1,5 @@
 import "server-only";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 /**
  * Send one email through Resend.
@@ -13,9 +14,10 @@ import "server-only";
  * important going on (an application being saved, a batch of logins being
  * sent) that one failed email must not take down with it.
  *
- * RESEND_API_KEY must be set on the Netlify site as well as in .env.local.
- * Nothing syncs them, and a key that exists only locally builds and runs
- * fine here, then fails every send in production.
+ * THE KEY: RESEND_API_KEY from the environment if it is set, otherwise the
+ * one in Supabase Vault (migration 0036). Vault exists because the Netlify
+ * site's env vars can only be edited from one person's account, and the repo
+ * is public, so the key can go in neither the code nor, easily, Netlify.
  */
 
 const FROM = "BSMS Tajweed <noreply@bsmstajweed.com>";
@@ -24,9 +26,22 @@ const REPLY_TO = "info@bsmstajweed.com";
 export type Email = { to: string; subject: string; html: string; text: string };
 export type SendResult = { ok: true; id: string } | { ok: false; error: string };
 
+/** Looked up once per server instance: a batch of logins sends one email
+ *  per request, and there is no need to ask Vault every time. A missing key
+ *  is not cached, so adding it takes effect without a redeploy. */
+let cachedKey: string | null = null;
+
+async function resendKey(): Promise<string | null> {
+  if (process.env.RESEND_API_KEY) return process.env.RESEND_API_KEY;
+  if (cachedKey) return cachedKey;
+  const { data } = await supabaseAdmin().rpc("resend_api_key");
+  cachedKey = typeof data === "string" && data ? data : null;
+  return cachedKey;
+}
+
 export async function sendEmail(mail: Email): Promise<SendResult> {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return { ok: false, error: "RESEND_API_KEY is not set." };
+  const key = await resendKey();
+  if (!key) return { ok: false, error: "No Resend key: set RESEND_API_KEY or add it to Vault." };
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
