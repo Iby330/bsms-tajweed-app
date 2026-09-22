@@ -7,6 +7,7 @@ import HifdhProjection from "@/components/landing/HifdhProjection";
 import Reveal from "@/components/landing/Reveal";
 import CountUp from "@/components/landing/CountUp";
 import TestimonialRail, { type Testimonial } from "@/components/landing/TestimonialRail";
+import SectionRail, { type RailItem } from "@/components/landing/SectionRail";
 
 /* In `?shot=1` the hero is posed rather than played: headless Chrome produces
    almost no animation frames, so an unposed capture is always the empty first
@@ -226,6 +227,23 @@ const CROSS = (
   </svg>
 );
 
+/* The side progress rail, in page order. Every id here is on a section below;
+   a missing one just drops its dot. */
+const RAIL: readonly RailItem[] = [
+  { id: "top", label: "Top" },
+  { id: "why", label: "Why a teacher" },
+  { id: "course", label: "What you learn" },
+  { id: "hifdh", label: "Your hifdh" },
+  { id: "proof", label: "Not the first" },
+  { id: "students", label: "Students" },
+  { id: "how", label: "How it works" },
+  { id: "week", label: "A week" },
+  { id: "app", label: "The app" },
+  { id: "covers", label: `What ${feeLabel()} covers` },
+  { id: "questions", label: "Questions" },
+  { id: "apply", label: "Apply" },
+];
+
 const INCLUDED = [
   "Two taught evenings a week",
   "Weekly homework, marked",
@@ -260,6 +278,8 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
           third time. */}
       <div className="lp-markbg" aria-hidden="true" />
 
+      <SectionRail items={RAIL} />
+
       <header className="lp-nav">
         {/* The real wordmark, as a mask filled with the ink colour — the same
             technique the app uses for the rail mark, so it recolours with the
@@ -280,7 +300,7 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
 
       {/* Screen one is the verse and the headline, nothing else. The four
           figures that used to share it now open onto the programme below. */}
-      <div className="lp-screen lp-screen-top">
+      <div id="top" className="lp-screen lp-screen-top">
         {/* The ayah, walked rule by rule. The animation is aria-hidden and
             silent, so the verse is also given here as real text: a screen
             reader gets the words at once instead of a 41-second animation it
@@ -332,7 +352,7 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
           The problem comes first because nobody wants a solution to a problem
           they have not been reminded they have. The free route is the real
           competitor, so it is named, not hinted at. */}
-      <section className="lp-band">
+      <section id="why" className="lp-band">
         <div className="lp-head">
           <span className="lp-label">Why a teacher</span>
           <h2>
@@ -412,7 +432,7 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
       </section>
 
       {/* Two juz, and how they add up. */}
-      <section className="lp-band lp-band-marquee">
+      <section id="hifdh" className="lp-band lp-band-marquee">
         <HifdhProjection />
       </section>
 
@@ -423,15 +443,17 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
           Two figures, not four. The practical stat row further down carries
           four, and repeating that shape would read as filler; this one is
           fewer, larger and making a single point. */}
-      <section className="lp-band">
+      <section id="proof" className="lp-band">
         <div className="lp-head lp-head-mid">
           <span className="lp-label">Not the first</span>
           <h2>
             Over a hundred students <em>have already done this.</em>
           </h2>
           <p>
-            Six years of the same two evenings a week. Whatever you are weighing
-            up, somebody in the room has already weighed it up and come anyway.
+            A system that has built real students for six years and counting.
+            Every one of them stood where you are now, weighing it up. The year
+            passes either way; the ones who took the leap have something to
+            show for it.
           </p>
         </div>
 
@@ -453,7 +475,7 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
         </Reveal>
       </section>
 
-      <section className="lp-band">
+      <section id="students" className="lp-band">
         <div className="lp-head lp-head-mid">
           <span className="lp-label">From the people doing it</span>
           <h2>
@@ -487,7 +509,7 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
           each answers a question a visitor is actually asking (what do I do,
           what am I turning up to, and what stops me drifting). The week and
           the app below zoom in on boxes two and three. */}
-      <section className="lp-band">
+      <section id="how" className="lp-band">
         <div className="lp-head">
           <span className="lp-label">How it works</span>
           <h2>
@@ -572,7 +594,7 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
         </ol>
       </section>
 
-      <section className="lp-band lp-split">
+      <section id="app" className="lp-band lp-split">
         <div className="lp-head">
           <span className="lp-label">The app</span>
           <h2>
@@ -626,7 +648,7 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
           It lands after the problem, the proof and the how — so what a visitor
           weighs it against is "free, and almost nobody finishes" and a room of
           people who did, rather than nothing at all. */}
-      <section className="lp-band">
+      <section id="covers" className="lp-band">
         <div className="lp-included">
           <div className="lp-head lp-head-dark">
             <span className="lp-label">What {feeLabel()} covers</span>
@@ -770,28 +792,93 @@ const CSS = `
    Every section fills the viewport, so when the page settles you are looking
    at exactly one of them and nothing else.
 
-   Snapping is PROXIMITY, not mandatory. Mandatory is the obvious choice and
-   the wrong one: the moment a section grows past the viewport — a phone in
-   landscape, a browser zoomed for readability, every question in the
-   accordion opened at once — mandatory can drag the reader back to the top
-   of that section and make its bottom unreachable. Proximity gives the same
-   settling on a normal screen without ever trapping anyone.
-
-   And it turns itself off entirely on a short viewport, where the content
-   cannot fit by definition and snapping would fight the reader. */
+   There is NO scroll snapping. It was proximity snapping with
+   scroll-snap-stop: always on every section, and readers found it too
+   magnetic: every flick was caught and parked at the next section, however
+   hard they swiped. The sections still fill a screen each, so the page keeps
+   its one-idea-per-screen rhythm; the side progress rail (SectionRail) does
+   the "where am I" job snapping used to imply. */
 html {
-  scroll-snap-type: y proximity;
   scroll-behavior: smooth;
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-@media (max-height: 720px) { html { scroll-snap-type: none; } }
 
 .lp-screen, .lp-band {
   min-height: 100dvh;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
 }
 .lp-screen { display: flex; flex-direction: column; }
+
+/* ── The progress rail (SectionRail) ──────────────────────────────────── */
+.lp-srail {
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right, 0px));
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+.lp-srail[data-on] { opacity: 1; pointer-events: auto; }
+.lp-srail ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; position: relative; }
+/* The track, and the sage fill over it. Both run through the dots' centres:
+   each dot box is 11px wide and right-aligned, so its centre is 5px in. */
+.lp-srail ol::before, .lp-srail ol::after {
+  content: "";
+  position: absolute;
+  right: 5px;
+  top: 6px;
+  width: 1px;
+}
+.lp-srail ol::before { bottom: 6px; background: ${RULE}; }
+.lp-srail ol::after { height: calc((100% - 12px) * var(--p, 0)); background: ${SAGE}; transition: height 400ms ease; }
+.lp-srail a { display: flex; align-items: center; justify-content: flex-end; gap: 10px; height: 12px; text-decoration: none; }
+.lp-srail-dot { position: relative; z-index: 1; width: 11px; height: 11px; display: grid; place-items: center; }
+.lp-srail-dot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: ${NAVY};
+  border: 1px solid ${MUTED};
+  transition: transform 200ms ease, background 200ms ease, border-color 200ms ease;
+}
+.lp-srail a[data-done] .lp-srail-dot::before { background: ${SAGE}; border-color: ${SAGE}; }
+.lp-srail a[aria-current] .lp-srail-dot::before { background: ${SAGE}; border-color: ${SAGE}; transform: scale(1.45); box-shadow: 0 0 0 3px rgb(178 197 140 / 0.25); }
+.lp-srail-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: ${LAVENDER};
+  background: ${NAVY};
+  border: 1px solid ${RULE};
+  border-radius: 999px;
+  padding: 4px 10px;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  pointer-events: none;
+}
+.lp-srail a:hover .lp-srail-label, .lp-srail a:focus-visible .lp-srail-label { opacity: 1; transform: none; }
+.lp-srail a:focus-visible { outline: none; }
+.lp-srail a:focus-visible .lp-srail-dot::before { box-shadow: 0 0 0 2px ${LAVENDER}; }
+/* On a phone it is an indicator more than a menu: smaller, tighter, tucked
+   into the gutter, and no labels (there is no hover to show them). */
+@media (max-width: 720px) {
+  .lp-srail { right: max(5px, env(safe-area-inset-right, 0px)); }
+  .lp-srail ol { gap: 9px; }
+  .lp-srail a { height: 9px; }
+  .lp-srail-dot { width: 9px; height: 9px; }
+  .lp-srail ol::before, .lp-srail ol::after { right: 4px; }
+  .lp-srail-dot::before { width: 5px; height: 5px; }
+  .lp-srail-label { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-srail, .lp-srail ol::after, .lp-srail-dot::before, .lp-srail-label { transition: none; }
+}
 
 
 /* Every band shares one column and one rhythm. Function's pacing is most of
@@ -1141,6 +1228,13 @@ html {
 @media (min-width: 1000px) { .lp-rail > .lp-vid { flex-basis: min(calc((100% - 60px) / 3.3), 34svh); } }
 .lp-rail-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px 24px; margin-top: 20px; flex-wrap: wrap; }
 .lp-rail-arrows { display: flex; gap: 12px; margin-left: auto; }
+/* On a phone the arrows sit centred straight under the videos, where the
+   thumb already is, and the Apply ask goes beneath them. */
+@media (max-width: 720px) {
+  .lp-rail-nav { flex-direction: column-reverse; align-items: center; gap: 20px; }
+  .lp-rail-arrows { margin-left: 0; }
+  .lp-midcta { flex-direction: column; text-align: center; }
+}
 .lp-rail-btn {
   width: 48px;
   height: 48px;
