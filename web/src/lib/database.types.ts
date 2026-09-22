@@ -67,6 +67,7 @@ export type Database = {
           arabic_reading: string
           assessed_level: string | null
           class_id: string | null
+          confirmation_sent_at: string | null
           created_at: string
           email: string
           enrolled_before: boolean
@@ -75,11 +76,13 @@ export type Database = {
           first_name: string
           heard_from: string
           id: string
+          login_sent_at: string | null
           memorised: string
           motivation: string
           notes: string | null
           paid_confirmed: boolean
           phone: string
+          profile_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           section: Database["public"]["Enums"]["section_t"]
@@ -93,6 +96,7 @@ export type Database = {
           arabic_reading: string
           assessed_level?: string | null
           class_id?: string | null
+          confirmation_sent_at?: string | null
           created_at?: string
           email: string
           enrolled_before: boolean
@@ -101,11 +105,13 @@ export type Database = {
           first_name: string
           heard_from: string
           id?: string
+          login_sent_at?: string | null
           memorised: string
           motivation: string
           notes?: string | null
           paid_confirmed?: boolean
           phone: string
+          profile_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           section: Database["public"]["Enums"]["section_t"]
@@ -119,6 +125,7 @@ export type Database = {
           arabic_reading?: string
           assessed_level?: string | null
           class_id?: string | null
+          confirmation_sent_at?: string | null
           created_at?: string
           email?: string
           enrolled_before?: boolean
@@ -127,11 +134,13 @@ export type Database = {
           first_name?: string
           heard_from?: string
           id?: string
+          login_sent_at?: string | null
           memorised?: string
           motivation?: string
           notes?: string | null
           paid_confirmed?: boolean
           phone?: string
+          profile_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           section?: Database["public"]["Enums"]["section_t"]
@@ -147,6 +156,13 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {

@@ -20,7 +20,7 @@ import { submitApplication } from "@/lib/applications/actions";
 import type { ApplicationInput } from "@/lib/applications/validate";
 import {
   ARABIC_READING, CLOSES_LABEL, GENDERS, HEARD_FROM, MOTIVATION_QUESTION, OPENING_VERSE,
-  OTHER, PAYMENT_LINK, PROGRAMME_YEAR, TAJWEED_LEVELS, UNIVERSITIES, YEARS,
+  OTHER, PAYMENT_LINK, PROGRAMME_YEAR, TAJWEED_LEVELS, UNIVERSITIES, WHATSAPP_GROUPS, YEARS,
   feeLabel, sectionForGender, termsFor,
 } from "@/lib/applications/form";
 
@@ -367,6 +367,10 @@ export function ApplyFunnel() {
 
   /* ── Done ── */
   if (done) {
+    // Offered here as well as in the email, so joining never waits on the
+    // email arriving (or on it being found in a Promotions tab).
+    const side = sectionForGender(form.gender);
+    const group = side === "brothers" || side === "sisters" ? WHATSAPP_GROUPS[side] : null;
     return (
       <>
       <FunnelHeader big={false} />
@@ -380,11 +384,31 @@ export function ApplyFunnel() {
         <h2 className="font-heading text-3xl">Your application is in.</h2>
         <div className="mt-5 space-y-4 text-left text-sm text-muted-foreground">
           <p>
-            Jazākum Allāhu khayran. We&apos;ll email{" "}
-            <b className="text-foreground">{form.email}</b> with an invitation to an
-            online session where you&apos;ll read a short passage for us. That is how
-            we hear where everyone is up to and put people into groups at the right
-            level. It is not a test you can fail, and there is nothing to prepare.
+            Jazākum Allāhu khayran. We&apos;ve emailed a confirmation to{" "}
+            <b className="text-foreground">{form.email}</b>. If it isn&apos;t in your
+            inbox in a few minutes, check spam or the Promotions tab.
+          </p>
+          {group && (
+            <div className="rounded-xl border border-line p-5 text-center">
+              <p className="mb-4 text-foreground">
+                Next, join the {side}&apos; WhatsApp group. That&apos;s where we share
+                the times for the recitation sessions.
+              </p>
+              <a
+                href={group}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-10 items-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground"
+              >
+                Join the WhatsApp group
+              </a>
+            </div>
+          )}
+          <p>
+            You&apos;ll be invited to an online session where you read a short
+            passage for us. That is how we hear where everyone is up to and put
+            people into groups at the right level. It is not a test you can fail,
+            and there is nothing to prepare.
           </p>
           <p>
             Once groups are set we&apos;ll send you a login for the app, where your

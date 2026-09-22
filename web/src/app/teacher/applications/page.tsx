@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ApplicationsBoard } from "@/components/app/applications-board";
 import { applications, placeableClasses } from "@/lib/applications/queries";
-import { PAYMENT_LINK, feeLabel } from "@/lib/applications/form";
+import { PAYMENT_LINK, WHATSAPP_GROUPS, feeLabel } from "@/lib/applications/form";
 
 export const metadata: Metadata = { title: "Applications" };
 // Applications arrive from the public form at any moment, and this screen is
@@ -12,9 +12,9 @@ export const dynamic = "force-dynamic";
 /**
  * Who has applied, and where each of them is up to.
  *
- * The teacher's half of /apply. Nothing here creates an account: placing
- * somebody in a class records the decision, and the existing invitation flow
- * still makes the login.
+ * The teacher's half of /apply. Placing somebody in a class records the
+ * decision only; Send login is the separate, deliberate step that makes their
+ * account, so a slip of a dropdown never emails anyone.
  */
 export default async function Applications() {
   const [rows, classes] = await Promise.all([applications(), placeableClasses()]);
@@ -33,9 +33,19 @@ export default async function Applications() {
             bsmstajweed.com/apply
           </a>
           . Invite them to the online recitation session, record what you hear,
-          then place them in a group. They get their login once they&apos;re
-          placed.
+          then place them in a class. Tick the people you&apos;ve placed and press
+          Send login: that makes their account and emails them a link to set their
+          password.
         </p>
+        {(!WHATSAPP_GROUPS.brothers || !WHATSAPP_GROUPS.sisters) && (
+          <p className="mt-3 max-w-[60ch] text-sm text-danger">
+            {!WHATSAPP_GROUPS.brothers && !WHATSAPP_GROUPS.sisters
+              ? "No WhatsApp group links are set"
+              : `No WhatsApp group link is set for the ${WHATSAPP_GROUPS.brothers ? "sisters" : "brothers"}`}
+            , so the confirmation email says you&apos;ll message them instead of
+            giving them a group to join.
+          </p>
+        )}
         {!PAYMENT_LINK && (
           /* Stated on the screen rather than left to whoever remembers: with
              no link set, /apply tells applicants the payment details follow by

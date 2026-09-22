@@ -4,8 +4,14 @@ import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseServer, currentProfile } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
-import { CLOSES_LABEL, PAYMENT_LINK, signupsOpen } from "./form";
+import { randomBytes } from "node:crypto";
+import { CLOSES_LABEL, PAYMENT_LINK, WHATSAPP_GROUPS, feeLabel, signupsOpen } from "./form";
 import { MAX, clean, validateApplication, type ApplicationInput } from "./validate";
+import { sendEmail } from "@/lib/email/send";
+import {
+  SITE, confirmationHtml, confirmationSubject, confirmationText, loginHtml, loginSubject,
+  loginText, type Confirmation,
+} from "@/lib/email/applicant-emails";
 
 export type Status = Database["public"]["Enums"]["application_status_t"];
 export type Result = { ok: true } | { ok: false; error: string };
@@ -46,7 +52,8 @@ export async function submitApplication(input: ApplicationInput): Promise<Result
   if (checked.row === null) return { ok: true };
 
   const db = supabaseAdmin();
-  const { error } = await db.from("applications").insert(checked.row);
+  const { data: saved, error } = await db
+    .from("applications").insert(checked.row).select("id").single();
 
   if (error) {
     // 23505 is the unique index on lower(email). Said plainly rather than
@@ -61,6 +68,36 @@ export async function submitApplication(input: ApplicationInput): Promise<Result
       };
     }
     return { ok: false, error: "Something went wrong sending that. Please try again." };
+  }
+
+  // The confirmation email. Awaited, because a serverless function can be
+  // frozen the moment it returns and a fire-and-forget send would sometimes
+  // never leave. But its failure is NOT the applicant's: the application is
+  // saved, and telling them otherwise would have them submit again and hit
+  // the duplicate-email error. A null confirmation_sent_at is what flags it
+  // on the teacher's board instead.
+  const r = checked.row;
+  const side = r.section as "brothers" | "sisters";
+  const c: Confirmation = {
+    firstName: r.first_name,
+    section: side,
+    phone: r.phone,
+    feeLabel: feeLabel(),
+    paidConfirmed: Boolean(r.paid_confirmed),
+    whatsappLink: WHATSAPP_GROUPS[side],
+    paymentLink: PAYMENT_LINK,
+  };
+  const sent = await sendEmail({
+    to: r.email,
+    subject: confirmationSubject(),
+    html: confirmationHtml(c),
+    text: confirmationText(c),
+  });
+  if (sent.ok) {
+    await db.from("applications")
+      .update({ confirmation_sent_at: new Date().toISOString() }).eq("id", saved.id);
+  } else {
+    console.error(`confirmation email to application ${saved.id} failed: ${sent.error}`);
   }
 
   revalidatePath(TEACHER_PATH);
@@ -82,21 +119,27 @@ async function requireTeacher() {
 }
 
 /**
- * Move an application along: invited to the recitation session, heard,
- * placed, or declined.
+ * Move applications along: invited to the recitation session, heard,
+ * placed, or declined. One or many; the board's single dropdown and its
+ * "Decline selected" both come through here.
  *
  * `reviewed_by` and `reviewed_at` are stamped on every move so that a list
- * worked through by several teachers at once says who did what — the same
+ * worked through by several teachers at once says who did what: the same
  * question the deposits audit log exists to answer.
  */
-export async function setApplicationStatus(id: string, status: Status): Promise<Result> {
+export async function setApplicationStatus(
+  ids: string | string[], status: Status,
+): Promise<Result> {
   const me = await requireTeacher();
+  const list = Array.isArray(ids) ? ids : [ids];
+  if (list.length === 0) return { ok: true };
   const db = await supabaseServer();
   const { error } = await db
     .from("applications")
     .update({ status, reviewed_by: me.id, reviewed_at: new Date().toISOString() })
-    .eq("id", id);
+    .in("id", list);
   if (error) return { ok: false, error: error.message };
+  await syncAccounts(list);
   revalidatePath(TEACHER_PATH);
   return { ok: true };
 }
@@ -143,28 +186,197 @@ export async function setFeeSettled(id: string, settled: boolean): Promise<Resul
 }
 
 /**
- * Put an applicant into a class.
+ * Put one or more applicants into a class, or take them out of one.
  *
- * This records the decision only; it creates no account. The invitation flow
- * is unchanged and still the thing that makes a login, which is what keeps a
- * public form from ever being a route into the app.
+ * Only applicants on the class's own side are moved. The board only offers
+ * same-side classes, but a selection can span both sides, and this is where
+ * that is actually held: a brother cannot land in a sisters' class however
+ * the request is shaped. The ones left out are counted back so the screen can
+ * say so rather than appearing to have done it.
+ *
+ * Placing makes no account by itself; Send login does that. For someone who
+ * already has one, the move follows through to their profile (see
+ * syncAccounts), so a late change of class is one dropdown, not two.
  */
-export async function placeInClass(id: string, classId: string | null): Promise<Result> {
+export async function placeInClass(
+  ids: string | string[], classId: string | null,
+): Promise<Result & { skipped?: number }> {
   const me = await requireTeacher();
+  const list = Array.isArray(ids) ? ids : [ids];
+  if (list.length === 0) return { ok: true };
   const db = await supabaseServer();
-  const { error } = await db
+
+  let query = db
     .from("applications")
     .update({
       class_id: classId,
       // Choosing a class IS the placement, so the status follows rather than
       // being a second thing to remember. Clearing the class steps back to
-      // 'assessed' — they have still been heard.
+      // 'assessed': they have still been heard.
       status: classId ? "placed" : "assessed",
       reviewed_by: me.id,
       reviewed_at: new Date().toISOString(),
     })
-    .eq("id", id);
+    .in("id", list);
+
+  if (classId) {
+    const { data: cls } = await db
+      .from("classes").select("section").eq("id", classId).maybeSingle();
+    if (!cls || (cls.section !== "brothers" && cls.section !== "sisters")) {
+      return { ok: false, error: "That class can't take applicants." };
+    }
+    query = query.eq("section", cls.section);
+  }
+
+  const { data, error } = await query.select("id");
   if (error) return { ok: false, error: error.message };
+  await syncAccounts(list);
+  revalidatePath(TEACHER_PATH);
+  return { ok: true, skipped: list.length - (data?.length ?? 0) };
+}
+
+/**
+ * Carry a decision through to the account, for applicants who already have
+ * one (their login has been sent).
+ *
+ * The profile follows the application: its class is the application's class,
+ * and it is active only while the application is placed. Declining someone
+ * after their login went out therefore takes them off every register and
+ * teacher screen (all of which filter on is_active) without deleting
+ * anything, and placing them again brings them back. Applicants with no
+ * account yet are untouched: there is nothing to follow.
+ */
+async function syncAccounts(ids: string[]) {
+  const db = await supabaseServer();
+  const { data } = await db
+    .from("applications")
+    .select("profile_id, class_id, status")
+    .in("id", ids)
+    .not("profile_id", "is", null);
+
+  for (const a of data ?? []) {
+    const placed = a.status === "placed" && a.class_id !== null;
+    await db.from("profiles")
+      .update(placed ? { class_id: a.class_id, is_active: true } : { is_active: false })
+      .eq("id", a.profile_id!);
+  }
+}
+
+/* ── Sending the login ────────────────────────────────────────────────── */
+
+/**
+ * Make a placed applicant's account and email them the link to it.
+ *
+ * ONE applicant per call, on purpose. The board sends a selection by calling
+ * this once per person in turn, which keeps each call to a second or two
+ * (well inside a Netlify function's time limit however many are selected),
+ * stays under Resend's rate limit without any throttling code, and lets the
+ * screen tick people off as they go and say exactly who failed and why.
+ *
+ * Safe to call again for the same person: it resends, reusing the account
+ * made the first time. That is also the fix when a link expires unopened.
+ *
+ * The email carries a set-your-password link, never a password. The account
+ * is created with a random one that nobody sees, and the link (the same
+ * recovery-token route the teacher invitations use) lands them on /welcome
+ * to choose their own.
+ */
+export async function sendLogin(id: string): Promise<Result> {
+  await requireTeacher();
+  const admin = supabaseAdmin();
+
+  const { data: app } = await admin
+    .from("applications")
+    .select("id, first_name, surname, email, section, status, class_id, profile_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (!app) return { ok: false, error: "Application not found." };
+  if (app.status !== "placed" || !app.class_id) {
+    return { ok: false, error: "Place them in a class first." };
+  }
+
+  const { data: cls } = await admin
+    .from("classes").select("name").eq("id", app.class_id).maybeSingle();
+  if (!cls) return { ok: false, error: "Their class no longer exists." };
+
+  const fullName = `${app.first_name} ${app.surname}`;
+  const side = app.section as "brothers" | "sisters";
+  let userId = app.profile_id;
+
+  if (!userId) {
+    const { data: created, error } = await admin.auth.admin.createUser({
+      email: app.email,
+      // Never seen by anyone: the email's link is how they choose their own.
+      password: randomBytes(24).toString("base64url"),
+      email_confirm: true,
+      user_metadata: { full_name: fullName },
+    });
+
+    if (created?.user) {
+      userId = created.user.id;
+      // setup_complete false sends them to /welcome on every page until they
+      // have chosen a password (lib/account/require-setup.ts).
+      const { error: pErr } = await admin.from("profiles").upsert({
+        id: userId, full_name: fullName, role: "student", section: side,
+        class_id: app.class_id, is_active: true, setup_complete: false,
+      });
+      if (pErr) return { ok: false, error: `Account made, profile not: ${pErr.message}` };
+    } else {
+      // The address already has an account. A returning student is fine to
+      // reuse; a teacher's is not, since this would turn them into a student.
+      const existing = await findUserByEmail(app.email);
+      if (!existing) return { ok: false, error: error?.message ?? "Could not create the account." };
+      const { data: prof } = await admin
+        .from("profiles").select("role").eq("id", existing).maybeSingle();
+      if (prof?.role === "teacher") {
+        return { ok: false, error: "That email already belongs to a teacher account." };
+      }
+      userId = existing;
+      const { error: pErr } = await admin.from("profiles").upsert({
+        id: userId, full_name: fullName, role: "student", section: side,
+        class_id: app.class_id, is_active: true,
+      });
+      if (pErr) return { ok: false, error: pErr.message };
+    }
+
+    // Recorded before the email, so a failed send followed by a retry reuses
+    // this account rather than tripping over it.
+    await admin.from("applications").update({ profile_id: userId }).eq("id", id);
+  }
+
+  // generateLink mints the token WITHOUT sending Supabase's own email; the
+  // message is ours.
+  const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
+    type: "recovery",
+    email: app.email,
+  });
+  if (linkErr || !linkData) {
+    return { ok: false, error: `Could not make the link: ${linkErr?.message}` };
+  }
+  const link = `${SITE}/auth/confirm?token_hash=${linkData.properties.hashed_token}`
+    + `&type=recovery&next=${encodeURIComponent("/welcome")}`;
+
+  const login = {
+    firstName: app.first_name, email: app.email, section: side, className: cls.name, link,
+  };
+  const sent = await sendEmail({
+    to: app.email,
+    subject: loginSubject(),
+    html: loginHtml(login),
+    text: loginText(login),
+  });
+  if (!sent.ok) return { ok: false, error: `Email not sent: ${sent.error}` };
+
+  await admin.from("applications")
+    .update({ login_sent_at: new Date().toISOString() }).eq("id", id);
   revalidatePath(TEACHER_PATH);
   return { ok: true };
+}
+
+/** The auth user for an address. listUsers has no email filter; an intake is
+ *  tens of accounts on top of a hundred or so, well inside one page. */
+async function findUserByEmail(email: string): Promise<string | null> {
+  const { data } = await supabaseAdmin().auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const want = email.toLowerCase();
+  return data?.users.find((u) => u.email?.toLowerCase() === want)?.id ?? null;
 }

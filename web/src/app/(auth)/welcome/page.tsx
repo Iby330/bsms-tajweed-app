@@ -25,6 +25,15 @@ export default async function Welcome() {
   const { data } = await db.auth.getUser();
   const email = data.user?.email ?? null;
 
+  // Teachers and students both land here from their emails, and are waiting
+  // on different things. A student's name came in on their application, so it
+  // is offered back rather than asked for twice.
+  const { data: profile } = data.user
+    ? await db.from("profiles").select("role, full_name").eq("id", data.user.id).maybeSingle()
+    : { data: null };
+  const student = profile?.role === "student";
+  const [first = "", ...rest] = student ? (profile?.full_name ?? "").split(/\s+/) : [];
+
   return (
     <div className="flex min-h-dvh items-center justify-center px-4 py-10">
       <Card className="w-full max-w-md border-line">
@@ -39,9 +48,11 @@ export default async function Welcome() {
           {email ? (
             <>
               <p className="mb-5 text-sm text-muted-foreground">
-                Your classes and students are already waiting. This takes a minute.
+                {student
+                  ? "Your class, lessons and homework are waiting. Choose a password and you're in."
+                  : "Your classes and students are already waiting. This takes a minute."}
               </p>
-              <SetupForm email={email} />
+              <SetupForm email={email} firstName={first} lastName={rest.join(" ")} />
             </>
           ) : (
             <div className="space-y-4 text-sm">

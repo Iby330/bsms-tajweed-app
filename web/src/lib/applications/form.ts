@@ -126,11 +126,8 @@ export function signupsOpen(now: Date = new Date()): boolean {
 }
 
 /**
- * Which year of the programme this intake is.
- *
- * ⚠️ CONFIRM. The 2025/26 form opened "for our fifth year", so 2026/27 is the
- * sixth — but that is arithmetic on one sentence rather than something anyone
- * has told us, and it is the first line a new applicant reads.
+ * Which year of the programme this intake is. 2025/26 was the fifth, so
+ * 2026/27 is the sixth (confirmed 2026-09-22).
  */
 export const PROGRAMME_YEAR = "sixth";
 
@@ -169,12 +166,28 @@ export const feeLabel = () =>
  */
 export const PAYMENT_LINK: string | null = null;
 
-/* ── The terms ────────────────────────────────────────────────────────── */
+/* ── The WhatsApp groups ──────────────────────────────────────────────── */
 
 /**
- * ⚠️ CONFIRM BEFORE THE FORM GOES OUT. Carried over from last year's form,
- * which said "Al-medinah mosque".
+ * The group each side's applicants are asked to join, sent in the
+ * confirmation email the moment they apply.
+ *
+ * ⚠️ NOT YET SUPPLIED. Paste each side's chat.whatsapp.com invite link here.
+ * Null for the same reason PAYMENT_LINK is: a wrong link puts a brother in the
+ * sisters' group, and a missing one only leaves the button out of the email,
+ * which then says we'll message them on WhatsApp instead.
+ *
+ * Keyed by side, never shared: the two groups are separate, and the side is
+ * already on the application, derived from the gender answer.
  */
+export const WHATSAPP_GROUPS: Record<"brothers" | "sisters", string | null> = {
+  brothers: null,
+  sisters: null,
+};
+
+/* ── The terms ────────────────────────────────────────────────────────── */
+
+/** Where classes are held. Confirmed 2026-09-22. */
 export const VENUE = "Al-Medinah Mosque";
 
 /**

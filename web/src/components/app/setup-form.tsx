@@ -12,18 +12,22 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 /**
- * First run for an invited teacher: name, password, and a photo if they want one.
+ * First run for an invited teacher or a newly placed student: name, password,
+ * and a photo if they want one. The name arrives pre-filled for a student,
+ * from their application.
  *
  * The email is shown but not editable — it is the address the invitation went
  * to, and the account is already attached to it. Making it a field would invite
  * someone to change it and then wonder why nothing works.
  */
-export function SetupForm({ email }: { email: string }) {
+export function SetupForm({
+  email, firstName = "", lastName = "",
+}: { email: string; firstName?: string; lastName?: string }) {
   const router = useRouter();
   const fileInput = useRef<HTMLInputElement>(null);
 
-  const [first, setFirst] = useState("");
-  const [last, setLast] = useState("");
+  const [first, setFirst] = useState(firstName);
+  const [last, setLast] = useState(lastName);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
