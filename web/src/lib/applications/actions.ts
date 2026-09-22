@@ -81,7 +81,6 @@ export async function submitApplication(input: ApplicationInput): Promise<Result
   const c: Confirmation = {
     firstName: r.first_name,
     section: side,
-    phone: r.phone,
     feeLabel: feeLabel(),
     paidConfirmed: Boolean(r.paid_confirmed),
     whatsappLink: WHATSAPP_GROUPS[side],

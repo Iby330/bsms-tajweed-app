@@ -65,9 +65,12 @@ async function main() {
       subject: `[Preview] ${confirmationSubject()}`,
       ...(() => {
         const c = {
-          firstName: "Yusuf", section: "brothers" as const, phone: "+44 7700900123",
+          firstName: "Yusuf", section: "brothers" as const,
           feeLabel: feeLabel(), paidConfirmed: false,
-          whatsappLink: WHATSAPP_GROUPS.brothers, paymentLink: PAYMENT_LINK,
+          // A stand-in until the real link is set, so the preview shows the
+          // button every real applicant will get.
+          whatsappLink: WHATSAPP_GROUPS.brothers ?? "https://chat.whatsapp.com/PREVIEW",
+          paymentLink: PAYMENT_LINK,
         };
         return { html: confirmationHtml(c), text: confirmationText(c) };
       })(),

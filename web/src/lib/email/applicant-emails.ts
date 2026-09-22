@@ -139,10 +139,10 @@ ${o.body}
 export type Confirmation = {
   firstName: string;
   section: Side;
-  phone: string;
   feeLabel: string;
   paidConfirmed: boolean;
-  /** Null until supplied in form.ts; the email then says we'll message them. */
+  /** Null only until supplied in form.ts; the section is left out meanwhile
+   *  (the teacher screen warns while either side's link is missing). */
   whatsappLink: string | null;
   paymentLink: string | null;
 };
@@ -176,10 +176,9 @@ export function confirmationText(c: Confirmation): string {
     ``,
     `Jazakum Allahu khayran for applying to BSMS Tajweed. Your application is in.`,
     ``,
-    c.whatsappLink
-      ? `Please join the ${group}' WhatsApp group now. It's where we'll share the times for the recitation sessions:\n${c.whatsappLink}`
-      : `We'll message you on WhatsApp at ${c.phone} with the times for the recitation sessions.`,
-    ``,
+    ...(c.whatsappLink
+      ? [`Here's the link to join the ${group}' WhatsApp group:`, c.whatsappLink, ``]
+      : []),
     `What happens next`,
     ...nextSteps().map(([t, b], i) => `${i + 1}. ${t}: ${b}`),
     ``,
@@ -196,9 +195,9 @@ export function confirmationHtml(c: Confirmation): string {
   const group = `${sideLabel(c.section).toLowerCase()}'`;
 
   const whatsapp = c.whatsappLink
-    ? para(`The first thing to do is join the ${group} WhatsApp group. That's where we share the times for the recitation sessions and anything else you need before term.`)
+    ? para(`Here's the link to join the ${group} WhatsApp group:`)
       + button(c.whatsappLink, `Join the ${group} WhatsApp group`, "sage")
-    : para(`We'll message you on WhatsApp at <strong>${esc(c.phone)}</strong> with the times for the recitation sessions.`);
+    : "";
 
   const fee = para(esc(feeLine(c)), 15)
     + (c.paymentLink && !c.paidConfirmed ? button(c.paymentLink, `Pay the ${esc(c.feeLabel)} fee`) : "");
@@ -207,7 +206,7 @@ export function confirmationHtml(c: Confirmation): string {
     row(para(`Assalamu alaikum ${name},`, 17)),
     row(para("Jaz&#257;kum All&#257;hu khayran for applying. Your application is in, and we're looking forward to hearing you read.")),
     row(panel("Your application", "Received", `${sideLabel(c.section)} &middot; ${esc(c.feeLabel)} for the year`)),
-    row(whatsapp),
+    ...(whatsapp ? [row(whatsapp)] : []),
     row(heading("What happens next") + steps(nextSteps())),
     row(`<div style="border-top:1px solid ${C.border};padding-top:20px;">${fee}</div>`),
     row(para("If anything in your application needs changing, just reply to this email.", 14)),
@@ -216,7 +215,7 @@ export function confirmationHtml(c: Confirmation): string {
   return shell({
     title: confirmationSubject(),
     preheader: c.whatsappLink
-      ? `Next: join the ${group} WhatsApp group, then read for us.`
+      ? `Here's the link to join the ${group} WhatsApp group.`
       : "Next: a short online session where you read for us.",
     body,
     footer: "BSMS Tajweed &middot; sent because you applied at bsmstajweed.com/apply.<br>Didn't apply? Reply and tell us.",

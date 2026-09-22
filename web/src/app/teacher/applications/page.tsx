@@ -42,8 +42,8 @@ export default async function Applications() {
             {!WHATSAPP_GROUPS.brothers && !WHATSAPP_GROUPS.sisters
               ? "No WhatsApp group links are set"
               : `No WhatsApp group link is set for the ${WHATSAPP_GROUPS.brothers ? "sisters" : "brothers"}`}
-            , so the confirmation email says you&apos;ll message them instead of
-            giving them a group to join.
+            , so the confirmation email goes out without a group to join. Add
+            them in lib/applications/form.ts before sharing the form.
           </p>
         )}
         {!PAYMENT_LINK && (

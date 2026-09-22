@@ -7,7 +7,6 @@ import {
 const base: Confirmation = {
   firstName: "Yusuf",
   section: "brothers",
-  phone: "+44 7700900123",
   feeLabel: "£15",
   paidConfirmed: false,
   whatsappLink: "https://chat.whatsapp.com/BROTHERS",
@@ -51,10 +50,10 @@ describe("applicant emails", () => {
     expect(confirmationText(base)).toContain("https://chat.whatsapp.com/BROTHERS");
   });
 
-  it("says we'll message them when no group link is set", () => {
+  it("leaves the group section out, rather than promising a message, when no link is set", () => {
     const html = confirmationHtml({ ...base, whatsappLink: null });
-    expect(html).not.toContain("chat.whatsapp.com");
-    expect(html).toContain("+44 7700900123");
+    expect(html).not.toContain("WhatsApp");
+    expect(confirmationText({ ...base, whatsappLink: null })).not.toContain("WhatsApp");
   });
 
   it("asks for payment only when there is a link and they haven't said they paid", () => {
