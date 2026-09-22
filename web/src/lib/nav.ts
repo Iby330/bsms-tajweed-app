@@ -37,7 +37,7 @@ export const teacherNav: NavItem[] = [
   { href: "/teacher/home", label: "Home", icon: "home" },
   { href: "/teacher/homework", label: "Homework", icon: "check" },
   { href: "/teacher/attendance", label: "Register", icon: "calendar" },
-  { href: "/teacher/roster", label: "Roster", icon: "users" },
+  { href: "/teacher/roster", label: "Class", icon: "users" },
   { href: "/teacher/hifz", label: "Hifdh", icon: "book" },
   // Curriculum came off the rail when it was setup work — attach a lesson
   // video, check a rubric, done once for the year. It is the teaching side of

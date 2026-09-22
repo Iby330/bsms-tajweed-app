@@ -120,7 +120,7 @@ export default async function Roster() {
   return (
     <>
       <header className="masthead">
-        <h1><span>Roster</span></h1>
+        <h1><span>Class</span></h1>
         <p>
           {label} · {students?.length ?? 0} students. Open a name for the full record.
         </p>
