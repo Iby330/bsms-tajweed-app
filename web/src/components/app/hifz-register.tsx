@@ -192,7 +192,7 @@ export function HifzRegister({ rows, surahs }: { rows: RegisterRow[]; surahs: Su
               </span>
               <span className="flex shrink-0 items-center gap-3">
                 <span className="text-xs tabular-nums text-muted-foreground">
-                  {r.passed}/{r.target || "—"} · expected {r.expected}
+                  {r.passed}/{r.target || "–"} · expected {r.expected}
                 </span>
                 <span className={cn(
                   "rounded-md px-2 py-0.5 text-xs font-medium",

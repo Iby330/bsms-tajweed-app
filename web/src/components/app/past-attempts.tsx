@@ -190,10 +190,10 @@ export function PastAttempts({
                             {/* A task was never marked, so it shows a dash and
                                 no denominator, exactly as the live panel does. */}
                             {q.is_task ? (
-                              "—"
+                              "–"
                             ) : (
                               <>
-                                {row?.final_marks == null ? "—" : fmtMarks(row.final_marks)} /{" "}
+                                {row?.final_marks == null ? "–" : fmtMarks(row.final_marks)} /{" "}
                                 {fmtMarks(q.points)}
                               </>
                             )}

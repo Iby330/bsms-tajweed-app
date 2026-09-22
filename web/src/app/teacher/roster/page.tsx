@@ -182,7 +182,7 @@ export default async function Roster() {
 
                     <Cell label="Rank">
                       <span className="font-heading text-lg leading-none tabular-nums">
-                        {rank ?? <span className="text-muted-foreground/50">—</span>}
+                        {rank ?? <span className="text-muted-foreground/50">–</span>}
                       </span>
                     </Cell>
 
@@ -222,7 +222,7 @@ export default async function Roster() {
                             <span className="text-muted-foreground"> / {h.target_count}</span>
                           </>
                         ) : (
-                          <span className="text-muted-foreground/50">—</span>
+                          <span className="text-muted-foreground/50">–</span>
                         )}
                       </span>
                       {/* The count says how far; the name says where. Null once
@@ -242,7 +242,7 @@ export default async function Roster() {
                           eoy === undefined && "text-muted-foreground/50",
                         )}
                       >
-                        {eoy === undefined ? "—" : `${eoy.toFixed(1)}%`}
+                        {eoy === undefined ? "–" : `${eoy.toFixed(1)}%`}
                       </span>
                     </Cell>
                   </Link>

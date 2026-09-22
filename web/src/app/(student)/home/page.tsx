@@ -312,7 +312,7 @@ export default async function StudentHome() {
         <section className="box c7">
           <span className="label">Homework average · Term {termId}</span>
           <div className="stat">
-            <span className="v">{hwAvg === null ? "\u2014" : Math.round(hwAvg)}</span>
+            <span className="v">{hwAvg === null ? "\u2013" : Math.round(hwAvg)}</span>
             {hwAvg !== null && <span className="u">%</span>}
           </div>
           {recentMarks.length >= 2 ? (

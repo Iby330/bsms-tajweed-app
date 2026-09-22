@@ -268,7 +268,7 @@ export function QuestionBreakdown({
                           )}
                         </div>
                         <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                          {mark === null ? "—" : `${fmtMarks(Number(mark))}/${fmtMarks(points)}`}
+                          {mark === null ? "–" : `${fmtMarks(Number(mark))}/${fmtMarks(points)}`}
                         </span>
                       </li>
                     );

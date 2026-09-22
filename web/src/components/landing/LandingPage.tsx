@@ -102,7 +102,7 @@ const QUESTIONS = [
   },
   {
     q: "I do not have the time.",
-    a: "Two evenings a week, and every date for the whole year is published before you apply — so you can put it against your timetable rather than find out in March.",
+    a: "Two evenings a week, and every date for the whole year is published before you apply, so you can put it against your timetable rather than find out in March.",
   },
   {
     q: `Is ${feeLabel()} really the whole cost?`,
@@ -110,11 +110,15 @@ const QUESTIONS = [
   },
   {
     q: "I have started something like this before and stopped.",
-    a: "So have most people here. Attendance is taken every session and homework is marked, which means your absence is noticed in week two rather than week eight.",
+    a: "So have most people here. Attendance is taken every session and homework is marked, so a slip is noticed in week two rather than week eight, and an absence without a valid reason earns a strike, which keeps everyone turning up.",
   },
   {
+    /* The strike rule, stated as the programme runs it (and as the
+       application's terms put it): an unexcused absence is a strike, three in
+       a term ends your place, and the count resets each term. Never soften
+       this to "it is fine" anywhere on the page. */
     q: "What if I miss a class?",
-    a: "Tell your teacher in advance and it is fine. Things come up during a degree. Disappearing without a word is the thing that causes problems.",
+    a: "Things come up during a degree, and an absence with a valid reason is understood, as long as you let your teacher know in advance. Without one, a missed class earns a strike. Three strikes in a term and you lose your place on the course. Strikes reset at the start of each term.",
   },
   {
     q: "Is it for brothers or sisters?",
@@ -505,7 +509,7 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
             <span className="lp-step">02</span>
             <h3>Turn up</h3>
             <p className="lp-muted">
-              Two evenings a week at {VENUE} — one for tajweed, one for
+              Two evenings a week at {VENUE}: one for tajweed, one for
               memorisation, each with a teacher who hears you read.
             </p>
           </article>
@@ -597,12 +601,12 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
           <div className="lp-rows">
             <div>
               <span className="lp-label">Homework</span>
-              <strong>Ikhfaa — 12 questions</strong>
+              <strong>Ikhfaa · 12 questions</strong>
               <em className="lp-due">Due Friday</em>
             </div>
             <div>
               <span className="lp-label">Feedback</span>
-              <strong>Ghunnah — 84%</strong>
+              <strong>Ghunnah · 84%</strong>
               <em>A note from your teacher</em>
             </div>
             <div>

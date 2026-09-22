@@ -80,7 +80,7 @@ export function TermBars({
               </div>
               <div className="font-heading text-sm tabular-nums">
                 {bar.termPct === null ? (
-                  <span className="text-muted-foreground">{live ? "live" : "—"}</span>
+                  <span className="text-muted-foreground">{live ? "live" : "–"}</span>
                 ) : (
                   `${bar.termPct.toFixed(1)}%`
                 )}

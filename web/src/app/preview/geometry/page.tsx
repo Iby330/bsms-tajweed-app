@@ -47,7 +47,7 @@ export default function GeometryProofPage() {
       }}
     >
       <h1 style={{ fontSize: 18, fontWeight: 600, margin: "0 0 4px" }}>
-        Baked geometry — Al-Ma&apos;idah 5:95
+        Baked geometry: Al-Ma&apos;idah 5:95
       </h1>
       <p style={{ opacity: 0.65, margin: "0 0 20px" }}>
         {baked.sections.length} sections · {glyphTotal} glyphs · {ruleTotal} rules ·{" "}
@@ -81,7 +81,7 @@ export default function GeometryProofPage() {
         ))}
         <li>
           <Chip colour={SAGE} />
-          not coloured by the mushaf — sage accent
+          not coloured by the mushaf; sage accent
         </li>
       </ul>
 
@@ -181,7 +181,7 @@ export default function GeometryProofPage() {
                           </span>
                         </>
                       ) : (
-                        <i>whole-word span — not yet narrowed to letters</i>
+                        <i>whole-word span, not yet narrowed to letters</i>
                       )}
                     </span>
                   </li>
@@ -232,7 +232,7 @@ function MarkStackingCheck() {
       }}
     >
       <h2 style={{ fontSize: 13, fontWeight: 600, margin: "0 0 2px" }}>
-        Mark stacking — baked glyphs vs the browser&apos;s own rendering
+        Mark stacking: baked glyphs vs the browser&apos;s own rendering
       </h2>
       <p style={{ opacity: 0.6, fontSize: 12, margin: "0 0 14px" }}>
         Same word, same font, same size. Top row is ours (SVG paths positioned by the

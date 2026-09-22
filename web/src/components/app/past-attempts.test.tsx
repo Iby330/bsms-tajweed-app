@@ -79,7 +79,7 @@ describe("PastAttempts — recitation tasks", () => {
 
   it("shows a dash and no denominator against a task, which was never marked", () => {
     const { container } = past(attempt({ voice_notes: [snapshotVoice("q2")] }));
-    expect(container.textContent).toContain("—");
+    expect(container.textContent).toContain("–");
     expect(container.textContent).not.toContain("/ 3");
   });
 

@@ -67,14 +67,14 @@ function EntryRow({ row, price }: { row: DepositRow; price: number }) {
       {/* What they actually paid, not the current price — those differ the
           moment the deposit is re-priced mid-year. */}
       <td className="r">
-        {row.first_amount === null ? "—" : `£${row.first_amount.toFixed(2)}`}
+        {row.first_amount === null ? "–" : `£${row.first_amount.toFixed(2)}`}
       </td>
 
       <td className="c">
         {row.re_entries > 0 ? (
           <span className="tabular-nums">{row.re_entries}</span>
         ) : (
-          <span className="text-muted-foreground">—</span>
+          <span className="text-muted-foreground">–</span>
         )}
       </td>
 
@@ -124,7 +124,7 @@ function EntryRow({ row, price }: { row: DepositRow; price: number }) {
 
       <td>
         <Input
-          value={notes} disabled={pending} placeholder="—"
+          value={notes} disabled={pending} placeholder="–"
           aria-label={`Notes for ${row.full_name}`}
           // The column is narrow by necessity; hovering shows the whole note
           // without having to click into the field.

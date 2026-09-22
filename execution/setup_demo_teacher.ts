@@ -77,13 +77,13 @@ const DOMAIN = "bsms-demo.test";
 const LAYOUT = [
   {
     slot: "rezarta",
-    className: "Demo — Rezarta",
+    className: "Demo: Rezarta",
     from: "sisters",
     students: ["safiyya.t", "ruqayya.m", "halima.s", "nusayba.o", "jamila.v", "rabia.l"],
   },
   {
     slot: "sajeda",
-    className: "Demo — Sajeda",
+    className: "Demo: Sajeda",
     from: "sisters",
     students: ["sumayya.a", "khadija.f", "amina.c", "zaynab.h", "fatima.n"],
   },
@@ -98,7 +98,7 @@ const LAYOUT = [
   // app than someone else's live register ever was.
   {
     slot: "brothers",
-    className: "Demo — Brothers",
+    className: "Demo: Brothers",
     from: "brothers",
     students: ["adam.w", "bilal.o", "idris.k", "zayd.m", "harun.d", "suleiman.n", "tariq.l"],
   },

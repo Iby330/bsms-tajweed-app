@@ -194,7 +194,7 @@ export default async function StudentHifzDetail({
                 pace === "danger" && "text-danger",
               )}
             >
-              {complete ? "—" : pace ? PACE_LABEL[pace] : "not yet"}
+              {complete ? "–" : pace ? PACE_LABEL[pace] : "not yet"}
             </span>
           </div>
           <p className="note">

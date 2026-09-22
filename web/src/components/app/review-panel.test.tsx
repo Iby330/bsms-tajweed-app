@@ -425,7 +425,7 @@ describe("ReviewPanel — recitation tasks", () => {
     expect(container.querySelector('[id^="comment-"]')).toBeNull();
     // the column still exists, so the teacher reads "no mark" rather than
     // wondering whether one failed to render
-    expect(container.textContent).toContain("—");
+    expect(container.textContent).toContain("–");
   });
 
   it("says so when a task has neither a row nor a recording", () => {

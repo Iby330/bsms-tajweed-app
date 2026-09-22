@@ -53,7 +53,7 @@ export default async function AccountPage() {
             )}
             <div>
               <dt className="text-xs text-muted-foreground">Email</dt>
-              <dd className="font-semibold break-all">{data.user?.email ?? "—"}</dd>
+              <dd className="font-semibold break-all">{data.user?.email ?? "–"}</dd>
             </div>
             <div>
               <dt className="text-xs text-muted-foreground">Section</dt>

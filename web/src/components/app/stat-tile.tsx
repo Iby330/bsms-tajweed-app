@@ -18,7 +18,7 @@ export function StatTile({
     <>
       <span className="label">{label}</span>
       <div className="stat">
-        <span className={cn("v sm", empty && "opacity-40")}>{empty ? "—" : value}</span>
+        <span className={cn("v sm", empty && "opacity-40")}>{empty ? "–" : value}</span>
       </div>
       {sub && <div className="note">{empty ? "no data yet" : sub}</div>}
     </>

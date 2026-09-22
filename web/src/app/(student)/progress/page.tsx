@@ -59,7 +59,7 @@ export default async function Progress() {
               <span className="label">End of year</span>
               <div className="stat" style={{ marginTop: 8 }}>
                 <span className="v sm">
-                  {full.eoyPct === null ? "\u2014" : <CountUp value={full.eoyPct} decimals={1} />}
+                  {full.eoyPct === null ? "\u2013" : <CountUp value={full.eoyPct} decimals={1} />}
                 </span>
                 {full.eoyPct !== null && <span className="u">%</span>}
               </div>
@@ -95,11 +95,11 @@ export default async function Progress() {
                       Term {t.termId}
                       {t.termId === termId && <span className="label"> · current</span>}
                     </td>
-                    <td className={pct(t.hwAvg) ? "r" : "r dim"}>{pct(t.hwAvg) ?? "\u2014"}</td>
+                    <td className={pct(t.hwAvg) ? "r" : "r dim"}>{pct(t.hwAvg) ?? "\u2013"}</td>
                     <td className={t.examScore === null ? "r dim" : "r"}>
                       {t.examScore === null ? "not sat" : `${t.examScore}/${t.examMax}`}
                     </td>
-                    <td className={pct(t.termPct) ? "r" : "r dim"}>{pct(t.termPct) ?? "\u2014"}</td>
+                    <td className={pct(t.termPct) ? "r" : "r dim"}>{pct(t.termPct) ?? "\u2013"}</td>
                   </tr>
                 ))}
               </tbody>

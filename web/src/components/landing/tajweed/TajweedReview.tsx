@@ -145,7 +145,7 @@ export default function TajweedReview() {
     <main style={page}>
       <header style={{ maxWidth: 1180, margin: "0 auto 18px" }}>
         <h1 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 4px" }}>
-          Hero review — Al-Ma&apos;idah 5:95
+          Hero review: Al-Ma&apos;idah 5:95
         </h1>
         <p style={{ color: MUTED, margin: 0, fontSize: 13, lineHeight: 1.5 }}>
           {baked.sections.length} sections · {STOPS.length} words · {totalRules} rules ·{" "}
@@ -258,7 +258,7 @@ export default function TajweedReview() {
                         </td>
                         <td style={td}>
                           {onThis.length === 0 ? (
-                            <span style={{ color: MUTED }}>No rule — the ball passes over</span>
+                            <span style={{ color: MUTED }}>No rule: the ball passes over</span>
                           ) : (
                             onThis.map((r) => (
                               <RuleLine key={r.rule.id} row={r} si={si} w={wi} />
@@ -274,7 +274,7 @@ export default function TajweedReview() {
           );
         })}
         <p style={{ color: MUTED, fontSize: 12, margin: "28px 0 60px", lineHeight: 1.6 }}>
-          Timing key: <b>lit</b> is when the colour is fully on — the ball&apos;s landing. It
+          Timing key: <b>lit</b> is when the colour is fully on: the ball&apos;s landing. It
           starts rising a fraction of a second before touchdown, begins to <b>fade</b> just
           before the next landing, and is <b>gone</b> the moment the ball lands on the next word. A rule that
           spans two words is lit across both and shows under each. Source of truth: the rule

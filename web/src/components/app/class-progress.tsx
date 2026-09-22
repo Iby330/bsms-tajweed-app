@@ -85,7 +85,7 @@ function Metric({
           empty && "text-muted-foreground/50",
         )}
       >
-        {empty ? "—" : `${pct.toFixed(1)}%`}
+        {empty ? "–" : `${pct.toFixed(1)}%`}
       </div>
       <div aria-hidden className="mt-2 h-1.5 overflow-hidden rounded-full bg-foreground/10">
         {!empty && (
@@ -212,7 +212,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
                       // No surah left in the run is the good ending, not a gap —
                       // it must not render as the same dash as missing data.
                       <span className="block text-sm text-muted-foreground/60">
-                        {r.pace ? <span className="text-ok">Target complete</span> : "—"}
+                        {r.pace ? <span className="text-ok">Target complete</span> : "–"}
                       </span>
                     )}
                   </span>

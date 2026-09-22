@@ -76,7 +76,7 @@ function Stat({
     <div>
       <span className="label">{label}</span>
       <div className="fig">
-        <span className={cn("v", empty && "opacity-40")}>{empty ? "—" : value}</span>
+        <span className={cn("v", empty && "opacity-40")}>{empty ? "–" : value}</span>
         {!empty && unit && <span className="u">{unit}</span>}
       </div>
     </div>

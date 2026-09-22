@@ -144,7 +144,7 @@ export async function seasonExpenses(seasonId: number): Promise<ExpenseRow[]> {
       paid_by_name: e.paid_by_name,
       // Whoever fronted it: the linked teacher if there is one, else the
       // free-text name for someone with no account.
-      payer: linked?.full_name ?? e.paid_by_name ?? "—",
+      payer: linked?.full_name ?? e.paid_by_name ?? "–",
       reimbursed: e.reimbursed,
       incurred_on: e.incurred_on,
     };

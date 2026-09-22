@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 const pct = (n: number | null | undefined) =>
-  n === null || n === undefined ? "—" : `${n.toFixed(1)}%`;
+  n === null || n === undefined ? "–" : `${n.toFixed(1)}%`;
 
 /** `passed_at` is a timestamptz, so it renders in the reader's own zone. */
 function on(iso: string | null): string {
@@ -157,7 +157,7 @@ export default async function StudentRecord({
         <div className="box c3">
           <span className="label">Overall · year to date</span>
           <div className="stat">
-            <span className="v sm">{full.eoyPct === null ? "—" : full.eoyPct.toFixed(1)}</span>
+            <span className="v sm">{full.eoyPct === null ? "–" : full.eoyPct.toFixed(1)}</span>
             {full.eoyPct !== null && <span className="u">%</span>}
           </div>
           <p className="note">80% exam, 20% homework</p>
@@ -166,7 +166,7 @@ export default async function StudentRecord({
         <div className="box c3">
           <span className="label">Rank in the year</span>
           <div className="stat">
-            <span className="v sm">{rank?.rank ?? "—"}</span>
+            <span className="v sm">{rank?.rank ?? "–"}</span>
             {rank && <span className="u">of {lb.length}</span>}
           </div>
           <p className="note">{rank?.classRank ? `${rank.classRank} in class` : "not ranked yet"}</p>

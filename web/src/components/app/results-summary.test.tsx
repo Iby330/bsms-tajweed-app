@@ -65,7 +65,7 @@ describe("ResultsSummary", () => {
       row({ studentId: "a", name: "Aisha", state: "waiting", marks: null, pct: null }),
     ]);
     // StatTile's empty dash, never a class average of 0%
-    expect(container.textContent).toContain("Class average—");
+    expect(container.textContent).toContain("Class average–");
     // and no distribution of nothing
     expect(container.textContent).not.toContain("Spread");
   });

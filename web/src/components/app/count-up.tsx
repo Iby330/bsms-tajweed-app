@@ -12,7 +12,7 @@ export function CountUp({
   value,
   decimals = 0,
   suffix = "",
-  fallback = "—",
+  fallback = "–",
 }: {
   value: number | null;
   decimals?: number;

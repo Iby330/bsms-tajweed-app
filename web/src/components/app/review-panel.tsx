@@ -258,7 +258,7 @@ export function ReviewPanel({
                         to type and so no denominator to type it against —
                         printing "/ 0" next to a dash would only ask the
                         question the dash is there to answer. */}
-                    <div className="mt-1 text-sm tabular-nums text-muted-foreground">—</div>
+                    <div className="mt-1 text-sm tabular-nums text-muted-foreground">–</div>
                   </>
                 )}
               </div>
