@@ -173,7 +173,7 @@ export const PAYMENT_LINK: string | null =
  * The group each side's applicants are asked to join, sent in the
  * confirmation email the moment they apply.
  *
- * Brothers supplied 2026-09-22. ⚠️ SISTERS NOT YET SUPPLIED.
+ * Both supplied 2026-09-22, the general group for each side.
  * Null for the same reason PAYMENT_LINK is: a wrong link puts a brother in the
  * sisters' group, and a missing one only leaves the group section out of the
  * email (the teacher screen warns while either is missing).
@@ -185,7 +185,7 @@ export const WHATSAPP_GROUPS: Record<"brothers" | "sisters", string | null> = {
   // The invite code is the path; the share-sheet query string it was copied
   // with (?s=cl&p=i...) is tracking only, and dropped.
   brothers: "https://chat.whatsapp.com/BmPht0LkpSGGZ4GbLHX4PS",
-  sisters: null,
+  sisters: "https://chat.whatsapp.com/GJLHT7o0qVvHfURhfpo7j6",
 };
 
 /* ── The terms ────────────────────────────────────────────────────────── */
