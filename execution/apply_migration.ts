@@ -18,6 +18,10 @@
  * Gotchas learned the hard way:
  *  - The endpoint returns 201 with a JSON array on success; errors come back as
  *    4xx with {message}. Non-2xx must be treated as failure, not empty output.
+ *  - A 401 ({"message":"Unauthorized"}) means SUPABASE_ACCESS_TOKEN expired or was
+ *    revoked — not a SQL problem. These tokens die mid-session with no warning.
+ *    Get a new one at https://supabase.com/dashboard/account/tokens. runSql spells
+ *    this out rather than printing the bare body.
  *  - Write every statement idempotently (if not exists / drop … if exists) so a
  *    half-applied batch can be re-run.
  *  - This file lives outside web/, so `tsx` compiles it as CJS, which rejects
@@ -86,6 +90,31 @@ async function runSql(token: string, query: string): Promise<unknown> {
     },
   );
   const body = await res.text();
+  // A 401 is never about the SQL — it is the credential. Say so plainly, because
+  // a bare `{"message":"Unauthorized"}` reads like a database problem and sends
+  // you looking at the migration. Two different causes, distinguished by body:
+  //  - "Format is Authorization: Bearer [token]" → the token we sent is mangled
+  //    (usually an inline comment in .env; see loadEnv above).
+  //  - anything else → the personal access token has expired or been revoked.
+  //    They do expire, silently, mid-session: this script worked 40 minutes
+  //    earlier in the same session on 2026-09-22 and then 401'd on every call.
+  if (res.status === 401) {
+    const mangled = body.includes("Format is Authorization");
+    throw new Error(
+      `SQL failed (401): ${body}\n\n` +
+        (mangled
+          ? "SUPABASE_ACCESS_TOKEN looks MALFORMED, not expired — check .env for an inline\n" +
+            "comment or stray quoting on that line (loadEnv strips ' #' comments, but not\n" +
+            "every shape of junk)."
+          : "SUPABASE_ACCESS_TOKEN in .env has EXPIRED or been revoked — this is not a SQL\n" +
+            "or schema problem. Generate a fresh personal access token at\n" +
+            "  https://supabase.com/dashboard/account/tokens\n" +
+            "and replace the SUPABASE_ACCESS_TOKEN line in the repo's .env.\n" +
+            "Until then, the supabase MCP `apply_migration` tool is the workaround — but if\n" +
+            "you use it, insert the matching schema_migrations row by hand afterwards or the\n" +
+            "ledger silently drifts out of step with the database."),
+    );
+  }
   if (!res.ok) throw new Error(`SQL failed (${res.status}): ${body}`);
   try {
     return JSON.parse(body);
