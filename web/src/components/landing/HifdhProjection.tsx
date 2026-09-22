@@ -342,4 +342,19 @@ const CSS = `
   cursor: pointer;
 }
 .hp-btn:focus-visible { outline: 2px solid #B2C58C; outline-offset: 3px; border-radius: 6px; }
+
+/* On a phone the card is nearly full width, so rows running BEHIND it show
+   only a word's edge either side — clipped fragments rather than a marquee.
+   Here, as on the reference's phone layout, the rows come out from behind
+   and run below, under the pause control: the stage dissolves
+   (display: contents) so its rows and card join .hp's own column, and
+   \`order\` puts them after the button. */
+@media (max-width: 720px) {
+  .hp-stage { display: contents; }
+  .hp-card { order: 1; }
+  .hp-btn { order: 2; margin-top: calc(-1 * clamp(28px, 4vw, 44px) + 8px); }
+  .hp-row { order: 3; position: static; width: 100%; }
+  .hp-row:nth-child(2) { margin-top: calc(-1 * clamp(28px, 4vw, 44px) + 10px); }
+  .hp-track li { font-size: 1.375rem; }
+}
 `;
