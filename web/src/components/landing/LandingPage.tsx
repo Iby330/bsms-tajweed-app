@@ -809,17 +809,37 @@ html {
 .lp-screen { display: flex; flex-direction: column; }
 
 /* ── The progress rail (SectionRail) ──────────────────────────────────── */
+/* The nav itself is the touch target: padded into a capsule far wider than
+   the dots, so a thumb anywhere on it reaches the nearest one. touch-action
+   none hands the drag to the rail instead of scrolling the page, which is
+   what makes press-and-slide scrubbing possible. */
 .lp-srail {
   position: fixed;
-  right: max(14px, env(safe-area-inset-right, 0px));
+  right: max(6px, env(safe-area-inset-right, 0px));
   top: 50%;
   transform: translateY(-50%);
   z-index: 5;
+  padding: 12px 8px;
+  border-radius: 999px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 300ms ease;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  transition: opacity 300ms ease, background 200ms ease, box-shadow 200ms ease;
 }
 .lp-srail[data-on] { opacity: 1; pointer-events: auto; }
+/* Held: the capsule appears behind the dots, as the home-screen dots do. */
+.lp-srail[data-scrub] {
+  background: rgb(10 10 94 / 0.78);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 0 1px ${RULE};
+}
+.lp-srail[data-scrub] .lp-srail-dot::before { transform: scale(1.25); }
+.lp-srail[data-scrub] a[aria-current] .lp-srail-dot::before { transform: scale(1.8); }
 .lp-srail ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; position: relative; }
 /* The track, and the sage fill over it. Both run through the dots' centres:
    each dot box is 11px wide and right-aligned, so its centre is 5px in. */
@@ -832,7 +852,7 @@ html {
 }
 .lp-srail ol::before { bottom: 6px; background: ${RULE}; }
 .lp-srail ol::after { height: calc((100% - 12px) * var(--p, 0)); background: ${SAGE}; transition: height 400ms ease; }
-.lp-srail a { display: flex; align-items: center; justify-content: flex-end; gap: 10px; height: 12px; text-decoration: none; }
+.lp-srail a { position: relative; display: flex; align-items: center; justify-content: flex-end; height: 12px; text-decoration: none; }
 .lp-srail-dot { position: relative; z-index: 1; width: 11px; height: 11px; display: grid; place-items: center; }
 .lp-srail-dot::before {
   content: "";
@@ -857,18 +877,26 @@ html {
   border: 1px solid ${RULE};
   border-radius: 999px;
   padding: 4px 10px;
+  /* Floats left of the rail rather than widening it. */
+  position: absolute;
+  right: calc(100% + 18px);
   opacity: 0;
   transform: translateX(6px);
   transition: opacity 180ms ease, transform 180ms ease;
   pointer-events: none;
 }
 .lp-srail a:hover .lp-srail-label, .lp-srail a:focus-visible .lp-srail-label { opacity: 1; transform: none; }
+/* While scrubbing, the section under the finger names itself, on a phone
+   too: it is how you know where you will land before letting go. Hover
+   labels are held back meanwhile so only that one shows. */
+.lp-srail[data-scrub] a:hover .lp-srail-label { opacity: 0; }
+.lp-srail[data-scrub] a[aria-current] .lp-srail-label { display: block; opacity: 1; transform: none; }
 .lp-srail a:focus-visible { outline: none; }
 .lp-srail a:focus-visible .lp-srail-dot::before { box-shadow: 0 0 0 2px ${LAVENDER}; }
-/* On a phone it is an indicator more than a menu: smaller, tighter, tucked
-   into the gutter, and no labels (there is no hover to show them). */
+/* On a phone: smaller and tighter, tucked into the gutter. Labels show only
+   while scrubbing (there is no hover). */
 @media (max-width: 720px) {
-  .lp-srail { right: max(5px, env(safe-area-inset-right, 0px)); }
+  .lp-srail { right: max(0px, env(safe-area-inset-right, 0px)); padding: 12px 6px; }
   .lp-srail ol { gap: 9px; }
   .lp-srail a { height: 9px; }
   .lp-srail-dot { width: 9px; height: 9px; }
