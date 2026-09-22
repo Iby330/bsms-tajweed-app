@@ -6,7 +6,12 @@ const W = 300;
 const H = 60;
 
 const TONE = {
-  ok: { stroke: "stroke-ok", fill: "fill-ok", pill: "bg-ok/12 text-ok", word: "ahead of pace" },
+  ok: {
+    stroke: "stroke-tertiary",
+    fill: "fill-tertiary",
+    pill: "bg-tertiary-surface/25 text-tertiary",
+    word: "ahead of pace",
+  },
   warn: { stroke: "stroke-warn", fill: "fill-warn", pill: "bg-warn/12 text-warn", word: "on pace" },
   danger: {
     stroke: "stroke-danger",

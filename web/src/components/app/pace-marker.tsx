@@ -15,7 +15,7 @@ export function PaceMarker({
         </span>
         <span className={cn(
           "rounded-md px-2 py-0.5 text-xs font-medium",
-          status === "ok" && "bg-ok/12 text-ok",
+          status === "ok" && "bg-tertiary-surface/25 text-tertiary",
           status === "warn" && "bg-warn/12 text-warn",
           status === "danger" && "bg-danger/12 text-danger",
         )}>

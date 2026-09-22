@@ -15,12 +15,12 @@
   --font-sans: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
   --font-heading: var(--font-sans);
   /* The display face, as the landing page pairs it: Fraunces against
-     Helvetica, serif headline over grotesque everything-else. It was
-     confined to the marketing pages; from 2026-09-22 the page titles across
-     the app use it too, so the product reads as the same publication as the
-     page that sold it. Georgia is the fallback with the closest colour on a
-     machine with no webfonts. Small UI headings stay Helvetica: see the
-     h1/h2 rule in the base layer. */
+     Helvetica. It is NOT the app's heading face. Page titles were set in it
+     briefly on 2026-09-22 and put back the same day: at a title's size and
+     weight it reads as a different product rather than the same one, and
+     Helvetica two-weight is what the posts use for a headline anyway. It
+     stays declared for the rare display moment that earns it, one phrase at
+     a time. Georgia is the fallback closest in colour. */
   --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
   /* Sticky-note device only (docs/brand-system.md). Times New Roman MT
      Condensed is a Monotype licence, so the web falls back to plain Times —
@@ -83,6 +83,11 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  /* Sage, so a utility class can reach the accent. The token pair has
+     existed since the navy scheme landed; nothing could name it until now. */
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-surface: var(--tertiary-surface);
+  --color-tertiary-foreground: var(--tertiary-foreground);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -425,18 +430,6 @@
     font-family: var(--font-heading);
     letter-spacing: -0.02em;
     font-weight: 700;
-  }
-
-  /* ── Headlines follow the landing page ────────────────────────────────
-     The two big headings on a screen are display type and take the serif at
-     the landing's own weight (300, not the 700 above); h3 and h4 are working
-     UI, sit in dense places, and stay Helvetica. Anything that sets its own
-     family — `.label` (mono), the Arabic classes — is unaffected, and
-     `.masthead h1` keeps its own finer weights below. */
-  h1, h2 {
-    font-family: var(--font-display);
-    font-weight: 300;
-    letter-spacing: -0.02em;
   }
 
   /* ── The highlighter ───────────────────────────────────────────────────
@@ -1076,15 +1069,12 @@ body::after {
   }
 
   .masthead { padding: clamp(40px, 7vw, 88px) 0 clamp(24px, 3.5vw, 40px); }
-  /* Set in the display serif (the h1 rule above), so the weights are the
-     landing's: 300 against 600, not the 250/200 a grotesque could carry.
-     Fraunces at 200 is a hairline that disappears on a phone. */
   .masthead h1 {
-    margin: 0; font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 300;
-    letter-spacing: -0.03em; line-height: 1.04; text-wrap: balance;
+    margin: 0; font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 250;
+    letter-spacing: -0.04em; line-height: 1.02; text-wrap: balance;
   }
   .masthead h1 b { font-weight: 600; }
-  .masthead h1 span { color: var(--ink-3); font-weight: 300; }
+  .masthead h1 span { color: var(--ink-3); font-weight: 200; }
   .masthead p { margin: 14px 0 0; color: var(--muted-foreground); max-width: 52ch; }
   .masthead .meta { display: flex; align-items: baseline; justify-content: space-between;
                     gap: 26px; margin-top: 22px; flex-wrap: wrap; }

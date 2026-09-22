@@ -18,7 +18,7 @@ const SORTS: { value: ClassSort; label: string; announce: string }[] = [
 const PACE_LABEL = { ok: "ahead", warn: "on pace", danger: "behind" } as const;
 
 const PACE_TINT: Record<PaceStatus, string> = {
-  ok: "bg-ok/12 text-ok",
+  ok: "bg-tertiary-surface/25 text-tertiary",
   warn: "bg-warn/12 text-warn",
   danger: "bg-danger/12 text-danger",
 };
@@ -27,7 +27,7 @@ const PACE_TINT: Record<PaceStatus, string> = {
  *  shape of the class is readable as a column of colour before a single
  *  number is. Decorative only — the badge carries the meaning. */
 const PACE_EDGE: Record<PaceStatus, string> = {
-  ok: "bg-ok/60",
+  ok: "bg-tertiary-surface",
   warn: "bg-warn/60",
   danger: "bg-danger/60",
 };
@@ -200,7 +200,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
                       <>
                         <span className="mt-0.5 flex min-w-0 items-baseline gap-2 lg:mt-0">
                           <span className="truncate text-sm font-medium">{r.surah.nameEn}</span>
-                          <span dir="rtl" lang="ar" className="ar-quran shrink-0 text-ok">
+                          <span dir="rtl" lang="ar" className="ar-quran shrink-0 text-tertiary">
                             {r.surah.nameAr}
                           </span>
                         </span>
@@ -212,7 +212,7 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
                       // No surah left in the run is the good ending, not a gap —
                       // it must not render as the same dash as missing data.
                       <span className="block text-sm text-muted-foreground/60">
-                        {r.pace ? <span className="text-ok">Target complete</span> : "–"}
+                        {r.pace ? <span className="text-tertiary">Target complete</span> : "–"}
                       </span>
                     )}
                   </span>

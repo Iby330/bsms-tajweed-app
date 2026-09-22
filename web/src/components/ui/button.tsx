@@ -12,7 +12,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        /* Sage with navy on it, the landing page's "Apply to join" button,
+           in both schemes: a sage fill always carries navy type (11.27:1)
+           and does not flip, the way a road sign does not change colour at
+           night. Only the button does this. `--primary` still drives
+           checkboxes, radios and badges, which sit beside attendance and
+           marking states where a green would read as a pass. */
+        default:
+          "bg-tertiary-surface text-tertiary-foreground hover:bg-tertiary-surface/85",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:

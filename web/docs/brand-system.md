@@ -131,22 +131,22 @@ hold. The app previously ran Archivo; it moved to this stack in September 2026.
 > full of them (`FĀṬIR 35:33`, `ṢIFĀT`, `MUDŪD`). Dropping it puts those glyphs
 > in whatever the browser finds, mid-label.
 
-### Fraunces — the display face
+### Fraunces — the display face, and only that
 
-Page titles and section headings, paired against Helvetica for everything
-else. It began as a landing-page exception and became the house headline
-treatment in September 2026, because that pairing is what the programme
-looks like at its best. Weight 300, tracking -0.02em, `opsz` on the variable
-axis so a 58px headline and a 22px card title are not the same drawing
-scaled.
+The landing page's headlines, where it is paired against Helvetica for
+everything else. Weight 300, tracking -0.02em, `opsz` on the variable axis so
+a 58px headline and a 22px card title are not the same drawing scaled.
 
 ```css
 --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
 ```
 
-It goes on `h1` and `h2` only. `h3`, `h4`, labels, buttons, tables and every
-other working part of the interface stay Helvetica: a serif in a dense screen
-is decoration, and this one earns its place by being rare.
+**It is not the app's heading face.** Page titles were set in it for a few
+hours on 2026-09-22 and put straight back: at a title's size the serif reads
+as a different product rather than the same one, and the posts set their own
+headlines in Helvetica two-weight regardless. Helvetica carries the interface;
+the serif is character, added one phrase at a time where it earns its place,
+never as the rule.
 
 ### Times New Roman MT Condensed — the note face
 

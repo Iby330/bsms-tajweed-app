@@ -197,7 +197,7 @@ export function HifzRegister({ rows, surahs }: { rows: RegisterRow[]; surahs: Su
                 <span className={cn(
                   "rounded-md px-2 py-0.5 text-xs font-medium",
                   r.pace === null && "bg-muted text-muted-foreground",
-                  r.pace === "ok" && "bg-ok/12 text-ok",
+                  r.pace === "ok" && "bg-tertiary-surface/25 text-tertiary",
                   r.pace === "warn" && "bg-warn/12 text-warn",
                   r.pace === "danger" && "bg-danger/12 text-danger",
                 )}>

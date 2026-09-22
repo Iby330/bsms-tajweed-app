@@ -53,7 +53,7 @@ export function HifzHero({
           <div className="flex items-center gap-3">
             <div
               className="grid size-14 shrink-0 place-items-center rounded-full ring-1 ring-line"
-              style={{ background: `conic-gradient(var(--ok) ${pct}%, var(--muted) 0)` }}
+              style={{ background: `conic-gradient(var(--tertiary-surface) ${pct}%, var(--muted) 0)` }}
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={juz.total}
@@ -63,7 +63,7 @@ export function HifzHero({
               <div
                 className={cn(
                   "grid size-11 place-items-center rounded-full bg-card text-[11px] font-medium tabular-nums",
-                  pct === 0 ? "text-muted-foreground" : "text-ok",
+                  pct === 0 ? "text-muted-foreground" : "text-tertiary",
                 )}
               >
                 {juz.passed}/{juz.total}
@@ -88,7 +88,7 @@ export function HifzHero({
                 <span
                   className={cn(
                     "inline-block rounded-md px-2 py-0.5 text-xs font-medium",
-                    pace === "ok" && "bg-ok/12 text-ok",
+                    pace === "ok" && "bg-tertiary-surface/25 text-tertiary",
                     pace === "warn" && "bg-warn/12 text-warn",
                     pace === "danger" && "bg-danger/12 text-danger",
                   )}
@@ -114,7 +114,7 @@ export function HifzHero({
               aria-label={`Hizb ${b.hizb}: ${b.passedCount} of ${b.surahs.length} surahs`}
             >
               <div
-                className="h-full rounded-full bg-ok"
+                className="h-full rounded-full bg-tertiary-surface"
                 style={{ width: `${b.surahs.length ? (b.passedCount / b.surahs.length) * 100 : 0}%` }}
               />
             </div>
