@@ -107,7 +107,7 @@ const QUESTIONS = [
   },
   {
     q: `Is ${feeLabel()} really the whole cost?`,
-    a: "Yes, for the full year. One payment, not a termly or monthly charge, and nothing further to pay for materials or exams. The only time anyone pays again is to rejoin after being removed for three strikes in a term.",
+    a: "Yes, for the full year. One payment, not a termly or monthly charge. The one thing to bring yourself is your own copy of the Qur'an. The only time anyone pays again is to rejoin after being removed for three strikes in a term.",
   },
   {
     q: "I have started something like this before and stopped.",
@@ -255,7 +255,7 @@ const INCLUDED = [
   "An end-of-year ceremony, with awards",
   "A room full of Muslims your own age",
   "Company that keeps you on it",
-  "Materials and exams, included",
+  "Lessons to watch back",
 ];
 
 /**
