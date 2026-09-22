@@ -43,16 +43,31 @@ export async function sendEmail(mail: Email): Promise<SendResult> {
   const key = await resendKey();
   if (!key) return { ok: false, error: "No Resend key: set RESEND_API_KEY or add it to Vault." };
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: FROM, reply_to: REPLY_TO, ...mail }),
-    });
-    const body = await res.text();
-    if (!res.ok) return { ok: false, error: `Resend ${res.status}: ${body}` };
-    return { ok: true, id: (JSON.parse(body) as { id: string }).id };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  // Resend allows 2 requests a second. One applicant submitting is nowhere
+  // near that, but several submitting in the same second (a link going out to
+  // a group chat, which is exactly how this form is shared) would have one of
+  // them refused with a 429. Waiting and trying again costs that one person a
+  // second and saves the confirmation email they would otherwise never get.
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ from: FROM, reply_to: REPLY_TO, ...mail }),
+      });
+      const body = await res.text();
+      if (res.ok) return { ok: true, id: (JSON.parse(body) as { id: string }).id };
+      if (res.status === 429 && attempt < 3) {
+        await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+        continue;
+      }
+      return { ok: false, error: `Resend ${res.status}: ${body}` };
+    } catch (e) {
+      if (attempt < 3) {
+        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+        continue;
+      }
+      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+    }
   }
 }

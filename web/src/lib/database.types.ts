@@ -83,6 +83,9 @@ export type Database = {
           paid_confirmed: boolean
           phone: string
           profile_id: string | null
+          read_ayah_from: number | null
+          read_ayah_to: number | null
+          read_surah: number | null
           reviewed_at: string | null
           reviewed_by: string | null
           section: Database["public"]["Enums"]["section_t"]
@@ -112,6 +115,9 @@ export type Database = {
           paid_confirmed?: boolean
           phone: string
           profile_id?: string | null
+          read_ayah_from?: number | null
+          read_ayah_to?: number | null
+          read_surah?: number | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           section: Database["public"]["Enums"]["section_t"]
@@ -141,6 +147,9 @@ export type Database = {
           paid_confirmed?: boolean
           phone?: string
           profile_id?: string | null
+          read_ayah_from?: number | null
+          read_ayah_to?: number | null
+          read_surah?: number | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           section?: Database["public"]["Enums"]["section_t"]

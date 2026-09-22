@@ -31,6 +31,9 @@ export type ApplicationRow = {
   confirmation_sent_at: string | null;
   profile_id: string | null;
   login_sent_at: string | null;
+  read_surah: number | null;
+  read_ayah_from: number | null;
+  read_ayah_to: number | null;
 };
 
 export type ClassOption = { id: string; name: string; section: Section };
@@ -59,7 +62,7 @@ export async function applications(): Promise<ApplicationRow[]> {
       year_of_study, enrolled_before, memorised, arabic_reading, tajweed_level,
       heard_from, motivation, fee_pence, paid_confirmed, fee_settled, status,
       assessed_level, class_id, notes, reviewed_at, confirmation_sent_at, profile_id,
-      login_sent_at`)
+      login_sent_at, read_surah, read_ayah_from, read_ayah_to`)
     .order("created_at", { ascending: false });
   return data ?? [];
 }

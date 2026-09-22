@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { fmtDay } from "@/lib/format";
+import { SURAHS, surahByNumber } from "@/lib/quran/surahs";
 import {
   placeInClass, sendLogin, setApplicationNotes, setApplicationStatus, setAssessedLevel,
-  setFeeSettled,
+  setFeeSettled, setReadPassage,
 } from "@/lib/applications/actions";
 import type { ApplicationRow, ClassOption, Status, Section } from "@/lib/applications/queries";
 
@@ -25,6 +26,8 @@ import type { ApplicationRow, ClassOption, Status, Section } from "@/lib/applica
  * front of you must not lose anything to a forgotten button.
  */
 
+/** Every value the column can hold, including the two the screen no longer
+ *  offers: a row written before migration 0037 must still render. */
 const STATUS_LABEL: Record<Status, string> = {
   new: "New",
   invited: "Invited",
@@ -33,8 +36,12 @@ const STATUS_LABEL: Record<Status, string> = {
   declined: "Declined",
 };
 
-/** The order the intake moves through, for the picker and for sorting. */
-const STATUS_ORDER: Status[] = ["new", "invited", "assessed", "placed", "declined"];
+/**
+ * The three states the intake actually has: waiting, in a class, or not
+ * going ahead. 'invited' and 'assessed' stay in the database type but are
+ * not offered; being heard is recorded by what was heard, not by a state.
+ */
+const STATUS_ORDER: Status[] = ["new", "placed", "declined"];
 
 const selectCls =
   "h-8 rounded-lg border border-line bg-background px-2 text-sm text-foreground";
@@ -47,6 +54,92 @@ function Answer({ label, children }: { label: string; children: React.ReactNode 
     <div className="min-w-0 space-y-1">
       <span className="label">{label}</span>
       <p className="text-sm text-foreground">{children}</p>
+    </div>
+  );
+}
+
+/**
+ * What we are asking them to read: surah, then first and last ayah.
+ *
+ * The ayah lists are the chosen surah's own length, so a range that does not
+ * exist cannot be picked. Changing surah clears the ayahs rather than keeping
+ * numbers that meant something else. Saves on every change, like the rest of
+ * this screen.
+ */
+function PassagePicker({ row }: { row: ApplicationRow }) {
+  const [pending, startTransition] = useTransition();
+  const [surah, setSurah] = useState(row.read_surah);
+  const [from, setFrom] = useState(row.read_ayah_from);
+  const [to, setTo] = useState(row.read_ayah_to);
+
+  const chosen = surah ? surahByNumber(surah) : undefined;
+  const ayahs = chosen ? Array.from({ length: chosen.ayahs }, (_, i) => i + 1) : [];
+
+  const save = (s: number | null, f: number | null, t: number | null) =>
+    startTransition(() => void setReadPassage(row.id, s, f, t));
+
+  return (
+    <div className="space-y-1.5">
+      <span className="label block">What to read at the session</span>
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          aria-label="Surah"
+          className={selectCls}
+          value={surah ?? ""}
+          disabled={pending}
+          onChange={(e) => {
+            const next = e.target.value ? Number(e.target.value) : null;
+            setSurah(next); setFrom(null); setTo(null);
+            save(next, null, null);
+          }}
+        >
+          <option value="">Not set</option>
+          {SURAHS.map((s) => (
+            <option key={s.number} value={s.number}>{s.number}. {s.name}</option>
+          ))}
+        </select>
+
+        {chosen && (
+          <>
+            <select
+              aria-label="First ayah"
+              className={selectCls}
+              value={from ?? ""}
+              disabled={pending}
+              onChange={(e) => {
+                const next = e.target.value ? Number(e.target.value) : null;
+                setFrom(next);
+                // A last ayah now before the first is no longer a range.
+                const t = next !== null && to !== null && to < next ? null : to;
+                setTo(t);
+                save(surah, next, t);
+              }}
+            >
+              <option value="">Ayah</option>
+              {ayahs.map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+            <span className="text-sm text-muted-foreground">to</span>
+            <select
+              aria-label="Last ayah"
+              className={selectCls}
+              value={to ?? ""}
+              disabled={pending || from === null}
+              onChange={(e) => {
+                const next = e.target.value ? Number(e.target.value) : null;
+                setTo(next);
+                save(surah, from, next);
+              }}
+            >
+              <option value="">End</option>
+              {ayahs.filter((n) => from === null || n >= from)
+                .map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+            <span className="text-xs text-muted-foreground">
+              {chosen.nameAr} · {chosen.ayahs} ayahs
+            </span>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -277,6 +370,8 @@ function ApplicationCard({
               </div>
             )}
 
+            <PassagePicker row={row} />
+
             <label className="block space-y-1.5">
               <span className="label block">What you heard at the recitation session</span>
               <Input
@@ -336,7 +431,7 @@ export function ApplicationsBoard({
       // "Still to hear" is the filter the screen opens on, because it is the
       // only one that names an action. It is new + invited: everyone who has
       // applied and not yet recited.
-      if (status === "todo" && r.status !== "new" && r.status !== "invited") return false;
+      if (status === "todo" && r.status !== "new") return false;
       if (status !== "all" && status !== "todo" && r.status !== status) return false;
       if (!needle) return true;
       return `${r.first_name} ${r.surname} ${r.email}`.toLowerCase().includes(needle);
@@ -347,7 +442,7 @@ export function ApplicationsBoard({
     const inSection = section === "all" ? rows : rows.filter((r) => r.section === section);
     return {
       total: inSection.length,
-      toHear: inSection.filter((r) => r.status === "new" || r.status === "invited").length,
+      toHear: inSection.filter((r) => r.status === "new").length,
       placed: inSection.filter((r) => r.status === "placed").length,
       loginToSend: inSection.filter((r) => canSendLogin(r) && !r.login_sent_at).length,
       owing: inSection.filter((r) => !r.fee_settled && r.status !== "declined").length,
@@ -360,7 +455,7 @@ export function ApplicationsBoard({
         <section className="box c12 gap-5">
           <div className="flex flex-wrap gap-x-10 gap-y-5">
             <Figure label="Applications" value={counts.total} />
-            <Figure label="Still to hear" value={counts.toHear} tone="brand" />
+            <Figure label="Still to decide" value={counts.toHear} tone="brand" />
             <Figure label="Placed" value={counts.placed} />
             <Figure label="Login to send" value={counts.loginToSend} tone="brand" />
             <Figure label="Fee not received" value={counts.owing} tone="danger" />
@@ -385,7 +480,7 @@ export function ApplicationsBoard({
           value={status}
           onChange={(e) => setStatus(e.target.value as Status | "all" | "todo")}
         >
-          <option value="todo">Still to hear</option>
+          <option value="todo">Still to decide</option>
           <option value="all">Everyone</option>
           {STATUS_ORDER.map((s) => (
             <option key={s} value={s}>{STATUS_LABEL[s]}</option>

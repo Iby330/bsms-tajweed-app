@@ -8,6 +8,7 @@ import { randomBytes } from "node:crypto";
 import { CLOSES_LABEL, PAYMENT_LINK, WHATSAPP_GROUPS, feeLabel, signupsOpen } from "./form";
 import { MAX, clean, validateApplication, type ApplicationInput } from "./validate";
 import { sendEmail } from "@/lib/email/send";
+import { surahByNumber } from "@/lib/quran/surahs";
 import {
   SITE, confirmationHtml, confirmationSubject, confirmationText, loginHtml, loginSubject,
   loginText, type Confirmation,
@@ -158,6 +159,49 @@ export async function setAssessedLevel(id: string, level: string): Promise<Resul
   return { ok: true };
 }
 
+/**
+ * The passage we are asking them to read at the recitation session.
+ *
+ * Stored as numbers, not a sentence, so the screen can show it the same way
+ * on every row and the range can be checked against the surah's real length.
+ * All three null clears it. `to` may equal `from` for a single ayah.
+ */
+export async function setReadPassage(
+  id: string, surah: number | null, from: number | null, to: number | null,
+): Promise<Result> {
+  await requireTeacher();
+
+  // Re-checked here, not just in the dropdowns: a server action is a public
+  // endpoint, and the database's own check constraint gives an error message
+  // no teacher should have to read.
+  if (surah !== null) {
+    const s = surahByNumber(surah);
+    if (!s) return { ok: false, error: "That is not a surah." };
+    if (from !== null && (from < 1 || from > s.ayahs)) {
+      return { ok: false, error: `${s.name} has ${s.ayahs} ayahs.` };
+    }
+    if (to !== null && (to < 1 || to > s.ayahs)) {
+      return { ok: false, error: `${s.name} has ${s.ayahs} ayahs.` };
+    }
+    if (from !== null && to !== null && to < from) {
+      return { ok: false, error: "The last ayah comes before the first." };
+    }
+  }
+
+  const db = await supabaseServer();
+  const { error } = await db
+    .from("applications")
+    .update({
+      read_surah: surah,
+      read_ayah_from: surah === null ? null : from,
+      read_ayah_to: surah === null ? null : to,
+    })
+    .eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(TEACHER_PATH);
+  return { ok: true };
+}
+
 export async function setApplicationNotes(id: string, notes: string): Promise<Result> {
   await requireTeacher();
   const v = clean(notes);
@@ -210,9 +254,9 @@ export async function placeInClass(
     .update({
       class_id: classId,
       // Choosing a class IS the placement, so the status follows rather than
-      // being a second thing to remember. Clearing the class steps back to
-      // 'assessed': they have still been heard.
-      status: classId ? "placed" : "assessed",
+      // being a second thing to remember. Clearing the class puts them back
+      // to 'new', which is now the only state before a decision.
+      status: classId ? "placed" : "new",
       reviewed_by: me.id,
       reviewed_at: new Date().toISOString(),
     })
