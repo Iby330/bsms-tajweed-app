@@ -248,6 +248,14 @@ const RAIL: readonly RailItem[] = [
   { id: "apply", label: "Apply" },
 ];
 
+/**
+ * Twelve, which is four even rows of the three-column grid: eleven left a
+ * ragged last row with a gap where a twelfth should be.
+ *
+ * "EOY" rather than "end-of-year" so the line does not wrap in its column —
+ * it was the only entry running to two lines, which pulled the eye to it
+ * as though it mattered more than the rest.
+ */
 const INCLUDED = [
   "Two taught evenings a week",
   "Weekly homework, marked",
@@ -256,10 +264,11 @@ const INCLUDED = [
   "Hifdh tracking and revision dates",
   "A teacher you can ask directly",
   "Termly events",
-  "An end-of-year ceremony, with awards",
+  "An EOY ceremony, with awards",
   "A room full of Muslims your own age",
-  "Company that keeps you on it",
+  "Friendly competition",
   "Lessons to watch back",
+  "Prophetic character development",
 ];
 
 /**
