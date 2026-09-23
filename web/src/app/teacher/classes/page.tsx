@@ -95,7 +95,7 @@ export default async function Classes() {
                 isMine && "bg-muted/40",
               );
 
-              // Your own class goes to Class, not to the read-only view of
+              // Your own class goes to My students, not to the read-only view of
               // it — that page is for looking into someone else's, and yours is
               // the one you can actually mark, register and sign off.
               const href = isMine ? "/teacher/roster" : `/teacher/classes/${c.id}`;

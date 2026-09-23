@@ -148,6 +148,10 @@ function PassagePicker({ row }: { row: ApplicationRow }) {
 const canSendLogin = (r: { status: Status; class_id: string | null }) =>
   r.status === "placed" && r.class_id !== null;
 
+/** Waiting on us: not yet decided, or placed and still owed their login. */
+const needsAction = (r: ApplicationRow) =>
+  r.status === "new" || (canSendLogin(r) && !r.login_sent_at);
+
 const chipCls =
   "shrink-0 rounded border border-line px-1.5 py-px text-[10px] uppercase tracking-wide";
 
@@ -428,10 +432,12 @@ export function ApplicationsBoard({
     const needle = q.trim().toLowerCase();
     return rows.filter((r) => {
       if (section !== "all" && r.section !== section) return false;
-      // "Still to hear" is the filter the screen opens on, because it is the
-      // only one that names an action. It is new + invited: everyone who has
-      // applied and not yet recited.
-      if (status === "todo" && r.status !== "new") return false;
+      // The filter the screen opens on, because it is the only one that names
+      // an action: everyone still waiting on us. That is the new applications
+      // AND the ones placed whose login has not gone out — placing someone
+      // used to drop them out of this view, which hid the Send login button
+      // behind a filter change at the exact moment it was needed.
+      if (status === "todo" && !needsAction(r)) return false;
       if (status !== "all" && status !== "todo" && r.status !== status) return false;
       if (!needle) return true;
       return `${r.first_name} ${r.surname} ${r.email}`.toLowerCase().includes(needle);
@@ -480,7 +486,7 @@ export function ApplicationsBoard({
           value={status}
           onChange={(e) => setStatus(e.target.value as Status | "all" | "todo")}
         >
-          <option value="todo">Still to decide</option>
+          <option value="todo">Needs you</option>
           <option value="all">Everyone</option>
           {STATUS_ORDER.map((s) => (
             <option key={s} value={s}>{STATUS_LABEL[s]}</option>

@@ -142,7 +142,7 @@ export default async function StudentRecord({
       <header className="masthead">
         <Link href="/teacher/roster" className="backstep">
           <ArrowLeft className="size-[13px]" aria-hidden />
-          Back to Class
+          Back to my students
         </Link>
         <h1><b>{student.full_name}</b></h1>
         <p>
