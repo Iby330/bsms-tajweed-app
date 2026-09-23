@@ -136,10 +136,14 @@ const QUESTIONS = [
  *
  * The files in /public/testimonials are 4:5 crops of the 9:16 originals,
  * which live in the git-ignored testimonials-incoming/ at the repo root (this
- * repo is public; raw footage never goes in it). Wala's is the exception: a
- * graphic with text top to bottom, so it is fitted into 4:5 on its own pink
- * (#EDD5D8) instead of cropped. Posters matter more than
- * usual: the video is NOT autoplayed, so the poster is what sells the click.
+ * repo is public; raw footage never goes in it). Wala's is a graphic rather
+ * than footage, and was fitted into 4:5 on its own pink until 2026-09-23,
+ * which left a flat bar down each side of the card while every other card
+ * bled to its edges. It is now cropped like the rest: scaled until the
+ * artwork spans the width, with the slack taken off the top margin and the
+ * wordmark at the foot, both of which the card already says itself. Posters
+ * matter more than usual: the video is NOT autoplayed, so the poster is what
+ * sells the click.
  *
  * `detail` is as of filming, September 2025 — a year count goes stale.
  */
