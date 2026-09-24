@@ -1916,8 +1916,6 @@ body::after {
     /* The empty-state line spans the card rather than sitting in column one. */
     table.ledger tbody td[colspan] { grid-column: 1 / -1; }
     table.ledger tbody tr:hover td { background: transparent; }
-    table.ledger tr.band { display: block; }
-    table.ledger tr.band th { display: block; position: static; }
     table.ledger tfoot tr {
       display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px 12px;
       padding: 14px 0; border-top: 1px solid var(--foreground);
@@ -2251,6 +2249,6 @@ html {
      never reaches it. */
   [data-slot="button"][data-size^="icon"],
   [data-slot="dialog-close"] { min-width: 2.75rem; min-height: 2.75rem; }
-  a.chip, button.chip { min-height: 2.25rem; padding-inline: 14px; display: inline-flex; align-items: center; }
+  a.chip { min-height: 2.25rem; padding-inline: 14px; display: inline-flex; align-items: center; }
   .tabs a, .tabs button { min-height: 3rem; }
 }

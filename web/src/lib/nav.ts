@@ -7,7 +7,7 @@ export type IconName =
   | "home" | "video" | "clipboard" | "book" | "user"
   | "library" | "landmark" | "bell" | "check" | "users"
   | "graduation" | "settings" | "calendar" | "calendar-range" | "wallet"
-  | "user-plus" | "more";
+  | "user-plus";
 
 export type NavItem = {
   href: string;

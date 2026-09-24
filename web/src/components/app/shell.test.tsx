@@ -45,7 +45,7 @@ describe("AppShell chrome measurements", () => {
     vi.stubGlobal(
       "ResizeObserver",
       class {
-        constructor(_cb: () => void) {}
+        constructor() {}
         observe(el: Element) {
           observed.push(el);
         }

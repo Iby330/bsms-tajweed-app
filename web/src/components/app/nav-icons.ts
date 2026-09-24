@@ -1,7 +1,7 @@
 import {
   Home, PlaySquare, ClipboardList, BookOpenCheck, User, Library,
   Landmark, Bell, CheckSquare, Users, GraduationCap, Settings2, CalendarDays,
-  CalendarRange, Wallet, UserPlus, Ellipsis, type LucideIcon,
+  CalendarRange, Wallet, UserPlus, type LucideIcon,
 } from "lucide-react";
 import type { IconName } from "@/lib/nav";
 
@@ -18,5 +18,5 @@ export const ICONS: Record<IconName, LucideIcon> = {
   user: User, library: Library, landmark: Landmark, bell: Bell,
   check: CheckSquare, users: Users, graduation: GraduationCap,
   settings: Settings2, calendar: CalendarDays, "calendar-range": CalendarRange,
-  wallet: Wallet, "user-plus": UserPlus, more: Ellipsis,
+  wallet: Wallet, "user-plus": UserPlus,
 };
