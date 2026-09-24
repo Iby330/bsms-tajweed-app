@@ -194,11 +194,12 @@ export const WHATSAPP_GROUPS: Record<"brothers" | "sisters", string | null> = {
  * by hand rather than let in by the link.
  *
  * `phone` is written as it would be dialled from the UK, "+44 7…". Null
- * until supplied: the name is still given, just without a number to tap.
+ * if a contact ever changes and the new number is not yet known: the name is
+ * still given, just without a number to tap. Both supplied 2026-09-24.
  */
 export const RETURNING_CONTACTS: Record<"brothers" | "sisters", { name: string; phone: string | null }> = {
-  brothers: { name: "Daniyal", phone: null },
-  sisters: { name: "Wala", phone: null },
+  brothers: { name: "Daniyal", phone: "+44 7481 991699" },
+  sisters: { name: "Wala", phone: "+44 7413 224349" },
 };
 
 /** A WhatsApp chat link for a stored number: wa.me wants digits only. */
