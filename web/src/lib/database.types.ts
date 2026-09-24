@@ -343,6 +343,7 @@ export type Database = {
       }
       deposit_entries: {
         Row: {
+          application_id: string | null
           created_at: string
           full_name: string
           id: string
@@ -356,6 +357,7 @@ export type Database = {
           term3_strikes: number
         }
         Insert: {
+          application_id?: string | null
           created_at?: string
           full_name: string
           id?: string
@@ -369,6 +371,7 @@ export type Database = {
           term3_strikes?: number
         }
         Update: {
+          application_id?: string | null
           created_at?: string
           full_name?: string
           id?: string

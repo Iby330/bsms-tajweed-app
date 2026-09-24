@@ -220,6 +220,10 @@ export async function setApplicationNotes(id: string, notes: string): Promise<Re
  * The money actually arriving, which is a different fact from the applicant
  * ticking that they sent it. Nothing verifies the tick — no payment provider
  * is involved — so this is the column to trust when reconciling.
+ *
+ * Ticking it also puts the fee on this season's deposit tracker, and unticking
+ * takes it off; a trigger does that (migration 0032), so only the page needs
+ * telling here.
  */
 export async function setFeeSettled(id: string, settled: boolean): Promise<Result> {
   await requireTeacher();
@@ -228,6 +232,7 @@ export async function setFeeSettled(id: string, settled: boolean): Promise<Resul
     .from("applications").update({ fee_settled: settled }).eq("id", id);
   if (error) return { ok: false, error: error.message };
   revalidatePath(TEACHER_PATH);
+  revalidatePath("/teacher/deposits");
   return { ok: true };
 }
 
