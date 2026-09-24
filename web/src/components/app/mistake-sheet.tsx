@@ -54,9 +54,9 @@ export function MistakeSheet({
   return (
     <Dialog open={word !== null} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="space-y-3">
-        {/* pl-10 answers the header's pr-10, so a centred title is centred
-            on the frame rather than 20px left of it. */}
-        <DialogHeader className="pl-10">
+        {/* The left padding answers the header's own right padding, so a centred
+            title is centred on the frame rather than sitting left of it. */}
+        <DialogHeader className="pl-14 sm:pl-10">
           {wholeAyah ? (
             <DialogTitle className="text-center text-base">
               Whole ayah

@@ -116,4 +116,16 @@ describe("HoverTip with a mouse", () => {
     fireEvent.mouseOut(span);
     expect(shown(tip)).toBe(false);
   });
+
+  it("does not latch on a click, so the next scroll still hides it", () => {
+    stubHoverNone(false);
+    const { tip, span } = setup();
+
+    fireEvent.mouseOver(span);
+    fireEvent.click(span);
+    expect(shown(tip)).toBe(true);
+
+    fireEvent.scroll(window);
+    expect(shown(tip)).toBe(false);
+  });
 });

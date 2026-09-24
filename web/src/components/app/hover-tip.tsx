@@ -98,6 +98,11 @@ export function HoverTip() {
       }
       // Links and buttons already answer a tap; a tooltip would fight them.
       if (t.closest("a, button, [href]")) return;
+      // Tap latching belongs to touch screens only. With a mouse the tip is
+      // the hover's to open and close, and a click that claimed it would keep
+      // it pinned through the next scroll. Keyboards come in by focusin, and a
+      // touchscreen on a hover-capable machine does too.
+      if (!touch()) return;
       // Only a tip the tap itself opened toggles shut: on a phone the focus
       // that precedes the click has usually opened it already.
       if (t === current.current && openedBy.current === "tap") hide();

@@ -1427,7 +1427,8 @@ body::after {
       -webkit-mask: url("/brand/logo-mask.png") left center / contain no-repeat;
       mask: url("/brand/logo-mask.png") left center / contain no-repeat;
     }
-    .shellview { padding-bottom: 96px; }
+    /* The tab bar is fixed, so the content clears its measured height plus room to breathe. */
+    .shellview { padding-bottom: calc(var(--chrome-bottom) + 40px); }
     .tabs {
       display: grid; grid-auto-flow: column; position: fixed; left: 0; right: 0; bottom: 0;
       z-index: 35; background: var(--sidebar); border-top: 1px solid var(--sidebar-border);
