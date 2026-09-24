@@ -5,7 +5,9 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseServer, currentProfile } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
 import { randomBytes } from "node:crypto";
-import { CLOSES_LABEL, PAYMENT_LINK, WHATSAPP_GROUPS, feeLabel, signupsOpen } from "./form";
+import {
+  CLOSES_LABEL, PAYMENT_LINK, RETURNING_CONTACTS, WHATSAPP_GROUPS, feeLabel, signupsOpen,
+} from "./form";
 import { MAX, clean, validateApplication, type ApplicationInput } from "./validate";
 import { sendEmail } from "@/lib/email/send";
 import { surahByNumber } from "@/lib/quran/surahs";
@@ -85,6 +87,7 @@ export async function submitApplication(input: ApplicationInput): Promise<Result
     feeLabel: feeLabel(),
     paidConfirmed: Boolean(r.paid_confirmed),
     whatsappLink: WHATSAPP_GROUPS[side],
+    returningContact: r.enrolled_before ? RETURNING_CONTACTS[side] : null,
     paymentLink: PAYMENT_LINK,
   };
   const sent = await sendEmail({

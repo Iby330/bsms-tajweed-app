@@ -1,6 +1,6 @@
 import { fmtDay } from "@/lib/format";
 import { TERMS } from "@/lib/attendance/calendar";
-import { VENUE } from "@/lib/applications/form";
+import { VENUE, whatsappChat } from "@/lib/applications/form";
 
 /**
  * The two emails an applicant gets: "your application is in", sent the moment
@@ -144,8 +144,18 @@ export type Confirmation = {
   /** Null only until supplied in form.ts; the section is left out meanwhile
    *  (the teacher screen warns while either side's link is missing). */
   whatsappLink: string | null;
+  /** Set for a returning student, who is added to the group by this person
+   *  rather than let in by the link; the link is then left out. */
+  returningContact: { name: string; phone: string | null } | null;
   paymentLink: string | null;
 };
+
+/** What a returning student is told in place of the join link. */
+function returningLine(c: Confirmation): string {
+  const r = c.returningContact!;
+  return `Welcome back. To be added to the ${sideLabel(c.section).toLowerCase()}' WhatsApp group, `
+    + `message ${r.name}${r.phone ? ` on ${r.phone}` : ""}.`;
+}
 
 export const confirmationSubject = () => "Your BSMS Tajweed application is in";
 
@@ -176,9 +186,11 @@ export function confirmationText(c: Confirmation): string {
     ``,
     `Jazakum Allahu khayran for applying to BSMS Tajweed. Your application is in.`,
     ``,
-    ...(c.whatsappLink
-      ? [`Here's the link to join the ${group}' WhatsApp group:`, c.whatsappLink, ``]
-      : []),
+    ...(c.returningContact
+      ? [returningLine(c), ...(c.returningContact.phone ? [whatsappChat(c.returningContact.phone)] : []), ``]
+      : c.whatsappLink
+        ? [`Here's the link to join the ${group}' WhatsApp group:`, c.whatsappLink, ``]
+        : []),
     `What happens next`,
     ...nextSteps().map(([t, b], i) => `${i + 1}. ${t}: ${b}`),
     ``,
@@ -194,7 +206,11 @@ export function confirmationHtml(c: Confirmation): string {
   const name = esc(c.firstName);
   const group = `${sideLabel(c.section).toLowerCase()}'`;
 
-  const whatsapp = c.whatsappLink
+  const r = c.returningContact;
+  const whatsapp = r
+    ? para(esc(returningLine(c)))
+      + (r.phone ? button(whatsappChat(r.phone), `Message ${esc(r.name)} on WhatsApp`, "sage") : "")
+    : c.whatsappLink
     ? para(`Here's the link to join the ${group} WhatsApp group:`)
       + button(c.whatsappLink, `Join the ${group} WhatsApp group`, "sage")
     : "";
@@ -214,7 +230,9 @@ export function confirmationHtml(c: Confirmation): string {
 
   return shell({
     title: confirmationSubject(),
-    preheader: c.whatsappLink
+    preheader: r
+      ? `Welcome back. Message ${esc(r.name)} to be added to the ${group} WhatsApp group.`
+      : c.whatsappLink
       ? `Here's the link to join the ${group} WhatsApp group.`
       : "Next: a short online session where you read for us.",
     body,

@@ -10,6 +10,7 @@ const base: Confirmation = {
   feeLabel: "£15",
   paidConfirmed: false,
   whatsappLink: "https://chat.whatsapp.com/BROTHERS",
+  returningContact: null,
   paymentLink: null,
 };
 
@@ -27,6 +28,7 @@ const all = [
   confirmationHtml({ ...base, whatsappLink: null }),
   confirmationHtml({ ...base, paymentLink: "https://pay.example/x" }),
   confirmationHtml({ ...base, paidConfirmed: true }),
+  confirmationHtml({ ...base, returningContact: { name: "Daniyal", phone: "+44 7700 900123" } }),
   loginHtml(login), loginText(login),
 ];
 
@@ -54,6 +56,22 @@ describe("applicant emails", () => {
     const html = confirmationHtml({ ...base, whatsappLink: null });
     expect(html).not.toContain("WhatsApp");
     expect(confirmationText({ ...base, whatsappLink: null })).not.toContain("WhatsApp");
+  });
+
+  it("sends a returning student to their contact instead of the join link", () => {
+    const back = { ...base, returningContact: { name: "Daniyal", phone: "+44 7700 900123" } };
+    const html = confirmationHtml(back);
+    expect(html).toContain("message Daniyal on +44 7700 900123");
+    expect(html).toContain('href="https://wa.me/447700900123"');
+    expect(html).not.toContain("chat.whatsapp.com/BROTHERS");
+    expect(confirmationText(back)).toContain("https://wa.me/447700900123");
+    expect(confirmationText(back)).not.toContain("chat.whatsapp.com/BROTHERS");
+  });
+
+  it("still names the contact, with no button, before their number is set", () => {
+    const html = confirmationHtml({ ...base, returningContact: { name: "Wala", phone: null } });
+    expect(html).toContain("message Wala.");
+    expect(html).not.toContain("wa.me");
   });
 
   it("asks for payment only when there is a link and they haven't said they paid", () => {

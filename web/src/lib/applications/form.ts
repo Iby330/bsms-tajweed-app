@@ -188,6 +188,22 @@ export const WHATSAPP_GROUPS: Record<"brothers" | "sisters", string | null> = {
   sisters: "https://chat.whatsapp.com/GJLHT7o0qVvHfURhfpo7j6",
 };
 
+/**
+ * Who a RETURNING student messages to be added to their side's group, in
+ * place of the join link new applicants get. Last year's students are added
+ * by hand rather than let in by the link.
+ *
+ * `phone` is written as it would be dialled from the UK, "+44 7…". Null
+ * until supplied: the name is still given, just without a number to tap.
+ */
+export const RETURNING_CONTACTS: Record<"brothers" | "sisters", { name: string; phone: string | null }> = {
+  brothers: { name: "Daniyal", phone: null },
+  sisters: { name: "Wala", phone: null },
+};
+
+/** A WhatsApp chat link for a stored number: wa.me wants digits only. */
+export const whatsappChat = (phone: string) => `https://wa.me/${phone.replace(/\D/g, "")}`;
+
 /* ── The terms ────────────────────────────────────────────────────────── */
 
 /** Where classes are held. Confirmed 2026-09-22. */
