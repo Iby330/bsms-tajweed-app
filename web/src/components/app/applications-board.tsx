@@ -420,11 +420,15 @@ function ApplicationCard({
   );
 }
 
+function owesFee(r: ApplicationRow) {
+  return !r.fee_settled && r.status !== "declined";
+}
+
 export function ApplicationsBoard({
   rows, classes,
 }: { rows: ApplicationRow[]; classes: ClassOption[] }) {
   const [section, setSection] = useState<Section | "all">("all");
-  const [status, setStatus] = useState<Status | "all" | "todo">("todo");
+  const [status, setStatus] = useState<Status | "all" | "todo" | "owing">("todo");
   const [q, setQ] = useState("");
   const [picked, setPicked] = useState<Set<string>>(new Set());
 
@@ -438,7 +442,12 @@ export function ApplicationsBoard({
       // used to drop them out of this view, which hid the Send login button
       // behind a filter change at the exact moment it was needed.
       if (status === "todo" && !needsAction(r)) return false;
-      if (status !== "all" && status !== "todo" && r.status !== status) return false;
+      // The same people as the "Fee not received" figure above: a declined
+      // applicant owes nothing, so chasing them would be wrong.
+      if (status === "owing" && !owesFee(r)) return false;
+      if (status !== "all" && status !== "todo" && status !== "owing" && r.status !== status) {
+        return false;
+      }
       if (!needle) return true;
       return `${r.first_name} ${r.surname} ${r.email}`.toLowerCase().includes(needle);
     });
@@ -451,7 +460,7 @@ export function ApplicationsBoard({
       toHear: inSection.filter((r) => r.status === "new").length,
       placed: inSection.filter((r) => r.status === "placed").length,
       loginToSend: inSection.filter((r) => canSendLogin(r) && !r.login_sent_at).length,
-      owing: inSection.filter((r) => !r.fee_settled && r.status !== "declined").length,
+      owing: inSection.filter(owesFee).length,
     };
   }, [rows, section]);
 
@@ -484,10 +493,11 @@ export function ApplicationsBoard({
           aria-label="Status"
           className={selectCls}
           value={status}
-          onChange={(e) => setStatus(e.target.value as Status | "all" | "todo")}
+          onChange={(e) => setStatus(e.target.value as Status | "all" | "todo" | "owing")}
         >
           <option value="todo">Needs you</option>
           <option value="all">Everyone</option>
+          <option value="owing">Fee not received</option>
           {STATUS_ORDER.map((s) => (
             <option key={s} value={s}>{STATUS_LABEL[s]}</option>
           ))}
