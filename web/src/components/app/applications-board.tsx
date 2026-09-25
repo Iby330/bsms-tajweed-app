@@ -238,14 +238,18 @@ function ApplicationCard({
             login sent
           </span>
         )}
-        {!settled && (
+        {settled ? (
+          <span className={cn(chipCls, "text-ok")} title="Fee received">
+            fee paid
+          </span>
+        ) : (
           <span
-            className={cn(chipCls, "text-muted-foreground")}
+            className={cn(chipCls, "text-danger")}
             title={row.paid_confirmed
               ? "They ticked that they paid; the money has not been marked as received"
               : "They did not confirm payment"}
           >
-            fee
+            fee not paid
           </span>
         )}
         <span className="shrink-0 rounded-full border border-line px-2.5 py-0.5 text-xs">
@@ -420,6 +424,8 @@ function ApplicationCard({
   );
 }
 
+type StatusFilter = Status | "all" | "todo" | "owing" | "paid";
+
 function owesFee(r: ApplicationRow) {
   return !r.fee_settled && r.status !== "declined";
 }
@@ -428,7 +434,7 @@ export function ApplicationsBoard({
   rows, classes,
 }: { rows: ApplicationRow[]; classes: ClassOption[] }) {
   const [section, setSection] = useState<Section | "all">("all");
-  const [status, setStatus] = useState<Status | "all" | "todo" | "owing">("todo");
+  const [status, setStatus] = useState<StatusFilter>("todo");
   const [q, setQ] = useState("");
   const [picked, setPicked] = useState<Set<string>>(new Set());
 
@@ -442,12 +448,11 @@ export function ApplicationsBoard({
       // used to drop them out of this view, which hid the Send login button
       // behind a filter change at the exact moment it was needed.
       if (status === "todo" && !needsAction(r)) return false;
-      // The same people as the "Fee not received" figure above: a declined
+      // The same people as the "Fee not paid" figure above: a declined
       // applicant owes nothing, so chasing them would be wrong.
       if (status === "owing" && !owesFee(r)) return false;
-      if (status !== "all" && status !== "todo" && status !== "owing" && r.status !== status) {
-        return false;
-      }
+      if (status === "paid" && !r.fee_settled) return false;
+      if (!["all", "todo", "owing", "paid"].includes(status) && r.status !== status) return false;
       if (!needle) return true;
       return `${r.first_name} ${r.surname} ${r.email}`.toLowerCase().includes(needle);
     });
@@ -473,7 +478,7 @@ export function ApplicationsBoard({
             <Figure label="Still to decide" value={counts.toHear} tone="brand" />
             <Figure label="Placed" value={counts.placed} />
             <Figure label="Login to send" value={counts.loginToSend} tone="brand" />
-            <Figure label="Fee not received" value={counts.owing} tone="danger" />
+            <Figure label="Fee not paid" value={counts.owing} tone="danger" />
           </div>
         </section>
       </div>
@@ -493,11 +498,12 @@ export function ApplicationsBoard({
           aria-label="Status"
           className={selectCls}
           value={status}
-          onChange={(e) => setStatus(e.target.value as Status | "all" | "todo" | "owing")}
+          onChange={(e) => setStatus(e.target.value as StatusFilter)}
         >
           <option value="todo">Needs you</option>
           <option value="all">Everyone</option>
-          <option value="owing">Fee not received</option>
+          <option value="paid">Fee paid</option>
+          <option value="owing">Fee not paid</option>
           {STATUS_ORDER.map((s) => (
             <option key={s} value={s}>{STATUS_LABEL[s]}</option>
           ))}
