@@ -1,6 +1,6 @@
 import {
-  ARABIC_READING, FEE_PENCE, HEARD_FROM, OTHER, TAJWEED_LEVELS, UNIVERSITIES, YEARS,
-  sectionForGender,
+  ANOTHER_UNIVERSITY, ARABIC_READING, FEE_PENCE, HEARD_FROM, NO_YEAR, OTHER, SITUATIONS,
+  TAJWEED_LEVELS, UNIVERSITIES, sectionForGender, yearOptions,
 } from "./form";
 import { DEFAULT_COUNTRY, countryByCode } from "./countries";
 import type { Database } from "@/lib/database.types";
@@ -34,6 +34,9 @@ export type ApplicationInput = {
   gender: string;
   university: string;
   universityOther: string;
+  /** What they do instead, asked only when `university` is "Other". */
+  situation: string;
+  situationOther: string;
   year: string;
   yearOther: string;
   enrolledBefore: string;
@@ -107,11 +110,12 @@ function text(value: string, label: string, max: number): string | Bad {
  */
 function choice(
   value: string, other: string, options: readonly string[], label: string,
+  typedFor: string = OTHER,
 ): string | Bad {
   const v = clean(value);
   if (!v) return { error: `${label} is required.` };
   if (!options.includes(v)) return { error: `${label} is not one of the options.` };
-  if (v !== OTHER) return v;
+  if (v !== typedFor) return v;
   const typed = clean(other);
   if (!typed) return { error: `Please say which, under ${label.toLowerCase()}.` };
   if (typed.length > MAX.short) return { error: `${label} is too long.` };
@@ -158,6 +162,40 @@ function composePhone(raw: string, countryCode: string): string | Bad {
 }
 
 /**
+ * The university column, and the year of study that goes with it.
+ *
+ * `university` holds a university, or — for "Other" — what they do instead:
+ * College, Gap year, Full-time employment or what they typed. The year is
+ * asked of university and college students only; everyone else is stored as
+ * NO_YEAR, whatever was posted, so a year left over from going Back and
+ * changing an answer cannot land on a gap-year row.
+ */
+function whereAndYear(input: ApplicationInput): { university: string; year: string } | Bad {
+  const picked = clean(input.university);
+
+  // A form loaded before "Other" meant "not at university" posts Other with
+  // a university typed and no situation. Read it as the old form meant it.
+  const legacy = picked === OTHER && !clean(input.situation) && clean(input.universityOther);
+  const uniValue = legacy ? ANOTHER_UNIVERSITY : picked;
+
+  let university: string | Bad;
+  if (uniValue === OTHER) {
+    university = choice(input.situation, input.situationOther, SITUATIONS, "What you do");
+  } else {
+    university = choice(
+      uniValue, input.universityOther, UNIVERSITIES, "University", ANOTHER_UNIVERSITY,
+    );
+  }
+  if (failed(university)) return university;
+
+  const years = yearOptions(uniValue, clean(input.situation));
+  if (!years) return { university, year: NO_YEAR };
+  const year = choice(input.year, input.yearOther, years, "Year");
+  if (failed(year)) return year;
+  return { university, year };
+}
+
+/**
  * @param requirePaymentTick whether a payment link is set, and so whether the
  *   applicant was given anything to confirm having paid. With no link there is
  *   nothing to have done, and requiring the tick would be asking people to
@@ -190,13 +228,9 @@ export function validateApplication(
   const section = sectionForGender(clean(input.gender));
   if (!section) return { ok: false, error: "Please choose an option for gender." };
 
-  const university = choice(
-    input.university, input.universityOther, UNIVERSITIES, "University",
-  );
-  if (failed(university)) return { ok: false, error: university.error };
-
-  const year = choice(input.year, input.yearOther, YEARS, "Year");
-  if (failed(year)) return { ok: false, error: year.error };
+  const where = whereAndYear(input);
+  if (failed(where)) return { ok: false, error: where.error };
+  const { university, year } = where;
 
   const enrolled = clean(input.enrolledBefore);
   if (enrolled !== "yes" && enrolled !== "no") {

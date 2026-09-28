@@ -46,9 +46,35 @@ export function sectionForGender(gender: string): Section | null {
  */
 export const OTHER = "Other";
 
-export const UNIVERSITIES = ["BSMS", "Brighton", "Sussex", OTHER] as const;
+/**
+ * "Another university" carries the typed-in box here, not "Other": "Other"
+ * means not at university at all, and goes on to ask what they are doing
+ * instead (SITUATIONS).
+ */
+export const ANOTHER_UNIVERSITY = "Another university";
+
+export const UNIVERSITIES = ["BSMS", "Brighton", "Sussex", ANOTHER_UNIVERSITY, OTHER] as const;
 
 export const YEARS = ["1", "2", "3", "4", "5", "Alumni", OTHER] as const;
+
+/** Asked only of those who answered "Other" to the university question. */
+export const COLLEGE = "College";
+export const SITUATIONS = [COLLEGE, "Gap year", "Full-time employment", OTHER] as const;
+
+/** A college course is two years; only college students are asked the year. */
+export const COLLEGE_YEARS = ["1", "2"] as const;
+
+/** Stored as the year for anyone who was not asked it. */
+export const NO_YEAR = "n/a";
+
+/**
+ * Which years to offer, or null when the question is skipped: someone on a
+ * gap year or in work has no year of study to give.
+ */
+export function yearOptions(university: string, situation: string): readonly string[] | null {
+  if (university !== OTHER) return YEARS;
+  return situation === COLLEGE ? COLLEGE_YEARS : null;
+}
 
 /* ── Where they are with the Qur'an ───────────────────────────────────── */
 

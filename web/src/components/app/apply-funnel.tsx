@@ -19,9 +19,10 @@ import { TERMS } from "@/lib/attendance/calendar";
 import { submitApplication } from "@/lib/applications/actions";
 import type { ApplicationInput } from "@/lib/applications/validate";
 import {
-  ARABIC_READING, CLOSES_LABEL, GENDERS, HEARD_FROM, MOTIVATION_QUESTION, OPENING_VERSE,
-  OTHER, PAYMENT_LINK, PROGRAMME_YEAR, RETURNING_CONTACTS, TAJWEED_LEVELS, UNIVERSITIES,
-  WHATSAPP_GROUPS, YEARS, feeLabel, sectionForGender, termsFor, whatsappChat,
+  ANOTHER_UNIVERSITY, ARABIC_READING, CLOSES_LABEL, GENDERS, HEARD_FROM,
+  MOTIVATION_QUESTION, OPENING_VERSE, OTHER, PAYMENT_LINK, PROGRAMME_YEAR, RETURNING_CONTACTS,
+  SITUATIONS, TAJWEED_LEVELS, UNIVERSITIES, WHATSAPP_GROUPS, feeLabel, sectionForGender,
+  termsFor, whatsappChat, yearOptions,
 } from "@/lib/applications/form";
 
 /**
@@ -49,18 +50,20 @@ import {
 /* ── The steps ────────────────────────────────────────────────────────── */
 
 type StepId =
-  | "gender" | "name" | "email" | "phone" | "university" | "year" | "before"
+  | "gender" | "name" | "email" | "phone" | "university" | "situation" | "year" | "before"
   | "memorised" | "arabic" | "tajweed" | "heard" | "why" | "terms";
 
 type Step = {
   id: StepId;
   /** The question, as asked. */
-  title: string;
+  title: string | ((f: ApplicationInput) => string);
   hint?: string;
   /** null once the step holds an answer good enough to move on from. */
   validate: (f: ApplicationInput) => string | null;
   /** Choice steps move on by themselves; typed ones wait for Next. */
   autoAdvance?: boolean;
+  /** Asked only when this holds for the answers so far; always, if absent. */
+  when?: (f: ApplicationInput) => boolean;
 };
 
 const need = (v: string, msg: string) => (v.trim() ? null : msg);
@@ -73,9 +76,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** A choice question whose "Other" option needs its box filled in too. */
 const choiceWithOther = (
-  value: string, other: string, msg: string,
+  value: string, other: string, msg: string, typedFor: string = OTHER,
 ): string | null =>
-  !value.trim() ? msg : value === OTHER && !other.trim() ? "Please fill in the box." : null;
+  !value.trim() ? msg : value === typedFor && !other.trim() ? "Please fill in the box." : null;
 
 const STEPS: Step[] = [
   {
@@ -120,13 +123,31 @@ const STEPS: Step[] = [
     id: "university",
     title: "Which university are you at?",
     autoAdvance: true,
-    validate: (f) => choiceWithOther(f.university, f.universityOther, "Please choose one."),
+    validate: (f) =>
+      choiceWithOther(f.university, f.universityOther, "Please choose one.", ANOTHER_UNIVERSITY),
+  },
+  {
+    id: "situation",
+    title: "What are you doing at the moment?",
+    autoAdvance: true,
+    when: (f) => f.university === OTHER,
+    validate: (f) => choiceWithOther(f.situation, f.situationOther, "Please choose one."),
   },
   {
     id: "year",
-    title: "Which year are you in?",
+    title: (f) =>
+      f.university === OTHER ? "Which year of college are you in?" : "Which year are you in?",
     autoAdvance: true,
-    validate: (f) => choiceWithOther(f.year, f.yearOther, "Please choose one."),
+    // Skipped for a gap year, work, or anything else that has no year.
+    when: (f) => yearOptions(f.university, f.situation) !== null,
+    // Checked against the list on show, not just for being filled: going Back
+    // from college to BSMS, or the other way, can leave a year behind that
+    // the new list does not have.
+    validate: (f) => {
+      const years = yearOptions(f.university, f.situation) ?? [];
+      if (!years.includes(f.year)) return "Please choose one.";
+      return choiceWithOther(f.year, f.yearOther, "Please choose one.");
+    },
   },
   {
     id: "before",
@@ -175,11 +196,22 @@ const STEPS: Step[] = [
 
 const EMPTY: ApplicationInput = {
   firstName: "", surname: "", email: "", phone: "", phoneCountry: DEFAULT_COUNTRY, gender: "",
-  university: "", universityOther: "", year: "", yearOther: "",
+  university: "", universityOther: "", situation: "", situationOther: "", year: "", yearOther: "",
   enrolledBefore: "", memorised: "", arabicReading: "", tajweedLevel: "",
   heardFrom: "", heardFromOther: "", motivation: "",
   paidConfirmed: false, website: "",
 };
+
+/** The indexes into STEPS that these answers are asked, in order. */
+const asked = (f: ApplicationInput) =>
+  STEPS.flatMap((s, n) => (!s.when || s.when(f) ? [n] : []));
+
+/** The next question after `at`, or -1 when `at` was the last. */
+const nextStep = (f: ApplicationInput, at: number) => asked(f).find((n) => n > at) ?? -1;
+
+/** The question before `at`, or the opening screen. */
+const prevStep = (f: ApplicationInput, at: number) =>
+  asked(f).filter((n) => n < at).pop() ?? INTRO;
 
 /* ── Pieces ───────────────────────────────────────────────────────────── */
 
@@ -192,6 +224,7 @@ const EMPTY: ApplicationInput = {
  */
 function Choices({
   options, value, onChange, other, onOtherChange, otherLabel = "Please say which",
+  otherValue = OTHER,
 }: {
   options: readonly string[];
   value: string;
@@ -199,6 +232,8 @@ function Choices({
   other?: string;
   onOtherChange?: (v: string) => void;
   otherLabel?: string;
+  /** The option that opens the box. */
+  otherValue?: string;
 }) {
   const otherId = useId();
   return (
@@ -218,7 +253,7 @@ function Choices({
           </label>
         ))}
       </RadioGroup>
-      {value === OTHER && onOtherChange && (
+      {value === otherValue && onOtherChange && (
         <div className="space-y-1.5 pt-1">
           <Label htmlFor={otherId} className="text-xs text-muted-foreground">
             {otherLabel}
@@ -336,7 +371,8 @@ export function ApplyFunnel() {
 
     setSeen((s) => new Set(s).add(current.id));
 
-    if (at < STEPS.length - 1) { clearTimer(); setBack(false); setError(null); setI(at + 1); return; }
+    const next = nextStep(f, at);
+    if (next !== -1) { clearTimer(); setBack(false); setError(null); setI(next); return; }
 
     setBusy(true);
     const result = await submitApplication(f);
@@ -497,7 +533,7 @@ export function ApplyFunnel() {
           Start my application
         </Button>
         <p className="mt-3 text-xs text-muted-foreground">
-          {STEPS.length} questions · {feeLabel()} one time fee for the full year ·{" "}
+          {asked(EMPTY).length} questions · {feeLabel()} one time fee for the full year ·{" "}
           {/* The deadline, in the brand's highlighter. Same device and same
               phrase the landing page marks, so the one date that matters
               looks the same wherever somebody meets it. */}
@@ -509,7 +545,12 @@ export function ApplyFunnel() {
   }
 
   /* ── A question ── */
-  const progress = ((i + 1) / STEPS.length) * 100;
+  // Counted over the questions these answers are asked, so the total moves
+  // when an answer adds or skips one — "Other" adds a question, a gap year
+  // takes the year away.
+  const shown = asked(form);
+  const place = shown.indexOf(i) + 1;
+  const progress = (place / shown.length) * 100;
 
   return (
     <>
@@ -522,14 +563,14 @@ export function ApplyFunnel() {
         <div className="mb-2 flex items-baseline justify-between">
           <button
             type="button"
-            onClick={() => goTo(i - 1, true)}
+            onClick={() => goTo(prevStep(form, i), true)}
             className="-ml-1 flex items-center gap-1 rounded p-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-3.5" aria-hidden />
             Back
           </button>
           <span className="font-mono text-xs tabular-nums text-muted-foreground">
-            {i + 1} of {STEPS.length}
+            {place} of {shown.length}
           </span>
         </div>
         <div className="h-1 overflow-hidden rounded-full bg-foreground/10" aria-hidden>
@@ -554,7 +595,7 @@ export function ApplyFunnel() {
           tabIndex={-1}
           className="font-heading text-2xl leading-tight outline-none sm:text-3xl"
         >
-          {step!.title}
+          {typeof step!.title === "function" ? step!.title(form) : step!.title}
         </h2>
         {step!.hint && (
           <p className="mt-3 max-w-[52ch] text-sm text-muted-foreground">{step!.hint}</p>
@@ -617,16 +658,27 @@ export function ApplyFunnel() {
           {step!.id === "university" && (
             <Choices
               options={UNIVERSITIES} value={form.university}
-              onChange={(v) => choose({ university: v }, v !== OTHER)}
+              onChange={(v) => choose({ university: v }, v !== ANOTHER_UNIVERSITY)}
               other={form.universityOther}
               onOtherChange={(v) => set("universityOther", v)}
               otherLabel="Which university?"
+              otherValue={ANOTHER_UNIVERSITY}
+            />
+          )}
+
+          {step!.id === "situation" && (
+            <Choices
+              options={SITUATIONS} value={form.situation}
+              onChange={(v) => choose({ situation: v }, v !== OTHER)}
+              other={form.situationOther}
+              onOtherChange={(v) => set("situationOther", v)}
+              otherLabel="What are you doing?"
             />
           )}
 
           {step!.id === "year" && (
             <Choices
-              options={YEARS} value={form.year}
+              options={yearOptions(form.university, form.situation) ?? []} value={form.year}
               onChange={(v) => choose({ year: v }, v !== OTHER)}
               other={form.yearOther}
               onOtherChange={(v) => set("yearOther", v)}

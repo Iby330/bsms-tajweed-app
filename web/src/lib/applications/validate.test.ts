@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { validateApplication, type ApplicationInput } from "./validate";
 import {
-  CLOSES_LABEL, FEE_PENCE, PAYMENT_LINK, HEARD_FROM, OPENING_VERSE, OTHER, SIGNUPS_CLOSE,
-  TAJWEED_LEVELS, UNIVERSITIES, YEARS, signupsOpen, termsFor,
+  ANOTHER_UNIVERSITY, CLOSES_LABEL, COLLEGE, FEE_PENCE, NO_YEAR, PAYMENT_LINK, HEARD_FROM,
+  OPENING_VERSE, OTHER, SIGNUPS_CLOSE, SITUATIONS, TAJWEED_LEVELS, UNIVERSITIES, YEARS,
+  signupsOpen, termsFor,
 } from "./form";
 import { SISTERS_HIFDH_DAY_PROVISIONAL } from "@/lib/attendance/calendar";
 import { COUNTRIES, DEFAULT_COUNTRY, countryByCode, flagFor } from "./countries";
@@ -26,6 +27,8 @@ const GOOD: ApplicationInput = {
   gender: "male",
   university: "Sussex",
   universityOther: "",
+  situation: "",
+  situationOther: "",
   year: "2",
   yearOther: "",
   enrolledBefore: "no",
@@ -102,22 +105,72 @@ describe("answers that were never offered", () => {
 });
 
 describe('the "Other" boxes', () => {
-  it("stores what was typed, not the word Other", () => {
+  it("stores the university that was typed, not the words Another university", () => {
+    const row = ok(validateApplication(
+      { ...GOOD, university: ANOTHER_UNIVERSITY, universityOther: "Chichester" }, true,
+    ));
+    expect(row?.university).toBe("Chichester");
+    expect(row?.year_of_study).toBe("2");
+  });
+
+  it("refuses Another university with nothing typed", () => {
+    const r = validateApplication(
+      { ...GOOD, university: ANOTHER_UNIVERSITY, universityOther: " " }, true,
+    );
+    expect(r.ok).toBe(false);
+  });
+
+  it("still takes Other with a university typed, from a form loaded before the change", () => {
     const row = ok(validateApplication(
       { ...GOOD, university: OTHER, universityOther: "Chichester" }, true,
     ));
     expect(row?.university).toBe("Chichester");
   });
 
-  it("refuses Other with nothing typed", () => {
-    const r = validateApplication({ ...GOOD, university: OTHER, universityOther: " " }, true);
+  it("holds for every list that offers one", () => {
+    for (const list of [UNIVERSITIES, YEARS, HEARD_FROM, SITUATIONS]) {
+      expect(list[list.length - 1]).toBe(OTHER);
+    }
+  });
+});
+
+describe("not at university", () => {
+  const notAtUni = { ...GOOD, university: OTHER, year: "" };
+
+  it("stores college with its year, 1 or 2", () => {
+    const row = ok(validateApplication({ ...notAtUni, situation: COLLEGE, year: "2" }, true));
+    expect(row?.university).toBe(COLLEGE);
+    expect(row?.year_of_study).toBe("2");
+  });
+
+  it("refuses a college year past 2", () => {
+    const r = validateApplication({ ...notAtUni, situation: COLLEGE, year: "3" }, true);
     expect(r.ok).toBe(false);
   });
 
-  it("holds for every list that offers one", () => {
-    for (const list of [UNIVERSITIES, YEARS, HEARD_FROM]) {
-      expect(list[list.length - 1]).toBe(OTHER);
-    }
+  it("refuses college with no year", () => {
+    expect(validateApplication({ ...notAtUni, situation: COLLEGE }, true).ok).toBe(false);
+  });
+
+  it("asks no year of a gap year, and ignores one posted anyway", () => {
+    const row = ok(validateApplication(
+      { ...notAtUni, situation: "Gap year", year: "Alumni" }, true,
+    ));
+    expect(row?.university).toBe("Gap year");
+    expect(row?.year_of_study).toBe(NO_YEAR);
+  });
+
+  it("stores what was typed under Other", () => {
+    const row = ok(validateApplication(
+      { ...notAtUni, situation: OTHER, situationOther: "Apprenticeship" }, true,
+    ));
+    expect(row?.university).toBe("Apprenticeship");
+    expect(row?.year_of_study).toBe(NO_YEAR);
+  });
+
+  it("refuses Other with nothing said about what they do", () => {
+    expect(validateApplication({ ...notAtUni }, true).ok).toBe(false);
+    expect(validateApplication({ ...notAtUni, situation: "Astronaut" }, true).ok).toBe(false);
   });
 });
 

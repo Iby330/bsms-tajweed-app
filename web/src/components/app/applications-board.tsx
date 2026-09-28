@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { NO_YEAR } from "@/lib/applications/form";
 import { fmtDay } from "@/lib/format";
 import { SURAHS, surahByNumber } from "@/lib/quran/surahs";
 import {
@@ -222,7 +223,9 @@ function ApplicationCard({
           <span className="block truncate font-medium">{name}</span>
           <span className="block truncate text-xs text-muted-foreground">
             {row.section === "brothers" ? "Brothers" : "Sisters"} · {row.university}
-            {" · "}Year {row.year_of_study}{" · applied "}{fmtDay(row.created_at.slice(0, 10))}
+            {/* No year for a gap year or work: it was never asked (NO_YEAR). */}
+            {row.year_of_study !== NO_YEAR && <>{" · "}Year {row.year_of_study}</>}
+            {" · applied "}{fmtDay(row.created_at.slice(0, 10))}
           </span>
         </span>
         {!row.confirmation_sent_at && (
