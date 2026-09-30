@@ -29,6 +29,7 @@ const all = [
   confirmationHtml({ ...base, paymentLink: "https://pay.example/x" }),
   confirmationHtml({ ...base, paidConfirmed: true }),
   confirmationHtml({ ...base, returningContact: { name: "Daniyal", phone: "+44 7700 900123" } }),
+  confirmationHtml({ ...base, waitlist: true }), confirmationText({ ...base, waitlist: true }),
   loginHtml(login), loginText(login),
 ];
 
@@ -93,5 +94,21 @@ describe("applicant emails", () => {
 
   it("never states a password", () => {
     expect(loginText(login)).not.toMatch(/password:\s*\S{6,}/i);
+  });
+});
+
+describe("the waiting-list confirmation", () => {
+  const w = { ...base, waitlist: true, paymentLink: "https://pay.example/x" };
+
+  it("says they are on the waiting list, with no group to join and nothing to pay", () => {
+    for (const out of [confirmationHtml(w), confirmationText(w)]) {
+      expect(out).toContain("waiting list");
+      expect(out).not.toContain("chat.whatsapp.com");
+      expect(out).not.toContain("pay.example");
+    }
+  });
+
+  it("says the place goes to someone else if the fee is not paid when offered", () => {
+    expect(confirmationText(w)).toContain("someone else on the waiting list");
   });
 });

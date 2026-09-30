@@ -148,6 +148,9 @@ export type Confirmation = {
    *  rather than let in by the link; the link is then left out. */
   returningContact: { name: string; phone: string | null } | null;
   paymentLink: string | null;
+  /** Applied after sign-ups closed. Gets the waiting-list email instead:
+   *  no group link, nothing to pay yet. */
+  waitlist?: boolean;
 };
 
 /** What a returning student is told in place of the join link. */
@@ -157,7 +160,52 @@ function returningLine(c: Confirmation): string {
     + `message ${r.name}${r.phone ? ` on ${r.phone}` : ""}.`;
 }
 
-export const confirmationSubject = () => "Your BSMS Tajweed application is in";
+export const confirmationSubject = (waitlist = false) =>
+  waitlist ? "You're on the BSMS Tajweed waiting list" : "Your BSMS Tajweed application is in";
+
+/* The waiting-list version. Nothing to join and nothing to pay yet, so it
+   says only what happens if a place opens, and what agreeing to it meant. */
+const waitlistSteps = (fee: string): [string, string][] => [
+  ["If a place opens up",
+    "We'll contact you by email or WhatsApp to offer it to you."],
+  ["You pay the fee",
+    `${fee}, once, for the whole year. If you can't pay it when we offer you the place, it goes to someone else on the waiting list.`],
+  ["You read for us",
+    "A short online session where you recite a passage, so we can put you in a group at the right level."],
+];
+
+function waitlistText(c: Confirmation): string {
+  return [
+    `Assalamu alaikum ${c.firstName},`,
+    ``,
+    `Jazakum Allahu khayran for applying to BSMS Tajweed. Sign-ups for this year have closed, so you're on the waiting list.`,
+    ``,
+    `There's nothing to pay and nothing else to do for now.`,
+    ``,
+    `What happens next`,
+    ...waitlistSteps(c.feeLabel).map(([t, b], i) => `${i + 1}. ${t}: ${b}`),
+    ``,
+    `If anything in your application needs changing, just reply to this email.`,
+    ``,
+    `BSMS Tajweed`,
+  ].join("\n");
+}
+
+function waitlistHtml(c: Confirmation): string {
+  const body = [
+    row(para(`Assalamu alaikum ${esc(c.firstName)},`, 17)),
+    row(para("Jaz&#257;kum All&#257;hu khayran for applying. Sign-ups for this year have closed, so you're on the waiting list. There's nothing to pay and nothing else to do for now.")),
+    row(panel("Your application", "Waiting list", `${sideLabel(c.section)} &middot; ${esc(c.feeLabel)} for the year, if you're offered a place`)),
+    row(heading("What happens next") + steps(waitlistSteps(esc(c.feeLabel)))),
+    row(para("If anything in your application needs changing, just reply to this email.", 14)),
+  ].join("\n");
+  return shell({
+    title: confirmationSubject(true),
+    preheader: "You're on the waiting list. We'll be in touch if a place opens up.",
+    body,
+    footer: "BSMS Tajweed &middot; sent because you joined the waiting list at bsmstajweed.com/apply.<br>Didn't apply? Reply and tell us.",
+  });
+}
 
 /** What the fee paragraph says, which depends on where payment is up to. */
 function feeLine(c: Confirmation): string {
@@ -180,6 +228,7 @@ const nextSteps = (): [string, string][] => [
 ];
 
 export function confirmationText(c: Confirmation): string {
+  if (c.waitlist) return waitlistText(c);
   const group = sideLabel(c.section).toLowerCase();
   return [
     `Assalamu alaikum ${c.firstName},`,
@@ -203,6 +252,7 @@ export function confirmationText(c: Confirmation): string {
 }
 
 export function confirmationHtml(c: Confirmation): string {
+  if (c.waitlist) return waitlistHtml(c);
   const name = esc(c.firstName);
   const group = `${sideLabel(c.section).toLowerCase()}'`;
 

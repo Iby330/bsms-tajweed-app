@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ApplyFunnel } from "@/components/app/apply-funnel";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { BRAND_LOGO } from "@/lib/theme/brand";
 import { CLOSES_LABEL, feeLabel, signupsOpen } from "@/lib/applications/form";
 
@@ -56,12 +58,19 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
-export default function Apply() {
+export default async function Apply({
+  searchParams,
+}: { searchParams: Promise<{ waitlist?: string }> }) {
   const open = signupsOpen();
+  // Past the deadline, the same form is the waiting list — but only once
+  // they have read that it is one and chosen it, via the button below.
+  const waitlist = !open && (await searchParams).waitlist !== undefined;
 
   return (
     <div className="shellview">
-      {open ? (
+      {waitlist ? (
+        <ApplyFunnel waitlist />
+      ) : open ? (
         /* The funnel brings its own header: it is full-size on the opening
            screen and collapses to one line from the first question on, which
            a header rendered out here could not do. */
@@ -96,6 +105,24 @@ export default function Apply() {
                 or ask in the ISOC group chat and you&apos;ll hear when the form
                 goes back up.
               </p>
+            </div>
+
+            {/* The way in after the deadline. Named for what it is, so nobody
+                mistakes it for a late application with a place attached. */}
+            <div className="mt-6 rounded-xl border border-line p-6">
+              <h2 className="text-sm font-medium">Missed the deadline?</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                If you&apos;ve missed the deadline, you can still join the waiting
+                list. Anyone who applies now will go onto the waiting list rather
+                than straight into the programme, and if a place opens up, we&apos;ll
+                get in touch to offer it to you.
+              </p>
+              <Link
+                href="/apply?waitlist"
+                className={cn(buttonVariants({ size: "lg" }), "mt-5 w-full sm:w-auto sm:px-10")}
+              >
+                Join the waiting list
+              </Link>
             </div>
           </div>
         </>

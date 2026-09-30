@@ -277,7 +277,7 @@ function Choices({
  * question at a time is that the question fills the screen; on a phone the
  * full masthead was pushing every question a third of the way down it.
  */
-function FunnelHeader({ big }: { big: boolean }) {
+function FunnelHeader({ big, waitlist = false }: { big: boolean; waitlist?: boolean }) {
   if (big) {
     return (
       <header className="masthead pb-8">
@@ -288,7 +288,7 @@ function FunnelHeader({ big }: { big: boolean }) {
           />
         </Link>
         <h1>
-          <span>Apply to</span>
+          <span>{waitlist ? "Join the waiting list for" : "Apply to"}</span>
           <br />
           <b>BSMS Tajweed.</b>
         </h1>
@@ -311,7 +311,12 @@ function FunnelHeader({ big }: { big: boolean }) {
 /** -1 is the opening screen; 0…n-1 are the questions. */
 const INTRO = -1;
 
-export function ApplyFunnel() {
+/**
+ * @param waitlist sign-ups have closed and this is the waiting list: same
+ *   questions, but nothing is paid now. The last step asks them to agree to
+ *   pay if they are offered a place, and the end screen has no group to join.
+ */
+export function ApplyFunnel({ waitlist = false }: { waitlist?: boolean } = {}) {
   const [form, setForm] = useState<ApplicationInput>(EMPTY);
   const [i, setI] = useState(INTRO);
   const [seen, setSeen] = useState<ReadonlySet<StepId>>(new Set());
@@ -375,12 +380,12 @@ export function ApplyFunnel() {
     if (next !== -1) { clearTimer(); setBack(false); setError(null); setI(next); return; }
 
     setBusy(true);
-    const result = await submitApplication(f);
+    const result = await submitApplication(f, waitlist);
     setBusy(false);
     if (!result.ok) { setError(result.error); return; }
     setDone(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
+  }, [waitlist]);
 
   /**
    * Answer a choice question.
@@ -402,6 +407,34 @@ export function ApplyFunnel() {
   };
 
   /* ── Done ── */
+  if (done && waitlist) {
+    return (
+      <>
+      <FunnelHeader big={false} />
+      <div className="mx-auto max-w-xl py-10 text-center" role="status">
+        <span
+          className="mx-auto mb-6 flex size-12 items-center justify-center rounded-full bg-ok/15 text-ok"
+          aria-hidden
+        >
+          <CheckIcon className="size-6" />
+        </span>
+        <h2 className="font-heading text-3xl">You&apos;re on the waiting list.</h2>
+        <div className="mt-5 space-y-4 text-left text-sm text-muted-foreground">
+          <p>
+            Jazākum Allāhu khayran. We&apos;ve emailed a confirmation to{" "}
+            <b className="text-foreground">{form.email}</b>. If it isn&apos;t in your
+            inbox in a few minutes, check spam or the Promotions tab.
+          </p>
+          <p>
+            If a place opens up this year, we&apos;ll contact you to offer it. There&apos;s
+            nothing to pay and nothing else to do until then.
+          </p>
+        </div>
+      </div>
+      </>
+    );
+  }
+
   if (done) {
     // Offered here as well as in the email, so joining never waits on the
     // email arriving (or on it being found in a Promotions tab).
@@ -482,7 +515,7 @@ export function ApplyFunnel() {
   if (i === INTRO) {
     return (
       <>
-      <FunnelHeader big />
+      <FunnelHeader big waitlist={waitlist} />
       <div className="mx-auto max-w-2xl">
         <div className="classverse">
           <p className="ar" dir="rtl" lang="ar">{OPENING_VERSE.ar}</p>
@@ -492,6 +525,13 @@ export function ApplyFunnel() {
           </p>
         </div>
 
+        {waitlist ? (
+          <p className="mt-6 text-muted-foreground">
+            Sign-ups for this year closed on {CLOSES_LABEL}. You can still apply, but
+            you&apos;ll go on the waiting list rather than straight into a group. If a
+            place opens up, we&apos;ll get in touch.
+          </p>
+        ) : (
         <p className="mt-6 text-muted-foreground">
           Alḥamdulillāh, for our {PROGRAMME_YEAR}{" "}year we are opening the course
           again: weekly tajweed classes, hifdh with a teacher who knows what
@@ -499,11 +539,19 @@ export function ApplyFunnel() {
           memorisation in one place. Open to students at BSMS, Brighton and
           Sussex, and to alumni.
         </p>
+        )}
 
         <div className="mt-8 rounded-xl border border-line p-5">
           <h2 className="label">How this works</h2>
           <ol className="mt-4 space-y-4">
-            {[
+            {(waitlist ? [
+              ["You answer a few questions",
+                "Under two minutes, and the same questions as everyone else."],
+              ["If a place opens up, we contact you",
+                "By email or WhatsApp. There's nothing to pay until then."],
+              ["You pay the fee and read for us",
+                `${feeLabel()} for the year, then a short online session where you recite a passage so we can place you in a group at the right level.`],
+            ] : [
               ["You answer a few questions",
                 `Under two minutes. Applications close ${CLOSES_LABEL}.`],
               ["We invite you to read for us",
@@ -512,7 +560,7 @@ export function ApplyFunnel() {
                 "Groups are set by what we hear, so everyone is with people working at the same level. There is a group for complete beginners, including if you don't yet know the alphabet."],
               ["You get your login",
                 `Once groups are set we email you an account for the app, and classes begin on ${fmtDay(TERMS[0].startsOn)}.`],
-            ].map(([title, body], n) => (
+            ]).map(([title, body], n) => (
               <li key={title} className="flex gap-4">
                 <span
                   className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border border-line font-mono text-xs tabular-nums text-muted-foreground"
@@ -530,14 +578,20 @@ export function ApplyFunnel() {
         </div>
 
         <Button size="lg" className="mt-8 w-full sm:w-auto sm:px-12" onClick={() => goTo(0)}>
-          Start my application
+          {waitlist ? "Join the waiting list" : "Start my application"}
         </Button>
         <p className="mt-3 text-xs text-muted-foreground">
+          {waitlist ? (
+            <>{asked(EMPTY).length} questions · {feeLabel()} only if you&apos;re offered a place</>
+          ) : (
+            <>
           {asked(EMPTY).length} questions · {feeLabel()} one time fee for the full year ·{" "}
           {/* The deadline, in the brand's highlighter. Same device and same
               phrase the landing page marks, so the one date that matters
               looks the same wherever somebody meets it. */}
           <mark>closes {CLOSES_LABEL}</mark>
+            </>
+          )}
         </p>
       </div>
       </>
@@ -745,7 +799,15 @@ export function ApplyFunnel() {
                 ))}
               </dl>
 
-              {PAYMENT_LINK ? (
+              {waitlist ? (
+                /* Nothing is paid onto a waiting list. What they agree to is
+                   paying when a place is offered, and what happens if not. */
+                <p className="text-sm text-muted-foreground">
+                  There&apos;s nothing to pay now. If a place opens up and we offer it
+                  to you, the {feeLabel()} fee is due then. If you can&apos;t pay it at
+                  that point, the place goes to someone else on the waiting list.
+                </p>
+              ) : PAYMENT_LINK ? (
                 <div className="space-y-3">
                   <a
                     href={PAYMENT_LINK} target="_blank" rel="noopener noreferrer"
@@ -779,8 +841,12 @@ export function ApplyFunnel() {
                   className="mt-0.5"
                 />
                 <span className="min-w-0">
-                  I understand and agree to these terms
-                  {PAYMENT_LINK ? `, and I have paid the ${feeLabel()} fee.` : "."}
+                  {waitlist
+                    ? `I understand and agree to these terms, and I'll pay the ${feeLabel()} fee if I'm offered a place.`
+                    : <>
+                        I understand and agree to these terms
+                        {PAYMENT_LINK ? `, and I have paid the ${feeLabel()} fee.` : "."}
+                      </>}
                 </span>
               </label>
             </div>
@@ -807,7 +873,7 @@ export function ApplyFunnel() {
             {busy
               ? "Sending…"
               : i === STEPS.length - 1
-                ? "Send my application"
+                ? waitlist ? "Join the waiting list" : "Send my application"
                 : "Next"}
           </Button>
           {i < STEPS.length - 1 && (
@@ -817,8 +883,12 @@ export function ApplyFunnel() {
 
         {i === STEPS.length - 1 && (
           <p className="mt-4 text-xs text-muted-foreground">
-            Sending this does not create an account. We&apos;ll invite you to an
-            online session to read for us first.
+            {waitlist
+              ? "This puts you on the waiting list. It doesn't create an account or offer you a place yet."
+              : <>
+                  Sending this does not create an account. We&apos;ll invite you to an
+                  online session to read for us first.
+                </>}
           </p>
         )}
       </form>

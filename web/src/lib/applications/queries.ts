@@ -23,6 +23,8 @@ export type ApplicationRow = {
   fee_pence: number;
   paid_confirmed: boolean;
   fee_settled: boolean;
+  /** Applied after sign-ups closed; see migration 0038. */
+  waitlist: boolean;
   status: Status;
   assessed_level: string | null;
   class_id: string | null;
@@ -60,7 +62,7 @@ export async function applications(): Promise<ApplicationRow[]> {
     // access, far from the cause. (LEARNINGS.md, 2026-08-12.)
     .select(`id, created_at, first_name, surname, email, phone, section, university,
       year_of_study, enrolled_before, memorised, arabic_reading, tajweed_level,
-      heard_from, motivation, fee_pence, paid_confirmed, fee_settled, status,
+      heard_from, motivation, fee_pence, paid_confirmed, fee_settled, waitlist, status,
       assessed_level, class_id, notes, reviewed_at, confirmation_sent_at, profile_id,
       login_sent_at, read_surah, read_ayah_from, read_ayah_to`)
     .order("created_at", { ascending: false });

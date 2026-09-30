@@ -149,9 +149,16 @@ function PassagePicker({ row }: { row: ApplicationRow }) {
 const canSendLogin = (r: { status: Status; class_id: string | null }) =>
   r.status === "placed" && r.class_id !== null;
 
-/** Waiting on us: not yet decided, or placed and still owed their login. */
+/** On the waiting list and not yet offered anything: nothing to chase yet. */
+const waiting = (r: ApplicationRow) => r.waitlist && r.status === "new";
+
+/**
+ * Waiting on us: not yet decided, or placed and still owed their login. The
+ * waiting list has its own filter and stays out of this one until a teacher
+ * moves them on, or it would bury this year's intake under next in line.
+ */
 const needsAction = (r: ApplicationRow) =>
-  r.status === "new" || (canSendLogin(r) && !r.login_sent_at);
+  (r.status === "new" && !waiting(r)) || (canSendLogin(r) && !r.login_sent_at);
 
 const chipCls =
   "shrink-0 rounded border border-line px-1.5 py-px text-[10px] uppercase tracking-wide";
@@ -241,9 +248,26 @@ function ApplicationCard({
             login sent
           </span>
         )}
+        {row.waitlist && (
+          <span
+            className={cn(chipCls, "border-brand/40 text-brand")}
+            title="Applied after sign-ups closed. Agreed to pay the fee if offered a place."
+          >
+            waiting list
+          </span>
+        )}
         {settled ? (
           <span className={cn(chipCls, "text-ok")} title="Fee received">
             fee paid
+          </span>
+        ) : waiting(row) ? (
+          /* Not red: nobody on the waiting list is asked to pay until they
+             are offered a place. */
+          <span
+            className={cn(chipCls, "text-muted-foreground")}
+            title="Pays only if offered a place"
+          >
+            fee not due
           </span>
         ) : (
           <span
@@ -427,10 +451,11 @@ function ApplicationCard({
   );
 }
 
-type StatusFilter = Status | "all" | "todo" | "owing" | "paid";
+type StatusFilter = Status | "all" | "todo" | "owing" | "paid" | "waitlist";
 
+/** Declined owe nothing, and neither does the waiting list until offered a place. */
 function owesFee(r: ApplicationRow) {
-  return !r.fee_settled && r.status !== "declined";
+  return !r.fee_settled && r.status !== "declined" && !waiting(r);
 }
 
 export function ApplicationsBoard({
@@ -455,7 +480,12 @@ export function ApplicationsBoard({
       // applicant owes nothing, so chasing them would be wrong.
       if (status === "owing" && !owesFee(r)) return false;
       if (status === "paid" && !r.fee_settled) return false;
-      if (!["all", "todo", "owing", "paid"].includes(status) && r.status !== status) return false;
+      // Everyone who came in through it, whatever has happened to them since,
+      // so a teacher can see who was admitted off the list as well as who waits.
+      if (status === "waitlist" && !r.waitlist) return false;
+      if (!["all", "todo", "owing", "paid", "waitlist"].includes(status) && r.status !== status) {
+        return false;
+      }
       if (!needle) return true;
       return `${r.first_name} ${r.surname} ${r.email}`.toLowerCase().includes(needle);
     });
@@ -469,6 +499,7 @@ export function ApplicationsBoard({
       placed: inSection.filter((r) => r.status === "placed").length,
       loginToSend: inSection.filter((r) => canSendLogin(r) && !r.login_sent_at).length,
       owing: inSection.filter(owesFee).length,
+      waiting: inSection.filter(waiting).length,
     };
   }, [rows, section]);
 
@@ -482,6 +513,9 @@ export function ApplicationsBoard({
             <Figure label="Placed" value={counts.placed} />
             <Figure label="Login to send" value={counts.loginToSend} tone="brand" />
             <Figure label="Fee not paid" value={counts.owing} tone="danger" />
+            {counts.waiting > 0 && (
+              <Figure label="Waiting list" value={counts.waiting} tone="brand" />
+            )}
           </div>
         </section>
       </div>
@@ -507,6 +541,7 @@ export function ApplicationsBoard({
           <option value="all">Everyone</option>
           <option value="paid">Fee paid</option>
           <option value="owing">Fee not paid</option>
+          <option value="waitlist">Waiting list</option>
           {STATUS_ORDER.map((s) => (
             <option key={s} value={s}>{STATUS_LABEL[s]}</option>
           ))}

@@ -94,6 +94,7 @@ export type Database = {
           tajweed_level: string
           university: string
           year_of_study: string
+          waitlist: boolean
         }
         Insert: {
           arabic_reading: string
@@ -126,6 +127,7 @@ export type Database = {
           tajweed_level: string
           university: string
           year_of_study: string
+          waitlist?: boolean
         }
         Update: {
           arabic_reading?: string
@@ -158,6 +160,7 @@ export type Database = {
           tajweed_level?: string
           university?: string
           year_of_study?: string
+          waitlist?: boolean
         }
         Relationships: [
           {

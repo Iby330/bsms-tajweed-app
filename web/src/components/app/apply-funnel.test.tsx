@@ -76,3 +76,12 @@ describe("the university question", () => {
     expect(screen.getByText("7 of 14")).toBeTruthy();
   });
 });
+
+describe("the waiting list", () => {
+  it("opens as the waiting list, and asks for agreement to pay later, not payment", () => {
+    render(<ApplyFunnel waitlist />);
+    expect(screen.getByText("Join the waiting list for")).toBeTruthy();
+    expect(screen.queryByText(/Applications close/)).toBeNull();
+    expect(screen.getByRole("button", { name: "Join the waiting list" })).toBeTruthy();
+  });
+});

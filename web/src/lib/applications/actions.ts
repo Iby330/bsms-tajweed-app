@@ -35,28 +35,41 @@ const TEACHER_PATH = "/teacher/applications";
  * the applicant's own answers, so no caller — however hand-rolled — can set
  * `status`, `class_id`, `notes` or `fee_settled`. See validate.ts.
  */
-export async function submitApplication(input: ApplicationInput): Promise<Result> {
+export async function submitApplication(
+  input: ApplicationInput, asWaitlist = false,
+): Promise<Result> {
   // The deadline is enforced HERE, not on the page. /apply can be sitting
   // open in a tab from before it passed, or held in a CDN cache, and the
   // clock it would consult is the applicant's own to set — so the only check
   // that means anything is this one, on the server, at the moment of writing.
-  if (!signupsOpen()) {
+  //
+  // After it, the only way in is the waiting list, and only when the form
+  // said so: someone who filled in the ordinary form in a tab left open over
+  // the deadline agreed to a place and a payment, not to a waiting list, so
+  // they are told to refresh rather than quietly filed as one.
+  const waitlist = !signupsOpen();
+  if (waitlist && !asWaitlist) {
     return {
       ok: false,
-      error: `Applications closed on ${CLOSES_LABEL}. Please refresh the page.`,
+      error: `Applications closed on ${CLOSES_LABEL}. Please refresh the page to join the waiting list.`,
     };
   }
 
-  // The tick is only asked for when there is a link to have paid through.
-  const checked = validateApplication(input, Boolean(PAYMENT_LINK));
+  // The tick is required either way. On the ordinary form it says they have
+  // paid (when there is a link to pay through); on the waiting list it says
+  // they will pay if offered a place.
+  const checked = validateApplication(input, waitlist || Boolean(PAYMENT_LINK));
   if (!checked.ok) return { ok: false, error: checked.error };
 
   // The honeypot tripped. Answer exactly as on success and write nothing.
   if (checked.row === null) return { ok: true };
 
+  // Nobody on the waiting list has paid, whatever the tick was for.
+  const row = waitlist ? { ...checked.row, waitlist: true, paid_confirmed: false } : checked.row;
+
   const db = supabaseAdmin();
   const { data: saved, error } = await db
-    .from("applications").insert(checked.row).select("id").single();
+    .from("applications").insert(row).select("id").single();
 
   if (error) {
     // 23505 is the unique index on lower(email). Said plainly rather than
@@ -79,9 +92,10 @@ export async function submitApplication(input: ApplicationInput): Promise<Result
   // saved, and telling them otherwise would have them submit again and hit
   // the duplicate-email error. A null confirmation_sent_at is what flags it
   // on the teacher's board instead.
-  const r = checked.row;
+  const r = row;
   const side = r.section as "brothers" | "sisters";
   const c: Confirmation = {
+    waitlist,
     firstName: r.first_name,
     section: side,
     feeLabel: feeLabel(),
@@ -92,7 +106,7 @@ export async function submitApplication(input: ApplicationInput): Promise<Result
   };
   const sent = await sendEmail({
     to: r.email,
-    subject: confirmationSubject(),
+    subject: confirmationSubject(waitlist),
     html: confirmationHtml(c),
     text: confirmationText(c),
   });
