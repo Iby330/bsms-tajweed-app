@@ -6,6 +6,8 @@ import { teacherRoster } from "@/lib/teacher/scope";
 import { requireTeacher } from "@/lib/teacher/guards";
 import { CATEGORY_IDS, SESSION_FLAGS, type Category } from "./mistake-taxonomy";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 async function requireUser() {
   const profile = await currentProfile();
   if (!profile) throw new Error("Sign in first.");
@@ -50,6 +52,9 @@ export async function unassignPair(pairId: string): Promise<void> {
 /** Open (or resume) a draft session reviewing `reciterId`. RLS re-checks the
  *  active pair on insert; the pre-check exists for a readable error. */
 export async function startSession(reciterId: string): Promise<string> {
+  // Interpolated into the `.or()` filter below, where a comma or parenthesis
+  // would add clauses of the caller's choosing. A uuid can carry neither.
+  if (!UUID_RE.test(reciterId)) throw new Error("Unknown student.");
   const me = await requireUser();
   const db = await supabaseServer();
 

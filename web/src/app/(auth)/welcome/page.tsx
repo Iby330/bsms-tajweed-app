@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { SetupForm } from "@/components/app/setup-form";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -29,8 +30,15 @@ export default async function Welcome() {
   // on different things. A student's name came in on their application, so it
   // is offered back rather than asked for twice.
   const { data: profile } = data.user
-    ? await db.from("profiles").select("role, full_name").eq("id", data.user.id).maybeSingle()
+    ? await db.from("profiles").select("role, full_name, setup_complete").eq("id", data.user.id).maybeSingle()
     : { data: null };
+
+  // Once set up, there is nothing to do here, and the form would set a new
+  // password without the current one. completeSetup refuses that too; this
+  // just doesn't offer it.
+  if (profile?.setup_complete) {
+    redirect(profile.role === "teacher" ? "/teacher/home" : "/home");
+  }
   const student = profile?.role === "student";
   const [first = "", ...rest] = student ? (profile?.full_name ?? "").split(/\s+/) : [];
 

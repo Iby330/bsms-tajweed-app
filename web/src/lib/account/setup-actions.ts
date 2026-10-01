@@ -5,6 +5,9 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { checkPassword, humanisePasswordError, type PasswordResult } from "./password";
 
+/** Per name, not combined — long enough for any real name, short enough for a register column. */
+const NAME_MAX = 40;
+
 /**
  * Finish setting up an invited account: name, password, and optionally a photo.
  *
@@ -23,6 +26,10 @@ export async function completeSetup(
   const last = lastName.trim().replace(/\s+/g, " ");
   if (!first) return { ok: false, message: "Enter your first name." };
   if (!last) return { ok: false, message: "Enter your last name." };
+  // The name is written with the service role below, so nothing downstream
+  // caps it; every register and roster would otherwise show whatever was sent.
+  if (first.length > NAME_MAX) return { ok: false, message: "That first name is too long." };
+  if (last.length > NAME_MAX) return { ok: false, message: "That last name is too long." };
 
   const complaint = checkPassword(password, confirmPassword);
   if (complaint) return { ok: false, message: complaint };
@@ -33,6 +40,24 @@ export async function completeSetup(
   const user = userData.user;
   if (!user) {
     return { ok: false, message: "This invitation has expired. Ask for a new one." };
+  }
+
+  // Once only. This sets a password without asking for the current one, which
+  // is right for an invitation and wrong for anyone else: without this check
+  // any signed-in user could open /welcome and take over a session left
+  // unlocked, the same hole the recovery cookie closes on /reset-password.
+  const admin = supabaseAdmin();
+  const { data: profile, error: readError } = await admin
+    .from("profiles").select("setup_complete").eq("id", user.id).maybeSingle();
+  if (readError) return { ok: false, message: "Something went wrong. Try again." };
+  if (!profile) {
+    return { ok: false, message: "This account isn't ready yet. Ask your teacher to check it." };
+  }
+  if (profile.setup_complete) {
+    return {
+      ok: false,
+      message: "This account is already set up. Change your password from your account page.",
+    };
   }
 
   // The password and the display name go up together. `data` writes
@@ -54,7 +79,7 @@ export async function completeSetup(
   // setup_complete false and the setup gate sending them back here forever.
   // The id is the one the Auth server just returned for this session, never
   // anything the form supplied, and only these two columns are written.
-  const { error } = await supabaseAdmin()
+  const { error } = await admin
     .from("profiles")
     .update({ full_name: fullName, setup_complete: true })
     .eq("id", user.id);

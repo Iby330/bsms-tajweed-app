@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { RECOVERY_COOKIE, RECOVERY_MAX_AGE } from "@/lib/account/recovery";
+import { safeNext } from "@/lib/safe-next";
 
 /**
  * Where the link in a Supabase auth email lands.
@@ -22,12 +23,9 @@ export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const tokenHash = params.get("token_hash");
   const type = params.get("type") as EmailOtpType | null;
-  const next = params.get("next");
-
   // Only ever an in-app path — `next` arrives from an email, which is to say
   // from anywhere, and following it blindly would make this an open redirect.
-  const safeNext =
-    next && next.startsWith("/") && !next.startsWith("//") ? next : "/home";
+  const next = safeNext(params.get("next"));
 
   const fail = () =>
     NextResponse.redirect(new URL("/forgot-password?error=link", request.url));
@@ -54,7 +52,7 @@ export async function GET(request: NextRequest) {
   const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
   if (error) return fail();
 
-  const response = NextResponse.redirect(new URL(safeNext, request.url));
+  const response = NextResponse.redirect(new URL(next, request.url));
   for (const { name, value, options } of pending) {
     response.cookies.set(name, value, options);
   }

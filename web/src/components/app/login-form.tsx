@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { PASSWORD_RESET_READY } from "@/lib/flags";
+import { safeNext } from "@/lib/safe-next";
+import { NO_PROFILE_ERROR } from "@/lib/no-profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +30,12 @@ export function LoginForm({ next }: { next?: string }) {
       setEmail(saved);
       setReturning(true);
     }
+    // Set by /auth/no-profile, which signed this person out because their
+    // account has no profile behind it. Without a word here they would sign
+    // straight back in and land on this screen again, none the wiser.
+    if (new URLSearchParams(window.location.search).get("error") === NO_PROFILE_ERROR) {
+      setError("Your account isn't set up yet. Ask your teacher to check it.");
+    }
   }, []);
 
   async function onSubmit(e: React.FormEvent) {
@@ -47,8 +55,7 @@ export function LoginForm({ next }: { next?: string }) {
 
     // Only ever follow an in-app path, so a crafted ?next=https://… can't turn
     // the login screen into an open redirect.
-    const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "/home";
-    router.replace(safeNext);
+    router.replace(safeNext(next));
     router.refresh();
   }
 

@@ -27,7 +27,8 @@ export async function supabaseServer() {
 }
 
 /**
- * Current user's profile row, or null if signed out / no profile.
+ * Current user's profile row, or null if signed out / no profile. Throws when
+ * the read itself fails.
  *
  * Wrapped in `cache()` because a single render asks for this repeatedly — the
  * role layout, the page, and helpers like teacher scope each call it — and
@@ -52,10 +53,15 @@ export const currentProfile = cache(async () => {
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims.sub;
   if (!userId) return null;
-  const { data } = await supabase
+  // `maybeSingle`, and a thrown error: a missing row and a failed read used to
+  // both come back null, so a dropped connection was handled as "no profile"
+  // and redirected. Now only a genuinely absent row is null, and a failure
+  // reaches the nearest error boundary, where Try again can recover it.
+  const { data, error } = await supabase
     .from("profiles")
     .select("id, full_name, role, section, class_id, is_active, avatar_url, setup_complete, unlock_all, classes!profiles_class_id_fkey(name)")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
+  if (error) throw new Error(`Couldn't load your profile: ${error.message}`);
   return data;
 });

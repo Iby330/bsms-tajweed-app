@@ -4,6 +4,7 @@ import {
   studentNav, studentMobileNav, teacherNav, teacherMobileNav,
 } from "@/lib/nav";
 import { currentProfile } from "@/lib/supabase/server";
+import { NO_PROFILE_PATH } from "@/lib/no-profile";
 import { requireSetup } from "@/lib/account/require-setup";
 import { signedAvatarUrl } from "@/lib/account/avatar";
 
@@ -21,7 +22,8 @@ export default async function AccountLayout({
   children: React.ReactNode;
 }) {
   const profile = await currentProfile();
-  if (!profile) redirect("/login");
+  // Not /login: the proxy bounces a signed-in visitor off it, back here.
+  if (!profile) redirect(NO_PROFILE_PATH);
   requireSetup(profile);
 
   const teacher = profile.role === "teacher";

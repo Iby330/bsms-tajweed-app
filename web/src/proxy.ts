@@ -45,6 +45,10 @@ const PUBLIC_PATHS = [
   "/reset-password",
   "/welcome",
   "/auth/confirm",
+  /* Signs out a session with no profile behind it (see lib/no-profile.ts).
+     Public so a signed-out visit goes straight to /login rather than being
+     sent there with ?next= pointing back at it. */
+  "/auth/no-profile",
   /* The landing page as a design surface. It renders the same component as
      "/" and adds the ?shot lens for screenshots; it reads no data and says
      nothing a signed-out visitor would not read on the real page. It carries
@@ -134,7 +138,10 @@ export async function proxy(request: NextRequest) {
   // button. It is wrong now that `/` is the landing page — the thing you send
   // people to, and the thing you want to look at yourself. Signing in is a
   // link in the nav instead of an automatic detour.
-  if (claims && pathname === "/login") {
+  //
+  // Not when /login carries an ?error= — it is saying why the visitor is here
+  // (see lib/no-profile.ts), and bouncing it to /home is how that case looped.
+  if (claims && pathname === "/login" && !request.nextUrl.searchParams.has("error")) {
     const home = request.nextUrl.clone();
     home.pathname = "/home";
     home.search = "";
@@ -159,7 +166,14 @@ export const config = {
      * `testimonials/` is the same trap for video: the landing page's .mp4s
      * were answered with a redirect to /login for every signed-out visitor,
      * so the posters showed and the play button did nothing.
+     *
+     * `robots.txt` is for crawlers, who are always signed out — redirected to
+     * /login they would read a page of HTML as the rules.
+     *
+     * `api/revalidate` is called by the seed scripts with a bearer secret and
+     * no session, and checks that secret itself. Through the proxy it was
+     * redirected to /login and could never be reached.
      */
-    "/((?!_next/static|_next/image|favicon.ico|brand/|fonts/|testimonials/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf|webmanifest)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots\\.txt$|api/revalidate$|brand/|fonts/|testimonials/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf|webmanifest)$).*)",
   ],
 };

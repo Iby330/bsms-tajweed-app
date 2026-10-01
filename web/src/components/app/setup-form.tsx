@@ -113,13 +113,13 @@ export function SetupForm({
         <div className="space-y-1.5">
           <Label htmlFor="first">First name</Label>
           <Input id="first" name="given-name" autoComplete="given-name" required
-                 autoFocus value={first} disabled={pending}
+                 maxLength={40} autoFocus value={first} disabled={pending}
                  onChange={(e) => setFirst(e.target.value)} />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="last">Last name</Label>
           <Input id="last" name="family-name" autoComplete="family-name" required
-                 value={last} disabled={pending}
+                 maxLength={40} value={last} disabled={pending}
                  onChange={(e) => setLast(e.target.value)} />
         </div>
       </div>
