@@ -166,6 +166,13 @@ const endsSakinOrTanween = (t: string) => {
   return TANWEEN.test(s.slice(-3)) || new RegExp(`ن${SUKUN}?$`).test(s.replace(/[ۭۢ]/g, ""));
 };
 
+// Detectors test a single word's text_uthmani; idgham/iqlab also look at the
+// next word's first letter, but izhar, ikhfa, qalqalah, madd, ghunnah and
+// tafkhim do not — a rule that spans a word boundary (e.g. izhar where the
+// throat letter opens the FOLLOWING word, which is the common case) will not
+// be found. Pick a surah/ayah where the rule occurs within one word, or add
+// cross-word lookahead here first. A MarkSpec that finds no matching word
+// throws (see place() below) rather than silently placing nothing.
 const RULES: Record<string, (w: Word, next: Word | undefined) => boolean> = {
   qalqalah: (w) => new RegExp(`[قطبجد]${SUKUN}`).test(w.text_uthmani),
   ikhfa: (w) => /ن[تثجدذزسشصضطظفقك]/.test(w.text_uthmani),
