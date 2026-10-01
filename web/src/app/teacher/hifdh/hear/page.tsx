@@ -8,7 +8,7 @@ import { doneLine } from "@/lib/hifz/hearings";
 import { startHearing } from "@/lib/hifz/hearing-actions";
 import { spreadHeat } from "@/lib/hifz/heat-spread";
 import { rosterWithNext } from "@/lib/hifz/roster";
-import { HearingDesk, type DeskStudent } from "@/components/app/hearing-desk";
+import { HearingDesk, NoTargetDesk, type DeskStudent } from "@/components/app/hearing-desk";
 import { TeacherHifdhTabs } from "@/components/app/teacher-hifdh-tabs";
 import type { SessionProps } from "@/components/app/review-logger";
 import type { SurahNames } from "@/components/app/mushaf-reader";
@@ -39,11 +39,36 @@ export default async function HearingDeskPage({
     id: s.id, name: s.name, nextSurah: s.next?.number ?? null, nextName: s.next?.name_en ?? null,
   }));
 
-  const chosen = roster.find((s) => s.id === studentParam) ?? roster.find((s) => s.next !== null);
+  // A named student must be on this teacher's roster; with none named, the
+  // first who has something to hear.
+  const chosen = studentParam
+    ? roster.find((s) => s.id === studentParam)
+    : roster.find((s) => s.next !== null);
   if (!chosen) notFound();
   const studentId = chosen.id;
   const run = chosen.run;
-  if (!run.length) notFound();
+
+  const masthead = (
+    <>
+      <header className="masthead">
+        <h1><span>Hifdh register</span></h1>
+        <p>Hear a student: pick them, tap as they recite, finish once.</p>
+      </header>
+      <div className="mb-6">
+        <TeacherHifdhTabs active="hear" />
+      </div>
+    </>
+  );
+
+  // On the roster but no target yet: nothing to hear, so say so rather than 404.
+  if (!run.length) {
+    return (
+      <>
+        {masthead}
+        <NoTargetDesk roster={deskRoster} studentId={studentId} />
+      </>
+    );
+  }
 
   const [draft, allHearings, hearingMistakes, { data: records }, startPages] = await Promise.all([
     openDraftFor(profile.id, studentId),
@@ -88,13 +113,7 @@ export default async function HearingDeskPage({
 
   return (
     <>
-      <header className="masthead">
-        <h1><span>Hifdh register</span></h1>
-        <p>Hear a student: pick them, tap as they recite, finish once.</p>
-      </header>
-      <div className="mb-6">
-        <TeacherHifdhTabs active="hear" />
-      </div>
+      {masthead}
       <HearingDesk
         roster={deskRoster}
         studentId={studentId}

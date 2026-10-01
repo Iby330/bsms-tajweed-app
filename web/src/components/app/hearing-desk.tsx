@@ -43,26 +43,7 @@ export function HearingDesk({
 
   return (
     <div className="space-y-3">
-      <div className="glass flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5">
-        <FilterSelect
-          label="Student"
-          value={studentId}
-          onChange={(v) => router.push(`/teacher/hifdh/hear?student=${v}`)}
-          options={roster.map((s) => ({
-            value: s.id,
-            label: `${s.name}${s.nextName ? ` · ${s.nextName}` : " · no target set"}`,
-            disabled: s.nextSurah === null,
-          }))}
-        />
-        <FilterSelect
-          label="Starting at"
-          value={String(from)}
-          onChange={(v) => router.push(`/teacher/hifdh/hear?student=${studentId}&from=${v}`)}
-          options={run.map((s) => ({ value: String(s.number), label: s.name_en }))}
-          disabled={draftStarted}
-          title={draftStarted ? "The start is fixed while a hearing is open" : undefined}
-        />
-      </div>
+      <DeskPickers roster={roster} studentId={studentId} from={from} run={run} draftStarted={draftStarted} />
 
       {draftStarted && (
         <p className="text-xs text-muted-foreground">
@@ -103,6 +84,60 @@ export function HearingDesk({
           onFinished: (id) => router.push(`/teacher/hifdh/hear?student=${studentId}&done=${id}`),
         }}
       />
+    </div>
+  );
+}
+
+/**
+ * Who is reciting and where they start. The start picker shows only when
+ * there is a run to start on.
+ */
+function DeskPickers({
+  roster, studentId, from, run, draftStarted,
+}: {
+  roster: DeskStudent[];
+  studentId: string;
+  from: number | null;
+  run: { number: number; name_en: string }[];
+  draftStarted: boolean;
+}) {
+  const router = useRouter();
+  return (
+    <div className="glass flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5">
+      <FilterSelect
+        label="Student"
+        value={studentId}
+        onChange={(v) => router.push(`/teacher/hifdh/hear?student=${v}`)}
+        options={roster.map((s) => ({
+          value: s.id,
+          label: `${s.name}${s.nextName ? ` · ${s.nextName}` : " · no target set"}`,
+          disabled: s.nextSurah === null,
+        }))}
+      />
+      {from !== null && run.length > 0 && (
+        <FilterSelect
+          label="Starting at"
+          value={String(from)}
+          onChange={(v) => router.push(`/teacher/hifdh/hear?student=${studentId}&from=${v}`)}
+          options={run.map((s) => ({ value: String(s.number), label: s.name_en }))}
+          disabled={draftStarted}
+          title={draftStarted ? "The start is fixed while a hearing is open" : undefined}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * The desk for a student with no target: nothing to hear yet, so the
+ * pickers and a plain line in place of the logger. Reached by a typed or
+ * bookmarked `?student=`; the picker itself greys such students out.
+ */
+export function NoTargetDesk({ roster, studentId }: { roster: DeskStudent[]; studentId: string }) {
+  return (
+    <div className="space-y-3">
+      <DeskPickers roster={roster} studentId={studentId} from={null} run={[]} draftStarted={false} />
+      <p className="text-sm text-muted-foreground">No target set for this student yet.</p>
     </div>
   );
 }

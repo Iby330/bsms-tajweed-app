@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useEffect } from "react";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-import { HearingDesk } from "./hearing-desk";
+import { HearingDesk, NoTargetDesk } from "./hearing-desk";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, refresh: vi.fn() }) }));
@@ -92,5 +92,17 @@ describe("HearingDesk", () => {
       <HearingDesk roster={roster} studentId="s2" from={88} draftStarted={false} run={[]} done={null} {...loggerProps} />,
     );
     expect(mountCount.value).toBe(2);
+  });
+});
+
+describe("NoTargetDesk", () => {
+  it("keeps the student picker and says why there is nothing to hear", () => {
+    render(<NoTargetDesk roster={roster} studentId="s3" />);
+    expect((screen.getByLabelText("Student") as HTMLSelectElement).value).toBe("s3");
+    expect(screen.queryByLabelText("Starting at")).toBeNull();
+    expect(screen.getByText("No target set for this student yet.")).toBeTruthy();
+    expect(mountCount.value).toBe(0);
+    fireEvent.change(screen.getByLabelText("Student"), { target: { value: "s1" } });
+    expect(push).toHaveBeenCalledWith("/teacher/hifdh/hear?student=s1");
   });
 });
