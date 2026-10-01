@@ -971,6 +971,7 @@ export type Database = {
           id: string
           is_bonus: boolean
           is_task: boolean
+          media: Json | null
           needs_key: boolean
           options: Json | null
           points: number
@@ -985,6 +986,7 @@ export type Database = {
           id?: string
           is_bonus?: boolean
           is_task?: boolean
+          media?: Json | null
           needs_key?: boolean
           options?: Json | null
           points?: number
@@ -999,6 +1001,7 @@ export type Database = {
           id?: string
           is_bonus?: boolean
           is_task?: boolean
+          media?: Json | null
           needs_key?: boolean
           options?: Json | null
           points?: number

@@ -39,6 +39,10 @@ export type StudentQuestion = {
   is_bonus: boolean;
   is_task: boolean;
   options: StudentOption[] | null;
+  /** questions.media as stored: read it through parseMedia (lib/homework/
+   *  media), never directly. Optional because the RPC only carries it from
+   *  migration 0039 on, and the app can reach production before that does. */
+  media?: unknown;
 };
 
 export type StudentHomework = {
