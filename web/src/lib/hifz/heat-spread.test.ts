@@ -18,7 +18,7 @@ describe("spreadHeat", () => {
     expect(heat["114:1:1"]).toBe("bg-warn/20");
     expect(heat["114:1:2"]).toBeUndefined();
     expect(history["114:1:1"]).toEqual([
-      { label: "Hifdh — Forgot it", note: null, date: "2026-09-10T00:00:00Z" },
+      { label: "Hifdh: Forgot it", note: null, date: "2026-09-10T00:00:00Z" },
     ]);
     expect(history["114:1:2"]).toBeUndefined();
   });
@@ -27,7 +27,7 @@ describe("spreadHeat", () => {
     const { heat, history } = spreadHeat([w(1), w(2, true)], [m({ word_position: null })], now);
     expect(heat["114:1:1"]).toBe("bg-warn/20");
     expect(heat["114:1:2"]).toBe("bg-warn/20");
-    expect(history["114:1:2"][0].label).toBe("Hifdh — Forgot it · whole ayah");
+    expect(history["114:1:2"][0].label).toBe("Hifdh: Forgot it · whole ayah");
   });
 
   it("adds a word's own mistake to its ayah's, so both together read hotter", () => {
@@ -62,8 +62,8 @@ describe("spreadHeat", () => {
       "2026-08-01T00:00:00Z",
     ]);
     expect(history["114:1:1"].map((e) => e.label)).toEqual([
-      "Hifdh — Swapped / wrong · whole ayah",
-      "Hifdh — Forgot it",
+      "Hifdh: Swapped / wrong · whole ayah",
+      "Hifdh: Forgot it",
     ]);
   });
 });

@@ -121,7 +121,7 @@ describe("ReviewLogger in hearing mode", () => {
         mode="hearing" sessionId="draft-9" ensureSession={ensure()}
         reciterName="Aisha" pages={pages} initialMistakes={[]} hearing={hearing}
         heat={{ "114:1:1": "bg-warn/20" }}
-        history={{ "114:1:1": [{ label: "Hifdh — Forgot it", note: null, date: "2026-09-10T00:00:00Z" }] }}
+        history={{ "114:1:1": [{ label: "Hifdh: Forgot it", note: null, date: "2026-09-10T00:00:00Z" }] }}
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "قُلْ" }));

@@ -71,17 +71,17 @@ describe("MistakeSheet", () => {
       <MistakeSheet
         word={word}
         previous={[
-          { label: "Hifdh — Forgot it", note: "hesitated", date: "2026-09-10T00:00:00Z" },
-          { label: "Tajweed — Madd length", note: null, date: "2026-08-20T00:00:00Z" },
+          { label: "Hifdh: Forgot it", note: "hesitated", date: "2026-09-10T00:00:00Z" },
+          { label: "Tajweed: Madd length", note: null, date: "2026-08-20T00:00:00Z" },
         ]}
         onSave={vi.fn()}
         onClose={vi.fn()}
       />,
     );
     const list = screen.getByRole("list", { name: "Earlier marks on this word" });
-    expect(list.textContent).toContain("Hifdh — Forgot it");
+    expect(list.textContent).toContain("Hifdh: Forgot it");
     expect(list.textContent).toContain("hesitated");
-    expect(list.textContent).toContain("Tajweed — Madd length");
+    expect(list.textContent).toContain("Tajweed: Madd length");
   }, SLOW);
 
   it("shows no list when there is nothing earlier", () => {
