@@ -82,6 +82,19 @@ export function passedThisYear(
 }
 
 /**
+ * The next surah to hear: the first one on the run with no pass record.
+ *
+ * Not `run[count]`. Range hearings let a teacher pass 90, 89 and 87 and leave
+ * 88 unticked, so the passes are no longer an unbroken prefix of the run and
+ * indexing by the count skips exactly the surah that was held back. The
+ * membership test is `passedThisYear`'s own, for the same reason.
+ */
+export function nextToHear(run: Surah[], passedSurahNumbers: Iterable<number>): Surah | null {
+  const { isPassed } = passedThisYear(run, run, passedSurahNumbers);
+  return run.find((s) => !isPassed(s.number)) ?? null;
+}
+
+/**
  * The student's own memorisation list: `targetCount` surahs starting at
  * `startSurah`. Returning students who pass a hifz check start partway down.
  */

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectedPassed, paceStatus, memorisationList, passedThisYear, type Surah } from "./pace";
+import { expectedPassed, paceStatus, memorisationList, passedThisYear, nextToHear, type Surah } from "./pace";
 
 const weeks = (n: number, startMs: number) =>
   Array.from({ length: n }, (_, i) => ({
@@ -134,5 +134,38 @@ describe("passedThisYear", () => {
   it("is empty for a student with no records, and for an empty list", () => {
     expect(passedThisYear(all, firstYear, [])).toMatchObject({ count: 0, last: null });
     expect(passedThisYear(all, [], [114])).toMatchObject({ count: 0, last: null });
+  });
+});
+
+/* ── nextToHear — the first surah on the run with no pass ──────────────── */
+
+describe("nextToHear", () => {
+  const s = (number: number, order_index: number): Surah => ({
+    number, order_index, name_ar: `\u0639${number}`, name_en: `S${number}`,
+  });
+  const run = Array.from({ length: 30 }, (_, i) => s(114 - i, i + 1));
+
+  it("is the surah after an unbroken run of passes", () => {
+    expect(nextToHear(run, [114, 113, 112])?.number).toBe(111);
+  });
+
+  /**
+   * A range hearing can pass 90 and 89 and 87 but leave 88 unticked. The
+   * count is still right; indexing the run by it skips straight past 88.
+   */
+  it("stops at a hole a range hearing left, not at the count", () => {
+    const upTo91 = run.filter((x) => x.number >= 91).map((x) => x.number);
+    const passed = [...upTo91, 90, 89, 87, 86];
+    expect(run[passed.length].number).not.toBe(88);           // what the count did
+    expect(nextToHear(run, passed)?.number).toBe(88);
+  });
+
+  it("ignores passes that are not on the run", () => {
+    expect(nextToHear(run.slice(5), [114, 113, 112, 111, 110])?.number).toBe(109);
+  });
+
+  it("is null for a completed run and for an empty one", () => {
+    expect(nextToHear(run, run.map((x) => x.number))).toBeNull();
+    expect(nextToHear([], [])).toBeNull();
   });
 });
