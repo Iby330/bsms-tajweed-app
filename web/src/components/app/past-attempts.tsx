@@ -1,8 +1,10 @@
 import { MixedText } from "@/components/app/mixed-text";
 import { TapWords } from "@/components/app/tap-words";
 import { VoicePlayback } from "@/components/app/voice-playback";
+import { RecitationClip } from "@/components/app/recitation-clip";
 import { isTapWords } from "@/lib/homework/tap-words";
 import { fmtMarks, selectedOf, textOf } from "@/lib/homework/logic";
+import { parseMedia } from "@/lib/homework/media";
 import type { ReviewQuestion } from "@/components/app/review-panel";
 
 /**
@@ -172,6 +174,7 @@ export function PastAttempts({
                     const chosen = row ? selectedOf(row.response) : [];
                     const text = row ? textOf(row.response) : "";
                     const note = voiceByQ.get(q.id);
+                    const clip = parseMedia(q.media).clip;
 
                     return (
                       <li key={q.id} className="qn rounded-md border border-line bg-page p-3">
@@ -199,6 +202,9 @@ export function PastAttempts({
                             )}
                           </span>
                         </div>
+
+                        {/* What the student was played, as on the live panel. */}
+                        {clip && <RecitationClip clip={clip} className="mt-2" />}
 
                         <div className="mt-2 text-sm">
                           {isTapWords(q.options) ? (

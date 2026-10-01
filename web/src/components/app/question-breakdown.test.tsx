@@ -51,6 +51,36 @@ const attribution = (submissionId: string) =>
     ? { name: roster[submissionId], href: `/teacher/curriculum/1?student=${submissionId}` }
     : null;
 
+describe("QuestionBreakdown: a question with a recitation", () => {
+  it("puts the clip on the paper, and a player beside each option that has audio", () => {
+    const url = "https://mirrors.quranicaudio.com/everyayah/Husary_64kbps/090006.mp3";
+    const { getAllByRole, container } = render(
+      <QuestionBreakdown
+        questions={[
+          {
+            ...mcq("q1"),
+            media: {
+              clip: { url, start_ms: 3590, end_ms: 6200 },
+              option_audio: { "0": { url } },
+            },
+          },
+        ]}
+        answers={[]}
+        attribution={() => null}
+      />,
+    );
+    expect(getAllByRole("button", { name: "Play recitation" })).toHaveLength(2);
+    expect(container.querySelectorAll("audio")).toHaveLength(2);
+  });
+
+  it("a question without media has no player", () => {
+    const { queryByRole } = render(
+      <QuestionBreakdown questions={[mcq("q1")]} answers={[]} attribution={() => null} />,
+    );
+    expect(queryByRole("button", { name: "Play recitation" })).toBeNull();
+  });
+});
+
 describe("QuestionBreakdown with no responses", () => {
   it("shows the paper: the key, and no tallies", () => {
     const { container, queryByText } = render(

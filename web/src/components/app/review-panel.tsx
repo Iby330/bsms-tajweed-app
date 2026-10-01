@@ -6,11 +6,13 @@ import { MixedText } from "@/components/app/mixed-text";
 import { TapWords } from "@/components/app/tap-words";
 import { isTapWords } from "@/lib/homework/tap-words";
 import { VoicePlayback } from "@/components/app/voice-playback";
+import { RecitationClip } from "@/components/app/recitation-clip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { approveSubmission } from "@/lib/marking/actions";
 import { selectedOf, textOf, fmtMarks, parseMarkInput } from "@/lib/homework/logic";
+import { parseMedia } from "@/lib/homework/media";
 import { cn } from "@/lib/utils";
 
 export type ReviewQuestion = {
@@ -27,6 +29,9 @@ export type ReviewQuestion = {
   /** The model answer for a written, non-task question — one entry per
    *  concept, with the marks it carries. Null when nothing was written for it. */
   rubric?: { id: string; desc: string; marks: number }[] | null;
+  /** questions.media as stored, read through parseMedia. The recitation the
+   *  student heard, so the teacher marking it can hear the same thing. */
+  media?: unknown;
 };
 
 export type ReviewAnswer = {
@@ -219,6 +224,7 @@ export function ReviewPanel({
         // auto_rubric chips carry `why` from the LLM when it explained itself;
         // otherwise fall back to the concept's own wording rather than its bare id.
         const rubricDesc = new Map((q.rubric ?? []).map((c) => [c.id, c.desc]));
+        const media = parseMedia(q.media);
 
         return (
           <section key={q.id} className="box c12 qn">
@@ -281,6 +287,11 @@ export function ReviewPanel({
             </div>
 
             <div className="mt-4 space-y-3">
+              {/* The clip the student was asked to name the rule in, the same
+                  slice they heard: a wrong answer reads differently once the
+                  teacher has heard how short the clip is. */}
+              {media.clip && <RecitationClip clip={media.clip} />}
+
               {isTapWords(q.options) ? (
                 /* The passage as the student saw it, with the key drawn over
                    their taps — a list of thirty Arabic words tells a teacher
@@ -295,6 +306,7 @@ export function ReviewPanel({
                 <ul className="space-y-1">
                   {q.options.map((o) => {
                     const picked = chosen.includes(o.position);
+                    const audio = media.optionAudio[o.position];
                     return (
                       <li key={o.position} className={cn(
                         "flex items-start gap-2 rounded-md px-2.5 py-1.5 text-sm",
@@ -310,6 +322,7 @@ export function ReviewPanel({
                           {picked && o.correct ? "chose ✓" : picked ? "chose ✗" : o.correct ? "answer" : ""}
                         </span>
                         <MixedText text={o.value} variant="quran" />
+                        {audio && <RecitationClip clip={audio} compact className="ml-auto" />}
                       </li>
                     );
                   })}

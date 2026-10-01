@@ -79,7 +79,7 @@ export default async function HomeworkResults({
       .select(`
         id, number, title, series, total_marks, due_at, is_graded, week_id,
         weeks(term_id, number),
-        questions(id, position, qtype, scoring, prompt, points, is_bonus, is_task, options, rubric, needs_key)
+        questions(id, position, qtype, scoring, prompt, points, is_bonus, is_task, options, rubric, needs_key, media)
       `)
       .eq("number", n)
       .order("position", { referencedTable: "questions" })
@@ -360,6 +360,8 @@ export default async function HomeworkResults({
         correct: o.correct,
       })) ?? null,
     rubric: parseRubric(q.rubric),
+    // raw: the panel reads it through parseMedia, as the student's form does
+    media: q.media,
   }));
 
   // The picker lists everyone, with how they did, so choosing is informed and

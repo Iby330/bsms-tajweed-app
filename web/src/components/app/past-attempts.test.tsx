@@ -64,6 +64,24 @@ const past = (a: PastAttempt, questions: ReviewQuestion[] = [WRITTEN, TASK]) =>
 // registers its own afterEach and renders would pile up in document.body.
 afterEach(cleanup);
 
+describe("PastAttempts: a listening question", () => {
+  it("carries the clip the student heard on the superseded attempt", () => {
+    const url = "https://mirrors.quranicaudio.com/everyayah/Husary_64kbps/090006.mp3";
+    const LISTEN = question({
+      id: "q3",
+      position: 3,
+      qtype: "mcq",
+      options: [{ position: 0, label: "Option 1", value: "Ikhfa'", correct: true }],
+      media: { clip: { url, start_ms: 3590, end_ms: 6200 } },
+    });
+    const { getByRole } = past(
+      attempt({ answers: [snapshotAnswer("q3", { response: { selected: [0] } })] }),
+      [LISTEN],
+    );
+    expect(getByRole("button", { name: "Play recitation", hidden: true })).toBeTruthy();
+  });
+});
+
 describe("PastAttempts — recitation tasks", () => {
   // The bug: the snapshot was walked by its answers alone, so a task — which
   // has only ever had a recording — vanished from the superseded attempt.

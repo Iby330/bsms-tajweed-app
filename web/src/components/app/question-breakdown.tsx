@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { MixedText } from "@/components/app/mixed-text";
+import { RecitationClip } from "@/components/app/recitation-clip";
 import { parseOptions, parseRubric } from "@/lib/marking/objective";
 import { isTapWords } from "@/lib/homework/tap-words";
 import { questionStats, tallyOptions, type ScoreAnswer } from "@/lib/marking/responses";
+import { parseMedia } from "@/lib/homework/media";
 import { fmtMarks, pctTone, responseIsEmpty, textOf } from "@/lib/homework/logic";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +33,9 @@ export type BreakdownQuestion = {
   needs_key: boolean;
   options: unknown;
   rubric: unknown;
+  /** questions.media as stored, read through parseMedia. Optional: the
+   *  column arrived in 0039 and older callers need not select it. */
+  media?: unknown;
 };
 
 /** Who wrote an answer, and where their whole script is. */
@@ -72,6 +77,7 @@ export function QuestionBreakdown({
       {questions.map((q, i) => {
         const options = parseOptions(q.options);
         const rubric = parseRubric(q.rubric);
+        const media = parseMedia(q.media);
         const points = Number(q.points);
         const stat = stats.get(q.id);
         const rows = byQuestion.get(q.id) ?? [];
@@ -122,6 +128,10 @@ export function QuestionBreakdown({
                 </div>
               </div>
             </div>
+
+            {/* The recitation the question plays, so the paper can be read
+                as the class met it: a listening question is half audio. */}
+            {media.clip && <RecitationClip clip={media.clip} className="mt-3" />}
 
             {/* How the class did on this one question — the line that turns a
                 paper into results. Only ever shown for questions someone has
@@ -194,6 +204,9 @@ export function QuestionBreakdown({
                               {t.correct ? "✓" : ""}
                             </span>
                             <MixedText text={t.value} variant="quran" className="min-w-0 flex-1" />
+                            {media.optionAudio[t.position] && (
+                              <RecitationClip clip={media.optionAudio[t.position]} compact />
+                            )}
                             {rows.length > 0 && (
                               <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
                                 {t.count}

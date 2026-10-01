@@ -94,6 +94,35 @@ const note = (questionId: string): ReviewVoiceNote => ({
   duration_s: 42,
 });
 
+describe("ReviewPanel: a question with a recitation", () => {
+  const URL_6 = "https://mirrors.quranicaudio.com/everyayah/Husary_64kbps/090006.mp3";
+  const LISTEN = question({
+    ...MCQ,
+    id: "q9",
+    position: 9,
+    media: {
+      clip: { url: URL_6, start_ms: 3590, end_ms: 6200, label: "Al-Balad 90:6" },
+      option_audio: { "1": { url: URL_6 } },
+    },
+  });
+  const picked = answer({ id: "a9", question_id: "q9", response: { selected: [1] }, auto_marks: 0 });
+
+  it("lets the teacher hear the clip the student heard, and each option's audio", () => {
+    const { container, getAllByRole, getByText } = panel([LISTEN], [picked]);
+    expect(getAllByRole("button", { name: "Play recitation" })).toHaveLength(2);
+    expect(getByText("Al-Balad 90:6")).toBeTruthy();
+    expect(container.querySelectorAll("audio")).toHaveLength(2);
+  });
+
+  it("shows nothing extra when the media does not parse", () => {
+    const { queryByRole } = panel(
+      [{ ...LISTEN, media: { clip: { url: "http://x/1.mp3", start_ms: 0, end_ms: 5 } } }],
+      [picked],
+    );
+    expect(queryByRole("button", { name: "Play recitation" })).toBeNull();
+  });
+});
+
 const markField = (c: HTMLElement, answerId: string) =>
   c.querySelector<HTMLInputElement>(`#mark-${answerId}`)!;
 /** Any mark field at all — for asserting that a question offers none. */

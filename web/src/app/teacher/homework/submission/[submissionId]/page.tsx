@@ -50,7 +50,7 @@ export default async function SubmissionReview({
         ),
         homeworks(
           number, title, series, total_marks,
-          questions(id, position, prompt, points, qtype, is_bonus, is_task, options, rubric)
+          questions(id, position, prompt, points, qtype, is_bonus, is_task, options, rubric, media)
         ),
         answers(id, question_id, response, auto_marks, auto_rubric, final_marks, teacher_comment),
         voice_notes(question_id, storage_path, duration_s)
