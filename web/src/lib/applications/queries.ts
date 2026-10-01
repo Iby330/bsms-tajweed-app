@@ -40,6 +40,30 @@ export type ApplicationRow = {
 
 export type ClassOption = { id: string; name: string; section: Section };
 
+export type ApplicationNote = {
+  id: string;
+  application_id: string;
+  author_id: string | null;
+  /** Null for notes carried over unsigned from the old shared box. */
+  author_name: string | null;
+  body: string;
+  created_at: string;
+};
+
+/** Every teacher's notes on every applicant, oldest first within each. */
+export async function applicationNotes(): Promise<ApplicationNote[]> {
+  const db = await supabaseServer();
+  const { data } = await db
+    .from("application_notes")
+    .select(`id, application_id, author_id, body, created_at,
+      author:profiles!application_notes_author_id_fkey(full_name)`)
+    .order("created_at", { ascending: true });
+  return (data ?? []).map(({ author, ...n }) => ({
+    ...n,
+    author_name: author?.full_name ?? null,
+  }));
+}
+
 /**
  * Every application, newest first.
  *

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ApplicationsBoard } from "@/components/app/applications-board";
-import { applications, placeableClasses } from "@/lib/applications/queries";
+import { applicationNotes, applications, placeableClasses } from "@/lib/applications/queries";
+import { currentProfile } from "@/lib/supabase/server";
 import { PAYMENT_LINK, WHATSAPP_GROUPS, feeLabel } from "@/lib/applications/form";
 
 export const metadata: Metadata = { title: "Applications" };
@@ -17,7 +18,9 @@ export const dynamic = "force-dynamic";
  * account, so a slip of a dropdown never emails anyone.
  */
 export default async function Applications() {
-  const [rows, classes] = await Promise.all([applications(), placeableClasses()]);
+  const [rows, classes, notes, me] = await Promise.all([
+    applications(), placeableClasses(), applicationNotes(), currentProfile(),
+  ]);
 
   return (
     <>
@@ -64,7 +67,7 @@ export default async function Applications() {
         <span className="r" /><span className="m" /><span className="r" />
       </div>
 
-      <ApplicationsBoard rows={rows} classes={classes} />
+      <ApplicationsBoard rows={rows} classes={classes} notes={notes} meId={me?.id ?? ""} />
     </>
   );
 }

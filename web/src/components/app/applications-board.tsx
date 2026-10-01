@@ -10,10 +10,12 @@ import { NO_YEAR } from "@/lib/applications/form";
 import { fmtDay } from "@/lib/format";
 import { SURAHS, surahByNumber } from "@/lib/quran/surahs";
 import {
-  placeInClass, sendLogin, setApplicationNotes, setApplicationStatus, setAssessedLevel,
-  setFeeSettled, setReadPassage,
+  addApplicationNote, deleteApplicationNote, placeInClass, sendLogin, setApplicationStatus,
+  setAssessedLevel, setFeeSettled, setReadPassage,
 } from "@/lib/applications/actions";
-import type { ApplicationRow, ClassOption, Status, Section } from "@/lib/applications/queries";
+import type {
+  ApplicationNote, ApplicationRow, ClassOption, Status, Section,
+} from "@/lib/applications/queries";
 
 /**
  * The intake screen.
@@ -163,10 +165,99 @@ const needsAction = (r: ApplicationRow) =>
 const chipCls =
   "shrink-0 rounded border border-line px-1.5 py-px text-[10px] uppercase tracking-wide";
 
+/** Local wall-clock time: these are timestamptz, unlike fmtDay's dates. */
+const noteTime = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+});
+
+/**
+ * Every teacher's notes on this applicant, signed and in order, so a second
+ * teacher reads what the first heard instead of writing over it. Posting is
+ * an explicit button, not save-on-blur: a note is a message, and half a
+ * sentence should not go out because someone clicked elsewhere.
+ */
+function NotesThread({
+  applicationId, notes, meId,
+}: { applicationId: string; notes: ApplicationNote[]; meId: string }) {
+  const [pending, startTransition] = useTransition();
+  const [draft, setDraft] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const post = () => {
+    if (!draft.trim()) return;
+    setError(null);
+    startTransition(async () => {
+      const r = await addApplicationNote(applicationId, draft);
+      if (r.ok) setDraft("");
+      else setError(r.error);
+    });
+  };
+
+  return (
+    <div className="space-y-3">
+      <span className="label block">Teachers&apos; notes</span>
+      {notes.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No notes yet.</p>
+      ) : (
+        <ul className="space-y-3">
+          {notes.map((n) => (
+            <li key={n.id} className="rounded-lg border border-line p-3">
+              <div className="flex items-baseline gap-2 text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  {n.author_id === meId ? "You" : (n.author_name ?? "Earlier note, unsigned")}
+                </span>
+                <span>{noteTime.format(new Date(n.created_at))}</span>
+                {n.author_id === meId && (
+                  <button
+                    type="button"
+                    className="ml-auto underline underline-offset-2 hover:text-danger"
+                    disabled={pending}
+                    onClick={() => {
+                      if (!confirm("Delete this note?")) return;
+                      startTransition(async () => {
+                        const r = await deleteApplicationNote(n.id);
+                        if (!r.ok) setError(r.error);
+                      });
+                    }}
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+              <p className="mt-1 max-w-[70ch] whitespace-pre-wrap text-sm text-foreground">
+                {n.body}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+      <Textarea
+        rows={2}
+        value={draft}
+        disabled={pending}
+        maxLength={2000}
+        placeholder="Add a note. The other teachers will see it with your name."
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) post();
+        }}
+      />
+      <div className="flex items-center gap-3">
+        <Button size="sm" disabled={pending || !draft.trim()} onClick={post}>
+          Add note
+        </Button>
+        <span className={cn("text-xs", error ? "text-danger" : "text-muted-foreground")}>
+          {error ?? "Ctrl/⌘ + Enter also posts it."}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function ApplicationCard({
-  row, classes, selected, onSelect,
+  row, classes, notes, meId, selected, onSelect,
 }: {
-  row: ApplicationRow; classes: ClassOption[];
+  row: ApplicationRow; classes: ClassOption[]; notes: ApplicationNote[]; meId: string;
   selected: boolean; onSelect: (on: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -179,7 +270,6 @@ function ApplicationCard({
   const [level, setLevel] = useState(row.assessed_level ?? "");
   const [classId, setClassId] = useState(row.class_id ?? "");
   const [settled, setSettled] = useState(row.fee_settled);
-  const [notes, setNotes] = useState(row.notes ?? "");
   const [loginMsg, setLoginMsg] = useState<string | null>(null);
 
   // A bulk action from the bar above changes rows this card is showing, and
@@ -241,6 +331,11 @@ function ApplicationCard({
             title="The confirmation email did not go out. Message them yourself."
           >
             no email
+          </span>
+        )}
+        {notes.length > 0 && (
+          <span className={cn(chipCls, "text-muted-foreground")} title="Teachers' notes on them">
+            {notes.length} note{notes.length === 1 ? "" : "s"}
           </span>
         )}
         {row.login_sent_at && (
@@ -423,27 +518,14 @@ function ApplicationCard({
               />
             </label>
 
-            <label className="block space-y-1.5">
-              <span className="label block">Notes</span>
-              <Textarea
-                rows={2}
-                value={notes}
-                disabled={pending}
-                maxLength={2000}
-                onChange={(e) => setNotes(e.target.value)}
-                onBlur={() => {
-                  if (notes !== (row.notes ?? "")) {
-                    run(() => setApplicationNotes(row.id, notes));
-                  }
-                }}
-              />
-            </label>
-            {/* Both fields above save when they lose focus, which is invisible
-                unless it is said. Without this people press Enter, nothing
-                appears to happen, and they retype it. */}
+            {/* Saves when it loses focus, which is invisible unless it is
+                said. Without this people press Enter, nothing appears to
+                happen, and they retype it. */}
             <p className="text-xs text-muted-foreground">
-              The level and notes save when you click away.
+              The level saves when you click away.
             </p>
+
+            <NotesThread applicationId={row.id} notes={notes} meId={meId} />
           </div>
         </div>
       )}
@@ -459,8 +541,13 @@ function owesFee(r: ApplicationRow) {
 }
 
 export function ApplicationsBoard({
-  rows, classes,
-}: { rows: ApplicationRow[]; classes: ClassOption[] }) {
+  rows, classes, notes, meId,
+}: { rows: ApplicationRow[]; classes: ClassOption[]; notes: ApplicationNote[]; meId: string }) {
+  const notesByApp = useMemo(() => {
+    const m = new Map<string, ApplicationNote[]>();
+    for (const n of notes) m.set(n.application_id, [...(m.get(n.application_id) ?? []), n]);
+    return m;
+  }, [notes]);
   const [section, setSection] = useState<Section | "all">("all");
   const [status, setStatus] = useState<StatusFilter>("todo");
   const [q, setQ] = useState("");
@@ -592,6 +679,7 @@ export function ApplicationsBoard({
           {shown.map((r) => (
             <ApplicationCard
               key={r.id} row={r} classes={classes}
+              notes={notesByApp.get(r.id) ?? []} meId={meId}
               selected={picked.has(r.id)}
               onSelect={(on) => {
                 const next = new Set(picked);

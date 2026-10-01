@@ -219,12 +219,31 @@ export async function setReadPassage(
   return { ok: true };
 }
 
-export async function setApplicationNotes(id: string, notes: string): Promise<Result> {
-  await requireTeacher();
-  const v = clean(notes);
+/**
+ * Add a note to an applicant's thread, signed as whoever is signed in. The
+ * author comes from the session, never the caller, and RLS refuses any row
+ * whose author_id is not auth.uid() in any case.
+ */
+export async function addApplicationNote(applicationId: string, body: string): Promise<Result> {
+  const me = await requireTeacher();
+  const v = clean(body);
+  if (!v) return { ok: false, error: "The note is empty." };
   if (v.length > MAX.long) return { ok: false, error: "That note is too long." };
   const db = await supabaseServer();
-  const { error } = await db.from("applications").update({ notes: v || null }).eq("id", id);
+  const { error } = await db
+    .from("application_notes")
+    .insert({ application_id: applicationId, author_id: me.id, body: v });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(TEACHER_PATH);
+  return { ok: true };
+}
+
+/** Only your own: RLS matches author_id to the session, so another's is a no-op. */
+export async function deleteApplicationNote(noteId: string): Promise<Result> {
+  const me = await requireTeacher();
+  const db = await supabaseServer();
+  const { error } = await db
+    .from("application_notes").delete().eq("id", noteId).eq("author_id", me.id);
   if (error) return { ok: false, error: error.message };
   revalidatePath(TEACHER_PATH);
   return { ok: true };
