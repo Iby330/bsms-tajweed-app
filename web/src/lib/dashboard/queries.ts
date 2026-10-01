@@ -2,6 +2,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { getCachedTerms, getCachedWeeks, getCachedSurahs } from "@/lib/reference/cached";
 import { expectedPassed, memorisationList, paceStatus, type Surah } from "@/lib/hifz/pace";
 import { currentSurah, expectedSurah, type ClassRow } from "@/lib/teacher/class-progress";
+import { passRecords } from "@/lib/hifz/roster";
 
 /** Shared server-side reads. Every grade number comes from a view — the
  *  verified formulas live in SQL and are never recomputed in JS. */
@@ -288,7 +289,8 @@ export async function getClassProgress(
     // SQL and only ever read back.
     db.from("v_hifz_progress")
       .select("student_id, passed, target_count, start_surah, pct").in("student_id", ids),
-    db.from("hifz_records").select("student_id, surah_number").in("student_id", ids),
+    // Paged: ~40 surahs a student puts a class past the 1000-row cap.
+    passRecords(db, ids),
     db.from("v_termly_avg")
       .select("student_id, hw_avg").in("student_id", ids).eq("term_id", termId),
     getCachedSurahs(),
@@ -307,7 +309,7 @@ export async function getClassProgress(
   );
 
   const passedOf = new Map<string, Set<number>>();
-  for (const r of records.data ?? []) {
+  for (const r of records) {
     const set = passedOf.get(r.student_id) ?? new Set<number>();
     set.add(r.surah_number);
     passedOf.set(r.student_id, set);

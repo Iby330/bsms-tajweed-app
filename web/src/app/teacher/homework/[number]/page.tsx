@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { readAll } from "@/lib/supabase/read-all";
 import { homeworkScope, scopedHref } from "@/lib/teacher/scope";
 import { ClassFilter } from "@/components/app/class-filter";
 import { markSubmission } from "@/lib/marking/actions";
@@ -150,13 +151,19 @@ export default async function HomeworkResults({
   // picker would report an unmarked class — while a homework carried over from
   // the spreadsheet, whose total needs no answers, showed its marks fine. The
   // one script the individual panel opens is read separately, below.
-  const { data: answersData } = hasResponses
-    ? await db
-        .from("answers")
-        .select("submission_id, question_id, response, auto_marks, final_marks")
-        .in("submission_id", subs.map((s) => s.id))
-    : { data: [] as { submission_id: string; question_id: string; response: unknown; auto_marks: number | null; final_marks: number | null }[] };
-  const answers = answersData ?? [];
+  // Paged: a class's answers on one paper (students × questions) passes
+  // PostgREST's 1000-row cap, and a short read is a wrong mark, not an error.
+  const answers: { submission_id: string; question_id: string; response: unknown; auto_marks: number | null; final_marks: number | null }[] =
+    hasResponses
+      ? await readAll((from, to) =>
+          db
+            .from("answers")
+            .select("submission_id, question_id, response, auto_marks, final_marks")
+            .in("submission_id", subs.map((s) => s.id))
+            .order("id")
+            .range(from, to),
+        )
+      : [];
 
   const subByStudent = new Map(subs.map((s) => [s.student_id, s]));
   const studentBySub = new Map(subs.map((s) => [s.id, s.student_id]));
@@ -279,7 +286,13 @@ export default async function HomeworkResults({
     // via the model — so a teacher always lands on something marked, exactly as
     // the marking queue behaves. It only ever runs for a script they asked for.
     if (selectedSub.status === "submitted") {
-      await markSubmission(selectedSub.id, { homeworkId: hw.id });
+      // A failed marking pass leaves the script unmarked, which the teacher
+      // can mark by hand — better than an error page in place of the script.
+      try {
+        await markSubmission(selectedSub.id, { homeworkId: hw.id });
+      } catch (e) {
+        console.error("markSubmission failed on open", selectedSub.id, e);
+      }
     }
     const [{ data: ans }, { data: notes }] = await Promise.all([
       db

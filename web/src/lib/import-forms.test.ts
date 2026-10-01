@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -11,6 +11,9 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "../../..");
 const exportData = JSON.parse(
   readFileSync(join(repoRoot, "reference/forms_export.json"), "utf8"),
 );
+// Model answers, kept out of git (see execution/import_forms.ts). Without it
+// run() attaches no rubrics, so the rubric test only means something locally.
+const hasGuide = existsSync(join(repoRoot, "Tawjeed HW Master Guide .md"));
 const formByNum = (n: number) =>
   exportData.forms.find((f: { file: string }) => hwNumber(f.file) === n);
 
@@ -171,7 +174,7 @@ describe("full run()", () => {
     expect(sql).toMatch(/[؀-ۿ]/);
   });
 
-  it("guide rubrics attach to a meaningful share of free-text questions", () => {
+  it.skipIf(!hasGuide)("guide rubrics attach to a meaningful share of free-text questions", () => {
     const { homeworks, rubrics } = run(repoRoot);
     const freeText = homeworks
       .filter((h) => h.series === "tajweed")

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
+import { readAll } from "@/lib/supabase/read-all";
 import { currentWeek, getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { homeworkScope, scopedHref } from "@/lib/teacher/scope";
 import { ClassFilter } from "@/components/app/class-filter";
@@ -77,19 +78,27 @@ export default async function TeacherHomework({
   const nameOf = new Map(roster.map((s) => [s.id, s.full_name]));
   const href = (path: string) => scopedHref(scope, path);
 
-  const { data: subs } = rosterIds.length
-    ? await db.from("submissions")
-        .select("id, status, is_late, homework_id, student_id")
-        .in("student_id", rosterIds)
-        .order("submitted_at")
-    : { data: [] as Sub[] };
+  // Every handed-in script for the roster across the whole year, which a
+  // single read cut at 1000 rows — oldest first, so this week's queue was what
+  // went missing. Drafts are left in the database: nothing here counts them.
+  const subs: Sub[] = rosterIds.length
+    ? await readAll((from, to) =>
+        db.from("submissions")
+          .select("id, status, is_late, homework_id, student_id")
+          .in("student_id", rosterIds)
+          .neq("status", "draft")
+          .order("submitted_at")
+          .order("id")
+          .range(from, to),
+      )
+    : [];
 
   const weekById = new Map(weeks.map((w) => [w.id, w]));
   const week = currentWeek(weeks);
 
   const pendingByHw = new Map<string, Sub[]>();
   const approvedByHw = new Map<string, number>();
-  for (const s of (subs ?? []) as Sub[]) {
+  for (const s of subs) {
     if (PENDING.includes(s.status)) {
       const list = pendingByHw.get(s.homework_id) ?? [];
       list.push(s);

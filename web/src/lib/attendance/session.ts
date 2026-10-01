@@ -16,10 +16,27 @@ export type SessionType = "tajweed" | "hifdh";
 export const SESSION_TYPES: readonly SessionType[] = ["tajweed", "hifdh"];
 
 /** YYYY-MM-DD in LOCAL time. `toISOString()` would shift the date for anyone
- *  west of UTC — and for us during BST, late evenings roll over a day early. */
+ *  west of UTC — and for us during BST, late evenings roll over a day early.
+ *  For calendar arithmetic on dates built from their parts. For "today" on
+ *  the server, whose local zone is UTC, use `londonDate`. */
 export function isoDate(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+const londonDay = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Europe/London",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** YYYY-MM-DD as the day reads in Britain, whatever zone the code runs in.
+ *  The server runs in UTC, so between midnight and 1am in BST its own
+ *  "today" is still yesterday; every student and teacher is in the UK. */
+export function londonDate(d: Date): string {
+  const p = Object.fromEntries(londonDay.formatToParts(d).map((x) => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day}`;
 }
 
 export function sessionLabel(session: SessionType): string {

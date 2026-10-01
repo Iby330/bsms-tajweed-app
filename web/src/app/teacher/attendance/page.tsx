@@ -2,7 +2,7 @@ import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks, currentTermId } from "@/lib/dashboard/queries";
 import { teacherClass, teacherRoster } from "@/lib/teacher/scope";
-import { isoDate } from "@/lib/attendance/session";
+import { londonDate } from "@/lib/attendance/session";
 import {
   nearestSessionDate,
   nextSessionDate,
@@ -43,7 +43,7 @@ export default async function Attendance({
   // A hand-typed ?date= is snapped BACKWARDS to a real lesson day instead —
   // it is a date they chose, and resolving it forward would answer a question
   // they did not ask by quietly moving them to the following session.
-  const today = isoDate(new Date());
+  const today = londonDate(new Date());
 
   // The class has to be known BEFORE any date can be resolved: which weekdays
   // are lesson days is a property of the class, so a sisters' register and a

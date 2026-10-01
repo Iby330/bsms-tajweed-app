@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  buildActivityGrid, collectDays, contributionLevel, dayKey, dayLevel, longestStreak, summarise,
+  buildActivityGrid, collectDays, contributionLevel, dayKey, dayLevel, londonDayKey, longestStreak, summarise,
   type RevisionDay,
 } from "./revision-activity";
 
@@ -37,8 +37,19 @@ describe("dayKey", () => {
   });
 });
 
+describe("londonDayKey", () => {
+  it("files a moment under the UK day, not the server's UTC one", () => {
+    // 00:30 BST on the 11th is still the 10th in UTC.
+    expect(londonDayKey(new Date("2026-08-10T23:30:00Z"))).toBe("2026-08-11");
+  });
+});
+
 describe("collectDays", () => {
   const spans = { 112: 1, 96: 2 };
+  it("buckets a just-after-midnight BST session under the UK day", () => {
+    const out = collectDays([], [{ submitted_at: "2026-08-10T23:30:00Z" }], spans);
+    expect(out[0]).toMatchObject({ date: "2026-08-11", sessions: 1 });
+  });
   it("converts sign-offs to page counts and merges sessions on the same day", () => {
     const out = collectDays(
       [{ surah_number: 112, passed_at: "2026-08-10" }, { surah_number: 96, passed_at: "2026-08-10" }],

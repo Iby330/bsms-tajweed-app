@@ -16,6 +16,8 @@
  */
 
 /** One day's activity for one student. */
+import { londonDate } from "@/lib/attendance/session";
+
 export type RevisionDay = {
   date: string;      // YYYY-MM-DD, the local calendar day
   pages: number;     // mushaf pages covered — the heat value
@@ -51,11 +53,18 @@ export function dayLevel(day: RevisionDay | null | undefined): number {
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** YYYY-MM-DD in LOCAL time. `toISOString` would shift the day backwards for
- *  anyone west of UTC, filing late-evening activity under the day before. */
+ *  anyone west of UTC, filing late-evening activity under the day before.
+ *  For the grid's own dates, built at local midnight in the browser. On the
+ *  server, where local is UTC, a real moment wants `londonDayKey`. */
 export function dayKey(d: Date): string {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
+
+/** The day a moment falls on in Britain — "today", or a session's timestamp —
+ *  wherever this runs. The server is in UTC and would file 00:30 BST under
+ *  yesterday. */
+export const londonDayKey = londonDate;
 
 /** Midnight local, so day arithmetic never drifts across a DST boundary. */
 const atMidnight = (d: Date): Date =>
@@ -115,9 +124,9 @@ export function collectDays(
     r.pages += pagesForSurah[s.surah_number] ?? 0;
   }
   for (const s of sessions) {
-    // submitted_at is a timestamptz; bucket it by the viewer's local day so it
-    // lines up with the sign-offs beside it.
-    row(dayKey(new Date(s.submitted_at))).sessions += 1;
+    // submitted_at is a timestamptz; bucket it by the UK day (this runs on
+    // the server, in UTC) so it lines up with the sign-offs beside it.
+    row(londonDayKey(new Date(s.submitted_at))).sessions += 1;
   }
   return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
 }

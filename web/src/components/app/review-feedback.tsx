@@ -13,6 +13,12 @@ import type { SurahNames } from "./mushaf-reader";
 import { cn } from "@/lib/utils";
 
 const LAST_PAGE = 604;
+/**
+ * Al-Mulk's first page, and the first page with a deployed QCF font.
+ * `quran_words` now holds earlier pages too, but without their font they
+ * render as blank or boxed text, so the pager never goes below this.
+ */
+const FIRST_FONT_PAGE = 562;
 
 /**
  * Submitted-review results for one student: pattern tracker and mushaf
@@ -49,7 +55,7 @@ export async function ReviewFeedback({
   const surahNames: SurahNames = Object.fromEntries(
     surahs.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]),
   );
-  const firstPage = Math.min(...Object.values(startPages));
+  const firstPage = Math.max(FIRST_FONT_PAGE, Math.min(...Object.values(startPages)));
 
   const counts = new Map<number, number>();
   for (const m of mistakes) counts.set(m.surah_number, (counts.get(m.surah_number) ?? 0) + 1);
@@ -59,12 +65,14 @@ export async function ReviewFeedback({
   let heatBlock: React.ReactNode = null;
   if (heatSurahs.length) {
     // `heat` may name a surah (jump to its opening page) or a page itself.
-    const page =
+    const page = Math.max(
+      firstPage,
       heat && startPages[heat] !== undefined
         ? startPages[heat]
         : heat && Number.isInteger(heat) && heat >= firstPage && heat <= LAST_PAGE
           ? heat
-          : startPages[heatSurahs[0]] ?? firstPage;
+          : startPages[heatSurahs[0]] ?? firstPage,
+    );
 
     const rows = await getCachedPageWords(page);
     const words = rows.map(fromRow);

@@ -1,5 +1,6 @@
 import "server-only";
 import { supabaseServer } from "@/lib/supabase/server";
+import { readAll } from "@/lib/supabase/read-all";
 import { getCachedSurahs } from "@/lib/reference/cached";
 import { teacherRoster } from "@/lib/teacher/scope";
 import { memorisationList, nextToHear, type Surah } from "./pace";
@@ -63,24 +64,19 @@ export async function rosterWithNext(): Promise<RosterStudent[]> {
  * Every pass record for these students, paged. A whole-cohort roster (a
  * teacher with no class of their own) runs past PostgREST's 1000-row cap,
  * and a silently short read would name an already-passed surah as next.
+ * Shared with every page that names a student's current surah from these.
  */
-async function passRecords(
+export async function passRecords(
   db: Awaited<ReturnType<typeof supabaseServer>>,
   ids: string[],
 ): Promise<{ student_id: string; surah_number: number }[]> {
-  const out: { student_id: string; surah_number: number }[] = [];
-  const CHUNK = 1000;
-  for (let from = 0; ; from += CHUNK) {
-    const { data, error } = await db
+  return readAll((from, to) =>
+    db
       .from("hifz_records")
       .select("student_id, surah_number")
       .in("student_id", ids)
       .order("student_id")
       .order("surah_number")
-      .range(from, from + CHUNK - 1);
-    if (error) throw error;
-    out.push(...(data ?? []));
-    if (!data || data.length < CHUNK) break;
-  }
-  return out;
+      .range(from, to),
+  );
 }

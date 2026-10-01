@@ -10,7 +10,7 @@ import { HifzTabs } from "@/components/app/hifz-tabs";
 import { ReviewTab } from "@/components/app/review-tab";
 import { RevisionHeatmap } from "@/components/app/revision-heatmap";
 import { revisionActivityFor } from "@/lib/hifz/activity-queries";
-import { dayKey } from "@/lib/hifz/revision-activity";
+import { londonDayKey } from "@/lib/hifz/revision-activity";
 import { hearingsForStudent } from "@/lib/hifz/hearing-queries";
 import { heardSurahs } from "@/lib/hifz/hearings";
 
@@ -60,7 +60,8 @@ export default async function StudentHifz({
   // The grid's last column is "today". Resolve it here and hand the client a
   // plain ISO day: if each side called new Date() the server's timezone and
   // the browser's could disagree and React would flag a hydration mismatch.
-  const today = dayKey(new Date());
+  // In UK time: the server's own clock is UTC, a day behind until 1am in BST.
+  const today = londonDayKey(new Date());
 
   // Empty states keep the masthead and tabs — a student with no target of
   // their own still reaches Review to log their partner's recitation.

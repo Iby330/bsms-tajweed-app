@@ -13,6 +13,12 @@ import { SurahJump } from "./surah-jump";
 
 /** The seeded mushaf runs An-Nas back to Al-Mulk — pages 562–604. */
 const LAST_PAGE = 604;
+/**
+ * Al-Mulk's first page, and the first page with a deployed QCF font.
+ * `quran_words` now holds earlier pages too, but without their font they
+ * render as blank or boxed text, so the pager never goes below this.
+ */
+const FIRST_FONT_PAGE = 562;
 
 /** The student Review tab: review-your-partner on top, your own feedback
  *  below. The reader is a real mushaf — one full page at a time, turned
@@ -51,13 +57,13 @@ export async function ReviewTab({
   const surahNames: SurahNames = Object.fromEntries(
     surahs.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]),
   );
-  const firstPage = Math.min(...Object.values(startPages));
+  const firstPage = Math.max(FIRST_FONT_PAGE, Math.min(...Object.values(startPages)));
 
   let logging: React.ReactNode;
   if (draft && range.length > 0) {
     const current = range.find((s) => s.current) ?? range[0];
     const requested = Number(pageParam);
-    const fallback = startPages[current.number] ?? firstPage;
+    const fallback = Math.max(startPages[current.number] ?? firstPage, firstPage);
     const page = Number.isInteger(requested)
       ? Math.min(Math.max(requested, firstPage), LAST_PAGE)
       : fallback;

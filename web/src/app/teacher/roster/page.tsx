@@ -4,6 +4,7 @@ import { getTermsAndWeeks, currentTermId, getIndividualLeaderboard } from "@/lib
 import { getCachedSurahs } from "@/lib/reference/cached";
 import { memorisationList, type Surah } from "@/lib/hifz/pace";
 import { currentSurah } from "@/lib/teacher/class-progress";
+import { passRecords } from "@/lib/hifz/roster";
 import { scopeLabel, teacherClass } from "@/lib/teacher/scope";
 import { cn } from "@/lib/utils";
 
@@ -81,12 +82,13 @@ export default async function Roster() {
   // `hifz_records` and the surah list are what turn "12 of 43" into a surah a
   // teacher can actually say out loud. Both join the wave rather than
   // following it, so naming the surah costs no extra round trip.
-  const [{ data: eoys }, { data: hifz }, { data: strikes }, { data: records }, surahs] =
+  const [{ data: eoys }, { data: hifz }, { data: strikes }, records, surahs] =
     await Promise.all([
       ids.length ? db.from("v_eoy").select("student_id, eoy_pct").in("student_id", ids) : Promise.resolve({ data: [] }),
       ids.length ? db.from("v_hifz_progress").select("student_id, passed, target_count, start_surah").in("student_id", ids) : Promise.resolve({ data: [] }),
       ids.length ? db.from("strikes").select("student_id").in("student_id", ids).eq("term_id", termId) : Promise.resolve({ data: [] }),
-      ids.length ? db.from("hifz_records").select("student_id, surah_number").in("student_id", ids) : Promise.resolve({ data: [] }),
+      // Paged: the whole cohort has well over PostgREST's 1000-row cap.
+      ids.length ? passRecords(db, ids) : Promise.resolve([]),
       getCachedSurahs(),
     ]);
 
@@ -99,7 +101,7 @@ export default async function Roster() {
   }
 
   const passedOf = new Map<string, Set<number>>();
-  for (const r of records ?? []) {
+  for (const r of records) {
     const set = passedOf.get(r.student_id) ?? new Set<number>();
     set.add(r.surah_number);
     passedOf.set(r.student_id, set);

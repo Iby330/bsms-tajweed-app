@@ -1,6 +1,6 @@
 import { currentProfile } from "@/lib/supabase/server";
 import { teacherClass } from "@/lib/teacher/scope";
-import { isoDate } from "@/lib/attendance/session";
+import { londonDate } from "@/lib/attendance/session";
 import { YearCalendar } from "@/components/app/year-calendar";
 import { teachingDaysLabel, timetableFor } from "@/lib/attendance/calendar";
 import { getTermPlans } from "@/lib/curriculum/plan";
@@ -43,7 +43,7 @@ export default async function TeacherCalendar() {
       <YearCalendar
         timetable={timetable}
         section={section}
-        today={isoDate(new Date())}
+        today={londonDate(new Date())}
         plans={plans}
       />
     </>
