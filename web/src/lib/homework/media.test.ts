@@ -81,6 +81,30 @@ describe("parseMedia: junk is ignored, never thrown", () => {
     expect(parseMedia({ clip: { url, start_ms: 0, end_ms: 1000 } }).clip).toBeUndefined();
   });
 
+  it.each([
+    "https://mirrors.quranicaudio.com/everyayah/Husary_64kbps/090006.mp3",
+    "https://download.quranicaudio.com/quran/mahmood_khaleel_al-husaree/090.mp3",
+    "https://everyayah.com/data/Husary_64kbps/090006.mp3",
+    "https://verses.quran.com/Husary/mp3/090006.mp3",
+    "https://audio.qurancdn.com/Husary/mp3/090006.mp3",
+    "https://EveryAyah.com/data/Husary_64kbps/090006.mp3",
+  ])("plays audio from a Qur'an audio host: %s", (url) => {
+    expect(parseMedia({ clip: { url, start_ms: 0, end_ms: 1000 } }).clip?.url).toBe(url);
+    expect(parseMedia({ option_audio: { "1": { url } } }).optionAudio[1]?.url).toBe(url);
+  });
+
+  it.each([
+    ["any other host", "https://example.com/090006.mp3"],
+    ["a lookalike suffix", "https://everyayah.com.evil.example/090006.mp3"],
+    ["a lookalike prefix", "https://notmirrors.quranicaudio.com/x.mp3"],
+    ["a subdomain not on the list", "https://cdn.everyayah.com/x.mp3"],
+    ["credentials before the host", "https://everyayah.com@evil.example/x.mp3"],
+    ["a port", "https://everyayah.com:8443/x.mp3"],
+  ])("refuses %s", (_name, url) => {
+    expect(parseMedia({ clip: { url, start_ms: 0, end_ms: 1000 } }).clip).toBeUndefined();
+    expect(parseMedia({ option_audio: { "1": { url } } }).optionAudio).toEqual({});
+  });
+
   it("refuses a url that is not a string", () => {
     expect(parseMedia({ clip: { url: 7, start_ms: 0, end_ms: 1000 } }).clip).toBeUndefined();
     expect(parseMedia({ clip: { start_ms: 0, end_ms: 1000 } }).clip).toBeUndefined();

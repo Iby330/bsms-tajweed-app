@@ -17,7 +17,7 @@
  * cost that one question its audio, never the student their whole homework
  * page. The same posture as parseSnapshotAnswers in past-attempts.
  *
- * Pure, no IO: the URL is checked for shape, not fetched.
+ * Pure, no IO: the URL is checked for shape and host, not fetched.
  */
 
 /** A recording to play: the whole file, or the slice [startMs, endMs). */
@@ -40,15 +40,35 @@ function isObject(v: unknown): v is Record<string, unknown> {
 }
 
 /**
- * https and nothing else. The URL ends up as an <audio> src on a student's
- * page, so `javascript:` and `data:` are out on principle, and plain http is
- * out because the site is served over https and a browser blocks (or warns
- * about) mixed-content audio — a clip that silently never plays.
+ * Where a recitation may be played from: the public Qur'an audio mirrors,
+ * matched as whole hostnames. Pressing play sends the student's IP address and
+ * browser to whatever host the URL names, so a typo, or a URL pasted from
+ * somewhere else, must not be able to point a child's browser at an arbitrary
+ * server. A new source is a line here, on purpose.
  */
-function httpsUrl(v: unknown): string | null {
+export const AUDIO_HOSTS: ReadonlySet<string> = new Set([
+  "mirrors.quranicaudio.com",
+  "download.quranicaudio.com",
+  "everyayah.com",
+  "verses.quran.com",
+  "audio.qurancdn.com",
+]);
+
+/**
+ * https, on an allowed host, and nothing else. The URL ends up as an <audio>
+ * src on a student's page, so `javascript:` and `data:` are out on principle,
+ * and plain http is out because the site is served over https and a browser
+ * blocks (or warns about) mixed-content audio: a clip that silently never
+ * plays. `URL` lowercases the host and strips any `user@`, so the comparison
+ * is against the host the browser will really contact; a URL with a port or
+ * credentials is refused outright rather than reasoned about.
+ */
+function audioUrl(v: unknown): string | null {
   if (typeof v !== "string" || v === "") return null;
   try {
-    return new URL(v).protocol === "https:" ? v : null;
+    const u = new URL(v);
+    if (u.protocol !== "https:" || u.port || u.username || u.password) return null;
+    return AUDIO_HOSTS.has(u.hostname) ? v : null;
   } catch {
     return null;
   }
@@ -68,7 +88,7 @@ function ms(v: unknown): number | null {
  */
 function parseClip(raw: unknown, requireSlice: boolean): Clip | null {
   if (!isObject(raw)) return null;
-  const url = httpsUrl(raw.url);
+  const url = audioUrl(raw.url);
   if (!url) return null;
 
   const hasStart = raw.start_ms !== undefined;
