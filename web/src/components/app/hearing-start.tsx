@@ -16,7 +16,7 @@ export type PlannedRange = { from: number; to: number };
  * beyond it, and the teacher can still move the end there.
  */
 export function HearingStart({
-  open, onOpenChange, studentName, run, defaultFrom, pending, onStart,
+  open, onOpenChange, studentName, run, defaultFrom, pending, error, onStart,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -24,6 +24,8 @@ export function HearingStart({
   run: { number: number; name: string }[];   // memorisation order: down the mushaf
   defaultFrom: number;
   pending: boolean;
+  /** Why the last Start failed, shown above the button until the next try. */
+  error?: string | null;
   onStart: (range: PlannedRange) => void;
 }) {
   const [from, setFrom] = useState(defaultFrom);
@@ -64,6 +66,7 @@ export function HearingStart({
             disabled={pending}
           />
         </div>
+        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         <Button disabled={pending} onClick={() => onStart({ from, to })}>
           {pending ? "Starting…" : "Start"}
         </Button>

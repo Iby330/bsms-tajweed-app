@@ -102,6 +102,7 @@ export function ReviewLogger({
   const [tapped, setTapped] = useState<QuranWord | null>(null);
   const [looked, setLooked] = useState<{ word: QuranWord; entries: WordHistoryEntry[] } | null>(null);
   const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
   const [wrapUp, setWrapUp] = useState(false);
   const [flags, setFlags] = useState<string[]>([]);
   const [overallNote, setOverallNote] = useState("");
@@ -130,7 +131,16 @@ export function ReviewLogger({
   const begin = (r: PlannedRange) =>
     startTransition(async () => {
       if (!hearing) return;
-      const started = await hearing.start(r);
+      setStartError(null);
+      let started: StartedHearing;
+      try {
+        started = await hearing.start(r);
+      } catch {
+        // Production hides a server action's message, so say it plainly
+        // and keep the popup open for another try.
+        setStartError("Could not start the hearing. Check the connection and try again.");
+        return;
+      }
       // An already-open draft comes back with its own range, which wins.
       setSid(started.id);
       setRange({ from: started.from, to: started.to });
@@ -261,11 +271,15 @@ export function ReviewLogger({
       {mode === "hearing" && hearing && (
         <HearingStart
           open={starting}
-          onOpenChange={setStarting}
+          onOpenChange={(o) => {
+            setStarting(o);
+            if (!o) setStartError(null);
+          }}
           studentName={reciterName}
           run={hearing.run}
           defaultFrom={hearing.from}
           pending={pending}
+          error={startError}
           onStart={begin}
         />
       )}

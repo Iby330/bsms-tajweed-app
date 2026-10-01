@@ -122,6 +122,28 @@ describe("ReviewLogger in hearing mode", () => {
       "h1", { surah: 114, ayah: 1, position: 1 }, "hifz", undefined, "");
   }, SLOW);
 
+  it("a failed Start keeps the popup open with a message, and a retry starts the hearing", async () => {
+    const start = vi.fn()
+      .mockRejectedValueOnce(new Error("An error occurred in the Server Components render."))
+      .mockImplementation(async (r: { from: number; to: number }) => ({ id: "h1", from: r.from, to: r.to }));
+    render(<ReviewLogger mode="hearing" sessionId={null} reciterName="Aisha" pages={pages}
+      initialMistakes={[]} hearing={props(start)} />);
+    fireEvent.click(screen.getByRole("button", { name: "Start hearing" }));
+    fireEvent.click(screen.getByRole("button", { name: "Start" }));
+    expect(await screen.findByText(
+      "Could not start the hearing. Check the connection and try again.",
+      undefined, { timeout: 10_000 })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Hearing Aisha" })).toBeTruthy();
+    // The open popup hides the bar from the accessibility tree; it is still there.
+    expect(screen.getByRole("button", { name: "Start hearing", hidden: true })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "End hearing", hidden: true })).toBeNull();
+
+    fireEvent.click(await screen.findByRole("button", { name: "Start" }, { timeout: 10_000 }));
+    await screen.findByRole("button", { name: "End hearing" }, { timeout: 10_000 });
+    expect(start).toHaveBeenCalledTimes(2);
+    expect(screen.queryByText(/Could not start the hearing/)).toBeNull();
+  }, SLOW);
+
   it("with a session passed in, it opens mid-hearing and ends at the planned end", async () => {
     const start = starter();
     render(<ReviewLogger mode="hearing" sessionId="draft-9" reciterName="Aisha" pages={pages}
