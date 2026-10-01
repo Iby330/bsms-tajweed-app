@@ -66,7 +66,7 @@ export function HearingDesk({
 
       {draftStarted && (
         <p className="text-xs text-muted-foreground">
-          Hearing in progress — switching student keeps it for later.
+          Hearing in progress. Switching student keeps it for later.
         </p>
       )}
 

@@ -35,7 +35,7 @@ export function RecordActions({
         rows={2}
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="e.g. Tighten the madd in āyah 3 — the student reads this…"
+        placeholder="e.g. Tighten the madd in āyah 3. The student reads this…"
       />
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" disabled={pending || !dirty}
