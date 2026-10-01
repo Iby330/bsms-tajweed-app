@@ -3,6 +3,10 @@
 **Date:** 2026-09-15
 **Builds on:** `2026-08-14-hifz-peer-review-design.md` (sessions, mistakes, the mushaf logger)
 **Status:** draft for review
+**Superseded in part by:** `2026-10-01-hifdh-hear-tab-design.md`. Hearing now happens on the
+student's Hear tab, starts with a Start hearing button and a planned range,
+and the teacher's surah page is a read-only record. The notes marked
+*Superseded* below say where.
 
 ## Goal
 
@@ -29,6 +33,7 @@ even though they share a table underneath.
 - **The teacher's surah page is the logger.** No "start" step, no mode
   toggle. Open the surah, tap as the student recites, press Passed or Not
   passed at the bottom. Each button opens the same small popup for a note.
+  *Superseded:* the surah page no longer hears; see `2026-10-01-hifdh-hear-tab-design.md`.
 - **The student's surah page shows the teacher's marks only.** Peer mistakes
   never appear there; they live on the Review tab as today.
 - **The marking panel on the teacher's grid goes away.** Tapping a surah cell
@@ -126,6 +131,10 @@ A teacher who opens a surah to look and leaves creates no row. A teacher who
 taps three words and closes the tab finds those three marks waiting next
 time, the same as a peer draft.
 
+*Superseded:* there is no lazy draft any more. A draft is created only by
+Start hearing on the student's Hear tab, `startHearing(studentId, from, to)`;
+before Start a tap only shows earlier marks. See `2026-10-01-hifdh-hear-tab-design.md`.
+
 **A hearing with no mistakes is still a hearing.** Passed with nothing
 tapped submits a session with zero mistakes and writes the record. That is
 the common case for a well-prepared student and must be one press.
@@ -193,7 +202,9 @@ bulk path or is deleted in a cleanup.
 - **`ReviewLogger`** gains a `mode`: `'peer'` (today's header and finish
   dialog) or `'hearing'` (the verdict bar and its popup), and accepts
   `sessionId: string | null` with an `ensureSession()` callback for the lazy
-  draft. The tap-to-classify sheet is shared untouched.
+  draft. The tap-to-classify sheet is shared untouched. *Superseded:*
+  `ensureSession` is gone; hearing mode takes `hearing.start` and has a
+  not-started state (see `2026-10-01-hifdh-hear-tab-design.md`).
 
 ## Edge cases
 

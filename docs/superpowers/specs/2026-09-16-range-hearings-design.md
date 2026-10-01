@@ -3,6 +3,11 @@
 **Date:** 2026-09-16
 **Builds on:** `2026-09-15-teacher-hearing-design.md` (hearings as sessions, the per-surah pages, the lazy draft)
 **Status:** approved in conversation; written up for implementation
+**Superseded in part by:** `2026-10-01-hifdh-hear-tab-design.md`. The desk route is now a
+redirect to the student's Hear tab, the register has no Hear tab, the
+per-surah teacher page is read-only, a hearing starts with Start hearing and
+a planned range, and the end is proposed from that planned end rather than
+the page in view. The notes marked *Superseded* below say where.
 
 ## Goal
 
@@ -24,7 +29,8 @@ as heard and not passed, with its marks, so they know what to bring back.
   change it before the first tap. Once a draft has marks, the start is fixed.
 - **End is worked out at Finish, then confirmed.** The surah on the page in
   view, widened so every tapped mark is inside the range. The popup shows
-  the range and lets the teacher move the end.
+  the range and lets the teacher move the end. *Superseded:* the end now
+  starts from the range planned at Start, widened by marks.
 - **One Finish, ticks per surah.** Every surah in the range is a row with a
   tick, all ticked by default. Confirm signs off the ticked surahs. Untick
   them all and nothing passes. There are no separate Passed / Not passed
@@ -78,6 +84,10 @@ instead of a second logger, so two drafts for one student never exist.
 
 ### The desk: `/teacher/hifdh/hear`
 
+*Superseded:* this route now redirects to `/teacher/hifdh/<id>?tab=hear`
+(or to the register without `?student=`). Hearing lives on each student's
+Hear tab; the register's Overview | Hear tabs are gone.
+
 Reached from the Hear tab beside Overview on the hifdh register; a student's
 own page has no Hear tab. `?student=<id>` names the student; without it the
 roster's first student with a target is chosen.
@@ -106,12 +116,16 @@ Top to bottom:
    - **Confirm**.
    The default end is the surah containing the last word on the page in
    view, widened to include the lowest-numbered surah with a mark. If the
-   page in view is before the start, the end is the start.
+   page in view is before the start, the end is the start. *Superseded:*
+   the default end is the planned end from Start, widened by marks.
 4. **After Confirm** the page stays on the student with a line "Heard
    Al-Ghashiyah → Al-A'la · 2 passed · 1 not passed" (`doneLine` in
    `hearings.ts`) and a **Next student** button that moves down the roster.
 
 ### The per-surah teacher page
+
+*Superseded:* the page is now a read-only record with a "Hear from this
+surah" link to the Hear tab; it has no logger.
 
 As built, minus the two verdict buttons. Finish opens the same popup with a
 single row. When the student has an open draft that started elsewhere, the
@@ -130,7 +144,9 @@ hearing's note when the surah is not passed, the pass comment when it is.
 
 - `startHearing(studentId, fromSurah)` — returns the student's open draft
   (any start) or inserts one with `surah_number = fromSurah` and
-  `to_surah_number = fromSurah`.
+  `to_surah_number = fromSurah`. *Superseded:* now
+  `startHearing(studentId, from, to)`, called only by Start hearing, storing
+  the planned range.
 - `submitHearing(sessionId, { to, passed, note })` — validates the session
   is the caller's open hearing, `to <= from`, that `[to, from]` lies on the
   student's own memorisation run (server-side, from `hifz_profiles` — a
@@ -148,7 +164,8 @@ hearing's note when the surah is not passed, the pass comment when it is.
 - `lib/hifz/hearings.ts`: `surahState(surah, passed, hearings)`,
   `endSurahFor(from, lastSurahOnPage, markSurahs)` (the surah under the page
   in view — found separately via `lastSurahOn(pages, page)` — widened by
-  any mark surahs), and `doneLine(from, to, passed, names)` for the desk's
+  any mark surahs; *superseded:* now `endSurahFor(from, plannedTo,
+  markSurahs)`, and `lastSurahOn` is gone), and `doneLine(from, to, passed, names)` for the desk's
   after-Confirm line; `recordLine` and `commentToShow` take the derived
   state instead of an outcome.
 - `lib/hifz/hearing-queries.ts`: `hearingsForStudent(studentId)` (every
@@ -165,7 +182,8 @@ hearing's note when the surah is not passed, the pass comment when it is.
   an `endFromPage` flag that proposes the range's end from the pager's page
   (the desk) rather than defaulting it to the start (the per-surah page),
   and renders `HearingFinish` itself — the desk has no separate
-  `DeskLogger`; the verdict bar goes.
+  `DeskLogger`; the verdict bar goes. *Superseded:* `endFromPage` is gone;
+  hearing mode takes `plannedTo` and starts with Start hearing.
 
 ## Edge cases
 
@@ -195,7 +213,8 @@ hearing's note when the surah is not passed, the pass comment when it is.
   use, so it needs no separate test; the logger test covers `endFromPage`
   proposing the range's end from the pager's page (a page whose last word
   is a different, lower-numbered surah than the start) rather than the
-  start alone.
+  start alone. *Superseded:* the logger tests now cover the
+  planned end widened by marks, and the not-started state.
 - Live RLS check (`hearings_rls.sql`) updated: the hearing insert carries
   `to_surah_number`, and the submit update no longer touches the dropped
   `outcome` column.
