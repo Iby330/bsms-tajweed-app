@@ -257,7 +257,7 @@ async function setup({ statePath }) {
     .limit(1)
     .maybeSingle();
   if (studentErr) die(`class roster lookup failed: ${studentErr.message}`);
-  if (!classStudent) die(`class ${klass.name} has no students — /teacher/hifz/<id> unmeasurable`);
+  if (!classStudent) die(`class ${klass.name} has no students — /teacher/hifdh/<id> unmeasurable`);
   log(`  student in class: ${classStudent.id}`);
 
   const nowIso = new Date().toISOString();
@@ -408,7 +408,7 @@ function routesFor(sample) {
   const student = [
     "/home",
     "/progress",
-    "/hifz",
+    "/hifdh",
     "/courses",
     "/courses/1",
     `/homework/${sample.homeworkNumber}`,
@@ -419,8 +419,8 @@ function routesFor(sample) {
     "/teacher/roster",
     "/teacher/attendance",
     "/teacher/classes",
-    "/teacher/hifz",
-    `/teacher/hifz/${sample.studentId}`,
+    "/teacher/hifdh",
+    `/teacher/hifdh/${sample.studentId}`,
     "/teacher/homework",
     `/teacher/homework/${sample.homeworkNumber}`,
     "/teacher/curriculum",
