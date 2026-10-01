@@ -53,5 +53,5 @@ where nullif(btrim(a.notes), '') is not null
 returning application_id;
 
 comment on column applications.notes is
-  'Superseded by application_notes (migration 0038). Copied there unsigned; '
+  'Superseded by application_notes (migration 0040). Copied there unsigned; '
   'no longer written by the app.';
