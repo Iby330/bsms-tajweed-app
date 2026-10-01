@@ -7,6 +7,7 @@ import { TapWords } from "@/components/app/tap-words";
 import { isTapWords } from "@/lib/homework/tap-words";
 import { MarkBadge } from "@/components/app/mark-badge";
 import { VoiceRecorder } from "@/components/app/voice-recorder";
+import { RecitationClip } from "@/components/app/recitation-clip";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { saveAnswer, submitHomework } from "@/lib/homework/actions";
@@ -16,6 +17,7 @@ import {
   selectedOf, textOf, fmtMarks, missingTaskRecordings,
   type StudentQuestion,
 } from "@/lib/homework/logic";
+import { parseMedia } from "@/lib/homework/media";
 import { cn } from "@/lib/utils";
 
 export type ExistingAnswer = {
@@ -128,6 +130,9 @@ export function HomeworkForm({
       {questions.map((q, i) => {
         const a = byQ.get(q.id);
         const value = answers[q.id];
+        // Parsed per question, and forgivingly: audio that does not parse is
+        // simply absent, and the question reads as it would without it.
+        const media = parseMedia(q.media);
         const rubric = Array.isArray(a?.auto_rubric)
           ? (a!.auto_rubric as { id: string; present: boolean; why?: string }[])
           : null;
@@ -148,6 +153,11 @@ export function HomeworkForm({
                 <MarkBadge marks={a?.final_marks ?? null} points={q.points} />
               )}
             </div>
+
+            {/* "Name the rule you heard": the listening sits between the
+                question and the answers, where it is read, so the student
+                hears it before choosing and can replay it while they do. */}
+            {media.clip && <RecitationClip clip={media.clip} className="mt-4" />}
 
             <div className="mt-4">
               {q.is_task ? (
@@ -180,18 +190,24 @@ export function HomeworkForm({
                 <ul className="space-y-1.5">
                   {q.options.map((o) => {
                     const checked = selectedOf(value).includes(o.position);
+                    const audio = media.optionAudio[o.position];
                     return (
-                      <li key={o.position}>
+                      <li key={o.position} className={cn(audio && "flex items-center gap-2")}>
                         <label className={cn(
                           "flex cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2 text-sm transition-colors",
                           checked ? "border-ink bg-muted" : "border-line hover:bg-muted/60",
                           readOnly && "cursor-default",
+                          audio && "min-w-0 flex-1",
                         )}>
                           <input type="radio" name={q.id} disabled={readOnly} checked={checked}
                             onChange={() => update(q.id, mcqResponse(o.position))}
                             className="mt-0.5 size-4 accent-[var(--ink)]" />
                           <MixedText text={o.value ?? o.label} variant="quran" />
                         </label>
+                        {/* Beside the label, never inside it: a click inside
+                            a label is a click on its radio, and hearing an
+                            option must not choose it. */}
+                        {audio && <RecitationClip clip={audio} compact />}
                       </li>
                     );
                   })}
@@ -201,12 +217,14 @@ export function HomeworkForm({
                   {q.options.map((o) => {
                     const sel = selectedOf(value);
                     const checked = sel.includes(o.position);
+                    const audio = media.optionAudio[o.position];
                     return (
-                      <li key={o.position}>
+                      <li key={o.position} className={cn(audio && "flex items-center gap-2")}>
                         <label className={cn(
                           "flex cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2 text-sm transition-colors",
                           checked ? "border-ink bg-muted" : "border-line hover:bg-muted/60",
                           readOnly && "cursor-default",
+                          audio && "min-w-0 flex-1",
                         )}>
                           <input type="checkbox" disabled={readOnly} checked={checked}
                             onChange={(e) => update(q.id, checkboxResponse(
@@ -215,6 +233,7 @@ export function HomeworkForm({
                             className="mt-0.5 size-4 accent-[var(--ink)]" />
                           <MixedText text={o.value ?? o.label} variant="quran" />
                         </label>
+                        {audio && <RecitationClip clip={audio} compact />}
                       </li>
                     );
                   })}
