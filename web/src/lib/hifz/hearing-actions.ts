@@ -7,37 +7,48 @@ import { memorisationList, type Surah } from "@/lib/hifz/pace";
 import { requireOwnStudent, requireTeacher } from "@/lib/teacher/guards";
 import { rangeSurahs } from "./hearings";
 
+/** An open hearing as Start leaves it: the draft and its planned range. */
+export type StartedHearing = { id: string; from: number; to: number };
+
 /**
- * The teacher's open hearing on this student — wherever it started — or a
- * new one starting at `fromSurah`. Called on the FIRST TAP or at Finish,
- * never on opening a page. One open draft per teacher per student.
+ * Start hearing: the teacher's open hearing on this student, whatever its
+ * range (its own range wins, so a second Start can never fork a second
+ * draft), or a new one planned from `from` down to `to`. Called only by the
+ * Start button, never on opening a page or tapping a word. One open draft
+ * per teacher per student.
  */
-export async function startHearing(studentId: string, fromSurah: number): Promise<string> {
+export async function startHearing(studentId: string, from: number, to: number): Promise<StartedHearing> {
   const me = await requireTeacher();
   await requireOwnStudent(studentId);
   const db = await supabaseServer();
 
+  // An off-run or inverted range would make a draft submitHearing can never
+  // accept, and nothing deletes a draft, so it would block hearing this
+  // student for good.
+  if (!Number.isInteger(from) || !Number.isInteger(to) || to > from) {
+    throw new Error("The range ends before it starts.");
+  }
+  const run = await runFor(db, studentId);
+  if (!run.has(from) || !run.has(to)) throw new Error("That range is not on this student's run.");
+
   const { data: existing } = await db
-    .from("revision_sessions").select("id")
+    .from("revision_sessions").select("id, surah_number, to_surah_number")
     .eq("reviewer_id", me.id).eq("reciter_id", studentId).eq("kind", "hearing")
     .is("submitted_at", null)
     .order("started_at", { ascending: true }).limit(1).maybeSingle();
-  if (existing) return existing.id;
-
-  // An off-run start would make a draft submitHearing can never accept, and
-  // nothing deletes a draft, so it would block hearing this student for good.
-  const run = await runFor(db, studentId);
-  if (!run.has(fromSurah)) throw new Error("That surah is not on this student's run.");
+  if (existing && existing.surah_number !== null) {
+    return { id: existing.id, from: existing.surah_number, to: existing.to_surah_number ?? existing.surah_number };
+  }
 
   const { data, error } = await db
     .from("revision_sessions")
     .insert({
       reviewer_id: me.id, reciter_id: studentId, kind: "hearing",
-      surah_number: fromSurah, to_surah_number: fromSurah,
+      surah_number: from, to_surah_number: to,
     })
     .select("id").single();
   if (error) throw new Error(error.message);
-  return data.id;
+  return { id: data.id, from, to };
 }
 
 /**
@@ -56,7 +67,7 @@ async function runFor(db: Awaited<ReturnType<typeof supabaseServer>>, studentId:
 export type HearingVerdict = { to: number; passed: number[]; note?: string };
 
 /**
- * Finish. For every surah in [to, from]: ticked → the pass record is
+ * End hearing, confirmed. For every surah in [to, from]: ticked → the pass record is
  * upserted (comment = note, session_id = this hearing; passed_at untouched
  * on a re-pass); unticked → any record is deleted, which is what revokes an
  * earlier pass — surahState (hearings.ts) relies on exactly that. Records
@@ -114,7 +125,6 @@ export async function submitHearing(sessionId: string, verdict: HearingVerdict):
 
   revalidatePath("/hifdh");
   revalidatePath("/teacher/hifdh");
-  revalidatePath("/teacher/hifdh/hear");
   revalidatePath(`/teacher/hifdh/${s.reciter_id}`);
   for (const surah of range) {
     revalidatePath(`/hifdh/${surah}`);

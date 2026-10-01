@@ -1,10 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { fmtDay, fmtStamp } from "@/lib/format";
 import {
-  commentToShow, covers, doneLine, endSurahFor, heardSurahs, lastSurahOn, rangeSurahs, recordLine, summaryOf,
+  commentToShow, covers, doneLine, endSurahFor, heardSurahs, rangeSurahs, recordLine, summaryOf,
   surahState,
 } from "./hearings";
-import type { MushafPage } from "@/lib/quran/mushaf";
 
 const when = "2026-09-10T10:00:00Z";
 const heard = { submittedAt: when, teacherName: "Ustadh Bilal", mistakeCount: 3 };
@@ -59,37 +58,23 @@ describe("surahState", () => {
 });
 
 describe("endSurahFor", () => {
-  it("ends on the surah under the last word of the page in view", () => {
+  it("ends on the planned end when nothing is marked", () => {
     expect(endSurahFor(88, 86, [])).toBe(86);
   });
-  it("a page before the start ends on the start", () => {
-    expect(endSurahFor(88, 90, [])).toBe(88);
-    expect(endSurahFor(88, null, [])).toBe(88);
+  it("a one-surah plan ends on the start", () => {
+    expect(endSurahFor(88, 88, [])).toBe(88);
   });
-  it("widens to cover the furthest mark", () => {
+  it("a mark beyond the planned end widens the range to cover it", () => {
     expect(endSurahFor(88, 87, [88, 85])).toBe(85);
+  });
+  it("marks inside the plan never pull the end in", () => {
+    expect(endSurahFor(88, 85, [88, 87])).toBe(85);
   });
   it("marks behind the start cannot widen backwards", () => {
     expect(endSurahFor(88, 88, [90])).toBe(88);
   });
-  it("a mark on the start surah itself does not widen it", () => {
-    expect(endSurahFor(88, 88, [88])).toBe(88);
-  });
-});
-
-describe("lastSurahOn", () => {
-  const page = (n: number, surahs: number[]): MushafPage => ({
-    page: n,
-    lines: surahs.map((s, i) => ({
-      line: i + 1,
-      words: [{ surah: s, ayah: 1, position: 1, text: "x", glyph: null, isEnd: false, page: n, line: i + 1 }],
-    })),
-  });
-  it("is the surah of the last word on that page", () => {
-    expect(lastSurahOn([page(592, [88]), page(593, [88, 87])], 593)).toBe(87);
-  });
-  it("is null for a page not in the set", () => {
-    expect(lastSurahOn([page(592, [88])], 600)).toBeNull();
+  it("a planned end above the start falls back to the start", () => {
+    expect(endSurahFor(88, 90, [])).toBe(88);
   });
 });
 

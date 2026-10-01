@@ -70,7 +70,7 @@ export async function hearingsForStudent(studentId: string): Promise<Hearing[]> 
   return rows.map((r) => toHearing(r, names, []));
 }
 
-/** Every mistake of every submitted hearing of a student — the desk's heat. */
+/** Every mistake of every submitted hearing of a student: the Hear tab's heat and its recurring mistakes. */
 export async function hearingMistakesFor(studentId: string): Promise<MistakeRow[]> {
   const db = await supabaseServer();
   const { data: sessions } = await submittedHearings(db, studentId, "id");
@@ -102,23 +102,30 @@ export async function hearingsFor(studentId: string, surah: number): Promise<Hea
 }
 
 /**
- * The teacher's open draft on this student, wherever it started, with its
- * marks. One open draft per teacher per student: the desk resumes it and
- * the per-surah page defers to it. `teacherId` must be the signed-in
- * teacher's own id (the page passes profile.id); RLS lets a teacher read
- * every session, so it will not catch a mismatch. If a race ever leaves
- * two open drafts, the oldest wins rather than crashing the page.
+ * The teacher's open draft on this student, whatever its range, with its
+ * marks. One open draft per teacher per student: the Hear tab resumes it.
+ * `to` is the end planned at Start; a draft from before Start existed has
+ * `to = from`, which reads as a one-surah plan and widens to its marks at
+ * the end. `teacherId` must be the signed-in teacher's own id (the page
+ * passes profile.id); RLS lets a teacher read every session, so it will not
+ * catch a mismatch. If a race ever leaves two open drafts, the oldest wins
+ * rather than crashing the page.
  */
 export async function openDraftFor(
   teacherId: string, studentId: string,
-): Promise<{ id: string; from: number; mistakes: MistakeRow[] } | null> {
+): Promise<{ id: string; from: number; to: number; mistakes: MistakeRow[] } | null> {
   const db = await supabaseServer();
   const { data: s } = await db
-    .from("revision_sessions").select("id, surah_number")
+    .from("revision_sessions").select("id, surah_number, to_surah_number")
     .eq("reviewer_id", teacherId).eq("reciter_id", studentId).eq("kind", "hearing")
     .is("submitted_at", null)
     .order("started_at", { ascending: true }).limit(1).maybeSingle();
   if (!s || s.surah_number === null) return null;
   const { data } = await db.from("revision_mistakes").select(MISTAKE_COLS).eq("session_id", s.id);
-  return { id: s.id, from: s.surah_number, mistakes: (data ?? []) as MistakeRow[] };
+  return {
+    id: s.id,
+    from: s.surah_number,
+    to: s.to_surah_number ?? s.surah_number,
+    mistakes: (data ?? []) as MistakeRow[],
+  };
 }

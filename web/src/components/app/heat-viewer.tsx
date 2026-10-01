@@ -24,26 +24,42 @@ export function HeatViewer({
   return (
     <>
       <MushafReader pages={pages} heat={heat} surahNames={surahNames} onWordTap={onTap} />
-      <Dialog open={open !== null} onOpenChange={(o) => !o && setOpen(null)}>
-        <DialogContent className="space-y-2">
-          <DialogHeader>
-            <DialogTitle dir="rtl" lang="ar" className="ar-quran text-center">
-              {open?.word.text}
-            </DialogTitle>
-          </DialogHeader>
-          <ul className="space-y-1.5">
-            {open?.entries.map((e, i) => (
-              <li key={i} className="rounded-md bg-muted px-2.5 py-1.5 text-xs">
-                <span className="font-medium">{e.label}</span>
-                <span className="ml-2 text-muted-foreground">
-                  {new Date(e.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                </span>
-                {e.note && <p className="mt-0.5 text-ink-2">{e.note}</p>}
-              </li>
-            ))}
-          </ul>
-        </DialogContent>
-      </Dialog>
+      <WordHistoryDialog open={open} onClose={() => setOpen(null)} />
     </>
+  );
+}
+
+/**
+ * What earlier hearings said about one word, read-only. Shared by the
+ * heatmaps and by the Hear tab before a hearing starts, where a tap looks
+ * rather than marks.
+ */
+export function WordHistoryDialog({
+  open, onClose,
+}: {
+  open: { word: QuranWord; entries: WordHistoryEntry[] } | null;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog open={open !== null} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="space-y-2">
+        <DialogHeader>
+          <DialogTitle dir="rtl" lang="ar" className="ar-quran text-center">
+            {open?.word.text}
+          </DialogTitle>
+        </DialogHeader>
+        <ul className="space-y-1.5" aria-label="Earlier marks on this word">
+          {open?.entries.map((e, i) => (
+            <li key={i} className="rounded-md bg-muted px-2.5 py-1.5 text-xs">
+              <span className="font-medium">{e.label}</span>
+              <span className="ml-2 text-muted-foreground">
+                {new Date(e.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+              </span>
+              {e.note && <p className="mt-0.5 text-ink-2">{e.note}</p>}
+            </li>
+          ))}
+        </ul>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,5 +1,4 @@
 import { fmtDay, fmtStamp } from "@/lib/format";
-import type { MushafPage } from "@/lib/quran/mushaf";
 
 /** Where a surah stands. Derived, never stored (see surahState). */
 export type SurahState = "passed" | "not_passed" | "unheard";
@@ -45,30 +44,24 @@ export function surahState(
 }
 
 /**
- * Where a hearing ends when Finish is pressed: the surah containing the
- * last word on the page in view, widened so every marked surah is inside
- * the range. A page before the start (a higher surah, or no page) means
- * the end is the start; marks behind the start cannot widen backwards.
+ * Where a hearing ends when End hearing is pressed: the end planned at
+ * Start, widened so every marked surah is inside the range. Marks inside
+ * the plan never pull the end in; marks behind the start (a higher number)
+ * cannot widen it backwards. A planned end above the start, which nothing
+ * should send, falls back to the start.
  */
 export function endSurahFor(
   from: number,
-  lastSurahOnPage: number | null,
+  plannedTo: number,
   markSurahs: Iterable<number>,
 ): number {
-  let end = lastSurahOnPage === null || lastSurahOnPage > from ? from : lastSurahOnPage;
+  let end = plannedTo > from ? from : plannedTo;
   for (const s of markSurahs) if (s < end) end = s;
   return end;
 }
 
-/** The surah of the last word on a page, or null when the page is not in the set. */
-export function lastSurahOn(pages: readonly MushafPage[], page: number): number | null {
-  const p = pages.find((x) => x.page === page);
-  const last = p?.lines.at(-1)?.words.at(-1);
-  return last ? last.surah : null;
-}
-
 /**
- * The line shown on the desk after Finish confirms a hearing: what was
+ * The line shown on the Hear tab after a hearing is confirmed: what was
  * heard, and how much of it passed. A single-surah range names just that
  * surah rather than repeating it as "X → X".
  */
