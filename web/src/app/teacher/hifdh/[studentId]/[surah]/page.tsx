@@ -93,13 +93,12 @@ export default async function TeacherSurahPage({
   const minEnd = list[list.length - 1].number;
   const basePath = `/teacher/hifdh/${studentId}/${number}`;
 
+  // ensureSession rides along with a draft too: after Finish the logger
+  // opens the next hearing through it rather than the submitted one.
+  const ensureSession = startHearing.bind(null, studentId, number);
   const session: SessionProps & { initialMistakes: MistakeRow[] } = draft && draft.from === number
-    ? { sessionId: draft.id, initialMistakes: draft.mistakes }
-    : {
-        sessionId: null,
-        ensureSession: startHearing.bind(null, studentId, number),
-        initialMistakes: [] as MistakeRow[],
-      };
+    ? { sessionId: draft.id, ensureSession, initialMistakes: draft.mistakes }
+    : { sessionId: null, ensureSession, initialMistakes: [] as MistakeRow[] };
 
   return (
     <>
@@ -139,7 +138,12 @@ export default async function TeacherSurahPage({
           </section>
         ) : (
           <section className="box c12" aria-label="The mushaf">
+            {/* Keyed on the draft, or on the latest hearing when there is
+                none: a Finish refreshes this page in place, and the next
+                hearing must start from a fresh logger, not the last one's
+                session and marks. */}
             <ReviewLogger
+              key={draft?.id ?? `new:${latest?.id ?? "none"}`}
               mode="hearing"
               {...session}
               reciterName={student.full_name}

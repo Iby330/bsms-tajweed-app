@@ -79,9 +79,12 @@ export default async function HearingDeskPage({
     ? { text: doneLine(justDone.from, justDone.to, new Set(Object.keys(passedBefore).map(Number)), surahNames) }
     : null;
 
+  // ensureSession rides along with a draft too: after Finish the logger
+  // opens the next hearing through it rather than the submitted one.
+  const ensureSession = startHearing.bind(null, studentId, from);
   const session: SessionProps & { initialMistakes: MistakeRow[] } = draft
-    ? { sessionId: draft.id, initialMistakes: draft.mistakes }
-    : { sessionId: null, ensureSession: startHearing.bind(null, studentId, from), initialMistakes: [] };
+    ? { sessionId: draft.id, ensureSession, initialMistakes: draft.mistakes }
+    : { sessionId: null, ensureSession, initialMistakes: [] };
 
   return (
     <>

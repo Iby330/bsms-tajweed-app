@@ -110,15 +110,15 @@ export function ReviewLogger({
    * assert the mock was called immediately after `fireEvent.click`, before
    * awaiting anything.
    *
-   * The middle branch is unreachable at runtime (`sid` starts as
-   * `sessionId` and only ever moves null → a string, never back), but it's
-   * what lets TypeScript prove `ensureSession` is defined below without a
-   * `!` — the props type only guarantees that when `sessionId` (not `sid`)
-   * is null.
+   * `sid` goes back to null after a hearing's Finish (the page refreshes in
+   * place, so this logger can outlive the hearing it submitted), and the
+   * next write then opens a new draft through `ensureSession` — which is
+   * why hearing pages pass it even when a draft already exists. Peer mode's
+   * `sid` never goes back to null, so it never reaches the last branch.
    */
   const withSession = (write: (id: string) => Promise<void>) => {
     if (sid) return write(sid);
-    if (sessionId !== null) return write(sessionId);
+    if (!ensureSession) return Promise.reject(new Error("This session is closed. Reload the page."));
     return ensureSession().then((id) => {
       setSid(id);
       return write(id);
@@ -193,6 +193,10 @@ export function ReviewLogger({
       withSession(async (id) => {
         await submitHearing(id, v);
         setWrapUp(false);
+        // The hearing is closed: the next tap starts a new draft rather
+        // than writing into this one, and its marks are no longer live.
+        setSid(null);
+        setMarks({});
         router.refresh();
         hearing?.onFinished?.(id);
       }),

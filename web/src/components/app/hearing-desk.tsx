@@ -81,13 +81,14 @@ export function HearingDesk({
         </div>
       )}
 
-      {/* Remount on a change of student or start: sid/marks (session id, the
-          mistake set) and the finish popup's end must never survive onto a
-          different student's or a different start's draft. The pager's `p`
-          is deliberately NOT in this key — turning a page must not remount
-          the logger, since marks span pages. */}
+      {/* Remount on a change of student, start or draft: sid/marks (session
+          id, the mistake set) and the finish popup's end must never survive
+          onto a different student's or a different start's draft, nor past a
+          Finish, which can leave student and start unchanged. The pager's
+          `p` is deliberately NOT in this key — turning a page must not
+          remount the logger, since marks span pages. */}
       <ReviewLogger
-        key={`${studentId}:${from}`}
+        key={`${studentId}:${from}:${session.sessionId ?? "new"}`}
         mode="hearing"
         {...session}
         reciterName={reciterName}

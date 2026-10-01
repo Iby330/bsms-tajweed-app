@@ -99,6 +99,39 @@ describe("ReviewLogger in hearing mode", () => {
     await vi.waitFor(() => expect(submitHearing).toHaveBeenCalledWith("draft-9", { to: 114, passed: [], note: "" }));
   }, SLOW);
 
+  /**
+   * After Finish the page refreshes in place, so the logger can outlive the
+   * hearing it just submitted. The next tap must open a NEW draft, never
+   * write into the submitted one (RLS rejects that, and a second Finish
+   * then throws "Hearing already submitted or not yours.").
+   */
+  it.each([
+    ["a draft created on Finish", null],
+    ["an existing draft", "draft-9"],
+  ])("after Finish, the next mark goes to a new draft (%s)", async (_, sessionId) => {
+    // A draft made on Finish takes h1; whatever comes after it is h2.
+    const ensureSession = vi.fn(async () => "h2");
+    if (sessionId === null) ensureSession.mockResolvedValueOnce("h1");
+    const session = sessionId === null
+      ? { sessionId: null, ensureSession }
+      : { sessionId, ensureSession };
+    render(<ReviewLogger mode="hearing" {...session}
+      reciterName="Aisha" pages={pages} initialMistakes={[]} hearing={hearing} />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    const first = sessionId ?? "h1";
+    await vi.waitFor(() => expect(submitHearing).toHaveBeenCalledWith(first, { to: 114, passed: [114], note: "" }));
+    await vi.waitFor(() => expect(screen.queryByRole("dialog")).toBeNull(), { timeout: 5_000 });
+
+    fireEvent.click(screen.getByRole("button", { name: "قُلْ" }));
+    fireEvent.click(screen.getByRole("button", { name: "Hifdh" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await vi.waitFor(() => expect(logMistake).toHaveBeenCalledTimes(1));
+    expect(logMistake).toHaveBeenCalledWith(
+      "h2", { surah: 114, ayah: 1, position: 1 }, "hifz", undefined, "");
+    expect(await screen.findByText(/1 mistake/, undefined, { timeout: 10_000 })).toBeTruthy();
+  }, SLOW);
+
   it("at the desk, proposes the end from the page on screen (pager), not just the start", async () => {
     const ensureSession = ensure();
     render(
