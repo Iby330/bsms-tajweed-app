@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { supabaseServer, currentProfile } from "@/lib/supabase/server";
 import { voiceResponse } from "@/lib/homework/logic";
+import { isOwnVoicePath } from "./path";
 
 /**
  * Record where a student's voice note landed in Storage. The upload itself
@@ -25,6 +26,18 @@ export async function saveVoiceNote(
   if (!profile) return { ok: false, error: "Not signed in." };
 
   const db = await supabaseServer();
+  // The path is the client's word for where the audio went. Hold it to the
+  // one the recorder builds for this caller, this submission's current
+  // attempt and this question, before anything points at it.
+  const { data: sub } = await db
+    .from("submissions").select("attempt")
+    .eq("id", submissionId).eq("student_id", profile.id)
+    .maybeSingle();
+  if (!sub) return { ok: false, error: "Submission not found." };
+  if (!isOwnVoicePath(storagePath, { uid: profile.id, submissionId, attempt: sub.attempt, questionId })) {
+    return { ok: false, error: "That recording is not in the right place. Record it again." };
+  }
+
   const [note, answer] = await Promise.all([
     db.from("voice_notes").upsert(
       {

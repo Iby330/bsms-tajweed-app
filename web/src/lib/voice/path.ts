@@ -26,3 +26,18 @@ export function submissionIdFromPath(path: string): string | null {
   const segments = path.split("/");
   return segments.length >= 3 && segments[1] !== "" ? segments[1] : null;
 }
+
+/**
+ * Is `path` exactly where this caller's recording for this question, on this
+ * attempt, belongs? The server checks a client-supplied path with this before
+ * pointing a submission at it: storage RLS guards the audio, but nothing else
+ * stopped a crafted call recording someone else's folder as this answer.
+ * Only the extension is free, and only as a short alphanumeric one.
+ */
+export function isOwnVoicePath(
+  path: string,
+  own: { uid: string; submissionId: string; attempt: number; questionId: string },
+): boolean {
+  const prefix = voiceObjectPath(own.uid, own.submissionId, own.attempt, own.questionId, "");
+  return path.startsWith(prefix) && /^[a-z0-9]{1,5}$/.test(path.slice(prefix.length));
+}
