@@ -210,7 +210,9 @@ export function RecitationClip({
         if (busy || playing) stop();
         else play();
       }}
-      className={cn("relative overflow-hidden", compact && "shrink-0")}
+      // On a phone an icon-sm button is under the 44px a thumb needs; the option
+      // rows have room for it, so it grows there and stays compact on desktop.
+      className={cn("relative overflow-hidden", compact && "shrink-0 max-sm:size-11")}
     >
       {busy ? (
         <LoaderCircle aria-hidden className="animate-spin" />
