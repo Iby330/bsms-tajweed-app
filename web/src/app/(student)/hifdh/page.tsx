@@ -13,6 +13,8 @@ import { revisionActivityFor } from "@/lib/hifz/activity-queries";
 import { londonDayKey } from "@/lib/hifz/revision-activity";
 import { hearingsForStudent } from "@/lib/hifz/hearing-queries";
 import { heardSurahs } from "@/lib/hifz/hearings";
+import { MistakeBoard } from "@/components/app/mistake-board";
+import { parseSource } from "@/lib/hifz/mistake-board";
 
 export const dynamic = "force-dynamic";
 
@@ -27,9 +29,9 @@ function EmptyState({ message }: { message: string }) {
 export default async function StudentHifz({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; page?: string; heat?: string }>;
+  searchParams: Promise<{ tab?: string; page?: string; heat?: string; src?: string }>;
 }) {
-  const { tab, page, heat } = await searchParams;
+  const { tab, page, src, heat } = await searchParams;
   const profile = (await currentProfile())!;
 
   // The Review tab must stay reachable even before a target is set — a
@@ -42,7 +44,7 @@ export default async function StudentHifz({
           <p>Peer revision with your partner.</p>
         </header>
         <HifzTabs basePath="/hifdh" active="review" />
-        <ReviewTab userId={profile.id} pageParam={page} heatParam={heat} />
+        <ReviewTab userId={profile.id} pageParam={page} />
       </>
     );
   }
@@ -177,6 +179,16 @@ export default async function StudentHifz({
       </div>
 
       <div className="divider">
+        <span className="label">The journey</span>
+        <span className="r" />
+        <span className="m" />
+      </div>
+
+      <div className="field">
+        <HifzJourney list={list} earlier={earlier} records={recordMap} heard={heard} expected={expected} />
+      </div>
+
+      <div className="divider">
         <span className="label">Your revision</span>
         <span className="r" />
         <span className="m" />
@@ -188,16 +200,16 @@ export default async function StudentHifz({
         <section className="box c12" aria-label="Revision activity">
           <RevisionHeatmap days={activity} end={today} />
         </section>
-      </div>
-
-      <div className="divider">
-        <span className="label">The journey</span>
-        <span className="r" />
-        <span className="m" />
-      </div>
-
-      <div className="field">
-        <HifzJourney list={list} earlier={earlier} records={recordMap} heard={heard} expected={expected} />
+        {/* How their Qur'an is going: every mark from hearings and partner
+            revision, under how often they revised. */}
+        <MistakeBoard
+          studentId={profile.id}
+          source={parseSource(src)}
+          heat={heat}
+          basePath="/hifdh"
+          run={list}
+          surahHref={(n, p) => `/hifdh/${n}${p ? `?p=${p}` : ""}`}
+        />
       </div>
 
       <div className="signoff">

@@ -8,7 +8,6 @@ import { fromRow, groupIntoPages } from "@/lib/quran/mushaf";
 import type { SurahNames } from "./mushaf-reader";
 import { ReviewLogger } from "./review-logger";
 import { StartReviewButton } from "./start-review-button";
-import { ReviewFeedback } from "./review-feedback";
 import { SurahJump } from "./surah-jump";
 
 /** The seeded mushaf runs An-Nas back to Al-Mulk — pages 562–604. */
@@ -20,31 +19,24 @@ const LAST_PAGE = 604;
  */
 const FIRST_FONT_PAGE = 562;
 
-/** The student Review tab: review-your-partner on top, your own feedback
- *  below. The reader is a real mushaf — one full page at a time, turned
- *  RTL; the surah chips only jump to a surah's opening page. */
+/** The student Review tab: reviewing your partner, and only that. Your own
+ *  mistakes live on the Overview's mistakes board. The reader is a real
+ *  mushaf — one full page at a time, turned RTL; the surah chips only jump
+ *  to a surah's opening page. */
 export async function ReviewTab({
-  userId, pageParam, heatParam,
+  userId, pageParam,
 }: {
   userId: string;
   pageParam?: string;
-  heatParam?: string;
 }) {
   const pair = await myActivePair(userId);
-  const heat = heatParam ? Number(heatParam) : undefined;
 
   if (!pair) {
     return (
-      <div className="space-y-5">
-        <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
-          Your teacher hasn&apos;t paired you with anyone yet. Reviews happen with
-          your revision partner.
-        </p>
-        <section className="space-y-2">
-          <h2 className="text-lg">Your feedback</h2>
-          <ReviewFeedback studentId={userId} heat={heat} basePath="/hifdh?tab=review" />
-        </section>
-      </div>
+      <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
+        Your teacher hasn&apos;t paired you with anyone yet. Reviews happen with
+        your revision partner.
+      </p>
     );
   }
 
@@ -72,12 +64,11 @@ export async function ReviewTab({
       getCachedPageWords(page),
       draftMistakes(draft.id),
     ]);
-    const heatQuery = heatParam ? `&heat=${heatParam}` : "";
 
     logging = (
       <div className="space-y-3">
         <SurahJump
-          basePath={`/hifdh?tab=review${heatQuery}`}
+          basePath="/hifdh?tab=review"
           options={range.map((s) => ({
             number: s.number,
             name: s.name_en,
@@ -91,7 +82,7 @@ export async function ReviewTab({
           pages={groupIntoPages(rows.map(fromRow))}
           initialMistakes={mistakes}
           surahNames={surahNames}
-          pager={{ page, min: firstPage, max: LAST_PAGE, basePath: `/hifdh?tab=review${heatQuery}` }}
+          pager={{ page, min: firstPage, max: LAST_PAGE, basePath: "/hifdh?tab=review" }}
         />
       </div>
     );
@@ -118,19 +109,12 @@ export async function ReviewTab({
     );
   }
 
-  const pageQuery = pageParam ? `&page=${pageParam}` : "";
   return (
-    <div className="space-y-5">
-      <section className="glass rounded-2xl p-4 space-y-3">
-        <p className="text-sm">
-          Revising with <span className="font-medium">{pair.partnerName}</span>
-        </p>
-        {logging}
-      </section>
-      <section className="space-y-2">
-        <h2 className="text-lg">Your feedback</h2>
-        <ReviewFeedback studentId={userId} heat={heat} basePath={`/hifdh?tab=review${pageQuery}`} />
-      </section>
-    </div>
+    <section className="glass rounded-2xl p-4 space-y-3">
+      <p className="text-sm">
+        Revising with <span className="font-medium">{pair.partnerName}</span>
+      </p>
+      {logging}
+    </section>
   );
 }

@@ -73,6 +73,11 @@
   --color-hair: var(--hair);
   --color-viz-exam: var(--viz-exam);
   --color-viz-hw: var(--viz-hw);
+  /* mistake categories on the mistakes board — one hue each, never a state
+     colour (green passed, orange pending, red not passed) */
+  --color-cat-hifdh: var(--cat-hifdh);
+  --color-cat-tajweed: var(--cat-tajweed);
+  --color-cat-makhraj: var(--cat-makhraj);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -383,6 +388,24 @@
 
   --photo-op: 0.42;
   --photo-filter: grayscale(0.78) brightness(0.62) contrast(1.06);
+}
+
+/* Mistake categories, the same in both brands. Light steps pass the dataviz
+   validator on the cream (#fbf9ee) and navy (#ffffff) cards; dark mode has
+   its own steps, validated on #141410 and #0a0a5e — the light blue drops
+   under 3:1 there. `html.dark` reaches navy dark too, since neither navy
+   block redefines these. Written as `html` / `html.dark`, not `:root` /
+   `.dark`: those two blocks are the pinned cream scheme (palette.test.ts),
+   and these colours belong to no scheme. */
+html {
+  --cat-hifdh: #2f4fd0;
+  --cat-tajweed: #1a9f7a;
+  --cat-makhraj: #9b59c9;
+}
+html.dark {
+  --cat-hifdh: #5a78ea;
+  --cat-tajweed: #24a985;
+  --cat-makhraj: #a56bd6;
 }
 
 /* No `color-scheme` rule here on purpose: next-themes writes it as an inline
