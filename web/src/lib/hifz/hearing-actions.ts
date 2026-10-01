@@ -24,6 +24,11 @@ export async function startHearing(studentId: string, fromSurah: number): Promis
     .order("started_at", { ascending: true }).limit(1).maybeSingle();
   if (existing) return existing.id;
 
+  // An off-run start would make a draft submitHearing can never accept, and
+  // nothing deletes a draft, so it would block hearing this student for good.
+  const run = await runFor(db, studentId);
+  if (!run.has(fromSurah)) throw new Error("That surah is not on this student's run.");
+
   const { data, error } = await db
     .from("revision_sessions")
     .insert({
@@ -33,6 +38,19 @@ export async function startHearing(studentId: string, fromSurah: number): Promis
     .select("id").single();
   if (error) throw new Error(error.message);
   return data.id;
+}
+
+/**
+ * The surah numbers on this student's own run. Not exported: every export
+ * of a "use server" file is a callable server action.
+ */
+async function runFor(db: Awaited<ReturnType<typeof supabaseServer>>, studentId: string): Promise<Set<number>> {
+  const [{ data: hp }, surahs] = await Promise.all([
+    db.from("hifz_profiles").select("start_surah, target_count").eq("student_id", studentId).maybeSingle(),
+    getCachedSurahs(),
+  ]);
+  const run = hp ? memorisationList(hp.start_surah, hp.target_count, surahs as Surah[]) : [];
+  return new Set(run.map((r) => r.number));
 }
 
 export type HearingVerdict = { to: number; passed: number[]; note?: string };
@@ -64,12 +82,7 @@ export async function submitHearing(sessionId: string, verdict: HearingVerdict):
 
   // The range must lie on the student's own run — a crafted `to` cannot
   // reach into surahs the student was never assigned.
-  const { data: hp } = await db
-    .from("hifz_profiles").select("start_surah, target_count")
-    .eq("student_id", s.reciter_id).maybeSingle();
-  const surahs = await getCachedSurahs();
-  const run = hp ? memorisationList(hp.start_surah, hp.target_count, surahs as Surah[]) : [];
-  const onRun = new Set(run.map((r) => r.number));
+  const onRun = await runFor(db, s.reciter_id);
   if (!onRun.has(from) || !onRun.has(to)) throw new Error("The range is not on this student's run.");
 
   const range = rangeSurahs(from, to);
