@@ -157,16 +157,32 @@ export function VoiceRecorder({
     }
   }
 
+  /**
+   * The rows go first and the audio only once they are gone. A refused row
+   * delete then leaves everything as it was, shown as it was; the other
+   * order left a row the submit gate still counted, pointing at audio that
+   * no longer existed. A failed audio delete after the rows are gone only
+   * strands a file nothing points at.
+   */
   async function discard() {
     setBusy(true);
-    const supabase = supabaseBrowser();
-    if (path) await supabase.storage.from(BUCKET).remove([path]);
-    await deleteVoiceNote(submissionId, questionId);
-    setPath(null);
-    setUrl(null);
-    setDuration(0);
-    onRecorded?.(false);
-    setBusy(false);
+    setError(null);
+    try {
+      const dropped = await deleteVoiceNote(submissionId, questionId);
+      if (!dropped.ok) {
+        setError("Could not delete this recording. Try again.");
+        return;
+      }
+      if (path) await supabaseBrowser().storage.from(BUCKET).remove([path]);
+      setPath(null);
+      setUrl(null);
+      setDuration(0);
+      onRecorded?.(false);
+    } catch {
+      setError("Could not delete this recording. Try again.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (readOnly) {
