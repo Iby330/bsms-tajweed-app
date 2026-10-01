@@ -25,7 +25,7 @@ export function HearingDesk({
   roster: DeskStudent[];
   studentId: string;
   from: number;
-  draftStarted: boolean;                       // marks exist: the start is fixed
+  draftStarted: boolean;                       // a draft is open: the start is fixed
   run: { number: number; name_en: string }[];   // the student's run, for the start picker
   done: { text: string } | null;               // the line after a confirmed hearing
   session: SessionProps & { initialMistakes: MistakeRow[] };
@@ -60,7 +60,7 @@ export function HearingDesk({
           onChange={(v) => router.push(`/teacher/hifdh/hear?student=${studentId}&from=${v}`)}
           options={run.map((s) => ({ value: String(s.number), label: s.name_en }))}
           disabled={draftStarted}
-          title={draftStarted ? "The start is fixed once a mark is logged" : undefined}
+          title={draftStarted ? "The start is fixed while a hearing is open" : undefined}
         />
       </div>
 

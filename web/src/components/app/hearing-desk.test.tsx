@@ -50,7 +50,7 @@ describe("HearingDesk", () => {
     expect(push).toHaveBeenCalledWith("/teacher/hifdh/hear?student=s2");
   });
 
-  it("lets the start change until the draft has marks", () => {
+  it("lets the start change until a hearing is open", () => {
     const run = [{ number: 88, name_en: "Al-Ghashiyah" }, { number: 87, name_en: "Al-A'la" }];
     const { rerender } = render(
       <HearingDesk roster={roster} studentId="s1" from={88} draftStarted={false} run={run} done={null} {...loggerProps} />,
@@ -61,6 +61,8 @@ describe("HearingDesk", () => {
       <HearingDesk roster={roster} studentId="s1" from={88} draftStarted={true} run={run} done={null} {...loggerProps} />,
     );
     expect((screen.getByLabelText("Starting at") as HTMLSelectElement).disabled).toBe(true);
+    expect(screen.getByLabelText("Starting at").closest("[title]")?.getAttribute("title"))
+      .toBe("The start is fixed while a hearing is open");
     expect(screen.getByText(/Hearing in progress/)).toBeTruthy();
   });
 

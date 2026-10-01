@@ -23,7 +23,7 @@ const LAST_PAGE = 604;
  * The hearing desk: the Thursday lesson from one page. Pick the student,
  * the mushaf opens at the start surah's first page, tap as they recite,
  * turn pages with the same pager as the per-surah pages, Finish once. The
- * URL carries the student, the start (until the first mark), and the page.
+ * URL carries the student, the start (until a draft is open), and the page.
  */
 export default async function HearingDeskPage({
   searchParams,
@@ -99,7 +99,9 @@ export default async function HearingDeskPage({
         roster={deskRoster}
         studentId={studentId}
         from={from}
-        draftStarted={Boolean(draft && draft.mistakes.length)}
+        // The draft's start wins over ?from the moment the row exists, marks
+        // or not, so the picker locks then too rather than looking editable.
+        draftStarted={Boolean(draft)}
         run={run.map((s) => ({ number: s.number, name_en: s.name_en }))}
         done={done}
         session={session}
