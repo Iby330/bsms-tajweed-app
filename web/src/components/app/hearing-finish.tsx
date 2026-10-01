@@ -77,7 +77,7 @@ export function HearingFinish({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm space-y-3">
+      <DialogContent className="space-y-3">
         <DialogHeader>
           <DialogTitle>Finish hearing</DialogTitle>
         </DialogHeader>
