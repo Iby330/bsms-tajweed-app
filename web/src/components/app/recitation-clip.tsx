@@ -83,8 +83,10 @@ export function RecitationClip({
     }
     // Written straight to the element: this runs every frame, and a state
     // update per frame would re-render the player sixty times a second to
-    // move one bar.
-    bar.style.transform = `scaleX(${p})`;
+    // move one bar. `scale`, not `transform`: Tailwind 4's scale-x-0 on the
+    // bar is the `scale` property, and a transform would multiply with it
+    // and stay at nothing.
+    bar.style.scale = `${p} 1`;
   }
 
   function cancelFrame() {
