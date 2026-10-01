@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { supabaseServer } from "@/lib/supabase/server";
 import { teacherClasses } from "@/lib/teacher/scope";
 import { markSubmission } from "@/lib/marking/actions";
+import { canApprove } from "@/lib/marking/redo";
 import { ReviewPanel } from "@/components/app/review-panel";
 import { PastAttempts } from "@/components/app/past-attempts";
 import { MixedText } from "@/components/app/mixed-text";
@@ -153,14 +154,24 @@ export default async function SubmissionReview({
 
       <PastAttempts attempts={pastAttempts} questions={(questions ?? []) as never} />
 
-      <ReviewPanel
-        submissionId={sub.id}
-        questions={(questions ?? []) as never}
-        answers={(answers ?? []) as never}
-        voiceNotes={voiceNotes ?? []}
-        approved={sub.status === "approved"}
-        backHref={backHref}
-      />
+      {/* A draft has nothing to approve. A redo reopens this same row at
+          this same URL, so the back button or a second tab can land here
+          on one; approving it would release 0% over a blank paper. */}
+      {canApprove(sub.status) ? (
+        <ReviewPanel
+          submissionId={sub.id}
+          questions={(questions ?? []) as never}
+          answers={(answers ?? []) as never}
+          voiceNotes={voiceNotes ?? []}
+          approved={sub.status === "approved"}
+          backHref={backHref}
+        />
+      ) : (
+        <p className="empty">
+          {sub.attempt > 1 ? "Redo in progress." : "Not handed in yet."} It will be ready to
+          mark once the student submits it.
+        </p>
+      )}
     </div>
   );
 }

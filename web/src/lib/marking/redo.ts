@@ -51,3 +51,18 @@ export function redoVerdict(
   const pct = (sum / homework.total_marks) * 100;
   return { pct, redo: pct < REDO_THRESHOLD_PCT };
 }
+
+/**
+ * The submission states a teacher may approve: handed in (marked by the
+ * model or not), and already released, since "Edit marks" re-approves.
+ * Never `draft`. A redo reopens the SAME row as a blank draft at the same
+ * URL, so a back button or a second tab lands a teacher on it; approving it
+ * would release 0% over no answers and lock the student out of the redo.
+ */
+export const APPROVABLE_STATUSES = ["submitted", "auto_marked", "approved"] as const;
+
+export type SubmissionStatus = "draft" | (typeof APPROVABLE_STATUSES)[number];
+
+export function canApprove(status: SubmissionStatus): boolean {
+  return (APPROVABLE_STATUSES as readonly string[]).includes(status);
+}

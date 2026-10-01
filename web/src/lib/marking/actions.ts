@@ -9,7 +9,7 @@ import {
   type LlmMark, type MarkingAnswer, type MarkingQuestion,
 } from "./plan";
 import { markFreeText } from "./llm";
-import { redoVerdict } from "./redo";
+import { APPROVABLE_STATUSES, canApprove, redoVerdict } from "./redo";
 
 /**
  * The marking pipeline.
@@ -156,11 +156,14 @@ export async function approveSubmission(
       .eq("submission_id", submissionId),
     db
       .from("submissions")
-      .select("attempt, imported_marks, homework_id, student_id")
+      .select("status, attempt, imported_marks, homework_id, student_id")
       .eq("id", submissionId)
       .maybeSingle(),
   ]);
   if (!answers || !submission) throw new Error("Submission not found.");
+  // Before any answer is written: a draft (a redo in progress, reached by
+  // the back button or a second tab) has nothing to approve.
+  if (!canApprove(submission.status)) throw new Error("This submission is not waiting to be marked.");
 
   // The paper itself can only be asked for once the submission has named it,
   // so it is a second trip — but one trip, not two: the questions the pass
@@ -175,14 +178,21 @@ export async function approveSubmission(
   const rows = planFinalMarks(answers, edits, comments);
   if (rows.length) await db.from("answers").upsert(rows, { onConflict: "id" });
 
-  await db
+  // Guarded as well as checked above: a second click racing the first can
+  // land after the first one's redo has reopened the row as a draft, and
+  // must not flip that fresh redo back to approved.
+  const { data: released, error: releaseError } = await db
     .from("submissions")
     .update({
       status: "approved",
       approved_by: teacher.id,
       approved_at: new Date().toISOString(),
     })
-    .eq("id", submissionId);
+    .eq("id", submissionId)
+    .in("status", [...APPROVABLE_STATUSES])
+    .select("id");
+  if (releaseError) throw new Error(releaseError.message);
+  if (!released?.length) throw new Error("This submission is not waiting to be marked.");
 
   revalidatePath("/teacher/homework");
   revalidatePath("/teacher/roster");

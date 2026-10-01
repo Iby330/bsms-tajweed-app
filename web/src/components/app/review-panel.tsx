@@ -74,6 +74,7 @@ export function ReviewPanel({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
+  const [refused, setRefused] = useState(false);
   const locked = approved && !editing;
   const byQ = new Map(answers.map((a) => [a.question_id, a]));
   const voiceByQ = new Map(voiceNotes.map((v) => [v.question_id, v]));
@@ -156,11 +157,21 @@ export function ReviewPanel({
             disabled={pending || invalid.length > 0}
             onClick={() =>
               startTransition(async () => {
-                const result = await approveSubmission(
-                  submissionId,
-                  Object.fromEntries(finalMarks),
-                  comments,
-                );
+                setRefused(false);
+                // Production strips a server action's error message, so the
+                // line is ours: the usual cause is a script that stopped
+                // waiting (a redo reopened it, or a second click got there).
+                let result: Awaited<ReturnType<typeof approveSubmission>>;
+                try {
+                  result = await approveSubmission(
+                    submissionId,
+                    Object.fromEntries(finalMarks),
+                    comments,
+                  );
+                } catch {
+                  setRefused(true);
+                  return;
+                }
                 if (approved && !result.redo) {
                   // an edit of released marks: stay put, show the new state
                   setEditing(false);
@@ -177,6 +188,11 @@ export function ReviewPanel({
           >
             {pending ? "Saving…" : approved ? "Save changes" : "Approve and release"}
           </Button>
+        )}
+        {refused && !locked && (
+          <p role="alert" className="text-xs text-danger">
+            Could not approve this. Reload the page to see where it stands.
+          </p>
         )}
         {locked && (
           <span className="flex items-center gap-2">

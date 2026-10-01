@@ -490,3 +490,20 @@ describe("ReviewPanel — recitation tasks", () => {
     expect(approve.mock.calls[0][1]).toEqual({ a1: 3 });
   });
 });
+
+describe("ReviewPanel — a refused approval", () => {
+  /**
+   * approveSubmission refuses a script that is no longer waiting (a redo
+   * reopened it, or a second click raced the first). The teacher has to be
+   * told, not left on a page that crashed or quietly moved on.
+   */
+  it("says so and stays on the page", async () => {
+    approve.mockRejectedValueOnce(new Error("This submission is not waiting to be marked."));
+    const { container, findByRole } = panel([WRITTEN], [answer({ id: "a1", question_id: "q1", auto_marks: 3 })]);
+    fireEvent.click(approveButton(container));
+    expect((await findByRole("alert")).textContent).toBe(
+      "Could not approve this. Reload the page to see where it stands.",
+    );
+    expect(router.push).not.toHaveBeenCalled();
+  });
+});

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { REDO_THRESHOLD_PCT, redoVerdict } from "./redo";
+import { APPROVABLE_STATUSES, REDO_THRESHOLD_PCT, canApprove, redoVerdict } from "./redo";
 
 /* ── fixtures ───────────────────────────────────────────────────────────── */
 
@@ -103,5 +103,28 @@ describe("redoVerdict", () => {
   it("still fails a paper whose every answer lost its question", () => {
     expect(redoVerdict([mark("q-deleted", 9)], [question("q1")], homework(10), appMarked))
       .toEqual({ pct: 0, redo: true });
+  });
+});
+
+/* ── what may be approved ───────────────────────────────────────────────── */
+
+describe("canApprove", () => {
+  it("approves what was handed in, marked or not", () => {
+    expect(canApprove("submitted")).toBe(true);
+    expect(canApprove("auto_marked")).toBe(true);
+  });
+
+  // "Edit marks" re-approves a released script; that has to keep working.
+  it("re-approves an already released script", () => {
+    expect(canApprove("approved")).toBe(true);
+  });
+
+  /**
+   * A redo reopens the SAME row as a blank draft, at the same URL. Approving
+   * it would release 0% over no answers and lock the student out of the redo.
+   */
+  it("never approves a draft, a redo in progress included", () => {
+    expect(canApprove("draft")).toBe(false);
+    expect(APPROVABLE_STATUSES).not.toContain("draft");
   });
 });
