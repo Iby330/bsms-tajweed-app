@@ -174,7 +174,8 @@ export function PastAttempts({
                     const chosen = row ? selectedOf(row.response) : [];
                     const text = row ? textOf(row.response) : "";
                     const note = voiceByQ.get(q.id);
-                    const clip = parseMedia(q.media).clip;
+                    const media = parseMedia(q.media);
+                    const clip = media.clip;
 
                     return (
                       <li key={q.id} className="qn rounded-md border border-line bg-page p-3">
@@ -216,10 +217,16 @@ export function PastAttempts({
                             chosen.length ? (
                               <ul className="space-y-1">
                                 {q.options
-                                  .filter((o) => chosen.includes(o.position))
-                                  .map((o) => (
-                                    <li key={o.position}>
+                                  .map((o, idx) => ({ o, n: idx + 1 }))
+                                  .filter(({ o }) => chosen.includes(o.position))
+                                  .map(({ o, n }) => (
+                                    <li key={o.position} className="flex items-center gap-2">
                                       <MixedText text={o.value} variant="quran" />
+                                      {/* As on the live panel: the teacher can hear the
+                                          ayah the student picked. */}
+                                      {media.optionAudio[o.position] && (
+                                        <RecitationClip clip={media.optionAudio[o.position]} compact name={`option ${n}`} />
+                                      )}
                                     </li>
                                   ))}
                               </ul>

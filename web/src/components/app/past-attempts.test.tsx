@@ -80,6 +80,25 @@ describe("PastAttempts: a listening question", () => {
     );
     expect(getByRole("button", { name: "Play recitation", hidden: true })).toBeTruthy();
   });
+
+  it("plays the audio of the option the student chose", () => {
+    const url = "https://mirrors.quranicaudio.com/everyayah/Husary_64kbps/047006.mp3";
+    const VERSES = question({
+      id: "q4",
+      position: 4,
+      qtype: "mcq",
+      options: [
+        { position: 0, label: "Option 1", value: "47:5", correct: false },
+        { position: 1, label: "Option 2", value: "47:6", correct: true },
+      ],
+      media: { option_audio: { "1": { url } } },
+    });
+    const { getByRole } = past(
+      attempt({ answers: [snapshotAnswer("q4", { response: { selected: [1] } })] }),
+      [VERSES],
+    );
+    expect(getByRole("button", { name: "Play option 2", hidden: true })).toBeTruthy();
+  });
 });
 
 describe("PastAttempts — recitation tasks", () => {
