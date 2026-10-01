@@ -50,14 +50,15 @@ export async function partnerRange(partnerId: string): Promise<RangeSurah[]> {
     }));
 }
 
-/** The caller's open draft against this reciter, if any. */
+/** The caller's open peer draft against this reciter, if any. Hearings share
+ *  the table and are never a peer's draft. */
 export async function myDraftSession(
   reviewerId: string, reciterId: string,
 ): Promise<{ id: string } | null> {
   const db = await supabaseServer();
   const { data } = await db
     .from("revision_sessions").select("id")
-    .eq("reviewer_id", reviewerId).eq("reciter_id", reciterId)
+    .eq("reviewer_id", reviewerId).eq("reciter_id", reciterId).eq("kind", "peer")
     .is("submitted_at", null)
     .maybeSingle();
   return data ? { id: data.id } : null;
