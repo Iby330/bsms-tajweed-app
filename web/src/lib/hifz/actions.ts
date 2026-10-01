@@ -18,7 +18,7 @@ export async function markSurahPassed(
   const teacher = await requireTeacher();
   await requireOwnStudent(studentId);
   const db = await supabaseServer();
-  await db.from("hifz_records").upsert(
+  const { error } = await db.from("hifz_records").upsert(
     {
       student_id: studentId,
       surah_number: surahNumber,
@@ -27,6 +27,7 @@ export async function markSurahPassed(
     },
     { onConflict: "student_id,surah_number" },
   );
+  if (error) throw new Error(error.message);
   revalidatePath("/teacher/hifdh");
   revalidatePath("/hifdh");
   revalidatePath(`/teacher/hifdh/${studentId}`);
@@ -66,8 +67,11 @@ export async function unmarkSurah(studentId: string, surahNumber: number): Promi
   await requireTeacher();
   await requireOwnStudent(studentId);
   const db = await supabaseServer();
-  await db.from("hifz_records").delete()
+  const { error } = await db.from("hifz_records").delete()
     .eq("student_id", studentId).eq("surah_number", surahNumber);
+  // Thrown like setSurahComment's, into the hifdh error boundary: a pass that
+  // silently survived "Undo pass" would be read as undone.
+  if (error) throw new Error(error.message);
   revalidatePath("/teacher/hifdh");
   revalidatePath("/hifdh");
   revalidatePath(`/hifdh/${surahNumber}`);

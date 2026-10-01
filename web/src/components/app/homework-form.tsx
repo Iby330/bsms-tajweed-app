@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef, useEffect } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MixedText } from "@/components/app/mixed-text";
 import { TapWords } from "@/components/app/tap-words";
@@ -10,6 +10,7 @@ import { VoiceRecorder } from "@/components/app/voice-recorder";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { saveAnswer, submitHomework } from "@/lib/homework/actions";
+import { createSaveQueue, type SaveStatus } from "@/lib/homework/save-queue";
 import {
   mcqResponse, checkboxResponse, textResponse,
   selectedOf, textOf, fmtMarks, missingTaskRecordings,
@@ -62,7 +63,8 @@ export function HomeworkForm({
   const [answers, setAnswers] = useState<Record<string, unknown>>(() =>
     Object.fromEntries(existing.map((a) => [a.question_id, a.response])),
   );
-  const [saved, setSaved] = useState<"idle" | "saving" | "saved">("idle");
+  const [saved, setSaved] = useState<"idle" | "saved">("idle");
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>({ inFlight: 0, queued: 0, error: null });
   // Which tasks have a recording, kept here rather than read back off the
   // server: a student records and hands in within the same page life, and the
   // button must unlock the moment the upload lands.
@@ -70,24 +72,33 @@ export function HomeworkForm({
     Object.fromEntries(voiceNotes.map((v) => [v.question_id, true])),
   );
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  // One queue for the page's life: the hand-in has to flush and wait on the
+  // same timers and saves the typing started.
+  const [queue] = useState(() =>
+    createSaveQueue<unknown>({
+      save: async (questionId, response) => {
+        if (!submissionId) return;
+        // A throw (the network, or a server fault whose message production
+        // hides) becomes a sentence a student can act on.
+        const { error } = await saveAnswer(submissionId, questionId, response).catch(() => ({
+          error: "Check your connection and try again.",
+        }));
+        if (error) throw new Error(error);
+        setSaved("saved");
+      },
+      onStatus: setSaveStatus,
+    }),
+  );
 
-  useEffect(() => {
-    const t = timers.current;
-    return () => Object.values(t).forEach(clearTimeout);
-  }, []);
+  useEffect(() => () => queue.cancel(), [queue]);
 
   function update(questionId: string, response: unknown) {
     setAnswers((a) => ({ ...a, [questionId]: response }));
     if (!submissionId || readOnly) return;
-    setSaved("saving");
-    clearTimeout(timers.current[questionId]);
-    timers.current[questionId] = setTimeout(() => {
-      saveAnswer(submissionId, questionId, response)
-        .then(() => setSaved("saved"))
-        .catch(() => setSaved("idle"));
-    }, 600);
+    queue.schedule(questionId, response);
   }
+
+  const saving = saveStatus.inFlight > 0 || saveStatus.queued > 0;
 
   const approved = status === "approved";
   const total = approved
@@ -254,31 +265,49 @@ export function HomeworkForm({
 
       {!readOnly && submissionId && (
         <div className="box c12" style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-          <span className="text-xs text-muted-foreground">
-            {saved === "saving"
+          <span className={cn("text-xs", saveStatus.error && !saving ? "text-danger" : "text-muted-foreground")}>
+            {saving
               ? "Saving…"
-              : saved === "saved"
-                ? "Draft saved"
-                : missing.length > 0
-                  ? "Record every task before you hand in."
-                  : "Your work saves as you type."}
+              : saveStatus.error
+                ? `Not saved: ${saveStatus.error}`
+                : saved === "saved"
+                  ? "Draft saved"
+                  : missing.length > 0
+                    ? "Record every task before you hand in."
+                    : "Your work saves as you type."}
           </span>
           <div className="flex flex-col items-end gap-1">
             <Button
-              disabled={pending || missing.length > 0}
+              // Held while a save is on its way; a click during the typing
+              // pause is fine, because the hand-in flushes that save first.
+              disabled={pending || saveStatus.inFlight > 0 || missing.length > 0}
               onClick={() =>
                 startTransition(async () => {
                   setSubmitError(null);
                   try {
-                    await submitHomework(submissionId);
-                    router.refresh();
+                    // Every answer lands before the hand-in does, or the last
+                    // one typed is dropped as a save onto handed-in work.
+                    await queue.flush();
                   } catch (e) {
+                    setSubmitError(
+                      `Not handed in: an answer is not saved. ${e instanceof Error ? e.message : ""}`.trim(),
+                    );
+                    return;
+                  }
+                  try {
+                    const { error } = await submitHomework(submissionId);
                     // The server refuses a hand-in with a task unrecorded — a
                     // second tab, or a recording deleted elsewhere. Saying so
                     // beats a button that silently does nothing.
-                    setSubmitError(
-                      e instanceof Error ? e.message : "Could not hand in. Try again.",
-                    );
+                    if (error) {
+                      setSubmitError(error);
+                      return;
+                    }
+                    router.refresh();
+                  } catch {
+                    // The network, or a fault the server could not word: its
+                    // message is replaced with a generic one in production.
+                    setSubmitError("Could not hand in. Check your connection and try again.");
                   }
                 })
               }

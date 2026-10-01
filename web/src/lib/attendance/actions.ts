@@ -101,8 +101,13 @@ export async function setPresence({
   let strikeId: string | null = existing?.strike_id ?? null;
   const wantStrike = !present && strike === true;
   if (strikeId && (present || !wantStrike)) {
-    await db.from("attendance").update({ strike_id: null }).eq("id", existing!.id);
-    await db.from("strikes").delete().eq("id", strikeId);
+    // Checked, or a failed delete leaves the student marked present and still
+    // holding the absence strike the teacher just took back.
+    const { error: detachErr } = await db
+      .from("attendance").update({ strike_id: null }).eq("id", existing!.id);
+    if (detachErr) return { ok: false, error: detachErr.message };
+    const { error: deleteErr } = await db.from("strikes").delete().eq("id", strikeId);
+    if (deleteErr) return { ok: false, error: deleteErr.message };
     strikeId = null;
   }
 

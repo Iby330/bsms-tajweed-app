@@ -10,12 +10,15 @@ export async function markWatched(lessonId: string): Promise<void> {
   if (!profile) throw new Error("Not signed in.");
 
   const db = await supabaseServer();
-  await db
+  const { error } = await db
     .from("lesson_watches")
     .upsert(
       { student_id: profile.id, lesson_id: lessonId },
       { onConflict: "student_id,lesson_id" },
     );
+  // The player swallows this (a failed tick must not stop the video), but it
+  // must not be told the watch landed when it didn't.
+  if (error) throw new Error(error.message);
 
   revalidatePath("/home");
   revalidatePath("/lessons");

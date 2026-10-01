@@ -3,6 +3,10 @@ import {
   marksFromConcepts,
   parseModelReply,
   markFreeText,
+  markingModel,
+  backoffMs,
+  DEFAULT_MARKING_MODEL,
+  MAX_BACKOFF_MS,
   MARKING_SYSTEM_PROMPT,
 } from "./llm";
 import type { RubricConcept } from "./objective";
@@ -179,5 +183,74 @@ describe("markFreeText", () => {
       { ...opts, fetch: fetchMock as unknown as typeof fetch },
     );
     expect(out).toBeNull();
+  });
+});
+
+describe("markingModel", () => {
+  it("defaults to a model Groq still serves, and an env var overrides it", () => {
+    vi.stubEnv("MARKING_MODEL", "");
+    expect(markingModel()).toBe(DEFAULT_MARKING_MODEL);
+    vi.stubEnv("MARKING_MODEL", "qwen/qwen3.8-27b");
+    expect(markingModel()).toBe("qwen/qwen3.8-27b");
+    vi.unstubAllEnvs();
+  });
+});
+
+describe("backoffMs", () => {
+  it("doubles from 800ms when no Retry-After is given", () => {
+    expect(backoffMs(1, 0)).toBe(800);
+    expect(backoffMs(2, 0)).toBe(1600);
+  });
+  it("never waits longer than the cap, however long Retry-After asks for", () => {
+    expect(backoffMs(1, 60)).toBe(MAX_BACKOFF_MS);
+    expect(backoffMs(5, 0)).toBe(MAX_BACKOFF_MS);
+    expect(backoffMs(1, 1)).toBe(1000);
+  });
+});
+
+describe("markFreeText request and failures", () => {
+  const opts = { apiKey: "test-key", sleep: async () => {} };
+
+  it("asks gpt-oss for low reasoning effort and room to answer after reasoning", async () => {
+    const fetchMock = vi.fn(async (_url: string, _init?: unknown) =>
+      reply('{"concepts":[{"id":"c1","present":true}]}'));
+    await markFreeText(
+      { prompt: "Q", rubric, answer: "A", model: "openai/gpt-oss-120b" },
+      { ...opts, fetch: fetchMock as unknown as typeof fetch },
+    );
+    const body = JSON.parse((fetchMock.mock.calls[0]?.[1] as { body: string }).body);
+    expect(body.model).toBe("openai/gpt-oss-120b");
+    expect(body.reasoning_effort).toBe("low");
+    expect(body.max_completion_tokens).toBeGreaterThanOrEqual(1000);
+  });
+
+  it("logs the status and model once when the model is gone (404)", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    const fetchMock = vi.fn(async () =>
+      ({ ok: false, status: 404, headers: { get: () => null } }) as unknown as Response);
+    const out = await markFreeText(
+      { prompt: "Q", rubric, answer: "A", model: "gone-model" },
+      { ...opts, fetch: fetchMock as unknown as typeof fetch },
+    );
+    expect(out).toBeNull();
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(err).toHaveBeenCalledOnce();
+    expect(String(err.mock.calls[0]?.[0])).toMatch(/404.*gone-model/);
+    err.mockRestore();
+  });
+
+  it("caps each 429 wait even when Retry-After asks for a minute", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    const waits: number[] = [];
+    const fetchMock = vi.fn(async () =>
+      ({ ok: false, status: 429, headers: { get: () => "60" } }) as unknown as Response);
+    const out = await markFreeText(
+      { prompt: "Q", rubric, answer: "A" },
+      { apiKey: "k", sleep: async (ms: number) => { waits.push(ms); }, fetch: fetchMock as unknown as typeof fetch },
+    );
+    expect(out).toBeNull();
+    expect(waits.every((w) => w <= MAX_BACKOFF_MS)).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    err.mockRestore();
   });
 });

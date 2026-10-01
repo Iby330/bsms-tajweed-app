@@ -66,23 +66,49 @@ export async function ensureSubmission(homeworkId: string): Promise<string> {
   return data.id;
 }
 
-/** Autosave one answer. Silently no-ops once the work has been submitted. */
+/**
+ * Longest answer, as stored JSON, that autosave accepts. Far past any honest
+ * written answer; it stops a pasted essay or a scripted call filling the table.
+ */
+const MAX_RESPONSE_CHARS = 20_000;
+
+/**
+ * What a student-facing action reports. Returned rather than thrown because
+ * Next.js replaces a thrown server-action message with a generic one in
+ * production, so a student would never read the reason.
+ */
+export type ActionResult = { error: string | null };
+
+/** Autosave one answer. Says so when it didn't land, so the form never shows
+ *  "Draft saved" over an answer the database doesn't have. */
 export async function saveAnswer(
   submissionId: string,
   questionId: string,
   response: unknown,
-): Promise<void> {
+): Promise<ActionResult> {
+  if ((JSON.stringify(response) ?? "").length > MAX_RESPONSE_CHARS) {
+    return { error: "That answer is too long to save. Shorten it and try again." };
+  }
+
   const db = await supabaseServer();
   const { data: sub } = await db
     .from("submissions").select("status").eq("id", submissionId).maybeSingle();
-  if (!sub || sub.status !== "draft") return;
+  if (!sub) return { error: "This homework could not be found. Reload the page." };
+  if (sub.status !== "draft") {
+    return { error: "This homework has already been handed in, so changes are not saved." };
+  }
 
-  await db
+  const { error } = await db
     .from("answers")
     .upsert(
       { submission_id: submissionId, question_id: questionId, response: response as never },
       { onConflict: "submission_id,question_id" },
     );
+  if (error) {
+    console.error("saveAnswer failed", submissionId, questionId, error.message);
+    return { error: "Your answer could not be saved. Check your connection and try again." };
+  }
+  return { error: null };
 }
 
 /**
@@ -94,7 +120,7 @@ export async function saveAnswer(
  * the form: the button the form disables is the only thing stopping a second
  * tab, or a recording deleted after the page loaded.
  */
-export async function submitHomework(submissionId: string): Promise<void> {
+export async function submitHomework(submissionId: string): Promise<ActionResult> {
   const db = await supabaseServer();
 
   const { data: sub } = await db
@@ -102,7 +128,10 @@ export async function submitHomework(submissionId: string): Promise<void> {
     .select("id, status, homework_id")
     .eq("id", submissionId)
     .maybeSingle();
-  if (!sub || sub.status !== "draft") return;
+  if (!sub) return { error: "This homework could not be found. Reload the page and try again." };
+  if (sub.status !== "draft") {
+    return { error: "This homework has already been handed in. Reload the page to see it." };
+  }
 
   // The question list comes from the student RPC — the only route a student
   // has to the paper — with the answer keys stripped.
@@ -116,19 +145,31 @@ export async function submitHomework(submissionId: string): Promise<void> {
   // outstanding, so it lets the hand-in through rather than stranding them.
   const parsed = parseStudentHomework(payload);
   if (parsed && missingTaskRecordings(parsed.questions, notes ?? []).length > 0) {
-    throw new Error("Record every task before you hand in.");
+    return { error: "Record every task before you hand in." };
   }
 
-  await db
+  // Guarded on draft and read back: a write that failed, or that matched no
+  // row because a second tab got there first, must not report success.
+  const { data: handedIn, error } = await db
     .from("submissions")
     .update({
       status: "submitted",
       submitted_at: new Date().toISOString(),
       is_late: isLate(new Date(), hw?.due_at ?? null),
     })
-    .eq("id", submissionId);
+    .eq("id", submissionId)
+    .eq("status", "draft")
+    .select("id");
+  if (error) {
+    console.error("submitHomework failed", submissionId, error.message);
+    return { error: "Your homework could not be handed in. Try again." };
+  }
+  if (!handedIn?.length) {
+    return { error: "This homework has already been handed in. Reload the page to see it." };
+  }
 
   revalidatePath(`/homework/${hw?.number ?? ""}`);
   revalidatePath("/homework");
   revalidatePath("/home");
+  return { error: null };
 }

@@ -4,11 +4,12 @@ import type { RubricConcept, AutoRubricResult } from "./objective";
 /**
  * Free-text marking via Groq.
  *
- * Configuration below is NOT arbitrary — it is the exact setup verified
- * against real BSMS student answers (9/9, ~0.4s/question): the six ways
- * students wrote "Mad Tabi'i" (Arabic script, four transliterations, English)
- * all marked correct, and a wrong answer, an off-topic answer and a blank all
- * correctly refused.
+ * The prompt below is NOT arbitrary — it is the exact setup verified against
+ * real BSMS student answers (9/9 on llama-3.3-70b, ~0.4s/question): the six
+ * ways students wrote "Mad Tabi'i" (Arabic script, four transliterations,
+ * English) all marked correct, and a wrong answer, an off-topic answer and a
+ * blank all correctly refused. That model has since been retired; the same
+ * prompt and JSON contract run on gpt-oss-120b.
  *
  * Two rules that matter:
  *  · ONE question per call — small focused prompts beat one fat prompt, and
@@ -20,9 +21,21 @@ import type { RubricConcept, AutoRubricResult } from "./objective";
  */
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-export const MARKING_MODEL = "llama-3.3-70b-versatile";
-/** Same API shape; swap here if the eval ever favours it. */
-export const FALLBACK_MODEL = "openai/gpt-oss-120b";
+/**
+ * Groq retires models without much notice — `llama-3.3-70b-versatile` began
+ * returning 404 and every free-text answer quietly fell to manual marking. So
+ * the model is an env var (`MARKING_MODEL` on Netlify) that can be swapped
+ * without a deploy, defaulting to the largest model Groq still lists.
+ */
+export const DEFAULT_MARKING_MODEL = "openai/gpt-oss-120b";
+export const markingModel = () => process.env.MARKING_MODEL?.trim() || DEFAULT_MARKING_MODEL;
+
+/**
+ * Longest single wait between retries. Marking runs inside a teacher's page
+ * render, so a Retry-After of a minute must not hold the page for a minute:
+ * past this the answer goes to the manual queue instead.
+ */
+export const MAX_BACKOFF_MS = 2000;
 
 export const MARKING_SYSTEM_PROMPT =
   "You mark Tajweed homework for a UK university programme. Students answer in Arabic script, " +
@@ -38,6 +51,12 @@ export type FreeTextMarkResult = {
 };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Wait before retry `attempt`: Retry-After when given, else doubling, capped. */
+export function backoffMs(attempt: number, retryAfterS: number): number {
+  const ms = retryAfterS > 0 ? retryAfterS * 1000 : 800 * 2 ** (attempt - 1);
+  return Math.min(ms, MAX_BACKOFF_MS);
+}
 
 /** Marks summed in code from the model's per-concept booleans. */
 export function marksFromConcepts(
@@ -109,7 +128,7 @@ export async function markFreeText(
   deps: { fetch?: typeof fetch; apiKey?: string; sleep?: typeof sleep } = {},
 ): Promise<FreeTextMarkResult | null> {
   const { prompt, rubric, answer } = params;
-  const model = params.model ?? MARKING_MODEL;
+  const model = params.model ?? markingModel();
   const doFetch = deps.fetch ?? fetch;
   const wait = deps.sleep ?? sleep;
   const apiKey = deps.apiKey ?? process.env.GROQ_API_KEY;
@@ -129,7 +148,12 @@ export async function markFreeText(
   const body = JSON.stringify({
     model,
     temperature: 0,
-    max_completion_tokens: 400,
+    // gpt-oss reasons before it answers, and those tokens count against the
+    // cap: 400 left nothing for the JSON. Low effort keeps it ~1s a question.
+    max_completion_tokens: 2000,
+    ...(model.startsWith("openai/gpt-oss")
+      ? { reasoning_effort: "low", include_reasoning: false }
+      : {}),
     response_format: { type: "json_object" },
     messages: [
       { role: "system", content: MARKING_SYSTEM_PROMPT },
@@ -168,12 +192,20 @@ export async function markFreeText(
 
     // free tier is 30 req/min — back off rather than hammer
     if (res.status === 429 || res.status >= 500) {
-      if (attempt === MAX_ATTEMPTS) return null;
+      if (attempt === MAX_ATTEMPTS) {
+        console.error(`markFreeText: Groq returned ${res.status} for model ${model} after ${MAX_ATTEMPTS} tries`);
+        return null;
+      }
       const retryAfter = Number(res.headers?.get?.("retry-after") ?? 0);
-      await wait(retryAfter > 0 ? retryAfter * 1000 : 800 * 2 ** (attempt - 1));
+      await wait(backoffMs(attempt, retryAfter));
       continue;
     }
-    if (!res.ok) return null;
+    if (!res.ok) {
+      // Once, loudly: a 404 here is a retired model, and without this line it
+      // only shows up as every answer landing in the manual queue.
+      console.error(`markFreeText: Groq returned ${res.status} for model ${model}`);
+      return null;
+    }
 
     let content: string;
     try {

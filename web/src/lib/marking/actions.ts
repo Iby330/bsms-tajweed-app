@@ -18,8 +18,8 @@ import { APPROVABLE_STATUSES, canApprove, redoVerdict } from "./redo";
  *           → teacher accept-or-edit → approved
  *
  * Uses the service-role client because it writes marks across students;
- * every entry point checks the caller is a teacher first (except
- * markSubmission, which a student's own submit may trigger).
+ * every entry point checks the caller is a teacher first. Marking is started
+ * by the teacher's review pages, never by a student's hand-in.
  *
  * This file is `use server`, so only the actions may be exported from it —
  * the marking rules themselves live, pure and tested, in ./plan and
@@ -57,6 +57,9 @@ export async function markSubmission(
   submissionId: string,
   hint?: { homeworkId: string },
 ): Promise<void> {
+  // An exported server action is a public endpoint: without this, anyone
+  // signed in could make the service-role client mark any submission.
+  await requireTeacher();
   const db = supabaseAdmin();
 
   const submissionRead = db
@@ -111,13 +114,18 @@ export async function markSubmission(
 
   // one write for the submission: every answer row, marks and all
   const rows = planAnswerUpdates(answers, questions ?? [], llmMarks);
-  if (rows.length) await db.from("answers").upsert(rows, { onConflict: "id" });
+  if (rows.length) {
+    const { error } = await db.from("answers").upsert(rows, { onConflict: "id" });
+    // Not flipped to auto_marked over marks that never landed.
+    if (error) throw new Error(`Could not save the marks: ${error.message}`);
+  }
 
-  await db
+  const { error: statusError } = await db
     .from("submissions")
     .update({ status: "auto_marked" })
     .eq("id", submissionId)
     .in("status", ["submitted", "auto_marked"]);
+  if (statusError) throw new Error(statusError.message);
 
   revalidatePath("/teacher/homework");
 }
@@ -176,7 +184,12 @@ export async function approveSubmission(
 
   // every final mark and comment worked out in JS, then written in one go
   const rows = planFinalMarks(answers, edits, comments);
-  if (rows.length) await db.from("answers").upsert(rows, { onConflict: "id" });
+  if (rows.length) {
+    const { error } = await db.from("answers").upsert(rows, { onConflict: "id" });
+    // Before the release: approved over marks that failed to save would show
+    // the student a total made of the old ones.
+    if (error) throw new Error(`Could not save the marks: ${error.message}`);
+  }
 
   // Guarded as well as checked above: a second click racing the first can
   // land after the first one's redo has reopened the row as a draft, and

@@ -397,16 +397,24 @@ export async function sendLogin(id: string): Promise<Result> {
         return { ok: false, error: "That email already belongs to a teacher account." };
       }
       userId = existing;
+      // Back through /welcome like a new student: the login email lands there,
+      // and /welcome only runs for an account that isn't set up yet.
       const { error: pErr } = await admin.from("profiles").upsert({
         id: userId, full_name: fullName, role: "student", section: side,
-        class_id: app.class_id, is_active: true,
+        class_id: app.class_id, is_active: true, setup_complete: false,
       });
       if (pErr) return { ok: false, error: pErr.message };
     }
 
     // Recorded before the email, so a failed send followed by a retry reuses
-    // this account rather than tripping over it.
-    await admin.from("applications").update({ profile_id: userId }).eq("id", id);
+    // this account rather than tripping over it. Stopped here if it fails: an
+    // emailed login on an application still showing no account reads as
+    // never sent. A retry finds the account by email and links it then.
+    const { error: linkSaveErr } = await admin
+      .from("applications").update({ profile_id: userId }).eq("id", id);
+    if (linkSaveErr) {
+      return { ok: false, error: `Account made, not linked to the application: ${linkSaveErr.message}` };
+    }
   }
 
   // generateLink mints the token WITHOUT sending Supabase's own email; the

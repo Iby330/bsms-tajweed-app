@@ -104,7 +104,12 @@ export default async function SubmissionReview({
   // answers via the model — so the teacher always lands on a marked page.
   // Marking touches nothing but the answers, so only they are read back.
   if (sub.status === "submitted") {
-    await markSubmission(sub.id, { homeworkId: sub.homework_id });
+    // a failed pass leaves the script to mark by hand, not an error page
+    try {
+      await markSubmission(sub.id, { homeworkId: sub.homework_id });
+    } catch (e) {
+      console.error("markSubmission failed on open", sub.id, e);
+    }
     const { data: marked } = await db
       .from("answers")
       .select("id, question_id, response, auto_marks, auto_rubric, final_marks, teacher_comment")

@@ -52,7 +52,9 @@ export async function removeStrike(
   const db = await supabaseServer();
 
   // Detach from any attendance row first — the FK would block the delete.
-  await db.from("attendance").update({ strike_id: null }).eq("strike_id", strikeId);
+  const { error: detachError } = await db
+    .from("attendance").update({ strike_id: null }).eq("strike_id", strikeId);
+  if (detachError) return { ok: false, error: detachError.message };
 
   const { error } = await db.from("strikes").delete().eq("id", strikeId);
   if (error) return { ok: false, error: error.message };
