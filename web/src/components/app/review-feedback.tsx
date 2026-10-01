@@ -21,7 +21,7 @@ const LAST_PAGE = 604;
  * RLS behind feedbackFor decides who may look. The heatmap
  * is the same page-turning mushaf as the logger; surah chips jump to a
  * surah's opening page and the `heat` query param owns the shown page.
- * basePath already carries ?tab=review (and the logger's page, if any).
+ * basePath already carries its tab query (and the logger's page, if any).
  */
 export async function ReviewFeedback({
   studentId, heat, basePath,

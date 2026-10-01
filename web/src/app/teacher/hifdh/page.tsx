@@ -7,7 +7,6 @@ import { timetableFor, weekdayNameFor } from "@/lib/attendance/calendar";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { HifzRegister, type RegisterRow } from "@/components/app/hifz-register";
 import { PairingPanel, type PairRow, type UnpairedStudent } from "@/components/app/pairing-panel";
-import { TeacherHifdhTabs } from "@/components/app/teacher-hifdh-tabs";
 
 export const dynamic = "force-dynamic";
 
@@ -71,10 +70,6 @@ export default async function TeacherHifz() {
           Select students to set their target.
         </p>
       </header>
-
-      <div className="mb-6">
-        <TeacherHifdhTabs active="overview" />
-      </div>
 
       <PairingPanel pairs={pairs} unpaired={unpaired} />
 

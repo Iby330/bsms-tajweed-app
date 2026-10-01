@@ -29,7 +29,6 @@ export async function markSurahPassed(
   );
   revalidatePath("/teacher/hifdh");
   revalidatePath("/hifdh");
-  revalidatePath("/teacher/hifdh/hear");
   revalidatePath(`/teacher/hifdh/${studentId}`);
 }
 
@@ -60,7 +59,6 @@ export async function setSurahComment(
   revalidatePath("/hifdh");
   revalidatePath(`/hifdh/${surahNumber}`);
   revalidatePath(`/teacher/hifdh/${studentId}/${surahNumber}`);
-  revalidatePath("/teacher/hifdh/hear");
   revalidatePath(`/teacher/hifdh/${studentId}`);
 }
 
@@ -74,7 +72,6 @@ export async function unmarkSurah(studentId: string, surahNumber: number): Promi
   revalidatePath("/hifdh");
   revalidatePath(`/hifdh/${surahNumber}`);
   revalidatePath(`/teacher/hifdh/${studentId}/${surahNumber}`);
-  revalidatePath("/teacher/hifdh/hear");
   revalidatePath(`/teacher/hifdh/${studentId}`);
 }
 

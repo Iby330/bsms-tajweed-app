@@ -583,7 +583,6 @@ const STATIC_ROUTES = {
     "/teacher/attendance",
     "/teacher/roster",
     "/teacher/hifdh",
-    "/teacher/hifdh/hear",
     "/teacher/curriculum",
     "/teacher/calendar",
     "/teacher/classes",

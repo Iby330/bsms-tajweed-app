@@ -20,7 +20,7 @@ export type RosterStudent = {
 /**
  * The teacher's roster, each student's own memorisation run, and where they
  * have got to on it — "next to hear" derived exactly once. The register
- * (`teacher/hifdh`) and the hearing desk (`teacher/hifdh/hear`) both used to
+ * (`teacher/hifdh`) and a student's Hear tab (`teacher/hifdh/[studentId]?tab=hear`) both used to
  * compute this independently; sharing it means a rule (start surah, how
  * which surah is next) only has to be right in one place.
  *

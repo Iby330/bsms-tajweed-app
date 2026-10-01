@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -8,7 +8,7 @@ import { getCachedSurahs } from "@/lib/reference/cached";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { HifzGrid, type MarkRow } from "@/components/app/hifz-grid";
 import { HifzTabs } from "@/components/app/hifz-tabs";
-import { ReviewFeedback } from "@/components/app/review-feedback";
+import { HearTab } from "@/components/app/hear-tab";
 import { Rule } from "@/components/app/rule";
 import { teacherClass } from "@/lib/teacher/scope";
 import { timetableFor, weekdayNameFor } from "@/lib/attendance/calendar";
@@ -20,23 +20,31 @@ export const dynamic = "force-dynamic";
 
 const PACE_LABEL = { ok: "Ahead", warn: "On pace", danger: "Behind" } as const;
 
+const TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "hear", label: "Hear" },
+];
+
 /**
- * One student's hifdh, as the marking grid.
+ * One student's hifdh: Overview, the record as the marking grid, and Hear,
+ * where the teacher hears them and sees their mistake picture.
  *
  * This is deliberately the student's own view of their year — the mushaf index,
  * banded by hizb — rather than a teacher-shaped list of rows. Both people end
  * up looking at the same shape, which matters on a Thursday when they are
  * looking at it together, and the run reads as a run instead of forty-odd
- * lines. Each cell opens the surah's page, where it is heard and passed.
+ * lines. Each cell opens the surah's record; hearing happens on the Hear tab.
  */
 export default async function StudentHifzDetail({
   params,
   searchParams,
 }: {
   params: Promise<{ studentId: string }>;
-  searchParams: Promise<{ tab?: string; heat?: string }>;
+  searchParams: Promise<{ tab?: string; heat?: string; from?: string; done?: string; p?: string }>;
 }) {
-  const [{ studentId }, { tab, heat }] = await Promise.all([params, searchParams]);
+  const [{ studentId }, { tab, heat, from, done, p }] = await Promise.all([params, searchParams]);
+  // The Review tab became Hear: old links land there.
+  if (tab === "review") redirect(`/teacher/hifdh/${studentId}?tab=hear`);
   const db = await supabaseServer();
 
   // Every read here is keyed on the student id alone, the guard included — it
@@ -65,7 +73,7 @@ export default async function StudentHifzDetail({
   // RLS still grants teachers the whole cohort.
   if (mine && student.class_id !== mine.id) notFound();
 
-  const review = tab === "review";
+  const hear = tab === "hear";
   const className = student.classes?.name ?? null;
   // The recitation day is the class's, not the programme's, so it comes off
   // the timetable rather than being spelled into the sentence.
@@ -74,8 +82,8 @@ export default async function StudentHifzDetail({
     "hifdh",
   );
 
-  // The masthead and the tabs stay identical across both tabs, so Review is
-  // reachable — and looks like the same page — before a target exists.
+  // The masthead and the tabs stay identical across both tabs, so Hear is
+  // reachable, and looks like the same page, before a target exists.
   const shell = (body: ReactNode) => (
     <>
       <header className="masthead">
@@ -95,23 +103,24 @@ export default async function StudentHifzDetail({
 
       <HifzTabs
         basePath={`/teacher/hifdh/${studentId}`}
-        active={review ? "review" : "overview"}
+        active={hear ? "hear" : "overview"}
+        tabs={TABS}
       />
 
       {body}
     </>
   );
 
-  if (review) {
+  if (hear) {
     return shell(
-      <>
-        <Rule label="Peer revision" />
-        <ReviewFeedback
-          studentId={studentId}
-          heat={heat ? Number(heat) : undefined}
-          basePath={`/teacher/hifdh/${studentId}?tab=review`}
-        />
-      </>,
+      <HearTab
+        studentId={studentId}
+        studentName={student.full_name}
+        fromParam={from}
+        doneParam={done}
+        p={p}
+        heat={heat}
+      />,
     );
   }
 
