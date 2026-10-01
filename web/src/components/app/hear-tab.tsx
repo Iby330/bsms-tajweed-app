@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getCachedPageWords, getCachedSurahs, getCachedSurahStartPages } from "@/lib/reference/cached";
 import { fromRow, groupIntoPages } from "@/lib/quran/mushaf";
@@ -39,7 +40,11 @@ export async function HearTab({
   const basePath = `/teacher/hifdh/${studentId}?tab=hear`;
   const [roster, hearingMistakes] = await Promise.all([rosterWithNext(), hearingMistakesFor(studentId)]);
   const chosen = roster.find((s) => s.id === studentId);
-  const run = chosen?.run ?? [];
+  // The page already turns away another class's student; this also catches
+  // anyone else off the roster (an inactive student, a non-student id), who
+  // would otherwise get a Hear tab saying only that no target is set.
+  if (!chosen) notFound();
+  const run = chosen.run;
 
   const mistakePicture = (
     <>
@@ -89,7 +94,7 @@ export async function HearTab({
   // next surah, and a student whose run is complete starts at its last.
   const requested = Number(fromParam);
   const from = draft?.from
-    ?? (run.some((s) => s.number === requested) ? requested : (chosen?.next?.number ?? run[run.length - 1].number));
+    ?? (run.some((s) => s.number === requested) ? requested : (chosen.next?.number ?? run[run.length - 1].number));
   const minEnd = run[run.length - 1].number;
 
   // The pages the tab can turn: from the run's last surah's first page
