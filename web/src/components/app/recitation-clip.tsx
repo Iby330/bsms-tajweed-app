@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useId } from "react";
 import { LoaderCircle, Play, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Clip } from "@/lib/homework/media";
@@ -46,13 +46,21 @@ type State = "idle" | "loading" | "playing" | "error";
 export function RecitationClip({
   clip,
   compact = false,
+  name,
   className,
 }: {
   clip: Clip;
   /** An icon-sized button for an option row: no label, same behaviour. */
   compact?: boolean;
+  /**
+   * What the button plays, for its accessible name ("Play option 2"). A row
+   * of identical "Play recitation" buttons tells a screen-reader user nothing
+   * about which option each one belongs to.
+   */
+  name?: string;
   className?: string;
 }) {
+  const sourceId = useId();
   const audioRef = useRef<HTMLAudioElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
   const frameRef = useRef<number | null>(null);
@@ -184,13 +192,15 @@ export function RecitationClip({
   const busy = state === "loading";
   const playing = state === "playing";
   const label = busy ? "Loading…" : playing ? "Stop" : "Play recitation";
+  const named = name ? `${busy ? "Loading…" : playing ? "Stop" : "Play"} ${name}` : label;
 
   const button = (
     <Button
       type="button"
       variant={compact ? "outline" : "default"}
       size={compact ? "icon-sm" : "default"}
-      aria-label={compact ? label : undefined}
+      aria-label={compact ? named : undefined}
+      aria-describedby={!compact && clip.label ? sourceId : undefined}
       aria-busy={busy || undefined}
       onClick={(e) => {
         // On an option row this button sits beside a radio. It must never
@@ -247,7 +257,7 @@ export function RecitationClip({
       <div className="flex flex-wrap items-center gap-2">
         {button}
         {!compact && clip.label && (
-          <span className="text-xs text-muted-foreground">{clip.label}</span>
+          <span id={sourceId} className="text-xs text-muted-foreground">{clip.label}</span>
         )}
       </div>
       {state === "error" && (

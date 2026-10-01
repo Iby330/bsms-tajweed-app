@@ -98,19 +98,19 @@ describe("HomeworkForm: audio on the options", () => {
   it("gives each option with audio its own play button", () => {
     const { container } = form([question({ media })]);
     const rows = container.querySelectorAll("li");
-    expect(within(rows[0] as HTMLElement).getByRole("button", { name: "Play recitation" })).toBeTruthy();
-    expect(within(rows[1] as HTMLElement).getByRole("button", { name: "Play recitation" })).toBeTruthy();
+    expect(within(rows[0] as HTMLElement).getByRole("button", { name: "Play option 1" })).toBeTruthy();
+    expect(within(rows[1] as HTMLElement).getByRole("button", { name: "Play option 2" })).toBeTruthy();
   });
 
   it("only the options that have audio get a button", () => {
     form([question({ media: { option_audio: { "2": { url: URL_6 } } } })]);
-    expect(screen.getAllByRole("button", { name: "Play recitation" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: /^Play option/ })).toHaveLength(1);
   });
 
   it("pressing an option's play button does not choose that option", () => {
     const { container } = form([question({ media })]);
     const row = container.querySelectorAll("li")[0] as HTMLElement;
-    fireEvent.click(within(row).getByRole("button", { name: "Play recitation" }));
+    fireEvent.click(within(row).getByRole("button", { name: "Play option 1" }));
 
     expect(play).toHaveBeenCalledTimes(1);
     const radios = screen.getAllByRole("radio") as HTMLInputElement[];
@@ -121,7 +121,7 @@ describe("HomeworkForm: audio on the options", () => {
   it("nor ticks a checkbox", () => {
     const { container } = form([question({ qtype: "checkbox", media })]);
     const row = container.querySelectorAll("li")[1] as HTMLElement;
-    fireEvent.click(within(row).getByRole("button", { name: "Play recitation" }));
+    fireEvent.click(within(row).getByRole("button", { name: "Play option 2" }));
 
     expect(play).toHaveBeenCalledTimes(1);
     const boxes = screen.getAllByRole("checkbox") as HTMLInputElement[];

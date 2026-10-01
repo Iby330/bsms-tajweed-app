@@ -69,7 +69,8 @@ describe("QuestionBreakdown: a question with a recitation", () => {
         attribution={() => null}
       />,
     );
-    expect(getAllByRole("button", { name: "Play recitation" })).toHaveLength(2);
+    expect(getAllByRole("button", { name: "Play recitation" })).toHaveLength(1);
+    expect(getAllByRole("button", { name: /^Play option \d$/ })).toHaveLength(1);
     expect(container.querySelectorAll("audio")).toHaveLength(2);
   });
 

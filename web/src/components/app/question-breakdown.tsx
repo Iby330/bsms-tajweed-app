@@ -173,7 +173,7 @@ export function QuestionBreakdown({
                   const most = Math.max(1, ...tallies.map((t) => t.count));
                   return (
                     <>
-                      {tallies.map((t) => (
+                      {tallies.map((t, idx) => (
                         <li
                           key={t.position}
                           className="relative overflow-hidden rounded-md px-2.5 py-1.5 text-sm"
@@ -205,7 +205,7 @@ export function QuestionBreakdown({
                             </span>
                             <MixedText text={t.value} variant="quran" className="min-w-0 flex-1" />
                             {media.optionAudio[t.position] && (
-                              <RecitationClip clip={media.optionAudio[t.position]} compact />
+                              <RecitationClip clip={media.optionAudio[t.position]} compact name={`option ${idx + 1}`} />
                             )}
                             {rows.length > 0 && (
                               <span className="shrink-0 text-xs tabular-nums text-muted-foreground">

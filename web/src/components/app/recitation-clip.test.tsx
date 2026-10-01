@@ -183,4 +183,18 @@ describe("RecitationClip", () => {
     const b = screen.getByRole("button", { name: "Play recitation" });
     expect(b.textContent?.trim()).toBe("");
   });
+
+  it("compact with a name says which option it plays", () => {
+    render(<RecitationClip clip={CLIP} compact name="option 2" />);
+    const b = screen.getByRole("button", { name: "Play option 2" });
+    fireEvent.click(b);
+    expect(screen.getByRole("button", { name: "Loading… option 2" })).toBeTruthy();
+  });
+
+  it("the full button is described by the passage it plays", () => {
+    render(<RecitationClip clip={{ ...CLIP, label: "Al-Balad 90:6" }} />);
+    const b = screen.getByRole("button", { name: "Play recitation" });
+    const id = b.getAttribute("aria-describedby");
+    expect(id && document.getElementById(id)?.textContent).toBe("Al-Balad 90:6");
+  });
 });

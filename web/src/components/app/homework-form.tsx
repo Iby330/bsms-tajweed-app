@@ -188,7 +188,7 @@ export function HomeworkForm({
                 />
               ) : q.qtype === "mcq" && q.options ? (
                 <ul className="space-y-1.5">
-                  {q.options.map((o) => {
+                  {q.options.map((o, idx) => {
                     const checked = selectedOf(value).includes(o.position);
                     const audio = media.optionAudio[o.position];
                     return (
@@ -207,14 +207,14 @@ export function HomeworkForm({
                         {/* Beside the label, never inside it: a click inside
                             a label is a click on its radio, and hearing an
                             option must not choose it. */}
-                        {audio && <RecitationClip clip={audio} compact />}
+                        {audio && <RecitationClip clip={audio} compact name={`option ${idx + 1}`} />}
                       </li>
                     );
                   })}
                 </ul>
               ) : q.qtype === "checkbox" && q.options ? (
                 <ul className="space-y-1.5">
-                  {q.options.map((o) => {
+                  {q.options.map((o, idx) => {
                     const sel = selectedOf(value);
                     const checked = sel.includes(o.position);
                     const audio = media.optionAudio[o.position];
@@ -233,7 +233,7 @@ export function HomeworkForm({
                             className="mt-0.5 size-4 accent-[var(--ink)]" />
                           <MixedText text={o.value ?? o.label} variant="quran" />
                         </label>
-                        {audio && <RecitationClip clip={audio} compact />}
+                        {audio && <RecitationClip clip={audio} compact name={`option ${idx + 1}`} />}
                       </li>
                     );
                   })}

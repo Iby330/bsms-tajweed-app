@@ -304,7 +304,7 @@ export function ReviewPanel({
                    that used to disappear — `bg-muted` read as a disabled row
                    rather than as the answer. */
                 <ul className="space-y-1">
-                  {q.options.map((o) => {
+                  {q.options.map((o, idx) => {
                     const picked = chosen.includes(o.position);
                     const audio = media.optionAudio[o.position];
                     return (
@@ -322,7 +322,7 @@ export function ReviewPanel({
                           {picked && o.correct ? "chose ✓" : picked ? "chose ✗" : o.correct ? "answer" : ""}
                         </span>
                         <MixedText text={o.value} variant="quran" />
-                        {audio && <RecitationClip clip={audio} compact className="ml-auto" />}
+                        {audio && <RecitationClip clip={audio} compact name={`option ${idx + 1}`} className="ml-auto" />}
                       </li>
                     );
                   })}

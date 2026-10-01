@@ -109,7 +109,8 @@ describe("ReviewPanel: a question with a recitation", () => {
 
   it("lets the teacher hear the clip the student heard, and each option's audio", () => {
     const { container, getAllByRole, getByText } = panel([LISTEN], [picked]);
-    expect(getAllByRole("button", { name: "Play recitation" })).toHaveLength(2);
+    expect(getAllByRole("button", { name: "Play recitation" })).toHaveLength(1);
+    expect(getAllByRole("button", { name: /^Play option \d$/ })).toHaveLength(1);
     expect(getByText("Al-Balad 90:6")).toBeTruthy();
     expect(container.querySelectorAll("audio")).toHaveLength(2);
   });
