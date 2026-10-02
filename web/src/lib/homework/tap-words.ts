@@ -38,8 +38,10 @@ export type TapAyah = {
 };
 
 /** `78:14:3` — surah, ayah, word position — optionally with the mushaf page
- *  it is printed on, `78:14:3:582`, which is what names the glyph font. */
-const LOCATOR = /^(\d+):(\d+):(\d+)(?::(\d+))?$/;
+ *  it is printed on, `78:14:3:582`, which is what names the glyph font, and
+ *  the printed line on that page, `78:14:3:582:7`, which lets the passage be
+ *  set in the mushaf's own lines rather than wrapped like prose. */
+const LOCATOR = /^(\d+):(\d+):(\d+)(?::(\d+))?(?::(\d+))?$/;
 
 /** The KFGQPC page font a printed word's glyph belongs to. Each page of the
  *  mushaf has its own, and a glyph means nothing in any other. */
@@ -58,14 +60,20 @@ export function pageFont(page: number): string {
  * exactly `position`, `label` and `value` through to a student and drops
  * anything else an option carries.
  */
-export function packWord(glyph: string | null, text: string): string {
-  return glyph ? `${glyph}\t${text}` : text;
+export function packWord(glyph: string | null, text: string, end?: string | null): string {
+  if (!glyph) return text;
+  return end ? `${glyph}\t${text}\t${end}` : `${glyph}\t${text}`;
 }
 
-export function unpackWord(value: string): { glyph: string | null; text: string } {
-  const tab = value.indexOf("\t");
-  if (tab < 0) return { glyph: null, text: value };
-  return { glyph: value.slice(0, tab), text: value.slice(tab + 1) };
+/**
+ * The last word of an ayah may carry a third field: the ayah's printed end
+ * marker, the page font's own numbered rosette. It is not an option (nothing
+ * to tap, nothing to mark), so it rides on the word it follows.
+ */
+export function unpackWord(value: string): { glyph: string | null; text: string; end: string | null } {
+  const parts = value.split("\t");
+  if (parts.length < 2) return { glyph: null, text: value, end: null };
+  return { glyph: parts[0], text: parts[1], end: parts[2] || null };
 }
 
 /** Below this, a run of locator-shaped labels is more likely a coincidence
@@ -74,7 +82,7 @@ const MIN_WORDS = 5;
 
 export function parseLocator(
   label: string,
-): { surah: number; ayah: number; position: number; page: number | null } | null {
+): { surah: number; ayah: number; position: number; page: number | null; line: number | null } | null {
   const m = LOCATOR.exec(label.trim());
   if (!m) return null;
   return {
@@ -82,6 +90,7 @@ export function parseLocator(
     ayah: Number(m[2]),
     position: Number(m[3]),
     page: m[4] ? Number(m[4]) : null,
+    line: m[5] ? Number(m[5]) : null,
   };
 }
 
@@ -112,6 +121,26 @@ export function tapAyahs(options: TapOption[]): TapAyah[] {
     }
   }
   return out;
+}
+
+export type TapLine = { page: number; line: number; words: TapOption[] };
+
+/**
+ * The passage in the mushaf's own printed lines, in reading order — or null
+ * when any word lacks a page and line (a passage built before lines were
+ * recorded), which is drawn flowing as before. Ordered by option position,
+ * for the same reason as tapAyahs.
+ */
+export function tapLines(options: TapOption[]): TapLine[] | null {
+  const out: TapLine[] = [];
+  for (const option of [...options].sort((a, b) => a.position - b.position)) {
+    const loc = parseLocator(option.label);
+    if (!loc || loc.page === null || loc.line === null) return null;
+    const last = out[out.length - 1];
+    if (last && last.page === loc.page && last.line === loc.line) last.words.push(option);
+    else out.push({ page: loc.page, line: loc.line, words: [option] });
+  }
+  return out.length ? out : null;
 }
 
 /** Arabic-Indic ayah number, as the mushaf prints it: 14 → ١٤. */

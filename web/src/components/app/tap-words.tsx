@@ -3,10 +3,13 @@
 import {
   arabicNumber,
   pageFont,
+  parseLocator,
   tapAyahs,
+  tapLines,
   unpackWord,
   type TapOption,
 } from "@/lib/homework/tap-words";
+import { Fragment } from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -14,10 +17,14 @@ import { cn } from "@/lib/utils";
  * "find the rule" question.
  *
  * Each word is a real button, not a div with a click handler, so it is
- * reachable by keyboard and announced as pressed or not. The passage runs
- * right-to-left and wraps like prose; ayah numbers sit inline in Arabic-Indic
- * digits the way the mushaf prints them, so the page reads as Qur'an rather
- * than as a form.
+ * reachable by keyboard and announced as pressed or not.
+ *
+ * Two layouts. A passage whose words know their printed page AND line is set
+ * in the mushaf's own lines: one row per printed line, justified edge to edge
+ * like the reader's page (`.qcf-line`), each ayah closed by the page font's
+ * own numbered rosette — so it reads as a page of Qur'an, not as a list of
+ * buttons. A passage built before lines were recorded runs right-to-left and
+ * wraps like prose, with ayah numbers inline in Arabic-Indic digits.
  *
  * `reveal` turns it into the marked view: it needs each option's `correct`
  * flag, which the teacher's screens have and the student RPC deliberately
@@ -41,7 +48,7 @@ export function TapWords({
 }) {
   const chosen = new Set(selected);
   const ayahs = tapAyahs(options);
-
+  const lines = tapLines(options);
   // The printed page's own font, one per page the passage crosses. A glyph is a
   // private-use codepoint that draws the whole word — marks, tanwīn and all —
   // exactly as the mushaf prints it, and means nothing in any other font. That
@@ -58,6 +65,45 @@ export function TapWords({
     );
   };
 
+  const wordButton = (w: TapOption, page: number | null) => {
+    const picked = chosen.has(w.position);
+    // Draw the glyph, but say the word: a screen reader reading a
+    // private-use codepoint aloud says nothing at all.
+    const { glyph, text } = unpackWord(w.value ?? w.label);
+    // Four states once revealed: found it, wrongly picked, missed,
+    // and correctly left alone (which needs no mark at all).
+    const hit = reveal && picked && w.correct;
+    const wrong = reveal && picked && !w.correct;
+    const missed = reveal && !picked && w.correct;
+    return (
+      <button
+        key={w.position}
+        type="button"
+        disabled={readOnly}
+        aria-pressed={picked}
+        aria-label={text}
+        onClick={() => toggle(w.position)}
+        style={glyph && page ? { fontFamily: `"${pageFont(page)}"` } : undefined}
+        className={cn(
+          "mx-[0.12em] rounded-md px-[0.2em] py-[0.05em] transition-colors",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          // A tint and a ring rather than a solid fill: the word has
+          // to stay READABLE while selected, and a filled chip means
+          // relying on a text colour to sit on top of it — which is
+          // how a tapped word became a blank block.
+          !reveal && picked && "bg-ink/15 ring-1 ring-ink/50",
+          !reveal && !picked && !readOnly && "hover:bg-muted",
+          hit && "bg-ok/15 text-ok ring-1 ring-ok/50",
+          wrong && "bg-danger/15 text-danger ring-1 ring-danger/50",
+          missed && "bg-warn/10 text-warn ring-1 ring-warn/40",
+          readOnly && "cursor-default",
+        )}
+      >
+        {glyph ?? text}
+      </button>
+    );
+  };
+
   return (
     <div className="space-y-3">
       {pages.length > 0 && (
@@ -70,61 +116,53 @@ export function TapWords({
             .join("\n")}
         </style>
       )}
-      <div
-        dir="rtl"
-        lang="ar"
-        className="ar-tap rounded-lg border border-line bg-page px-4 py-5"
-      >
-        {ayahs.map((a) => (
-          <span key={`${a.surah}:${a.ayah}`}>
-            {a.words.map((w) => {
-              const picked = chosen.has(w.position);
-              // Draw the glyph, but say the word: a screen reader reading a
-              // private-use codepoint aloud says nothing at all.
-              const { glyph, text } = unpackWord(w.value ?? w.label);
-              // Four states once revealed: found it, wrongly picked, missed,
-              // and correctly left alone (which needs no mark at all).
-              const hit = reveal && picked && w.correct;
-              const wrong = reveal && picked && !w.correct;
-              const missed = reveal && !picked && w.correct;
-
-              return (
-                <button
-                  key={w.position}
-                  type="button"
-                  disabled={readOnly}
-                  aria-pressed={picked}
-                  aria-label={text}
-                  onClick={() => toggle(w.position)}
-                  style={
-                    glyph && a.page ? { fontFamily: `"${pageFont(a.page)}"` } : undefined
-                  }
-                  className={cn(
-                    "mx-[0.12em] rounded-md px-[0.2em] py-[0.05em] transition-colors",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    // A tint and a ring rather than a solid fill: the word has
-                    // to stay READABLE while selected, and a filled chip means
-                    // relying on a text colour to sit on top of it — which is
-                    // how a tapped word became a blank block.
-                    !reveal && picked && "bg-ink/15 ring-1 ring-ink/50",
-                    !reveal && !picked && !readOnly && "hover:bg-muted",
-                    hit && "bg-ok/15 text-ok ring-1 ring-ok/50",
-                    wrong && "bg-danger/15 text-danger ring-1 ring-danger/50",
-                    missed && "bg-warn/10 text-warn ring-1 ring-warn/40",
-                    readOnly && "cursor-default",
-                  )}
-                >
-                  {glyph ?? text}
-                </button>
-              );
-            })}
-            <span aria-label={`ayah ${a.ayah}`} className="mx-[0.2em] text-ink-3">
-              ﴿{arabicNumber(a.ayah)}﴾
-            </span>{" "}
-          </span>
-        ))}
-      </div>
-
+      {lines ? (
+        /* The first and last rows are usually partial lines of the page, so
+           they are centred rather than stretched across the measure. */
+        <div dir="rtl" lang="ar" className="ar-tap tap-lines rounded-lg border border-line bg-page px-3 py-5">
+          {lines.map((ln, i) => (
+            <div
+              key={`${ln.page}:${ln.line}`}
+              className={cn("qcf-line", (i === 0 || i === lines.length - 1) && "centered")}
+              style={{ fontFamily: `"${pageFont(ln.page)}"` }}
+            >
+              {/* Words, rosettes and the spaces between them sit directly in
+                  the line: justification can only stretch a space that is a
+                  sibling of the boxes either side of it. */}
+              {ln.words.map((w) => {
+                const { end } = unpackWord(w.value ?? w.label);
+                return (
+                  <Fragment key={w.position}>
+                    {wordButton(w, ln.page)}{" "}
+                    {end && (
+                      <>
+                        <span aria-label={`ayah ${parseLocator(w.label)?.ayah}`} className="tap-end">
+                          {end}
+                        </span>{" "}
+                      </>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div
+          dir="rtl"
+          lang="ar"
+          className="ar-tap rounded-lg border border-line bg-page px-4 py-5"
+        >
+          {ayahs.map((a) => (
+            <span key={`${a.surah}:${a.ayah}`}>
+              {a.words.map((w) => wordButton(w, a.page))}
+              <span aria-label={`ayah ${a.ayah}`} className="mx-[0.2em] text-ink-3">
+                ﴿{arabicNumber(a.ayah)}﴾
+              </span>{" "}
+            </span>
+          ))}
+        </div>
+      )}
       <p className="text-xs text-muted-foreground">
         {reveal ? (
           <>

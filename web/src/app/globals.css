@@ -631,6 +631,52 @@ body::after {
   }
 }
 
+/* A tap-the-rule passage set in the mushaf's own lines (TapWords, when every
+   word carries its page and line). Each .qcf-line is a printed line in its
+   page font, so it keeps the reader's measure (the V1 page fonts fill about
+   15.6em at 1em; see .mushaf-body) and the type scales to the box instead, so a
+   line never has to wrap. Unlayered on purpose: it must outrank the layered
+   Tailwind margin/padding the word buttons carry in the flowing layout, which
+   would push a nowrap line past its measure. */
+.tap-lines {
+  container-type: inline-size;
+  line-height: 1.7;
+  text-align: center;
+}
+.tap-lines .qcf-line {
+  /* 17em, not the reader's 15.6em: a tap passage puts a real space between
+     words (so justification has something to stretch, and each word is its
+     own target), which the bare glyph runs of the reader do not. */
+  font-size: clamp(0.9rem, calc(100cqi / 17.6), 1.8rem);
+  max-inline-size: 17em;
+  margin-inline: auto;
+}
+.tap-lines .qcf-line button {
+  margin-inline: 0;
+  padding-inline: 0.04em;
+}
+/* A phone cannot hold a printed line at a size a thumb can hit (17em at
+   390px is ~14px glyphs). There the lines give way: the words flow and wrap
+   at reading size, still justified and still closed by the page's rosettes,
+   and the printed lines come back as soon as the box can carry them. */
+@container (max-width: 520px) {
+  .tap-lines .qcf-line {
+    display: inline;
+    font-size: 1.5rem;
+    max-inline-size: none;
+    white-space: normal;
+  }
+  .tap-lines {
+    text-align: justify;
+    text-align-last: center;
+    line-height: 2.1;
+  }
+}
+.tap-lines .tap-end {
+  display: inline-block;
+  color: var(--ink-3);
+}
+
 .ar-mushaf {
   font-family: "Uthmanic Hafs", var(--font-quran);
   font-size: 1.7rem;

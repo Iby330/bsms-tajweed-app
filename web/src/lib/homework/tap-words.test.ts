@@ -6,6 +6,7 @@ import {
   pageFont,
   parseLocator,
   tapAyahs,
+  tapLines,
   unpackWord,
   type TapOption,
 } from "./tap-words";
@@ -27,21 +28,21 @@ const passage: TapOption[] = [
 
 describe("parseLocator", () => {
   it("reads surah, ayah and word position", () => {
-    expect(parseLocator("78:14:3")).toEqual({ surah: 78, ayah: 14, position: 3, page: null });
+    expect(parseLocator("78:14:3")).toEqual({ surah: 78, ayah: 14, position: 3, page: null, line: null });
   });
 
   it("reads the mushaf page when the passage carries printed glyphs", () => {
     expect(parseLocator("78:14:3:582")).toEqual({
-      surah: 78, ayah: 14, position: 3, page: 582,
+      surah: 78, ayah: 14, position: 3, page: 582, line: null,
     });
   });
 
   it("tolerates surrounding space", () => {
-    expect(parseLocator(" 2:255:1 ")).toEqual({ surah: 2, ayah: 255, position: 1, page: null });
+    expect(parseLocator(" 2:255:1 ")).toEqual({ surah: 2, ayah: 255, position: 1, page: null, line: null });
   });
 
-  it("refuses anything that is not three numbers", () => {
-    for (const label of ["Option 1", "78:14", "78:14:3:582:9", "a:b:c", "", "78-14-3"]) {
+  it("refuses anything that is not three to five numbers", () => {
+    for (const label of ["Option 1", "78:14", "78:14:3:582:9:1", "a:b:c", "", "78-14-3"]) {
       expect(parseLocator(label)).toBeNull();
     }
   });
@@ -121,18 +122,19 @@ describe("arabicNumber", () => {
 describe("packWord / unpackWord", () => {
   it("carries the printed glyph and the readable word in one field", () => {
     const packed = packWord("ﮁ", "سِرَاجًۭا");
-    expect(unpackWord(packed)).toEqual({ glyph: "ﮁ", text: "سِرَاجًۭا" });
+    expect(unpackWord(packed)).toEqual({ glyph: "ﮁ", text: "سِرَاجًۭا", end: null });
   });
 
   it("falls back to text alone when a word has no glyph", () => {
     expect(unpackWord(packWord(null, "سِرَاجًۭا"))).toEqual({
       glyph: null,
       text: "سِرَاجًۭا",
+      end: null,
     });
   });
 
   it("reads a plain value written before glyphs existed", () => {
-    expect(unpackWord("سِرَاجًۭا")).toEqual({ glyph: null, text: "سِرَاجًۭا" });
+    expect(unpackWord("سِرَاجًۭا")).toEqual({ glyph: null, text: "سِرَاجًۭا", end: null });
   });
 });
 
@@ -140,5 +142,37 @@ describe("pageFont", () => {
   it("names the page's own KFGQPC face", () => {
     expect(pageFont(582)).toBe("QCF_P582");
     expect(pageFont(1)).toBe("QCF_P001");
+  });
+});
+
+describe("printed lines", () => {
+  it("reads the mushaf line when the locator carries it", () => {
+    expect(parseLocator("89:15:3:593:7")).toEqual({ surah: 89, ayah: 15, position: 3, page: 593, line: 7 });
+    expect(parseLocator("89:15:3:593")).toEqual({ surah: 89, ayah: 15, position: 3, page: 593, line: null });
+  });
+
+  it("packs the ayah's printed end marker with its last word", () => {
+    expect(packWord("G", "word", "E")).toBe("G\tword\tE");
+    expect(unpackWord("G\tword\tE")).toEqual({ glyph: "G", text: "word", end: "E" });
+    expect(unpackWord("G\tword")).toEqual({ glyph: "G", text: "word", end: null });
+  });
+
+  const w = (position: number, label: string, value = `g${position}\tw${position}`) => ({ position, label, value });
+
+  it("groups a passage into its printed lines, ends in reading order", () => {
+    const lines = tapLines([
+      w(1, "89:1:1:593:2", "g1\tw1\tE1"),
+      w(2, "89:2:1:593:2"),
+      w(3, "89:2:2:593:3", "g3\tw3\tE2"),
+      w(4, "89:3:1:593:3"),
+    ]);
+    expect(lines!.map((l) => [l.page, l.line, l.words.map((x) => x.position)])).toEqual([
+      [593, 2, [1, 2]],
+      [593, 3, [3, 4]],
+    ]);
+  });
+
+  it("is null when any word lacks a line, so old passages keep the flowing layout", () => {
+    expect(tapLines([w(1, "89:1:1:593:2"), w(2, "89:1:2:593")])).toBeNull();
   });
 });
