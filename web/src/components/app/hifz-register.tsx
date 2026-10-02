@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { FilterSelect } from "@/components/app/filter-select";
+import { ResultButton } from "@/components/app/result-button";
 import { setStudentHifzProfile, setTargetForStudents } from "@/lib/hifz/actions";
 import { countTo, targetPresets } from "@/lib/hifz/targets";
 import type { PaceStatus, Surah } from "@/lib/hifz/pace";
@@ -22,6 +23,13 @@ export type RegisterRow = {
   pace: PaceStatus | null;
   /** 114 until a teacher says otherwise. */
   startSurah: number;
+  /** The student's run, in memorisation order; empty with no target. */
+  run: number[];
+  /** Where the result popup's From starts: the next unpassed surah, or the
+   *  run's last on a completed run; null with no target. */
+  from: number | null;
+  /** surah → passed_at, for the popup's "passed 12 Oct". */
+  passedBefore: Record<number, string>;
 };
 
 const PACE_LABEL: Record<PaceStatus, string> = { ok: "ahead", warn: "on pace", danger: "behind" };
@@ -31,7 +39,9 @@ const PACE_LABEL: Record<PaceStatus, string> = { ok: "ahead", warn: "on pace", d
  * teacher picks WHO first — a checkbox per row, or select all — and one
  * panel applies an end surah to the selection, each student's count derived
  * from their own start. Selecting exactly one student is the returning-
- * student case, so only then does the starts-at picker appear.
+ * student case, so only then does the starts-at picker appear. Each row
+ * with a target also has Pass / Not passed, the result popup for that
+ * student.
  */
 export function HifzRegister({ rows, surahs }: { rows: RegisterRow[]; surahs: Surah[] }) {
   const router = useRouter();
@@ -40,6 +50,7 @@ export function HifzRegister({ rows, surahs }: { rows: RegisterRow[]; surahs: Su
   const [startOverride, setStartOverride] = useState<number | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const names = Object.fromEntries(surahs.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]));
 
   const single = sel.size === 1 ? rows.find((r) => sel.has(r.studentId)) : undefined;
   // The picker starts from what the student already has; changing it is an
@@ -205,6 +216,17 @@ export function HifzRegister({ rows, surahs }: { rows: RegisterRow[]; surahs: Su
                 </span>
               </span>
             </Link>
+            {r.from !== null && r.run.length > 0 && (
+              <span className="shrink-0 pr-4">
+                <ResultButton
+                  studentId={r.studentId}
+                  run={r.run}
+                  from={r.from}
+                  names={names}
+                  passedBefore={r.passedBefore}
+                />
+              </span>
+            )}
           </li>
         ))}
       </ul>

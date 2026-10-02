@@ -7,7 +7,7 @@ import { pageWithin } from "@/lib/quran/page-within";
 import { memorisationList, type Surah } from "@/lib/hifz/pace";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
 import { hearingsFor, hearingsForStudent } from "@/lib/hifz/hearing-queries";
-import { recordLine, summaryOf, surahState } from "@/lib/hifz/hearings";
+import { latestResult, recordLine, summaryOf, surahState } from "@/lib/hifz/hearings";
 import { teacherClass } from "@/lib/teacher/scope";
 import { RecordActions } from "@/components/app/record-actions";
 import { SurahMushaf } from "@/components/app/surah-mushaf";
@@ -18,10 +18,11 @@ export const dynamic = "force-dynamic";
 
 /**
  * One surah's record, the same shape the student sees: where it stands,
- * the surah's pages tinted by every submitted hearing's marks on it (tap a
- * word for its history), the latest note, and the comment and Undo pass on
- * a surah already passed. Nothing is heard here: "Hear from this surah"
- * opens the student's Hear tab with it as the start.
+ * the surah's pages tinted by every hearing mark on it, from results and
+ * from marking sessions alike (tap a word for its history), the latest
+ * result's note, and the comment and Undo pass on a surah already passed.
+ * Nothing is heard here: "Hear from this surah" opens the register's Hear
+ * tab on this student at the surah's first page.
  */
 export default async function TeacherSurahPage({
   params,
@@ -65,11 +66,11 @@ export default async function TeacherSurahPage({
   const record = records?.find((r) => r.surah_number === number) ?? null;
   const passedSet = new Set((records ?? []).map((r) => r.surah_number));
   const state = surahState(number, passedSet, allHearings);
-  const latest = hearings[0] ?? null;
+  const latest = latestResult(hearings);
   const line = recordLine(
     state,
     record ? { passedAt: record.passed_at, comment: record.teacher_comment } : null,
-    summaryOf(latest),
+    summaryOf(hearings),
   );
   const mistakes = hearings.flatMap((h) => h.mistakes);
 
@@ -88,7 +89,10 @@ export default async function TeacherSurahPage({
         </p>
         {latest?.note && <p className="note">Last time: &quot;{latest.note}&quot;</p>}
         <p className="note">
-          <Link href={`/teacher/hifdh/${studentId}?tab=hear&from=${number}`} className="underline">
+          <Link
+            href={`/teacher/hifdh?tab=hear&student=${encodeURIComponent(studentId)}&p=${range.from}`}
+            className="underline"
+          >
             Hear from this surah
           </Link>
         </p>
@@ -110,7 +114,7 @@ export default async function TeacherSurahPage({
         <section className="box c12" aria-label="The surah, with the marks from its hearings">
           <p className="note">
             {mistakes.length > 0
-              ? "Tinted words were marked in a hearing. Tap one to see what was said."
+              ? "Tinted words were marked while hearing. Tap one to see what was said."
               : latest
                 ? "No mistakes were marked on this one."
                 : "Once this surah is heard, its marks show here."}

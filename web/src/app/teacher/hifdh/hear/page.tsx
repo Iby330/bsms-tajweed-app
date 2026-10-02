@@ -3,9 +3,8 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 /**
- * The old hearing desk. Hearing now happens on each student's Hear tab, so
- * a bookmark with `?student=` lands on that tab, and one without lands on
- * the register.
+ * The old hearing desk. Hearing now happens on the register's Hear tab, so
+ * a bookmark lands there, with its `?student=` kept.
  */
 export default async function HearRedirect({
   searchParams,
@@ -13,5 +12,5 @@ export default async function HearRedirect({
   searchParams: Promise<{ student?: string }>;
 }) {
   const { student } = await searchParams;
-  redirect(student ? `/teacher/hifdh/${encodeURIComponent(student)}?tab=hear` : "/teacher/hifdh");
+  redirect(student ? `/teacher/hifdh?tab=hear&student=${encodeURIComponent(student)}` : "/teacher/hifdh?tab=hear");
 }

@@ -18,6 +18,8 @@ vi.mock("@/lib/hifz/actions", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
+const record = vi.hoisted(() => vi.fn(async () => {}));
+vi.mock("@/lib/hifz/hearing-actions", () => ({ recordResults: record }));
 
 const surahs: Surah[] = Array.from({ length: 43 }, (_, i) => ({
   number: 114 - i,
@@ -33,6 +35,9 @@ const row = (over: Partial<RegisterRow> & { studentId: string; name: string }): 
   expected: 0,
   pace: null,
   startSurah: 114,
+  run: [],
+  from: null,
+  passedBefore: {},
   ...over,
 });
 
@@ -108,4 +113,28 @@ describe("HifzRegister — one student", () => {
     expect(getByText("To end of Hizb 60 · 28")).toBeTruthy();
     expect(queryByText("To end of Hizb 59 · 3")).toBeNull();
   });
+});
+
+describe("HifzRegister — results", () => {
+  const AISHA = row({
+    studentId: "s3", name: "Aisha", target: 3, nextName: "S113",
+    run: [114, 113, 112], from: 113, passedBefore: { 114: "2026-09-10" },
+  });
+
+  it("only a student with a target gets the Pass / Not passed button", () => {
+    const { getAllByRole } = render(<HifzRegister rows={[ALI, AISHA]} surahs={surahs} />);
+    expect(getAllByRole("button", { name: "Pass / Not passed" })).toHaveLength(1);
+  });
+
+  it("the row's button opens the result popup for that student and submits recordResults", async () => {
+    const { getByRole, getByLabelText, getByPlaceholderText } =
+      render(<HifzRegister rows={[ALI, AISHA]} surahs={surahs} />);
+    fireEvent.click(getByRole("button", { name: "Pass / Not passed" }));
+    fireEvent.click(getByRole("button", { name: "One more" }));
+    fireEvent.click(getByLabelText(/S113/));
+    fireEvent.change(getByPlaceholderText("Note for the student (optional)"), { target: { value: "again" } });
+    fireEvent.click(getByRole("button", { name: "Confirm" }));
+    await vi.waitFor(() =>
+      expect(record).toHaveBeenCalledWith("s3", { from: 113, to: 112, passed: [112], note: "again" }));
+  }, 20_000);
 });

@@ -1,15 +1,13 @@
 import { notFound } from "next/navigation";
-import { currentProfile, supabaseServer } from "@/lib/supabase/server";
+import { currentProfile } from "@/lib/supabase/server";
 import { getCachedPageWords, getCachedSurahs, getCachedSurahStartPages } from "@/lib/reference/cached";
 import { fromRow, groupIntoPages } from "@/lib/quran/mushaf";
 import { pageWithin } from "@/lib/quran/page-within";
-import { hearingMistakesFor, hearingsForStudent, openDraftFor } from "@/lib/hifz/hearing-queries";
-import { doneLine } from "@/lib/hifz/hearings";
-import { startHearing } from "@/lib/hifz/hearing-actions";
+import { hearingMistakesFor, todaysMarksFor } from "@/lib/hifz/hearing-queries";
 import { aggregatePatterns } from "@/lib/hifz/mistakes";
 import { spreadHeat } from "@/lib/hifz/heat-spread";
-import { rosterWithNext } from "@/lib/hifz/roster";
-import { HearPanel, type PanelStudent } from "./hear-panel";
+import { rosterWithNext, type RosterStudent } from "@/lib/hifz/roster";
+import { HearDesk, type DeskStudent } from "./hear-desk";
 import { PatternTracker } from "./pattern-tracker";
 import { ReviewFeedback } from "./review-feedback";
 import { Rule } from "./rule";
@@ -19,32 +17,52 @@ import type { SurahNames } from "./mushaf-reader";
 const LAST_PAGE = 604;
 
 /**
- * A student's Hear tab: the one place a teacher hears them. The hearing on
- * top (Start hearing with a planned range, tap as they recite on the same
- * one-page mushaf and pager as everywhere, End hearing once), then the
- * picture of their mistakes: recurring ones from teacher hearings, then
- * what their revision partner found. Peer and teacher marks stay apart.
- * The URL carries the default start (`from`), the page (`p`), the hearing
- * just confirmed (`done`) and the partner heatmap's page (`heat`).
+ * The register's Hear tab: a student picker, the one-page mushaf opening at
+ * the chosen student's next surah, every tap saved at once for them, then
+ * the picture of their mistakes: recurring ones from teacher hearings, then
+ * what their revision partner found. The result (Pass / Not passed) is a
+ * separate step on the Overview and the student's page. The URL carries the
+ * student (`student`, else the first with a target), the page (`p`) and the
+ * partner heatmap's page (`heat`).
  */
 export async function HearTab({
-  studentId, studentName, fromParam, doneParam, p, heat,
+  studentParam, p, heat, roster: given,
 }: {
-  studentId: string;
-  studentName: string;
-  fromParam?: string;
-  doneParam?: string;
+  studentParam?: string;
+  /** The register has already read it; read here when it is not passed. */
+  roster?: RosterStudent[];
   p?: string;
   heat?: string;
 }) {
-  const basePath = `/teacher/hifdh/${studentId}?tab=hear`;
-  const [roster, hearingMistakes] = await Promise.all([rosterWithNext(), hearingMistakesFor(studentId)]);
-  const chosen = roster.find((s) => s.id === studentId);
-  // The page already turns away another class's student; this also catches
-  // anyone else off the roster (an inactive student, a non-student id), who
-  // would otherwise get a Hear tab saying only that no target is set.
-  if (!chosen) notFound();
-  const run = chosen.run;
+  const roster = given ?? (await rosterWithNext());
+  const chosen = studentParam
+    ? roster.find((s) => s.id === studentParam)
+    : roster.find((s) => s.run.length > 0);
+  // A named student off the teacher's roster (another class, an inactive
+  // student, a non-student id) is not found rather than shown.
+  if (studentParam && !chosen) notFound();
+
+  const deskRoster: DeskStudent[] = roster.map((s) => ({
+    id: s.id, name: s.name, next: s.next?.name_en ?? null, hasTarget: s.run.length > 0,
+  }));
+
+  if (!chosen) {
+    return (
+      <div className="field">
+        <p className="box c12 note">
+          {roster.length ? "No student has a target yet. Set one on the Overview." : "No active students yet."}
+        </p>
+      </div>
+    );
+  }
+
+  const studentId = chosen.id;
+  const basePath = `/teacher/hifdh?tab=hear&student=${encodeURIComponent(studentId)}`;
+  const profile = (await currentProfile())!;
+  const [hearingMistakes, today] = await Promise.all([
+    hearingMistakesFor(studentId),
+    todaysMarksFor(profile.id, studentId),
+  ]);
 
   const mistakePicture = (
     <>
@@ -68,85 +86,57 @@ export async function HearTab({
     </>
   );
 
-  // No target yet: nothing to hear, so say so and show the picture only.
+  const run = chosen.run;
+  // Named in the URL with no target: nothing to hear, so say so and show
+  // the picture only.
   if (!run.length) {
     return (
       <>
         <div className="field">
-          <p className="box c12 note">No target set for this student yet.</p>
+          <section className="box c12" aria-label="The hearing">
+            <HearDesk
+              roster={deskRoster} studentId={studentId} studentName={chosen.name}
+              initialMistakes={[]} pages={[]} heat={{}} history={{}} surahNames={{}}
+            />
+          </section>
         </div>
         {mistakePicture}
       </>
     );
   }
 
-  const profile = (await currentProfile())!;
-  const db = await supabaseServer();
-  const [draft, allHearings, { data: records }, startPages, surahs] = await Promise.all([
-    openDraftFor(profile.id, studentId),
-    hearingsForStudent(studentId),
-    db.from("hifz_records").select("surah_number, passed_at").eq("student_id", studentId),
-    getCachedSurahStartPages(),
-    getCachedSurahs(),
-  ]);
-
-  // The start: the open draft's, else ?from when it is on the run, else the
-  // next surah, and a student whose run is complete starts at its last.
-  const requested = Number(fromParam);
-  const from = draft?.from
-    ?? (run.some((s) => s.number === requested) ? requested : (chosen.next?.number ?? run[run.length - 1].number));
-  const minEnd = run[run.length - 1].number;
-
+  const [startPages, surahs] = await Promise.all([getCachedSurahStartPages(), getCachedSurahs()]);
   // The pages the tab can turn: from the run's last surah's first page
-  // through the end of the seeded mushaf. Without ?p, open on the start
-  // surah's own first page rather than the range's minimum.
-  const range = { from: startPages[minEnd], to: LAST_PAGE };
-  const page = p ? pageWithin(p, range) : (startPages[from] ?? range.from);
+  // through the end of the seeded mushaf. Without ?p, open on the next
+  // surah's own first page (a completed run opens on its last).
+  const opening = chosen.next?.number ?? run[run.length - 1].number;
+  const range = { from: startPages[run[run.length - 1].number], to: LAST_PAGE };
+  const page = p ? pageWithin(p, range) : (startPages[opening] ?? range.from);
 
   const rows = await getCachedPageWords(page);
   const words = rows.map(fromRow);
-  const { heat: heatValues, history } = spreadHeat(words, hearingMistakes, new Date());
+  // Earlier marks tint underneath; today's are the logger's own marks.
+  const earlier = today ? hearingMistakes.filter((m) => m.session_id !== today.id) : hearingMistakes;
+  const { heat: heatValues, history } = spreadHeat(words, earlier, new Date());
   const surahNames: SurahNames = Object.fromEntries(surahs.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]));
-  const passedBefore: Record<number, string> = Object.fromEntries((records ?? []).map((r) => [r.surah_number, r.passed_at]));
-
-  // The line after Confirm: the hearing named in ?done, described from what it wrote.
-  const justDone = doneParam ? allHearings.find((h) => h.id === doneParam) : undefined;
-  const done = justDone
-    ? { text: doneLine(justDone.from, justDone.to, new Set(Object.keys(passedBefore).map(Number)), surahNames) }
-    : null;
-
-  const panelRoster: PanelStudent[] = roster.map((s) => ({ id: s.id, name: s.name, hasTarget: s.run.length > 0 }));
-  const query = [fromParam ? `from=${from}` : "", heat ? `heat=${heat}` : ""].filter(Boolean).join("&");
 
   return (
     <>
       <div className="field">
         <section className="box c12" aria-label="The hearing">
-          <HearPanel
-            roster={panelRoster}
+          <HearDesk
+            roster={deskRoster}
             studentId={studentId}
-            studentName={studentName}
-            // A draft keys the logger; with none, the latest hearing does, so
-            // a Confirm (which makes the just-submitted hearing the latest)
-            // always comes back to a fresh logger.
-            loggerKey={draft?.id ?? `new:${allHearings[0]?.id ?? "none"}`}
-            sessionId={draft?.id ?? null}
-            initialMistakes={draft?.mistakes ?? []}
+            studentName={chosen.name}
+            initialMistakes={today?.mistakes ?? []}
             pages={groupIntoPages(words)}
             heat={heatValues}
             history={history}
             surahNames={surahNames}
-            pager={{ page, min: range.from, max: range.to, basePath: query ? `${basePath}&${query}` : basePath, param: "p" }}
-            hearing={{
-              from,
-              plannedTo: draft?.to,
-              minEnd,
-              run: run.map((s) => ({ number: s.number, name: s.name_en })),
-              passedBefore,
+            pager={{
+              page, min: range.from, max: range.to,
+              basePath: heat ? `${basePath}&heat=${heat}` : basePath, param: "p",
             }}
-            firstPages={Object.fromEntries(run.map((s) => [s.number, startPages[s.number]]))}
-            start={startHearing.bind(null, studentId)}
-            done={done}
           />
         </section>
       </div>

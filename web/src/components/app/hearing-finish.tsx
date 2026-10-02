@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { rangeSurahs } from "@/lib/hifz/hearings";
 import { fmtDay } from "@/lib/format";
+import { FilterSelect } from "./filter-select";
 import type { SurahNames } from "./mushaf-reader";
 
 export type Verdict = { to: number; passed: number[]; note: string };
@@ -16,10 +17,12 @@ export type Verdict = { to: number; passed: number[]; note: string };
  * passed. A surah passed before says so on its row, because unticking it
  * revokes that pass. The end moves one surah at a time; a surah that
  * comes into the range arrives ticked, one that leaves takes its tick
- * with it.
+ * with it. Given `fromChoices` (the student's run), From is a select above
+ * the rows: changing it brings the end back to the new From.
  */
 export function HearingFinish({
   open, onOpenChange, from, initialEnd, minEnd, names, passedBefore, pending, onConfirm,
+  fromChoices, onFromChange,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -30,6 +33,9 @@ export function HearingFinish({
   passedBefore: Record<number, string>;   // surah → passed_at
   pending: boolean;
   onConfirm: (v: Verdict) => void;
+  /** The surahs From may start at, in memorisation order. */
+  fromChoices?: number[];
+  onFromChange?: (from: number) => void;
 }) {
   const [end, setEnd] = useState(initialEnd);
   const [unticked, setUnticked] = useState<Set<number>>(new Set());
@@ -81,6 +87,15 @@ export function HearingFinish({
         <DialogHeader>
           <DialogTitle>Finish hearing</DialogTitle>
         </DialogHeader>
+        {fromChoices && onFromChange && (
+          <FilterSelect
+            label="From"
+            value={String(from)}
+            onChange={(v) => onFromChange(Number(v))}
+            options={fromChoices.map((s) => ({ value: String(s), label: name(s) }))}
+            disabled={pending}
+          />
+        )}
         <p className="text-sm font-medium">
           {count === 1 ? name(from) : `${name(from)} → ${name(safeEnd)} · ${count} surahs`}
         </p>

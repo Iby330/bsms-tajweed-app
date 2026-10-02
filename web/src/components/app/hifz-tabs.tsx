@@ -12,7 +12,7 @@ const STUDENT_TABS: HifzTab[] = [
 /**
  * Pill nav for a hifdh page. basePath is the bare page URL; the first tab
  * lives there and every other at `?tab=<id>`. The student's page keeps the
- * default Overview | Review; a teacher's student page passes Overview | Hear.
+ * default Overview | Review; the teacher's register passes Overview | Hear.
  */
 export function HifzTabs({
   basePath, active, tabs = STUDENT_TABS,

@@ -7,8 +7,7 @@ import { getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { getCachedSurahs } from "@/lib/reference/cached";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { HifzGrid, type MarkRow } from "@/components/app/hifz-grid";
-import { HifzTabs } from "@/components/app/hifz-tabs";
-import { HearTab } from "@/components/app/hear-tab";
+import { ResultButton } from "@/components/app/result-button";
 import { Rule } from "@/components/app/rule";
 import { teacherClass } from "@/lib/teacher/scope";
 import { timetableFor, weekdayNameFor } from "@/lib/attendance/calendar";
@@ -20,31 +19,29 @@ export const dynamic = "force-dynamic";
 
 const PACE_LABEL = { ok: "Ahead", warn: "On pace", danger: "Behind" } as const;
 
-const TABS = [
-  { id: "overview", label: "Overview" },
-  { id: "hear", label: "Hear" },
-];
-
 /**
- * One student's hifdh: Overview, the record as the marking grid, and Hear,
- * where the teacher hears them and sees their mistake picture.
+ * One student's hifdh: where they are, their pace, the record as the
+ * marking grid, and Pass / Not passed, the result popup for them. Hearing
+ * (and their mistake picture) is on the register's Hear tab.
  *
  * This is deliberately the student's own view of their year — the mushaf index,
  * banded by hizb — rather than a teacher-shaped list of rows. Both people end
  * up looking at the same shape, which matters on a Thursday when they are
  * looking at it together, and the run reads as a run instead of forty-odd
- * lines. Each cell opens the surah's record; hearing happens on the Hear tab.
+ * lines. Each cell opens the surah's record.
  */
 export default async function StudentHifzDetail({
   params,
   searchParams,
 }: {
   params: Promise<{ studentId: string }>;
-  searchParams: Promise<{ tab?: string; heat?: string; from?: string; done?: string; p?: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
-  const [{ studentId }, { tab, heat, from, done, p }] = await Promise.all([params, searchParams]);
-  // The Review tab became Hear: old links land there.
-  if (tab === "review") redirect(`/teacher/hifdh/${studentId}?tab=hear`);
+  const [{ studentId }, { tab }] = await Promise.all([params, searchParams]);
+  // Hear (once Review) moved to the register: old links land there.
+  if (tab === "hear" || tab === "review") {
+    redirect(`/teacher/hifdh?tab=hear&student=${encodeURIComponent(studentId)}`);
+  }
   const db = await supabaseServer();
 
   // Every read here is keyed on the student id alone, the guard included — it
@@ -73,7 +70,6 @@ export default async function StudentHifzDetail({
   // RLS still grants teachers the whole cohort.
   if (mine && student.class_id !== mine.id) notFound();
 
-  const hear = tab === "hear";
   const className = student.classes?.name ?? null;
   // The recitation day is the class's, not the programme's, so it comes off
   // the timetable rather than being spelled into the sentence.
@@ -82,9 +78,8 @@ export default async function StudentHifzDetail({
     "hifdh",
   );
 
-  // The masthead and the tabs stay identical across both tabs, so Hear is
-  // reachable, and looks like the same page, before a target exists.
-  const shell = (body: ReactNode) => (
+  // The masthead is the same with or without a target.
+  const shell = (body: ReactNode, action?: ReactNode) => (
     <>
       <header className="masthead">
         <Link href="/teacher/hifdh" className="backstep">
@@ -99,30 +94,12 @@ export default async function StudentHifzDetail({
             ? `${className} · ${recitationDay} recitation`
             : `${recitationDay} recitation`}
         </p>
+        {action}
       </header>
-
-      <HifzTabs
-        basePath={`/teacher/hifdh/${studentId}`}
-        active={hear ? "hear" : "overview"}
-        tabs={TABS}
-      />
 
       {body}
     </>
   );
-
-  if (hear) {
-    return shell(
-      <HearTab
-        studentId={studentId}
-        studentName={student.full_name}
-        fromParam={from}
-        doneParam={done}
-        p={p}
-        heat={heat}
-      />,
-    );
-  }
 
   const all = surahs as Surah[];
   const list = hp ? memorisationList(hp.start_surah, hp.target_count, all) : [];
@@ -167,6 +144,10 @@ export default async function StudentHifzDetail({
   const pace = !complete && expected > 0 ? paceStatus(passed, expected) : null;
   const next = rows.find((r) => !r.passed);
   const commented = rows.filter((r) => r.comment).length;
+  const names = Object.fromEntries(all.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]));
+  const passedBefore: Record<number, string> = Object.fromEntries(
+    (records ?? []).map((r) => [r.surah_number, r.passed_at]),
+  );
 
   return shell(
     <>
@@ -228,5 +209,14 @@ export default async function StudentHifzDetail({
         <HifzGrid studentId={studentId} rows={rows} expected={expected} />
       </div>
     </>,
+    <div style={{ marginTop: 12 }}>
+      <ResultButton
+        studentId={studentId}
+        run={list.map((s) => s.number)}
+        from={next?.number ?? list[list.length - 1].number}
+        names={names}
+        passedBefore={passedBefore}
+      />
+    </div>,
   );
 }

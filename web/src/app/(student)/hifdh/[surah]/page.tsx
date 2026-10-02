@@ -7,7 +7,7 @@ import { memorisationList } from "@/lib/hifz/pace";
 import { hizbOf } from "@/lib/hifz/hizb";
 import { pageWithin } from "@/lib/quran/page-within";
 import { hearingsFor, hearingsForStudent } from "@/lib/hifz/hearing-queries";
-import { commentToShow, recordLine, summaryOf, surahState } from "@/lib/hifz/hearings";
+import { commentToShow, latestResult, recordLine, summaryOf, surahState } from "@/lib/hifz/hearings";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
 import { SURAH_INFO } from "@/lib/hifz/surah-info";
 import { SURAH_SUMMARY, REVIEWED } from "@/lib/hifz/surah-summary";
@@ -88,13 +88,14 @@ export default async function SurahPage({
   const passedSet = new Set(records.map((r) => r.surah_number));
   const state = surahState(number, passedSet, allHearings);
 
-  // The latest submitted hearing carries the date and count; the record
-  // carries the truth about "passed". recordLine reconciles the two.
-  const latest = hearings[0] ?? null;
+  // The latest result carries the date and note, and the marks since the
+  // one before it the count; the record carries the truth about "passed".
+  // recordLine reconciles the two. Marks show from every hearing session.
+  const latest = latestResult(hearings);
   const line = recordLine(
     state,
     record ? { passedAt: record.passed_at, comment: record.teacher_comment } : null,
-    summaryOf(latest),
+    summaryOf(hearings),
   );
   const statLabel = state === "passed" ? "Passed" : state === "not_passed" ? "Not passed" : "Not yet";
   const hearingMistakes = hearings.flatMap((h) => h.mistakes);

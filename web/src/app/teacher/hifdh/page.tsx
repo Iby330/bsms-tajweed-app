@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { getCachedSurahs } from "@/lib/reference/cached";
@@ -7,14 +8,33 @@ import { timetableFor, weekdayNameFor } from "@/lib/attendance/calendar";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
 import { HifzRegister, type RegisterRow } from "@/components/app/hifz-register";
 import { PairingPanel, type PairRow, type UnpairedStudent } from "@/components/app/pairing-panel";
+import { HifzTabs } from "@/components/app/hifz-tabs";
+import { HearTab } from "@/components/app/hear-tab";
 
 export const dynamic = "force-dynamic";
 
-export default async function TeacherHifz() {
+const TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "hear", label: "Hear" },
+];
+
+/**
+ * The hifdh register: Overview (the class, targets, Pass / Not passed on
+ * each row, the revision pairs) and Hear (`?tab=hear`), where the teacher
+ * picks a student and marks their mistakes as they recite.
+ */
+export default async function TeacherHifz({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; student?: string; p?: string; heat?: string }>;
+}) {
+  const { tab, student, p, heat } = await searchParams;
+  const hear = tab === "hear";
   const db = await supabaseServer();
 
   // The label and the roster both hang off the same cached class read, so
   // firing them together costs one class round trip rather than two.
+  // (The Hear tab reads the roster itself; this read is then cached.)
   const [{ weeks }, label, roster, mine] = await Promise.all([
     getTermsAndWeeks(),
     scopeLabel(),
@@ -27,6 +47,27 @@ export default async function TeacherHifz() {
     timetableFor(mine?.section ?? "brothers", mine?.name),
     "hifdh",
   );
+
+  // The masthead and the tabs are the same on both tabs.
+  const shell = (body: ReactNode) => (
+    <>
+      <header className="masthead">
+        <h1><span>Hifdh register</span></h1>
+        <p>
+          {hear
+            ? `${label} · ${recitationDay} recitation. Pick who is reciting and tap the words they get wrong.`
+            : `${label} · ${recitationDay} recitation. Colour shows each student against the calendar. Select students to set their target.`}
+        </p>
+      </header>
+
+      <HifzTabs basePath="/teacher/hifdh" active={hear ? "hear" : "overview"} tabs={TABS} />
+
+      {body}
+    </>
+  );
+
+  if (hear) return shell(<HearTab studentParam={student} p={p} heat={heat} roster={roster} />);
+
   const ids = roster.map((s) => s.id);
 
   const [surahs, { data: pairRows }] = await Promise.all([
@@ -59,18 +100,15 @@ export default async function TeacherHifz() {
     // No target set reads the same as before rosterWithNext: target 0 → no pace.
     pace: s.target > 0 ? paceStatus(s.passed, expectedPassed(now, weeks, s.target)) : null,
     startSurah: s.startSurah,
+    run: s.run.map((r) => r.number),
+    // The result popup opens at the next unpassed surah, or a completed
+    // run's last.
+    from: s.run.length ? (s.next?.number ?? s.run[s.run.length - 1].number) : null,
+    passedBefore: s.passedAt,
   }));
 
-  return (
+  return shell(
     <>
-      <header className="masthead">
-        <h1><span>Hifdh register</span></h1>
-        <p>
-          {label} · {recitationDay} recitation. Colour shows each student against the calendar.
-          Select students to set their target.
-        </p>
-      </header>
-
       <PairingPanel pairs={pairs} unpaired={unpaired} />
 
       {rows.length ? (
@@ -80,6 +118,6 @@ export default async function TeacherHifz() {
           No active students yet.
         </p>
       )}
-    </>
+    </>,
   );
 }

@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { fmtDay, fmtStamp } from "@/lib/format";
 import {
-  commentToShow, covers, doneLine, endSurahFor, heardSurahs, rangeSurahs, recordLine, summaryOf,
-  surahState,
+  commentToShow, covers, heardSurahs, latestResult, rangeSurahs, recordLine, summaryOf,
+  surahState, todaysSession,
 } from "./hearings";
 
 const when = "2026-09-10T10:00:00Z";
@@ -39,6 +39,10 @@ describe("heardSurahs", () => {
   it("is empty for no hearings", () => {
     expect(heardSurahs([])).toEqual(new Set());
   });
+  it("leaves out sessions that only carry marks", () => {
+    const result = heardSurahs([{ from: 90, to: 90, countsAsResult: false }, { from: 88, to: 88, countsAsResult: true }]);
+    expect([...result]).toEqual([88]);
+  });
 });
 
 describe("surahState", () => {
@@ -55,26 +59,14 @@ describe("surahState", () => {
   it("nothing is unheard", () => {
     expect(surahState(110, passed, hearings)).toBe("unheard");
   });
-});
-
-describe("endSurahFor", () => {
-  it("ends on the planned end when nothing is marked", () => {
-    expect(endSurahFor(88, 86, [])).toBe(86);
+  it("a surah with marks but no result stays unheard", () => {
+    expect(surahState(110, passed, [{ from: 110, to: 110, countsAsResult: false }])).toBe("unheard");
   });
-  it("a one-surah plan ends on the start", () => {
-    expect(endSurahFor(88, 88, [])).toBe(88);
-  });
-  it("a mark beyond the planned end widens the range to cover it", () => {
-    expect(endSurahFor(88, 87, [88, 85])).toBe(85);
-  });
-  it("marks inside the plan never pull the end in", () => {
-    expect(endSurahFor(88, 85, [88, 87])).toBe(85);
-  });
-  it("marks behind the start cannot widen backwards", () => {
-    expect(endSurahFor(88, 88, [90])).toBe(88);
-  });
-  it("a planned end above the start falls back to the start", () => {
-    expect(endSurahFor(88, 90, [])).toBe(88);
+  it("a result covering it still makes it not passed beside a marking session", () => {
+    expect(surahState(110, passed, [
+      { from: 110, to: 110, countsAsResult: false },
+      { from: 110, to: 109, countsAsResult: true },
+    ])).toBe("not_passed");
   });
 });
 
@@ -118,24 +110,52 @@ describe("commentToShow", () => {
   });
 });
 
-describe("doneLine", () => {
-  const names = { 88: { en: "Al-Ghashiyah" }, 87: { en: "Al-A'la" }, 86: { en: "At-Tariq" } };
-  it("names just the surah for a single-surah hearing", () => {
-    expect(doneLine(88, 88, new Set(), names)).toBe("Heard Al-Ghashiyah · 0 passed · 1 not passed");
-  });
-  it("spans a range and counts what passed", () => {
-    expect(doneLine(88, 86, new Set([88, 87]), names)).toBe(
-      "Heard Al-Ghashiyah → At-Tariq · 2 passed · 1 not passed",
-    );
+describe("latestResult", () => {
+  it("is the newest session that counts as a result", () => {
+    const marking = { from: 88, to: 88, countsAsResult: false, submittedAt: "2026-09-12T10:00:00Z" };
+    const result = { from: 88, to: 87, countsAsResult: true, submittedAt: "2026-09-11T10:00:00Z" };
+    expect(latestResult([marking, result])).toBe(result);
+    expect(latestResult([marking])).toBeNull();
+    expect(latestResult([])).toBeNull();
   });
 });
 
 describe("summaryOf", () => {
-  it("null and undefined give null", () => {
-    expect(summaryOf(null)).toBeNull();
-    expect(summaryOf(undefined)).toBeNull();
+  const m = (created_at: string) => ({ created_at });
+  it("no result gives null, even with marks", () => {
+    expect(summaryOf([])).toBeNull();
+    expect(summaryOf([
+      { submittedAt: when, teacherName: "Ustadh Bilal", countsAsResult: false, mistakes: [m(when)] },
+    ])).toBeNull();
   });
-  it("reduces a hearing to what the line needs", () => {
-    expect(summaryOf({ submittedAt: when, teacherName: "Ustadh Bilal", mistakes: [1, 2, 3] })).toEqual(heard);
+  it("a legacy hearing counts its own marks", () => {
+    expect(summaryOf([
+      { submittedAt: when, teacherName: "Ustadh Bilal", countsAsResult: true,
+        mistakes: [m("2026-09-10T09:00:00Z"), m("2026-09-10T09:10:00Z"), m("2026-09-10T09:20:00Z")] },
+    ])).toEqual(heard);
+  });
+  it("a result counts the marks made since the result before it, from any session", () => {
+    const summary = summaryOf([
+      { submittedAt: "2026-09-10T11:00:00Z", teacherName: "x", countsAsResult: false,
+        mistakes: [m("2026-09-10T11:00:00Z")] },                       // after the result: not its marks
+      { submittedAt: when, teacherName: "Ustadh Bilal", countsAsResult: true, mistakes: [] },
+      { submittedAt: "2026-09-10T09:00:00Z", teacherName: "x", countsAsResult: false,
+        mistakes: [m("2026-09-10T09:00:00Z"), m("2026-09-10T09:30:00Z"), m("2026-09-03T09:30:00Z")] },
+      { submittedAt: "2026-09-03T10:00:00Z", teacherName: "x", countsAsResult: true, mistakes: [] },
+    ]);
+    expect(summary).toEqual({ submittedAt: when, teacherName: "Ustadh Bilal", mistakeCount: 2 });
+  });
+});
+
+describe("todaysSession", () => {
+  it("is the oldest session started on today's UK date", () => {
+    const now = new Date("2026-10-02T12:00:00Z");
+    const rows = [
+      { id: "b", started_at: "2026-10-02T09:00:00Z" },
+      { id: "a", started_at: "2026-10-01T23:30:00Z" },   // 00:30 BST on the 2nd: today in the UK
+      { id: "old", started_at: "2026-10-01T22:30:00Z" }, // 23:30 BST on the 1st
+    ];
+    expect(todaysSession(rows, now)?.id).toBe("a");
+    expect(todaysSession([rows[2]], now)).toBeNull();
   });
 });

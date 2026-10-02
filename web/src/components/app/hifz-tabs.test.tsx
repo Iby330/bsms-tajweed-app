@@ -14,13 +14,13 @@ describe("HifzTabs", () => {
     expect(screen.getByRole("link", { name: "Overview" }).className).not.toContain("bg-background");
   });
 
-  it("takes other tabs, as a teacher's student page does", () => {
+  it("takes other tabs, as the teacher's register does", () => {
     render(
-      <HifzTabs basePath="/teacher/hifdh/s1" active="hear"
+      <HifzTabs basePath="/teacher/hifdh" active="hear"
         tabs={[{ id: "overview", label: "Overview" }, { id: "hear", label: "Hear" }]} />,
     );
     expect(screen.queryByRole("link", { name: "Review" })).toBeNull();
-    expect(screen.getByRole("link", { name: "Hear" }).getAttribute("href")).toBe("/teacher/hifdh/s1?tab=hear");
+    expect(screen.getByRole("link", { name: "Hear" }).getAttribute("href")).toBe("/teacher/hifdh?tab=hear");
     expect(screen.getByRole("link", { name: "Hear" }).className).toContain("bg-background");
   });
 });

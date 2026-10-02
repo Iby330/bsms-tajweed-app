@@ -16,12 +16,14 @@ export type RosterStudent = {
   run: Surah[];
   /** The first unpassed surah on the run; null with no target or a completed run. */
   next: Surah | null;
+  /** surah → passed_at, every pass record the student holds. */
+  passedAt: Record<number, string>;
 };
 
 /**
  * The teacher's roster, each student's own memorisation run, and where they
  * have got to on it — "next to hear" derived exactly once. The register
- * (`teacher/hifdh`) and a student's Hear tab (`teacher/hifdh/[studentId]?tab=hear`) both used to
+ * (`teacher/hifdh`) and its Hear tab (`teacher/hifdh?tab=hear`) both used to
  * compute this independently; sharing it means a rule (start surah, how
  * which surah is next) only has to be right in one place.
  *
@@ -43,10 +45,14 @@ export async function rosterWithNext(): Promise<RosterStudent[]> {
   // `next` is by membership, not `run[passed]`: a range hearing can leave a
   // hole, and the hole is the surah to hear next (see `nextToHear`).
   const passedBy = new Map<string, number[]>();
+  const passedAtBy = new Map<string, Record<number, string>>();
   for (const r of records) {
     const list = passedBy.get(r.student_id) ?? [];
     list.push(r.surah_number);
     passedBy.set(r.student_id, list);
+    const at = passedAtBy.get(r.student_id) ?? {};
+    at[r.surah_number] = r.passed_at;
+    passedAtBy.set(r.student_id, at);
   }
   const all = surahs as Surah[];
 
@@ -56,7 +62,9 @@ export async function rosterWithNext(): Promise<RosterStudent[]> {
     const passed = p ? Number(p.passed) : 0;
     const startSurah = Number(p?.start_surah ?? 114);
     const run = memorisationList(startSurah, target, all);
-    return { id: s.id, name: s.full_name, startSurah, target, passed, run, next: nextToHear(run, passedBy.get(s.id) ?? []) };
+    return { id: s.id, name: s.full_name, startSurah, target, passed, run, next: nextToHear(run, passedBy.get(s.id) ?? []),
+      passedAt: passedAtBy.get(s.id) ?? {},
+    };
   });
 }
 
@@ -69,11 +77,11 @@ export async function rosterWithNext(): Promise<RosterStudent[]> {
 export async function passRecords(
   db: Awaited<ReturnType<typeof supabaseServer>>,
   ids: string[],
-): Promise<{ student_id: string; surah_number: number }[]> {
+): Promise<{ student_id: string; surah_number: number; passed_at: string }[]> {
   return readAll((from, to) =>
     db
       .from("hifz_records")
-      .select("student_id, surah_number")
+      .select("student_id, surah_number, passed_at")
       .in("student_id", ids)
       .order("student_id")
       .order("surah_number")
