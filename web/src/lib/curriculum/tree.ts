@@ -84,20 +84,36 @@ export type ClassSchedule = {
   courses: ScheduledCourse[];
   /** Term id → ISO timestamp of that term's first week unlock. */
   firstUnlockByTerm: Record<number, string>;
+  /**
+   * Term id → every week's unlock in that term, earliest first. Item k opens
+   * with the term's k-th week, so a week moved by hand (week 1 of 2026/27
+   * opened the night it was ready) moves only its own items. Absent, the
+   * first-week-plus-seven-days rule below stands in.
+   */
+  unlocksByTerm?: Record<number, string[]>;
 };
 
 /**
  * When item `ordinal` of a course opens for a class.
  *
- * The same arithmetic as `class_item_unlock_at` in the database (0026) — the
- * term's first Monday plus seven days per item — and the two MUST agree: this
- * one decides what the screen draws, that one decides what RLS will hand
- * over, and a disagreement shows up as a module that renders with nothing in
- * it. Kept in step by `tree.test.ts`.
+ * The same rule as `class_item_unlock_at` in the database (0042): item k opens
+ * with the term's k-th week, and past the last week a week at a time. The
+ * two MUST agree: this one decides what the screen draws, that one decides
+ * what RLS will hand over, and a disagreement shows up as a module that
+ * renders with nothing in it. Kept in step by `tree.test.ts`.
  */
 export function scheduledUnlockAt(
   schedule: ClassSchedule, termId: number, ordinal: number,
 ): string | null {
+  const week = 7 * 24 * 60 * 60 * 1000;
+  const unlocks = schedule.unlocksByTerm?.[termId];
+  if (unlocks?.length) {
+    const i = Math.max(ordinal, 1) - 1;
+    if (i < unlocks.length) return new Date(Date.parse(unlocks[i])).toISOString();
+    // past the term's last week: keep going a week at a time, as before
+    const last = Date.parse(unlocks[unlocks.length - 1]);
+    return new Date(last + (i - unlocks.length + 1) * week).toISOString();
+  }
   const first = schedule.firstUnlockByTerm[termId];
   if (!first) return null;
   const at = Date.parse(first);

@@ -26,10 +26,10 @@ const HOMEWORK_COLS =
  * cohorts, and it means "show the whole programme as before" rather than
  * "show nothing" — see ClassSchedule in tree.ts.
  *
- * `firstUnlockByTerm` is carried alongside the courses so the client-side
- * unlock arithmetic can match `class_item_unlock_at` in the database exactly.
- * Both derive a term's dates from its first week, so they cannot drift apart
- * as long as they read the same weeks.
+ * The term's week unlocks are carried alongside the courses so the
+ * client-side unlock arithmetic can match `class_item_unlock_at` in the
+ * database exactly. Both take item k from the term's k-th week (0042), so they
+ * cannot drift apart as long as they read the same weeks.
  */
 export async function getClassSchedule(
   classId: string | null | undefined,
@@ -47,10 +47,13 @@ export async function getClassSchedule(
   if (!rows?.length) return null;
 
   const firstUnlockByTerm: Record<number, string> = {};
+  const unlocksByTerm: Record<number, string[]> = {};
   for (const w of weeks as WeekRow[]) {
     const at = firstUnlockByTerm[w.term_id];
     if (!at || Date.parse(w.unlock_at) < Date.parse(at)) firstUnlockByTerm[w.term_id] = w.unlock_at;
+    (unlocksByTerm[w.term_id] ??= []).push(w.unlock_at);
   }
+  for (const list of Object.values(unlocksByTerm)) list.sort((a, b) => Date.parse(a) - Date.parse(b));
 
   return {
     courses: rows.flatMap((r) => {
@@ -65,6 +68,7 @@ export async function getClassSchedule(
       }];
     }),
     firstUnlockByTerm,
+    unlocksByTerm,
   };
 }
 

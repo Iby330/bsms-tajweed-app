@@ -728,6 +728,25 @@ describe("scheduledUnlockAt", () => {
   it("is null for a term it has no date for", () => {
     expect(scheduledUnlockAt(s, 3, 1)).toBeNull();
   });
+
+  describe("with the term's weeks", () => {
+    // week 1 opened by hand on a Friday night; the rest on Thursdays at 13:00
+    const weeks: ClassSchedule = {
+      courses: [],
+      firstUnlockByTerm: { 1: "2026-10-02T19:00:00Z" },
+      unlocksByTerm: { 1: ["2026-10-02T19:00:00Z", "2026-10-08T12:00:00Z", "2026-10-15T12:00:00Z"] },
+    };
+
+    it("opens item k with the term's k-th week, not first-plus-seven", () => {
+      expect(scheduledUnlockAt(weeks, 1, 1)).toBe("2026-10-02T19:00:00.000Z");
+      expect(scheduledUnlockAt(weeks, 1, 2)).toBe("2026-10-08T12:00:00.000Z");
+      expect(scheduledUnlockAt(weeks, 1, 3)).toBe("2026-10-15T12:00:00.000Z");
+    });
+
+    it("runs on a week at a time past the term's last week", () => {
+      expect(scheduledUnlockAt(weeks, 1, 5)).toBe("2026-10-29T12:00:00.000Z");
+    });
+  });
 });
 
 describe("currentModules", () => {
