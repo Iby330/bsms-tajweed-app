@@ -11,9 +11,14 @@ const dmy = (iso: string) =>
 
 /** Homework label. TFP is numbered 101+ in the database so it can share a
  *  unique key with Tajweed — students see it as TFP 1..7. */
+/**
+ * "Homework 3", "TFP 2", "Umm al-Kitāb 1". Core tajweed is numbered 1–21; every
+ * other course takes its own hundred block (TFP 101–107, Umm al-Kitāb
+ * 201–209), so the number shown is its place within that block.
+ */
 export function homeworkLabel(number: number, series: string): string {
-  const display = number > 100 ? number - 100 : number;
-  return `${series === "tfp" ? "TFP" : "Homework"} ${display}`;
+  const display = number > 100 ? number % 100 : number;
+  return `${series === "tajweed" ? "Homework" : seriesShort(series)} ${display}`;
 }
 
 /**
