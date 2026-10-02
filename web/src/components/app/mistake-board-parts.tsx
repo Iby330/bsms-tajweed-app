@@ -229,28 +229,43 @@ export function MakhrajGrid({
 
 // ———————————————————————————————— surah picker for the heatmap
 
+/**
+ * Pick a surah for the heatmap. Closed, it is a choice and an Open button.
+ * Once the heatmap is open the button becomes Close, and choosing another
+ * surah opens it straight away: the reader is already looking.
+ */
 export function SurahPicker({
-  options, selected, hrefFor,
+  options, selected, hrefFor, open, closeHref,
 }: {
   options: { surah: number; name: string; count: number }[];
   selected: number | null;
   hrefFor: Record<number, string>;
+  open: boolean;
+  closeHref: string;
 }) {
   const router = useRouter();
   const [value, setValue] = useState<number>(selected ?? options[0]?.surah ?? 0);
+  const go = (n: number) => {
+    if (hrefFor[n]) router.push(hrefFor[n], { scroll: false });
+  };
   return (
     <form
       className="flex items-center gap-2"
       onSubmit={(e) => {
         e.preventDefault();
-        if (hrefFor[value]) router.push(hrefFor[value], { scroll: false });
+        if (open) router.push(closeHref, { scroll: false });
+        else go(value);
       }}
     >
       <label htmlFor="heat-surah" className="sr-only">Surah</label>
       <select
         id="heat-surah"
         value={value}
-        onChange={(e) => setValue(Number(e.target.value))}
+        onChange={(e) => {
+          const n = Number(e.target.value);
+          setValue(n);
+          if (open) go(n);
+        }}
         className="h-8 min-w-0 max-w-[14rem] rounded-md border border-line bg-card px-2 text-sm"
       >
         {options.map((o) => (
@@ -259,8 +274,14 @@ export function SurahPicker({
           </option>
         ))}
       </select>
-      <button type="submit" className="h-8 rounded-md bg-primary px-3 text-sm text-primary-foreground">
-        Open
+      <button
+        type="submit"
+        className={cn(
+          "h-8 rounded-md px-3 text-sm",
+          open ? "border border-line text-foreground" : "bg-primary text-primary-foreground",
+        )}
+      >
+        {open ? "Close" : "Open"}
       </button>
     </form>
   );

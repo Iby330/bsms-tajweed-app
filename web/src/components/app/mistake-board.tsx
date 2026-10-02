@@ -264,15 +264,15 @@ export async function MistakeBoard({
           </div>
           <div className="flex items-center gap-2">
             <SurahPicker
+              // keyed on the open surah, so turning pages into the next surah
+              // (or tapping one in the list) moves the choice with it
+              key={heatSurah ?? "closed"}
               options={onRun.map((s) => ({ surah: s.number, name: s.name_en, count: counts.get(s.number) ?? 0 }))}
               selected={heatSurah ?? ranks[0]?.surah ?? null}
               hrefFor={Object.fromEntries(onRun.map((s) => [s.number, href({ heat: s.number }, "#heatmap")]))}
+              open={mushaf !== null}
+              closeHref={href({ heat: "" }, "#heatmap")}
             />
-            {mushaf && (
-              <Link href={href({ heat: "" })} scroll={false} className="text-xs text-ink-3 hover:text-foreground">
-                Close
-              </Link>
-            )}
           </div>
         </div>
         {mushaf}
