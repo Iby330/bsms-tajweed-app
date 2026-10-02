@@ -184,9 +184,11 @@ export function CalendarMonths({
 
           {open && open.lessons.length > 0 && (
             <ul className="space-y-1">
-              {open.lessons.map((l) =>
+              {/* one course can teach two items in a day (group 1), so the
+                  label alone is not a key */}
+              {open.lessons.map((l, i) =>
                 l.href ? (
-                  <li key={l.courseLabel}>
+                  <li key={`${l.courseLabel} ${i}`}>
                     <Link
                       href={l.href}
                       onClick={() => setOpenDate(null)}
@@ -197,7 +199,7 @@ export function CalendarMonths({
                     </Link>
                   </li>
                 ) : (
-                  <li key={l.courseLabel} className="flex flex-col gap-0.5 px-2 py-1.5">
+                  <li key={`${l.courseLabel} ${i}`} className="flex flex-col gap-0.5 px-2 py-1.5">
                     <span className="text-xs text-muted-foreground">{l.courseLabel}</span>
                     <span className={l.missing ? "text-muted-foreground/60" : undefined}>
                       {l.label}

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { SERIES_LABELS, seriesShort } from "@/lib/lessons/series";
-import { moduleTitle } from "@/lib/curriculum/tree";
+import { classItemWeek, moduleTitle } from "@/lib/curriculum/tree";
+import { getClassSchedule } from "@/lib/curriculum/queries";
 import { LessonPlayer } from "@/components/app/lesson-player";
 import { MixedText } from "@/components/app/mixed-text";
 import { Crumbs } from "@/components/app/crumbs";
@@ -21,11 +22,11 @@ export default async function Lesson({
   // Everything but the watch flag hangs off this lesson's week, so one embed
   // brings back the week, its sibling lessons and its homework together; the
   // watch flag is keyed on the student instead, so it rides alongside.
-  const [{ data: lesson }, { data: watch }] = await Promise.all([
+  const [{ data: lesson }, { data: watch }, schedule] = await Promise.all([
     db
       .from("lessons")
       .select(`
-        id, title, series, youtube_id, week_id, position,
+        id, title, series, youtube_id, week_id, position, course_id, ordinal,
         weeks(number, term_id, unlock_at, lessons(id, position, series), homeworks(number, series))
       `)
       .eq("id", lessonId)
@@ -36,20 +37,25 @@ export default async function Lesson({
       .eq("student_id", profile.id)
       .eq("lesson_id", lessonId)
       .maybeSingle(),
+    getClassSchedule(profile.class_id),
   ]);
   if (!lesson) notFound();
 
   const week = lesson.weeks;
-  // A locked week's lesson is simply not there yet, as far as a student is
-  // concerned — no teasing them with a title they can't open.
-  //
-  // Except for a reader exempt from the calendar (`profiles.unlock_all`). RLS
-  // has already handed them the row — `sees_all_content()` is what let the
-  // query above return anything — so without this the page fetches a lesson
-  // the database agreed they could see and then throws it away. Every lesson
-  // 404'd on the demo account, since the year has not opened yet.
-  const locked = Date.parse(week?.unlock_at ?? "") > Date.now();
-  if (!week || (locked && !profile.unlock_all)) notFound();
+  // Whether the lesson is open is the database's call, already made: this is
+  // the student's own client, and RLS returns a lesson only once it has opened
+  // for their class (its syllabus and timetable, 0027/0044) or the reader is
+  // exempt from the calendar. Checking the row's own week here as well
+  // 404'd every lesson a class's timetable opens early — Group 1's Ṣifāt and
+  // Mudūd, filed under Terms 2 and 3, taken in Term 1.
+  if (!week) notFound();
+
+  // Where the class meets this lesson, for the labels and the crumbs: its own
+  // term and week under a syllabus, else the row's.
+  const scheduled = schedule?.courses.find((c) => c.courseId === lesson.course_id);
+  const termId = scheduled ? scheduled.termId : week.term_id;
+  const weekNumber =
+    scheduled && schedule ? classItemWeek(schedule, lesson.ordinal ?? 1, lesson.course_id) : week.number;
 
   // Both lists are narrowed to this lesson's SERIES, not just its week. A week
   // can carry two courses at once — Term 3 week 1 has Tajweed 16 and TFP 1 —
@@ -75,12 +81,12 @@ export default async function Lesson({
         <Crumbs
           items={[
             { label: "Courses", href: "/courses" },
-            { label: `Term ${week.term_id}`, href: `/courses/${week.term_id}` },
+            { label: `Term ${termId}`, href: `/courses/${termId}` },
             {
               label: seriesShort(lesson.series),
-              href: `/courses/${week.term_id}/${lesson.series}`,
+              href: `/courses/${termId}/${lesson.series}`,
             },
-            { label: `Week ${week.number}` },
+            { label: `Week ${weekNumber}` },
           ]}
         />
         {/* The subject alone. The course and the week are on the line below,
@@ -90,9 +96,9 @@ export default async function Lesson({
         </h1>
         <div className="meta">
           <span className="label">
-            Lesson {week.number}
+            Lesson {weekNumber}
             {ordered.length > 1 && ` of ${ordered.length} this week`} ·{" "}
-            {SERIES_LABELS[lesson.series] ?? lesson.series} · Term {week.term_id}
+            {SERIES_LABELS[lesson.series] ?? lesson.series} · Term {termId}
           </span>
           {watch && <span className="label hi">Watched</span>}
         </div>
@@ -131,11 +137,11 @@ export default async function Lesson({
       </div>
 
       <div className="signoff">
-        <Link href={`/courses/${week.term_id}/${lesson.series}`} className="lines">
+        <Link href={`/courses/${termId}/${lesson.series}`} className="lines">
           ← All modules
         </Link>
         <span className="wm" role="img" aria-label="BSMS Tajweed" />
-        <span className="lines right">Week {week.number}</span>
+        <span className="lines right">Week {weekNumber}</span>
       </div>
     </>
   );

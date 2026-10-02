@@ -23,16 +23,12 @@ import type { TermId } from "@/lib/attendance/calendar";
  *
  * `Course.source` is the seam. It says where a course's lessons currently
  * live, so the syllabus can name a course independently of when any class
- * takes it. What it cannot change is VISIBILITY: a lesson is still revealed by
- * its own week's unlock date, so group 1's mudood lessons do not open early
- * just because their syllabus asks for them early. The calendar therefore
- * names those weeks without linking them.
+ * takes it. VISIBILITY follows the class, not the row: the database opens item
+ * k of a course in the week the class meets it in (`class_item_unlock_at`,
+ * 0044), and the calendar reads the same rule through the class's schedule.
  *
- * That is a deliberate interim, and it costs nothing today because mudood has
- * no videos uploaded yet either. The real fix is to make a course an ordered
- * list of lessons in its own right and drive unlocking from the syllabus
- * rather than from a global date — a migration and an RLS rewrite, to be done
- * when the videos land.
+ * The database's `class_courses` is the copy RLS enforces; this one names the
+ * topics on the calendar. The two must list the same courses in the same terms.
  */
 
 export type CourseKey =
@@ -74,19 +70,21 @@ export type GroupId = 1 | 2 | 3 | 4 | 5;
 /**
  * The brothers' curriculum, as set for 2026/27.
  *
- * Groups 2 and 3 are identical today and are still written out separately —
- * group 2 is explicitly "TBC based on students' level", so they are expected
- * to diverge, and collapsing them now would only have to be undone.
+ * Groups 2, 3 and 4 are identical today and are still written out
+ * separately — group 2 is explicitly "TBC based on students' level", so they
+ * are expected to diverge, and collapsing them now would only have to be undone.
  *
  * An empty term is a term with no plan yet, not a term off.
  */
 export const SYLLABUS: Readonly<Record<GroupId, Readonly<Record<TermId, CourseKey[]>>>> = {
-  1: { 1: ["ghunna", "mudood"], 2: ["sifaat_new"], 3: ["makharij", "mabadi"] },
+  // Group 1 takes Ghunna, Mudūd and the existing Ṣifāt together in Term 1,
+  // several items a week (`class_course_items`); the new Ṣifāt stays in Term 2.
+  1: { 1: ["ghunna", "mudood", "sifaat_old"], 2: ["sifaat_new"], 3: ["makharij", "mabadi"] },
   2: { 1: ["ghunna", "ummul_kitab"], 2: ["sifaat_old"], 3: ["mudood", "mabadi"] },
   3: { 1: ["ghunna", "ummul_kitab"], 2: ["sifaat_old"], 3: ["mudood", "mabadi"] },
-  // Group 4's mabadi is "maybe" — left out until it is decided, because a
-  // topic shown and then withdrawn is worse than one added later.
-  4: { 1: ["ghunna", "ummul_kitab"], 2: ["sifaat_old"], 3: ["mudood"] },
+  // Group 4 is the same as group 3, Mabādi' included: settled by the
+  // programme lead, 2026-10-02 (0043).
+  4: { 1: ["ghunna", "ummul_kitab"], 2: ["sifaat_old"], 3: ["mudood", "mabadi"] },
   // Group 5's Term 3 is TBC, and group 5 is itself "TBC based on how students
   // progress".
   5: { 1: ["qaidah"], 2: ["ummul_kitab"], 3: [] },

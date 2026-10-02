@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { timetableFor } from "@/lib/attendance/calendar";
-import { planFromLessons, type LessonRow } from "./plan";
+import { itemsInWeek, planFromLessons, type LessonRow } from "./plan";
+import type { ClassSchedule } from "./tree";
 
 const OPEN = "2026-01-01T00:00:00Z";
 const SHUT = "2030-01-01T00:00:00Z";
@@ -144,5 +145,75 @@ describe("planFromLessons", () => {
     const term1 = planFromLessons(ROWS, "Masjid Al-Umawi", tt, NOW)[1];
     for (const week of term1)
       expect(new Date(`${week.date}T12:00:00`).getDay()).toBe(1);
+  });
+});
+
+describe("itemsInWeek", () => {
+  it("is item k = week k with nothing listed, even past the course's end", () => {
+    expect(itemsInWeek(undefined, 8, 3)).toEqual([3]);
+    expect(itemsInWeek({}, 6, 7)).toEqual([7]);
+  });
+
+  it("puts several listed items in one week, and none in a week they left", () => {
+    const listed = { 1: 1, 2: 1, 3: 2, 4: 2, 5: 2, 6: 2 };
+    expect(itemsInWeek(listed, 8, 1)).toEqual([1, 2]);
+    expect(itemsInWeek(listed, 8, 2)).toEqual([3, 4, 5, 6]);
+    expect(itemsInWeek(listed, 8, 3)).toEqual([]);
+    // an unlisted item that exists keeps its own week
+    expect(itemsInWeek(listed, 8, 7)).toEqual([7]);
+    // …and one past the course's end is not invented
+    expect(itemsInWeek(listed, 8, 9)).toEqual([]);
+  });
+});
+
+describe("planFromLessons under a class's own item weeks", () => {
+  /** Group 1's shape: week 1 = Ghunna 1, 2 and Ṣifāt 1; week 2 = Ghunna 3–6;
+   *  Ṣifāt 2 and 3 come back in week 4; Mudūd keeps item k = week k. */
+  const weeks = [
+    { number: 1, unlock_at: "2026-10-02T19:00:00Z", due_at: "2026-10-05T16:00:00Z" },
+    { number: 2, unlock_at: "2026-10-08T12:00:00Z", due_at: "2026-10-11T17:00:00Z" },
+    { number: 3, unlock_at: "2026-10-15T12:00:00Z", due_at: "2026-10-18T17:00:00Z" },
+    { number: 4, unlock_at: "2026-10-22T12:00:00Z", due_at: "2026-10-25T17:00:00Z" },
+  ];
+  const groupOne: ClassSchedule = {
+    courses: [
+      { courseId: "GH", key: "ghunna", label: "Ghunna", termId: 1, position: 1 },
+      { courseId: "MU", key: "mudood", label: "Mudūd", termId: 1, position: 2 },
+      { courseId: "SO", key: "sifaat_old", label: "Ṣifāt", termId: 1, position: 3 },
+    ],
+    firstUnlockByTerm: { 1: weeks[0].unlock_at },
+    weeksByTerm: { 1: weeks },
+    itemWeeks: {
+      GH: { 1: 1, 2: 1, 3: 2, 4: 2, 5: 2, 6: 2 },
+      SO: { 1: 1, 2: 4, 3: 4, 4: 5 },
+    },
+  };
+  const rows = [
+    ...series("tajweed", 1, 8),
+    ...series("tajweed", 2, 7),
+    ...series("tajweed", 3, 6, { unlock: SHUT }), // mudood: filed in Term 3
+  ];
+  const term1 = planFromLessons(rows, "Masjid An-Nabawi", tt, NOW, "student", groupOne)[1];
+  const slots = (i: number) => term1[i].lessons.map((l) => `${l.courseLabel} ${l.index}`);
+
+  it("puts several items of one course on one Monday", () => {
+    expect(slots(0)).toEqual(["Ghunna 1", "Ghunna 2", "Mudūd 1", "Ṣifāt 1"]);
+    expect(slots(1)).toEqual(["Ghunna 3", "Ghunna 4", "Ghunna 5", "Ghunna 6", "Mudūd 2"]);
+  });
+
+  it("brings a course back in a later, non-consecutive week", () => {
+    expect(slots(2)).toEqual(["Mudūd 3"]);
+    expect(slots(3)).toEqual(["Mudūd 4", "Ṣifāt 2", "Ṣifāt 3"]);
+  });
+
+  it("opens a re-dated course on the class's date, not its row's", () => {
+    // Mudūd 1's row sits in a shut Term 3 week; the class meets it in week 1.
+    const mudood = term1[0].lessons.find((l) => l.courseLabel === "Mudūd")!;
+    expect(mudood.href).toBe("/lessons/tajweed-3-1");
+    // Ghunna 3 is listed under week 2, shut on the 6th and open on the 9th,
+    // though its own row's week (Term 1 week 3 here) opened long ago
+    expect(term1[1].lessons[0].href).toBeNull();
+    const later = planFromLessons(rows, "Masjid An-Nabawi", tt, new Date("2026-10-09T12:00:00Z"), "student", groupOne)[1];
+    expect(later[1].lessons[0].href).toBe("/lessons/tajweed-1-3");
   });
 });

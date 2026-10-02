@@ -133,7 +133,7 @@ export default async function TeacherHomework({
   /** When this homework opens for this class. */
   const unlockOf = (h: Hw): string | null => {
     const sc = useSyllabus && h.course_id ? scheduledByCourse.get(h.course_id) : undefined;
-    if (schedule && sc) return scheduledUnlockAt(schedule, sc.termId, h.ordinal ?? 1);
+    if (schedule && sc) return scheduledUnlockAt(schedule, sc.termId, h.ordinal ?? 1, sc.courseId);
     return weekById.get(h.week_id)?.unlock_at ?? null;
   };
 

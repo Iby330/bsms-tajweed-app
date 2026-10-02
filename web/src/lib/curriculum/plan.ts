@@ -3,13 +3,16 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { TERMS, termSessions, type TermId, type Timetable } from "@/lib/attendance/calendar";
 import { ruleName } from "@/lib/lessons/rule-name";
 import { COURSES, coursesForTerm, hasSyllabus } from "./syllabus";
+import { classItemWeek, scheduledUnlockAt, type ClassSchedule } from "./tree";
+import { getClassSchedule } from "./queries";
 
 /**
  * A class's syllabus, laid out across the Mondays it will actually be taught.
  *
- * Week N of a term takes the Nth lesson of every course that class is
- * studying, so group 1 — on ghunna and mudood together — gets two entries per
- * Monday and everyone else gets two of their own pair.
+ * Week N of a term takes the items the class meets in week N: item N of each
+ * course it studies, unless its schedule (`class_course_items`, 0044) puts an
+ * item somewhere else. Group 1 meets several Ghunna, Mudūd and Ṣifāt items a
+ * week, so one Monday can carry two items of one course and the next none.
  *
  * ── What a student is allowed to see ─────────────────────────────────────
  *
@@ -27,7 +30,8 @@ import { COURSES, coursesForTerm, hasSyllabus } from "./syllabus";
  * built per audience:
  *
  *   · A STUDENT goes to /lessons/<id>, which 404s a week that has not opened
- *     yet — so their link waits for the unlock.
+ *     yet — so their link waits for the unlock, the CLASS's unlock where it
+ *     has a schedule, which is the date RLS releases the row on.
  *   · A TEACHER goes to /teacher/lessons/<id>, which deliberately locks
  *     nothing, because preparing an unopened week is the job. Their link only
  *     waits for the video.
@@ -86,8 +90,31 @@ function courseLessons(rows: LessonRow[], series: string, termId: TermId): Lesso
 }
 
 /**
+ * The items of one course a class meets in `week`, ascending.
+ *
+ * With nothing listed it is item `week` alone, as it always was — even past
+ * the course's end, where the plan names a lesson the app does not hold. With
+ * items listed, those items are wherever their list says, and an unlisted one
+ * that exists keeps item k = week k: `class_item_week`'s rule.
+ */
+export function itemsInWeek(
+  listed: Record<number, number> | undefined, count: number, week: number,
+): number[] {
+  if (!listed || Object.keys(listed).length === 0) return [week];
+  const out = Object.entries(listed)
+    .filter(([, w]) => w === week)
+    .map(([k]) => Number(k));
+  if (!(week in listed) && week <= count) out.push(week);
+  return out.sort((a, b) => a - b);
+}
+
+/**
  * Lay a class's syllabus out over its Mondays. Pure — the IO wrapper below
  * fetches the rows, this decides what each week holds.
+ *
+ * `schedule` is the class's own (from `class_courses`): it says which week the
+ * class meets each item in and when it opens. Without one, item k sits in week
+ * k and opens with the week its row is filed under.
  */
 export function planFromLessons(
   rows: LessonRow[],
@@ -95,6 +122,7 @@ export function planFromLessons(
   timetable: Timetable,
   now: Date,
   audience: PlanAudience = "student",
+  schedule: ClassSchedule | null = null,
 ): Record<number, PlannedWeek[]> {
   if (!hasSyllabus(className)) return {};
 
@@ -124,21 +152,28 @@ export function planFromLessons(
     plans[term.id] = mondays.map((date, i) => ({
       date,
       number: i + 1,
-      lessons: courses.map((key): PlannedLesson => {
+      lessons: courses.flatMap((key) => {
         const course = COURSES[key];
-        const lesson = course.source
-          ? lessonsOf(course.source.series, course.source.termId)[i]
-          : undefined;
-        const open = !!lesson && Date.parse(lesson.weeks!.unlock_at) <= nowMs;
-        const reachable = audience === "teacher" ? !!lesson : open;
-        const rule = lesson ? ruleName(lesson.title) : null;
-        return {
-          courseLabel: course.label,
-          index: i + 1,
-          label: rule ?? `${course.label} ${i + 1}`,
-          href: reachable && lesson?.youtube_id ? `${base}/${lesson.id}` : null,
-          missing: !lesson,
-        };
+        const all = course.source ? lessonsOf(course.source.series, course.source.termId) : [];
+        const sc = schedule?.courses.find((c) => c.key === key);
+        const listed = sc ? schedule!.itemWeeks?.[sc.courseId] : undefined;
+        return itemsInWeek(listed, all.length, i + 1).map((k): PlannedLesson => {
+          const lesson = all[k - 1];
+          const opensAt = lesson
+            ? (sc ? scheduledUnlockAt(schedule!, sc.termId, k, sc.courseId) : null)
+              ?? lesson.weeks!.unlock_at
+            : null;
+          const open = opensAt !== null && Date.parse(opensAt) <= nowMs;
+          const reachable = audience === "teacher" ? !!lesson : open;
+          const rule = lesson ? ruleName(lesson.title) : null;
+          return {
+            courseLabel: course.label,
+            index: k,
+            label: rule ?? `${course.label} ${k}`,
+            href: reachable && lesson?.youtube_id ? `${base}/${lesson.id}` : null,
+            missing: !lesson,
+          };
+        });
       }),
     }));
   }
@@ -153,13 +188,19 @@ export function planFromLessons(
 export async function getTermPlans(
   className: string | null | undefined,
   timetable: Timetable,
-  { now = new Date(), audience = "student" }: { now?: Date; audience?: PlanAudience } = {},
+  {
+    now = new Date(), audience = "student", classId = null,
+  }: { now?: Date; audience?: PlanAudience; classId?: string | null } = {},
 ): Promise<Record<number, PlannedWeek[]>> {
   if (!hasSyllabus(className)) return {};
 
-  const { data } = await supabaseAdmin()
-    .from("lessons")
-    .select("id, title, series, position, youtube_id, weeks(term_id, number, unlock_at)");
+  const [{ data }, schedule] = await Promise.all([
+    supabaseAdmin()
+      .from("lessons")
+      .select("id, title, series, position, youtube_id, weeks(term_id, number, unlock_at)"),
+    // the class's own weeks and dates, read as the viewer, as the tree reads them
+    getClassSchedule(classId),
+  ]);
 
-  return planFromLessons((data ?? []) as LessonRow[], className, timetable, now, audience);
+  return planFromLessons((data ?? []) as LessonRow[], className, timetable, now, audience, schedule);
 }

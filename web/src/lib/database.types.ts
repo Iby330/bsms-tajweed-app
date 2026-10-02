@@ -290,6 +290,42 @@ export type Database = {
           },
         ]
       }
+      class_course_items: {
+        Row: {
+          class_id: string
+          course_id: string
+          ordinal: number
+          week_number: number
+        }
+        Insert: {
+          class_id: string
+          course_id: string
+          ordinal: number
+          week_number: number
+        }
+        Update: {
+          class_id?: string
+          course_id?: string
+          ordinal?: number
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_course_items_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_course_items_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_courses: {
         Row: {
           class_id: string
@@ -1559,18 +1595,21 @@ export type Database = {
       }
       weeks: {
         Row: {
+          due_at: string | null
           id: string
           number: number
           term_id: number
           unlock_at: string
         }
         Insert: {
+          due_at?: string | null
           id?: string
           number: number
           term_id: number
           unlock_at: string
         }
         Update: {
+          due_at?: string | null
           id?: string
           number?: number
           term_id?: number
@@ -1829,6 +1868,10 @@ export type Database = {
       can_see_content: {
         Args: { p_course: string; p_ordinal: number; p_week: string }
         Returns: boolean
+      }
+      class_item_due_at: {
+        Args: { p_class: string; p_course: string; p_ordinal: number }
+        Returns: string
       }
       class_item_unlock_at: {
         Args: { p_class: string; p_course: string; p_ordinal: number }

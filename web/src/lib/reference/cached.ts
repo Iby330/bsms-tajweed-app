@@ -38,13 +38,14 @@ export const getCachedWeeks = unstable_cache(
   async () => {
     const { data, error } = await supabaseAdmin()
       .from("weeks")
-      .select("id, term_id, number, unlock_at")
+      .select("id, term_id, number, unlock_at, due_at")
       .order("term_id")
       .order("number");
     if (error) throw error;
     return data ?? [];
   },
-  ["ref-weeks"],
+  // key carries the row shape — bumped when the select gained due_at
+  ["ref-weeks-v2"],
   { tags: ["reference"], revalidate: 3600 },
 );
 

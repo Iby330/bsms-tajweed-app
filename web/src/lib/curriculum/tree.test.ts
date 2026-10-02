@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   buildTree, overlayProgress, findCourse, findCurrentModule, moduleTitle, scheduledUnlockAt, currentModules,
+  scheduledDueAt, classItemWeek, withClassDeadlines,
   listHomework, bucketHomework, weekContent,
   type TermRow, type WeekRow, type LessonRow, type HomeworkRow,
   type ClassSchedule,
@@ -78,13 +79,13 @@ const terms: TermRow[] = [
 ];
 
 const weeks: WeekRow[] = [
-  { id: "t1w1", term_id: 1, number: 1, unlock_at: day(0) },   // unlocked
-  { id: "t1w2", term_id: 1, number: 2, unlock_at: day(7) },   // unlocked
-  { id: "t1w3", term_id: 1, number: 3, unlock_at: day(14) },  // unlocked (NOW = day 14)
-  { id: "t2w1", term_id: 2, number: 1, unlock_at: day(28) },  // locked
-  { id: "t2w2", term_id: 2, number: 2, unlock_at: day(35) },  // locked
-  { id: "t3w1", term_id: 3, number: 1, unlock_at: day(56) },  // locked
-  { id: "t3w2", term_id: 3, number: 2, unlock_at: day(63) },  // locked
+  { id: "t1w1", term_id: 1, number: 1, unlock_at: day(0), due_at: null },   // unlocked
+  { id: "t1w2", term_id: 1, number: 2, unlock_at: day(7), due_at: null },   // unlocked
+  { id: "t1w3", term_id: 1, number: 3, unlock_at: day(14), due_at: null },  // unlocked (NOW = day 14)
+  { id: "t2w1", term_id: 2, number: 1, unlock_at: day(28), due_at: null },  // locked
+  { id: "t2w2", term_id: 2, number: 2, unlock_at: day(35), due_at: null },  // locked
+  { id: "t3w1", term_id: 3, number: 1, unlock_at: day(56), due_at: null },  // locked
+  { id: "t3w2", term_id: 3, number: 2, unlock_at: day(63), due_at: null },  // locked
 ];
 
 const lesson = (
@@ -537,10 +538,10 @@ describe("buildTree with a class syllabus", () => {
   ];
   // Two terms, two weeks each. Term 1 opens 5 Oct, Term 3 opens 15 Mar.
   const weeks: WeekRow[] = [
-    { id: "w1", term_id: 1, number: 1, unlock_at: "2026-10-05T00:00:00Z" },
-    { id: "w2", term_id: 1, number: 2, unlock_at: "2026-10-12T00:00:00Z" },
-    { id: "w31", term_id: 3, number: 1, unlock_at: "2027-03-15T00:00:00Z" },
-    { id: "w32", term_id: 3, number: 2, unlock_at: "2027-03-22T00:00:00Z" },
+    { id: "w1", term_id: 1, number: 1, unlock_at: "2026-10-05T00:00:00Z", due_at: null },
+    { id: "w2", term_id: 1, number: 2, unlock_at: "2026-10-12T00:00:00Z", due_at: null },
+    { id: "w31", term_id: 3, number: 1, unlock_at: "2027-03-15T00:00:00Z", due_at: null },
+    { id: "w32", term_id: 3, number: 2, unlock_at: "2027-03-22T00:00:00Z", due_at: null },
   ];
   // Ghunna sits in Term 1's weeks; Mudūd sits in Term 3's.
   const homeworks: HomeworkRow[] = [
@@ -636,9 +637,9 @@ describe("buildTree for a reader exempt from the calendar", () => {
     { id: 3, starts_on: "2027-03-15", ends_on: "2027-05-20", exam_max: 98 },
   ];
   const weeks: WeekRow[] = [
-    { id: "w1", term_id: 1, number: 1, unlock_at: "2026-10-05T00:00:00Z" },
-    { id: "w2", term_id: 1, number: 2, unlock_at: "2026-10-12T00:00:00Z" },
-    { id: "w31", term_id: 3, number: 1, unlock_at: "2027-03-15T00:00:00Z" },
+    { id: "w1", term_id: 1, number: 1, unlock_at: "2026-10-05T00:00:00Z", due_at: null },
+    { id: "w2", term_id: 1, number: 2, unlock_at: "2026-10-12T00:00:00Z", due_at: null },
+    { id: "w31", term_id: 3, number: 1, unlock_at: "2027-03-15T00:00:00Z", due_at: null },
   ];
   const hw = (id: string, week: string, course: string, ordinal: number, series: string) => ({
     id, week_id: week, course_id: course, ordinal, number: ordinal,
@@ -730,22 +731,144 @@ describe("scheduledUnlockAt", () => {
   });
 
   describe("with the term's weeks", () => {
-    // week 1 opened by hand on a Friday night; the rest on Thursdays at 13:00
-    const weeks: ClassSchedule = {
-      courses: [],
-      firstUnlockByTerm: { 1: "2026-10-02T19:00:00Z" },
-      unlocksByTerm: { 1: ["2026-10-02T19:00:00Z", "2026-10-08T12:00:00Z", "2026-10-15T12:00:00Z"] },
+    // Week 1 opened by hand on a Friday night and is due Monday 17:00; the
+    // rest open Thursday 13:00 and are due that Sunday 18:00 (0042, 0043).
+    const weeksByTerm = {
+      1: [
+        { number: 1, unlock_at: "2026-10-02T19:00:00Z", due_at: "2026-10-05T16:00:00Z" },
+        { number: 2, unlock_at: "2026-10-08T12:00:00Z", due_at: "2026-10-11T17:00:00Z" },
+        { number: 3, unlock_at: "2026-10-15T12:00:00Z", due_at: "2026-10-18T17:00:00Z" },
+      ],
     };
+    const plain: ClassSchedule = {
+      courses: [], firstUnlockByTerm: { 1: "2026-10-02T19:00:00Z" }, weeksByTerm,
+    };
+    /** Group 1's shape: Ghunna items 1 and 2 in week 1, item 3 in week 2. */
+    const packed: ClassSchedule = { ...plain, itemWeeks: { GH: { 1: 1, 2: 1, 3: 2 } } };
 
-    it("opens item k with the term's k-th week, not first-plus-seven", () => {
-      expect(scheduledUnlockAt(weeks, 1, 1)).toBe("2026-10-02T19:00:00.000Z");
-      expect(scheduledUnlockAt(weeks, 1, 2)).toBe("2026-10-08T12:00:00.000Z");
-      expect(scheduledUnlockAt(weeks, 1, 3)).toBe("2026-10-15T12:00:00.000Z");
+    it("opens and closes item k with the term's k-th week by default", () => {
+      expect(scheduledUnlockAt(plain, 1, 2, "GH")).toBe("2026-10-08T12:00:00.000Z");
+      expect(scheduledDueAt(plain, 1, 2, "GH")).toBe("2026-10-11T17:00:00.000Z");
+      expect(scheduledUnlockAt(plain, 1, 3)).toBe("2026-10-15T12:00:00.000Z");
+      expect(scheduledDueAt(plain, 1, 3)).toBe("2026-10-18T17:00:00.000Z");
+    });
+
+    it("keeps a hand-set week 1 rather than counting back from week 2", () => {
+      expect(scheduledUnlockAt(plain, 1, 1)).toBe("2026-10-02T19:00:00.000Z");
+      expect(scheduledDueAt(plain, 1, 1)).toBe("2026-10-05T16:00:00.000Z");
+    });
+
+    it("puts an item in the week its class lists it under", () => {
+      expect(scheduledUnlockAt(packed, 1, 1, "GH")).toBe("2026-10-02T19:00:00.000Z");
+      expect(scheduledUnlockAt(packed, 1, 2, "GH")).toBe("2026-10-02T19:00:00.000Z");
+      expect(scheduledUnlockAt(packed, 1, 3, "GH")).toBe("2026-10-08T12:00:00.000Z");
+      expect(scheduledDueAt(packed, 1, 2, "GH")).toBe("2026-10-05T16:00:00.000Z");
+      expect(scheduledDueAt(packed, 1, 3, "GH")).toBe("2026-10-11T17:00:00.000Z");
+    });
+
+    it("leaves an unlisted item, and another course, on item k = week k", () => {
+      expect(scheduledUnlockAt(packed, 1, 3, "MU")).toBe("2026-10-15T12:00:00.000Z");
+      expect(scheduledUnlockAt(packed, 1, 3)).toBe("2026-10-15T12:00:00.000Z");
+      expect(classItemWeek(packed, 3, "GH")).toBe(2);
+      expect(classItemWeek(packed, 3, "MU")).toBe(3);
+      expect(classItemWeek(packed, 0, "GH")).toBe(1); // greatest(ordinal, 1)
     });
 
     it("runs on a week at a time past the term's last week", () => {
-      expect(scheduledUnlockAt(weeks, 1, 5)).toBe("2026-10-29T12:00:00.000Z");
+      expect(scheduledUnlockAt(plain, 1, 5)).toBe("2026-10-29T12:00:00.000Z");
+      expect(scheduledDueAt(plain, 1, 5)).toBe("2026-11-01T17:00:00.000Z");
+      // a listed week past the end overshoots the same way
+      const late: ClassSchedule = { ...plain, itemWeeks: { GH: { 1: 4 } } };
+      expect(scheduledUnlockAt(late, 1, 1, "GH")).toBe("2026-10-22T12:00:00.000Z");
+      expect(scheduledDueAt(late, 1, 1, "GH")).toBe("2026-10-25T17:00:00.000Z");
     });
+
+    it("is null for a term with no weeks, as the SQL's max() over nothing is", () => {
+      expect(scheduledUnlockAt(plain, 2, 1)).toBeNull();
+      expect(scheduledDueAt(plain, 2, 1)).toBeNull();
+    });
+  });
+});
+
+describe("withClassDeadlines", () => {
+  const schedule: ClassSchedule = {
+    courses: [{ courseId: "MU", key: "mudood", label: "Mudūd", termId: 1, position: 2 }],
+    firstUnlockByTerm: {},
+    weeksByTerm: {
+      1: [
+        { number: 1, unlock_at: "2026-10-02T19:00:00Z", due_at: "2026-10-05T16:00:00Z" },
+        { number: 2, unlock_at: "2026-10-08T12:00:00Z", due_at: "2026-10-11T17:00:00Z" },
+      ],
+      3: [{ number: 1, unlock_at: "2027-03-11T13:00:00Z", due_at: "2027-03-14T18:00:00Z" }],
+    },
+    itemWeeks: { MU: { 2: 1 } },
+  };
+  const hw = (id: string, course: string | null, ordinal: number | null): HomeworkRow => ({
+    id, week_id: "w31", course_id: course, ordinal, number: 1, series: "tajweed",
+    title: id, total_marks: 10, due_at: "2027-03-14T18:00:00Z", is_graded: true,
+  });
+
+  it("dates a homework by the week the class meets it in, not the row's", () => {
+    const [m1, m2] = withClassDeadlines([hw("m1", "MU", 1), hw("m2", "MU", 2)], schedule);
+    expect(m1.due_at).toBe("2026-10-05T16:00:00.000Z");
+    // listed under week 1 alongside item 1
+    expect(m2.due_at).toBe("2026-10-05T16:00:00.000Z");
+  });
+
+  it("treats a homework with no ordinal as the course's first item", () => {
+    expect(withClassDeadlines([hw("m", "MU", null)], schedule)[0].due_at)
+      .toBe("2026-10-05T16:00:00.000Z");
+  });
+
+  it("keeps the row's own deadline for a course the class does not take", () => {
+    const rows = [hw("t", "TF", 1), hw("x", null, 1)];
+    expect(withClassDeadlines(rows, schedule)).toEqual(rows);
+  });
+
+  it("changes nothing without a syllabus", () => {
+    const rows = [hw("m1", "MU", 1)];
+    expect(withClassDeadlines(rows, null)).toBe(rows);
+    expect(withClassDeadlines(rows, { courses: [], firstUnlockByTerm: {} })).toBe(rows);
+  });
+
+  it("keeps the row's deadline when the class's term has no weeks", () => {
+    const bare: ClassSchedule = { ...schedule, weeksByTerm: {} };
+    expect(withClassDeadlines([hw("m1", "MU", 1)], bare)[0].due_at).toBe("2027-03-14T18:00:00Z");
+  });
+});
+
+describe("buildTree under a class's own item weeks", () => {
+  const terms: TermRow[] = [{ id: 1, starts_on: "2026-10-01", ends_on: "2026-12-10", exam_max: 89 }];
+  const weeks: WeekRow[] = [
+    { id: "w1", term_id: 1, number: 1, unlock_at: "2026-10-02T19:00:00Z", due_at: "2026-10-05T16:00:00Z" },
+    { id: "w2", term_id: 1, number: 2, unlock_at: "2026-10-08T12:00:00Z", due_at: "2026-10-11T17:00:00Z" },
+    { id: "w3", term_id: 1, number: 3, unlock_at: "2026-10-15T12:00:00Z", due_at: "2026-10-18T17:00:00Z" },
+  ];
+  // Ghunna's rows sit one to a week, item k in week k.
+  const lessons: LessonRow[] = [1, 2, 3].map((k) => ({
+    id: `g${k}`, week_id: `w${k}`, course_id: "GH", ordinal: k, series: "tajweed",
+    title: `G${k}`, youtube_id: "x", position: 1,
+  }));
+  const groupOne: ClassSchedule = {
+    courses: [{ courseId: "GH", key: "ghunna", label: "Ghunna", termId: 1, position: 1 }],
+    firstUnlockByTerm: { 1: "2026-10-02T19:00:00Z" },
+    weeksByTerm: { 1: weeks.map(({ number, unlock_at, due_at }) => ({ number, unlock_at, due_at })) },
+    itemWeeks: { GH: { 1: 1, 2: 1, 3: 2 } },
+  };
+  const NOW = new Date("2026-10-03T12:00:00Z");
+  const tree = buildTree({ terms, weeks, lessons, homeworks: [] }, NOW, groupOne);
+  const ghunna = tree[0].courses[0];
+
+  it("opens two items in week 1 and the third in week 2", () => {
+    expect(ghunna.modules.map((m) => [m.lessons[0].id, m.weekNumber, m.unlocked])).toEqual([
+      ["g1", 1, true],
+      ["g2", 1, true],
+      ["g3", 2, false],
+    ]);
+  });
+
+  it("gives Home both of week 1's items as this week", () => {
+    expect(currentModules(tree, NOW).map((m) => m.lessons[0].id)).toEqual(["g1", "g2"]);
   });
 });
 
@@ -755,9 +878,9 @@ describe("currentModules", () => {
     { id: 3, starts_on: "2027-03-15", ends_on: "2027-05-20", exam_max: 98 },
   ];
   const weeks: WeekRow[] = [
-    { id: "w1", term_id: 1, number: 1, unlock_at: "2026-10-05T00:00:00Z" },
-    { id: "w2", term_id: 1, number: 2, unlock_at: "2026-10-12T00:00:00Z" },
-    { id: "w31", term_id: 3, number: 1, unlock_at: "2027-03-15T00:00:00Z" },
+    { id: "w1", term_id: 1, number: 1, unlock_at: "2026-10-05T00:00:00Z", due_at: null },
+    { id: "w2", term_id: 1, number: 2, unlock_at: "2026-10-12T00:00:00Z", due_at: null },
+    { id: "w31", term_id: 3, number: 1, unlock_at: "2027-03-15T00:00:00Z", due_at: null },
   ];
   const lessons: LessonRow[] = [
     { id: "lg1", week_id: "w1", course_id: "GH", ordinal: 1, series: "tajweed", title: "G1", youtube_id: "x", position: 1 },

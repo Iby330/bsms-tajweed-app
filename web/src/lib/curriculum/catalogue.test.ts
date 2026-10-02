@@ -15,9 +15,9 @@ const terms: TermRow[] = [
   { id: 3, starts_on: "2027-03-15", ends_on: "2027-05-20", exam_max: 98 },
 ];
 const weeks: WeekRow[] = [
-  { id: "w1", term_id: 1, number: 1, unlock_at: "2026-10-05T00:00:00Z" },
-  { id: "w2", term_id: 1, number: 2, unlock_at: "2026-10-12T00:00:00Z" },
-  { id: "w31", term_id: 3, number: 1, unlock_at: "2027-03-15T00:00:00Z" },
+  { id: "w1", term_id: 1, number: 1, unlock_at: "2026-10-05T00:00:00Z", due_at: null },
+  { id: "w2", term_id: 1, number: 2, unlock_at: "2026-10-12T00:00:00Z", due_at: null },
+  { id: "w31", term_id: 3, number: 1, unlock_at: "2027-03-15T00:00:00Z", due_at: null },
 ];
 const lesson = (id: string, week: string, course: string, ordinal: number, series: string) => ({
   id, week_id: week, course_id: course, ordinal, series,

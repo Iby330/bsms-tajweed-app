@@ -27,6 +27,9 @@ export type WeekRow = {
   term_id: number;
   number: number;
   unlock_at: string;
+  /** Deadline for homework released this week (0043): the Sunday 18:00 after
+   *  `unlock_at`. Null only for a row read before the column existed. */
+  due_at: string | null;
 };
 
 export type LessonRow = {
@@ -82,43 +85,113 @@ export type ScheduledCourse = {
  */
 export type ClassSchedule = {
   courses: ScheduledCourse[];
-  /** Term id → ISO timestamp of that term's first week unlock. */
+  /**
+   * Term id → ISO timestamp of that term's first week unlock. The legacy
+   * first-week-plus-seven-days rule, used only when `weeksByTerm` is absent.
+   */
   firstUnlockByTerm: Record<number, string>;
   /**
-   * Term id → every week's unlock in that term, earliest first. Item k opens
-   * with the term's k-th week, so a week moved by hand (week 1 of 2026/27
-   * opened the night it was ready) moves only its own items. Absent, the
-   * first-week-plus-seven-days rule below stands in.
+   * Term id → that term's weeks, by `weeks.number`. Item k opens with the
+   * week its class meets it in and is due with it, so a week moved by hand
+   * (week 1 of 2026/27 opened the night it was ready) moves only its own items.
    */
-  unlocksByTerm?: Record<number, string[]>;
+  weeksByTerm?: Record<number, ScheduleWeek[]>;
+  /**
+   * Course id → item ordinal → week number, from `class_course_items` (0044):
+   * the items this class meets in a week other than item k = week k. Group 1
+   * takes several Ghunna, Mudūd and Ṣifāt items a week.
+   */
+  itemWeeks?: Record<string, Record<number, number>>;
 };
+
+export type ScheduleWeek = { number: number; unlock_at: string; due_at: string | null };
+
+/**
+ * The week (by `weeks.number`) a class meets item `ordinal` of a course in:
+ * its own listed week, else week k. `class_item_week` in the database.
+ */
+export function classItemWeek(
+  schedule: ClassSchedule, ordinal: number, courseId?: string | null,
+): number {
+  const k = Math.max(ordinal, 1);
+  return (courseId ? schedule.itemWeeks?.[courseId]?.[k] : undefined) ?? k;
+}
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * One field of the class's week for an item, as `class_item_unlock_at` /
+ * `class_item_due_at` compute it: the week's own value, else past the term's
+ * last week the latest value plus seven days per week of overshoot. Undefined
+ * when the schedule carries no weeks at all, so the caller can fall back.
+ */
+function itemWeekField(
+  schedule: ClassSchedule, termId: number, ordinal: number,
+  courseId: string | null | undefined, field: "unlock_at" | "due_at",
+): string | null | undefined {
+  if (!schedule.weeksByTerm) return undefined;
+  const weeks = schedule.weeksByTerm[termId] ?? [];
+  const w = classItemWeek(schedule, ordinal, courseId);
+  const own = weeks.find((x) => x.number === w)?.[field];
+  if (own) return new Date(Date.parse(own)).toISOString();
+  // coalesce's second arm: max(value) + (W - max(number)) weeks
+  const values = weeks.map((x) => x[field]).filter((v): v is string => !!v).map(Date.parse);
+  if (!values.length) return null;
+  const lastNumber = Math.max(...weeks.map((x) => x.number));
+  return new Date(Math.max(...values) + (w - lastNumber) * WEEK_MS).toISOString();
+}
 
 /**
  * When item `ordinal` of a course opens for a class.
  *
- * The same rule as `class_item_unlock_at` in the database (0042): item k opens
- * with the term's k-th week, and past the last week a week at a time. The
- * two MUST agree: this one decides what the screen draws, that one decides
- * what RLS will hand over, and a disagreement shows up as a module that
- * renders with nothing in it. Kept in step by `tree.test.ts`.
+ * The same rule as `class_item_unlock_at` in the database (0044): item k opens
+ * with the week the class meets it in (its `class_course_items` week, else
+ * week k), and past the term's last week a week at a time. The two MUST
+ * agree: this one decides what the screen draws, that one decides what RLS
+ * will hand over, and a disagreement shows up as a module that renders with
+ * nothing in it. Kept in step by `tree.test.ts`.
  */
 export function scheduledUnlockAt(
-  schedule: ClassSchedule, termId: number, ordinal: number,
+  schedule: ClassSchedule, termId: number, ordinal: number, courseId?: string | null,
 ): string | null {
-  const week = 7 * 24 * 60 * 60 * 1000;
-  const unlocks = schedule.unlocksByTerm?.[termId];
-  if (unlocks?.length) {
-    const i = Math.max(ordinal, 1) - 1;
-    if (i < unlocks.length) return new Date(Date.parse(unlocks[i])).toISOString();
-    // past the term's last week: keep going a week at a time, as before
-    const last = Date.parse(unlocks[unlocks.length - 1]);
-    return new Date(last + (i - unlocks.length + 1) * week).toISOString();
-  }
+  const at = itemWeekField(schedule, termId, ordinal, courseId, "unlock_at");
+  if (at !== undefined) return at;
   const first = schedule.firstUnlockByTerm[termId];
   if (!first) return null;
-  const at = Date.parse(first);
-  if (Number.isNaN(at)) return null;
-  return new Date(at + (Math.max(ordinal, 1) - 1) * 7 * 24 * 60 * 60 * 1000).toISOString();
+  const ms = Date.parse(first);
+  if (Number.isNaN(ms)) return null;
+  return new Date(ms + (classItemWeek(schedule, ordinal, courseId) - 1) * WEEK_MS).toISOString();
+}
+
+/**
+ * When item `ordinal` of a course is due for a class: the `due_at` of the week
+ * it opens in, by the same rule. `class_item_due_at` (0044). Null without the
+ * term's weeks, which the caller reads as "keep the row's own deadline".
+ */
+export function scheduledDueAt(
+  schedule: ClassSchedule, termId: number, ordinal: number, courseId?: string | null,
+): string | null {
+  return itemWeekField(schedule, termId, ordinal, courseId, "due_at") ?? null;
+}
+
+/**
+ * Homework rows with each deadline moved to the class's own, as
+ * `homework_due_for` gives it: a homework of a course the class takes is due
+ * with the week the class meets it in. Anything else keeps the row's date,
+ * which for a class with no syllabus already is its week's deadline.
+ */
+export function withClassDeadlines(
+  homeworks: HomeworkRow[], schedule: ClassSchedule | null | undefined,
+): HomeworkRow[] {
+  if (!schedule?.courses.length) return homeworks;
+  const termOf = new Map(schedule.courses.map((c) => [c.courseId, c.termId]));
+  return homeworks.map((h) => {
+    const termId = h.course_id ? termOf.get(h.course_id) : undefined;
+    if (termId === undefined) return h;
+    // greatest(null, 1) is 1 in SQL: an item with no ordinal is the first
+    const due = scheduledDueAt(schedule, termId, h.ordinal ?? 1, h.course_id);
+    return due === null ? h : { ...h, due_at: due };
+  });
 }
 
 export type CurriculumRows = {
@@ -365,26 +438,37 @@ export function buildTree(
           // that missed the 0026 backfill, which keeps it behaving as before.
           const ordinal = lessons[0]?.ordinal ?? bucket.homework?.ordinal ?? week.number;
           const unlockAt =
-            (schedule && sched ? scheduledUnlockAt(schedule, sched.termId, ordinal) : null)
+            (schedule && sched
+              ? scheduledUnlockAt(schedule, sched.termId, ordinal, sched.courseId)
+              : null)
             ?? week.unlock_at;
           return {
-            weekId,
-            weekNumber: sched ? ordinal : week.number,
-            unlockAt,
-            // The date is left as it is and only the verdict changes, so a
-            // screen that wants to say WHEN something opened still can.
-            unlocked: unlockAll || Date.parse(unlockAt) <= nowMs,
-            title: moduleTitle(source),
-            lessons,
-            homework: bucket.homework,
-            watched: false,
-            submission: null,
-            redo: null,
-            actionable: lessons.some((l) => l.youtube_id) || bucket.homework !== null,
-            done: false,
-          } satisfies Module;
+            ordinal,
+            module: {
+              weekId,
+              // the week the class meets it in, which under group 1's schedule
+              // is not the item's number
+              weekNumber: schedule && sched
+                ? classItemWeek(schedule, ordinal, sched.courseId)
+                : week.number,
+              unlockAt,
+              // The date is left as it is and only the verdict changes, so a
+              // screen that wants to say WHEN something opened still can.
+              unlocked: unlockAll || Date.parse(unlockAt) <= nowMs,
+              title: moduleTitle(source),
+              lessons,
+              homework: bucket.homework,
+              watched: false,
+              submission: null,
+              redo: null,
+              actionable: lessons.some((l) => l.youtube_id) || bucket.homework !== null,
+              done: false,
+            } satisfies Module,
+          };
         })
-        .sort((a, b) => a.weekNumber - b.weekNumber);
+        // several items can share a class week; they keep their course order
+        .sort((a, b) => a.module.weekNumber - b.module.weekNumber || a.ordinal - b.ordinal)
+        .map((x) => x.module);
 
       if (modules.length === 0) continue;
 
@@ -424,7 +508,7 @@ export function buildTree(
           // course has no content at all — this date cannot tell the two
           // apart, and does not need to: the index pairs it with the
           // catalogue, which knows whether there is anything behind it.
-          opensAt: schedule ? scheduledUnlockAt(schedule, sc.termId, 1) : null,
+          opensAt: schedule ? scheduledUnlockAt(schedule, sc.termId, 1, sc.courseId) : null,
           nextModule: null,
         });
       }

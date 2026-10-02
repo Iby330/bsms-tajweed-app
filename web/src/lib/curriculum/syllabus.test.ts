@@ -80,8 +80,9 @@ describe("CLASS_GROUP", () => {
 
 describe("coursesForTerm", () => {
   it("reads a class's plan for a term", () => {
-    expect(coursesForTerm("Masjid An-Nabawi", 1)).toEqual(["ghunna", "mudood"]);
+    expect(coursesForTerm("Masjid An-Nabawi", 1)).toEqual(["ghunna", "mudood", "sifaat_old"]);
     expect(coursesForTerm("Masjid Al-Haram", 2)).toEqual(["sifaat_old"]);
+    expect(coursesForTerm("Masjid Quba", 3)).toEqual(["mudood", "mabadi"]);
   });
 
   it("is empty for a class with no syllabus, and for an unknown one", () => {
@@ -93,7 +94,7 @@ describe("coursesForTerm", () => {
   it("hands back a copy, so a caller cannot edit the syllabus", () => {
     const first = coursesForTerm("Masjid An-Nabawi", 1);
     first.push("mabadi");
-    expect(coursesForTerm("Masjid An-Nabawi", 1)).toEqual(["ghunna", "mudood"]);
+    expect(coursesForTerm("Masjid An-Nabawi", 1)).toEqual(["ghunna", "mudood", "sifaat_old"]);
   });
 });
 

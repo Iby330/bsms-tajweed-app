@@ -7,9 +7,10 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import { getCachedTerms, getCachedWeeks } from "@/lib/reference/cached";
 import {
-  buildTree, overlayProgress,
+  buildTree, overlayProgress, withClassDeadlines,
   type Term, type SubStatus, type CurriculumRows, type ClassSchedule,
   type TermRow, type WeekRow, type LessonRow, type HomeworkRow, type RedoInfo,
+  type ScheduleWeek,
 } from "./tree";
 
 /** Both content tables, with the course columns 0026 added. One template
@@ -26,34 +27,42 @@ const HOMEWORK_COLS =
  * cohorts, and it means "show the whole programme as before" rather than
  * "show nothing" — see ClassSchedule in tree.ts.
  *
- * The term's week unlocks are carried alongside the courses so the
- * client-side unlock arithmetic can match `class_item_unlock_at` in the
- * database exactly. Both take item k from the term's k-th week (0042), so they
- * cannot drift apart as long as they read the same weeks.
+ * The term's weeks (number, unlock, due) and the class's own item weeks
+ * (`class_course_items`) are carried alongside the courses, so the client-side
+ * arithmetic can match `class_item_unlock_at` / `class_item_due_at` in the
+ * database exactly (0044). They cannot drift apart as long as they read the
+ * same rows.
  */
 export async function getClassSchedule(
   classId: string | null | undefined,
 ): Promise<ClassSchedule | null> {
   if (!classId) return null;
   const db = await supabaseServer();
-  const [{ data: rows }, weeks] = await Promise.all([
+  const [{ data: rows }, { data: items }, weeks] = await Promise.all([
     db.from("class_courses")
       .select(`course_id, term_id, position, courses(key, label)`)
       .eq("class_id", classId)
       .order("term_id")
       .order("position"),
+    db.from("class_course_items")
+      .select("course_id, ordinal, week_number")
+      .eq("class_id", classId),
     getCachedWeeks(),
   ]);
   if (!rows?.length) return null;
 
   const firstUnlockByTerm: Record<number, string> = {};
-  const unlocksByTerm: Record<number, string[]> = {};
+  const weeksByTerm: Record<number, ScheduleWeek[]> = {};
   for (const w of weeks as WeekRow[]) {
     const at = firstUnlockByTerm[w.term_id];
     if (!at || Date.parse(w.unlock_at) < Date.parse(at)) firstUnlockByTerm[w.term_id] = w.unlock_at;
-    (unlocksByTerm[w.term_id] ??= []).push(w.unlock_at);
+    (weeksByTerm[w.term_id] ??= [])
+      .push({ number: w.number, unlock_at: w.unlock_at, due_at: w.due_at ?? null });
   }
-  for (const list of Object.values(unlocksByTerm)) list.sort((a, b) => Date.parse(a) - Date.parse(b));
+  for (const list of Object.values(weeksByTerm)) list.sort((a, b) => a.number - b.number);
+
+  const itemWeeks: Record<string, Record<number, number>> = {};
+  for (const i of items ?? []) (itemWeeks[i.course_id] ??= {})[i.ordinal] = i.week_number;
 
   return {
     courses: rows.flatMap((r) => {
@@ -68,7 +77,8 @@ export async function getClassSchedule(
       }];
     }),
     firstUnlockByTerm,
-    unlocksByTerm,
+    weeksByTerm,
+    itemWeeks,
   };
 }
 
@@ -144,7 +154,8 @@ export async function getCurriculumTree(
       terms: terms as TermRow[],
       weeks: weeks as WeekRow[],
       lessons: (lessons.data ?? []) as LessonRow[],
-      homeworks: (homeworks.data ?? []) as HomeworkRow[],
+      // scoped to a class, each homework is due when that class's week says
+      homeworks: withClassDeadlines((homeworks.data ?? []) as HomeworkRow[], schedule),
     },
     now,
     schedule,
@@ -176,11 +187,19 @@ export async function getStudentCurriculum(
     getClassSchedule(me?.class_id),
   ]);
 
+  const unlockAll = me?.unlock_all ?? false;
+  // The same condition `buildTree` applies, so the two cannot disagree.
+  const hasSyllabus = !unlockAll && (schedule?.courses.length ?? 0) > 0;
+
   const rows: CurriculumRows = {
     terms: terms as TermRow[],
     weeks: weeks as WeekRow[],
     lessons: (lessons.data ?? []) as LessonRow[],
-    homeworks: (homeworks.data ?? []) as HomeworkRow[],
+    // The class's deadlines, on the flat rows as well as the tree: Home reads
+    // both, and `homework_due_for` is what the hand-in is stamped against.
+    homeworks: hasSyllabus
+      ? withClassDeadlines((homeworks.data ?? []) as HomeworkRow[], schedule)
+      : (homeworks.data ?? []) as HomeworkRow[],
   };
 
   const progress = {
@@ -201,12 +220,9 @@ export async function getStudentCurriculum(
     ),
   };
 
-  const unlockAll = me?.unlock_all ?? false;
-
   return {
     terms: overlayProgress(buildTree(rows, now, schedule, unlockAll), progress),
-    // The same condition `buildTree` applies, so the two cannot disagree.
-    hasSyllabus: !unlockAll && (schedule?.courses.length ?? 0) > 0,
+    hasSyllabus,
     unlockAll,
     pctByHomeworkId: new Map(
       (pcts.data ?? []).map((r) => [r.homework_id as string, Number(r.pct)]),
