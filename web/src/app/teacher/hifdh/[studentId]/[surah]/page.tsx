@@ -10,7 +10,6 @@ import { hearingsFor, hearingsForStudent } from "@/lib/hifz/hearing-queries";
 import { latestResult, recordLine, summaryOf, surahState } from "@/lib/hifz/hearings";
 import { teacherClass } from "@/lib/teacher/scope";
 import { RecordActions } from "@/components/app/record-actions";
-import { ResultButton } from "@/components/app/result-button";
 import { SurahMushaf } from "@/components/app/surah-mushaf";
 import { Rule } from "@/components/app/rule";
 import type { SurahNames } from "@/components/app/mushaf-reader";
@@ -66,12 +65,6 @@ export default async function TeacherSurahPage({
   );
   const record = records?.find((r) => r.surah_number === number) ?? null;
   const passedSet = new Set((records ?? []).map((r) => r.surah_number));
-  // For ResultButton's fallback `from` (the register's "next unpassed"); the
-  // button on this page always presets From/To to this surah regardless.
-  const next = list.find((s) => !passedSet.has(s.number));
-  const passedBefore: Record<number, string> = Object.fromEntries(
-    (records ?? []).map((r) => [r.surah_number, r.passed_at]),
-  );
   const state = surahState(number, passedSet, allHearings);
   const latest = latestResult(hearings);
   const line = recordLine(
@@ -105,26 +98,16 @@ export default async function TeacherSurahPage({
         </p>
       </header>
 
-      <Rule label="The record" />
-      <div className="field">
-        <section className="box c12 space-y-3">
-          {/* Shown whether or not this surah has a pass record — a surah not
-              yet heard can be passed from here too, preset to just itself. */}
-          <ResultButton
-            studentId={studentId}
-            studentName={student.full_name}
-            run={list.map((s) => s.number)}
-            from={next?.number ?? list[list.length - 1].number}
-            names={surahNames}
-            passedBefore={passedBefore}
-            initialFrom={number}
-            initialTo={number}
-          />
-          {record && (
-            <RecordActions studentId={studentId} surah={number} comment={record.teacher_comment} />
-          )}
-        </section>
-      </div>
+      {record && (
+        <>
+          <Rule label="The record" />
+          <div className="field">
+            <section className="box c12">
+              <RecordActions studentId={studentId} surah={number} comment={record.teacher_comment} />
+            </section>
+          </div>
+        </>
+      )}
 
       <Rule label="The mushaf" />
       <div className="field">

@@ -77,32 +77,4 @@ describe("ResultButton", () => {
     await vi.waitFor(() => expect(recordResults).toHaveBeenCalledWith(
       "s1", { from: 88, to: 86, passed: [88, 87, 86], note: "" }));
   }, SLOW);
-
-  it("initialFrom/initialTo preset the range, as a surah's own page passes just itself", async () => {
-    // `from` (87) is the register's "next unpassed" fallback; initialFrom/
-    // initialTo (88) is what the surah's own page presets, and it wins.
-    render(<ResultButton studentId="s1" studentName="Ali" run={[88, 87, 86]} from={87} names={names}
-      passedBefore={{}} initialFrom={88} initialTo={88} />);
-    fireEvent.click(screen.getByRole("button", { name: "Pass / Not passed" }));
-    expect((screen.getByLabelText("From") as HTMLSelectElement).value).toBe("88");
-    expect((screen.getByLabelText("To") as HTMLSelectElement).value).toBe("88");
-    const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
-    expect(checkboxes).toHaveLength(1);
-    expect(checkboxes[0].checked).toBe(true);
-    expect(screen.getByLabelText(/Al-Ghashiyah/)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
-    await vi.waitFor(() => expect(recordResults).toHaveBeenCalledWith(
-      "s1", { from: 88, to: 88, passed: [88], note: "" }));
-  }, SLOW);
-
-  it("without initialFrom/initialTo, the existing default (next unpassed surah) still applies", async () => {
-    render(<ResultButton studentId="s1" studentName="Ali" run={[88, 87, 86]} from={87} names={names} passedBefore={{}} />);
-    fireEvent.click(screen.getByRole("button", { name: "Pass / Not passed" }));
-    expect((screen.getByLabelText("From") as HTMLSelectElement).value).toBe("87");
-    expect((screen.getByLabelText("To") as HTMLSelectElement).value).toBe("87");
-    expect(screen.getAllByRole("checkbox")).toHaveLength(1);
-    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
-    await vi.waitFor(() => expect(recordResults).toHaveBeenCalledWith(
-      "s1", { from: 87, to: 87, passed: [87], note: "" }));
-  }, SLOW);
 });
