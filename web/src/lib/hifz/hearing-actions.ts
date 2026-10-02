@@ -61,7 +61,11 @@ export async function logHearingMistake(
       })
       .select("id, started_at").single();
     if (error) throw new Error(error.message);
-    session = data;
+    // Two first taps racing (a quick second Save, a second device) can each
+    // make a session. Read today's again: both land in the oldest, so the
+    // day stays one session and its marks stay changeable. A loser is left
+    // empty, and an empty marking session is shown nowhere.
+    session = (await todaysMarkingSession(db, me.id, studentId)) ?? data;
   }
   return logMistake(session.id, loc, category, detail, note);
 }

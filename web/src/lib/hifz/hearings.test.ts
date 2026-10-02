@@ -158,4 +158,10 @@ describe("todaysSession", () => {
     expect(todaysSession(rows, now)?.id).toBe("a");
     expect(todaysSession([rows[2]], now)).toBeNull();
   });
+  it("two sessions started at the same instant agree on the lower id", () => {
+    const now = new Date("2026-10-02T12:00:00Z");
+    const at = "2026-10-02T09:00:00Z";
+    expect(todaysSession([{ id: "b", started_at: at }, { id: "a", started_at: at }], now)?.id).toBe("a");
+    expect(todaysSession([{ id: "a", started_at: at }, { id: "b", started_at: at }], now)?.id).toBe("a");
+  });
 });

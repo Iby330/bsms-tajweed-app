@@ -124,10 +124,12 @@ export function summaryOf(
 /**
  * The marking session a teacher's tap on a student goes into: the oldest one
  * started on today's date in the UK (Europe/London), or null for a new day.
+ * Ties go to the lower id, so two racing first taps that each made a session
+ * still agree on one.
  */
-export function todaysSession<T extends { started_at: string }>(rows: readonly T[], now: Date): T | null {
+export function todaysSession<T extends { id: string; started_at: string }>(rows: readonly T[], now: Date): T | null {
   const today = londonDate(now);
   return [...rows]
-    .sort((a, b) => Date.parse(a.started_at) - Date.parse(b.started_at))
+    .sort((a, b) => Date.parse(a.started_at) - Date.parse(b.started_at) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
     .find((r) => londonDate(new Date(r.started_at)) === today) ?? null;
 }
