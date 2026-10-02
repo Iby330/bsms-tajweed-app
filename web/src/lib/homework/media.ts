@@ -52,6 +52,9 @@ export const AUDIO_HOSTS: ReadonlySet<string> = new Set([
   "everyayah.com",
   "verses.quran.com",
   "audio.qurancdn.com",
+  // QUL (Tarteel's Quranic Universal Library): Al-Ḥuṣarī murattal, surah by
+  // surah, whose word timings the homework clips are cut from.
+  "audio-cdn.tarteel.ai",
 ]);
 
 /**

@@ -88,6 +88,7 @@ describe("parseMedia: junk is ignored, never thrown", () => {
     "https://verses.quran.com/Husary/mp3/090006.mp3",
     "https://audio.qurancdn.com/Husary/mp3/090006.mp3",
     "https://EveryAyah.com/data/Husary_64kbps/090006.mp3",
+    "https://audio-cdn.tarteel.ai/quran/surah/husary/murattal/mp3/090.mp3",
   ])("plays audio from a Qur'an audio host: %s", (url) => {
     expect(parseMedia({ clip: { url, start_ms: 0, end_ms: 1000 } }).clip?.url).toBe(url);
     expect(parseMedia({ option_audio: { "1": { url } } }).optionAudio[1]?.url).toBe(url);
