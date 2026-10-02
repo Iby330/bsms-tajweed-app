@@ -1,4 +1,4 @@
--- Live check for get_homework_for_student after 0043 (the gate) and 0046 (media). Read-only: it runs as
+-- Live check for get_homework_for_student after 0043 (the gate) and 0048 (media). Read-only: it runs as
 -- `authenticated` with one student's claims and writes nothing. Substitute
 -- the id (pick a student in a class WITH a syllabus, e.g. group 1, since
 -- that is where the list and the page used to disagree), then from the repo

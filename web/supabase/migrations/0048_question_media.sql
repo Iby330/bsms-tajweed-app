@@ -63,12 +63,12 @@ comment on column questions.media is
   'keys optional, https URLs on an allowlisted host only. Parsed by '
   'web/src/lib/homework/media.ts, which ignores anything malformed. Only '
   'clip and option_audio are sent to students (get_homework_for_student). '
-  'Migration 0046.';
+  'Migration 0048.';
 
 -- ═══════════ RPC: sanitized homework fetch for students ═══════════
 -- Returns questions with options[].correct and rubric STRIPPED so answer
 -- keys never reach the client. Teachers query the table directly instead.
--- 0046: 0043's body plus `media`, cut down to clip/option_audio.
+-- 0048: 0043's body plus `media`, cut down to clip/option_audio.
 create or replace function public.get_homework_for_student(hw_id uuid)
 returns jsonb language sql stable security definer set search_path = public as $$
   select case

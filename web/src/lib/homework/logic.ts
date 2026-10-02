@@ -41,7 +41,7 @@ export type StudentQuestion = {
   options: StudentOption[] | null;
   /** questions.media as stored: read it through parseMedia (lib/homework/
    *  media), never directly. Optional because the RPC only carries it from
-   *  migration 0046 on, and the app can reach production before that does. */
+   *  migration 0048 on, and the app can reach production before that does. */
   media?: unknown;
 };
 
