@@ -32,6 +32,24 @@ const API = "https://api.quran.com/api/v4/verses/by_page";
 const FIRST_PAGE = 562; // Al-Mulk opens juz 29
 const LAST_PAGE = 604;
 
+/**
+ * `--pages 1,502-561` seeds other pages as well, for homework that quotes
+ * verses outside the memorisation run (Al-Fātiḥah, juz 26–28). Whole pages
+ * only: every hifz query is keyed by a surah in the `surahs` run (67–114), so
+ * text for other surahs is read only by the homework tooling.
+ */
+function pagesFromArgs(): number[] {
+  const i = process.argv.indexOf("--pages");
+  if (i < 0) return Array.from({ length: LAST_PAGE - FIRST_PAGE + 1 }, (_, k) => FIRST_PAGE + k);
+  const out: number[] = [];
+  for (const part of (process.argv[i + 1] ?? "").split(",")) {
+    const [a, b] = part.split("-").map(Number);
+    if (!a || a < 1 || a > 604 || (b && (b < a || b > 604))) throw new Error(`bad --pages part "${part}"`);
+    for (let p = a; p <= (b || a); p++) out.push(p);
+  }
+  return out;
+}
+
 type ApiWord = {
   position: number;
   char_type_name: string; // "word" | "end"
@@ -66,7 +84,8 @@ async function fetchPage(p: number): Promise<ApiVerse[]> {
 
 async function main() {
   const rows: Record<string, unknown>[] = [];
-  for (let p = FIRST_PAGE; p <= LAST_PAGE; p++) {
+  const pages = pagesFromArgs();
+  for (const p of pages) {
     const verses = await fetchPage(p);
     for (const v of verses) {
       const [surah, ayah] = v.verse_key.split(":").map(Number);
@@ -96,7 +115,7 @@ async function main() {
     const { error } = await db.from("quran_words").upsert(rows.slice(i, i + 1000));
     if (error) throw new Error(`upsert batch at ${i}: ${error.message}`);
   }
-  console.log(`seeded ${rows.length} words across chapters 67–114`);
+  console.log(`seeded ${rows.length} words across ${pages.length} pages (${pages[0]}–${pages[pages.length - 1]})`);
 
   await fetchPageFonts(rows);
 }

@@ -1,0 +1,4620 @@
+{
+ "papers": [
+  {
+   "number": 1,
+   "series": "tajweed",
+   "course": "ghunna",
+   "ordinal": 1,
+   "term1_week": 1,
+   "title": "Introduction: Definitions, Importance and Mistakes",
+   "total": 11,
+   "questions": [
+    {
+     "n": 1,
+     "format": "short",
+     "prompt": "What is the linguistic definition of the word “Tajweed”?",
+     "points": 1,
+     "status": "kept",
+     "was": 2,
+     "why": "Same question and answer as last year.",
+     "options": null,
+     "rubric": [
+      {
+       "desc": "Improving/bettering something",
+       "marks": 1
+      }
+     ],
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null
+    },
+    {
+     "n": 2,
+     "format": "short",
+     "prompt": "What is the technical term of the word “Tajweed”?",
+     "points": 2,
+     "status": "kept",
+     "was": 3,
+     "why": "Same question; the teacher's model answer is one sentence with no split of the 2 marks.",
+     "options": null,
+     "rubric": [
+      {
+       "desc": "To recite by giving every letter with its due right by observing the correct origin and characteristics of the letters",
+       "marks": 2
+      }
+     ],
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null
+    },
+    {
+     "n": 3,
+     "format": "short",
+     "prompt": "What is the definition of the word “Tarteel”?",
+     "points": 2,
+     "status": "kept",
+     "was": 4,
+     "why": "Same question and answer as last year.",
+     "options": null,
+     "rubric": [
+      {
+       "desc": "To recite the letters with Tajweed and having knowledge where to stop/start",
+       "marks": 2
+      }
+     ],
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null
+    },
+    {
+     "n": 4,
+     "format": "mcq",
+     "prompt": "Which Sahabi’s statement is used to provide a definition for Tarteel?",
+     "points": 1,
+     "status": "kept",
+     "was": 5,
+     "why": "Same options as last year (screenshot pasted).",
+     "options": [
+      {
+       "text": "Ibn Umar",
+       "correct": false
+      },
+      {
+       "text": "Ali ibn Abi Talib",
+       "correct": true
+      },
+      {
+       "text": "Anas ibn Malik",
+       "correct": false
+      },
+      {
+       "text": "Abu Huraira",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null
+    },
+    {
+     "n": 5,
+     "format": "mcq",
+     "prompt": "What is the Arabic name given to the science regarding where/when to stop and start in recitations?",
+     "points": 1,
+     "status": "kept",
+     "was": 6,
+     "why": "Same options as last year (screenshot pasted).",
+     "options": [
+      {
+       "text": "Waqf wa Ibtidaa'",
+       "correct": true
+      },
+      {
+       "text": "Huroof ul Halq",
+       "correct": false
+      },
+      {
+       "text": "Mutasil wa Munfasil",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null
+    },
+    {
+     "n": 6,
+     "format": "true_false",
+     "prompt": "True or False: Reciting with Tajweed is deemed obligatory on all Muslims.",
+     "points": 1,
+     "status": "kept",
+     "was": 7,
+     "why": "Same question; teacher's answer: True.",
+     "options": [
+      {
+       "text": "True",
+       "correct": true
+      },
+      {
+       "text": "False",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null
+    },
+    {
+     "n": 7,
+     "format": "select_all",
+     "prompt": "Which of the following examples is not deemed as a major mistake?",
+     "points": 1,
+     "status": "kept",
+     "was": 8,
+     "why": "Same options as last year; the screenshot ticks the same two answers.",
+     "options": [
+      {
+       "text": "Pronouncing a letter from the wrong origin",
+       "correct": false
+      },
+      {
+       "text": "Lengthening a vowel",
+       "correct": false
+      },
+      {
+       "text": "Missing a ghunna",
+       "correct": true
+      },
+      {
+       "text": "Changing the harakat on the letter",
+       "correct": false
+      },
+      {
+       "text": "Starting and Stopping at the wrong place",
+       "correct": false
+      },
+      {
+       "text": "Forgetting to do qalqala",
+       "correct": true
+      }
+     ],
+     "rubric": null,
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null
+    },
+    {
+     "n": 8,
+     "format": "true_false",
+     "prompt": "True or False: Are minor mistakes in recitation deemed Haram?",
+     "points": 1,
+     "status": "kept",
+     "was": 9,
+     "why": "Same question; teacher's answer: False.",
+     "options": [
+      {
+       "text": "True",
+       "correct": false
+      },
+      {
+       "text": "False",
+       "correct": true
+      }
+     ],
+     "rubric": null,
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null
+    },
+    {
+     "n": 9,
+     "format": "true_false",
+     "prompt": "A major mistake is only haram if it changes the meaning of the verse.",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": "The video stresses that every major mistake is prohibited whether or not it changes the meaning; the paper never asked it.",
+     "options": [
+      {
+       "text": "True",
+       "correct": false
+      },
+      {
+       "text": "False",
+       "correct": true
+      }
+     ],
+     "rubric": null,
+     "tap": null,
+     "pairs": null,
+     "items": null,
+     "clip": null,
+     "reference": null,
+     "diagram": null,
+     "edit": "Your edit: our extra true/false on major mistakes added to the teacher's eight."
+    }
+   ]
+  },
+  {
+   "number": 2,
+   "series": "tajweed",
+   "course": "ghunna",
+   "ordinal": 2,
+   "term1_week": 2,
+   "title": "Ghunna of Meem and Noon Mushaddah",
+   "total": 10,
+   "questions": [
+    {
+     "n": 1,
+     "format": "mcq",
+     "prompt": "Where is the ghunna sound produced from?",
+     "points": 1,
+     "status": "changed",
+     "was": 2,
+     "why": "Was a typed answer; the teacher wants a head diagram where the student selects the area (answer: the nasal cavity).",
+     "options": [
+      {
+       "text": "The nasal cavity (Al-Khayshūm)",
+       "correct": true
+      },
+      {
+       "text": "The throat (Al-Ḥalq)",
+       "correct": false
+      },
+      {
+       "text": "The lips (Ash-Shafatān)",
+       "correct": false
+      },
+      {
+       "text": "The tongue (Al-Lisān)",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null,
+     "edit": "Your edit: multiple choice with four areas of the mouth, in place of the diagram, so it works tonight. The names are the ones on the teacher's diagram."
+    },
+    {
+     "n": 2,
+     "format": "short",
+     "prompt": "What is the length in harakats for the ghunnah sound?",
+     "points": 1,
+     "status": "kept",
+     "was": 3,
+     "why": "Same question and answer as last year.",
+     "options": null,
+     "rubric": [
+      {
+       "desc": "2 Harakat/beats",
+       "marks": 1
+      }
+     ],
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null
+    },
+    {
+     "n": 3,
+     "format": "short",
+     "prompt": "What is referred to as a shaddah?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": "New question the teacher added.",
+     "options": null,
+     "rubric": [
+      {
+       "desc": "A double letter - the first having a sukoon and the second have another harakah i.e fatha, dhumma or kasra.",
+       "marks": 1
+      }
+     ],
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null
+    },
+    {
+     "n": 4,
+     "format": "select_all",
+     "prompt": "Select the following words where the rule is observed:",
+     "points": 1,
+     "status": "changed",
+     "was": 4,
+     "why": "Last year's words kept (worth 2, now 1); teacher: “similar format of selecting / highlighting a phrase + maybe an integration where they also pronounce it in a recording?”",
+     "options": [
+      {
+       "text": "إِنَّمَا",
+       "correct": true
+      },
+      {
+       "text": "تَنفُذُونَ",
+       "correct": false
+      },
+      {
+       "text": "اُمَّمٌ",
+       "correct": true
+      },
+      {
+       "text": "أَنذَرَ",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null
+    },
+    {
+     "n": 5,
+     "format": "select_all",
+     "prompt": "Listen to each recitation, then select the one where ghunna is pronounced.",
+     "points": 1,
+     "status": "changed",
+     "was": 5,
+     "why": "New verses with a play button on each option; teacher: “Quran.com has a feature where you click the word and it plays just that word, perhaps we can integrate something from there?”",
+     "options": [
+      {
+       "text": "Recitation A",
+       "correct": false,
+       "audio": {
+        "url": "https://audio-cdn.tarteel.ai/quran/surah/husary/murattal/mp3/047.mp3",
+        "start_ms": 153159,
+        "end_ms": 159978
+       },
+       "ref": "Surah Muhammad, Ayah 5"
+      },
+      {
+       "text": "Recitation B",
+       "correct": true,
+       "audio": {
+        "url": "https://audio-cdn.tarteel.ai/quran/surah/husary/murattal/mp3/047.mp3",
+        "start_ms": 160178,
+        "end_ms": 169708
+       },
+       "ref": "Surah Muhammad, Ayah 6"
+      },
+      {
+       "text": "Recitation C",
+       "correct": false,
+       "audio": {
+        "url": "https://audio-cdn.tarteel.ai/quran/surah/husary/murattal/mp3/050.mp3",
+        "start_ms": 529873,
+        "end_ms": 541213
+       },
+       "ref": "Surah Qaf, Ayah 32"
+      },
+      {
+       "text": "Recitation D",
+       "correct": false,
+       "audio": {
+        "url": "https://audio-cdn.tarteel.ai/quran/surah/husary/murattal/mp3/051.mp3",
+        "start_ms": 279220,
+        "end_ms": 290188
+       },
+       "ref": "Surah Adh-Dhariyat, Ayah 27"
+      },
+      {
+       "text": "Recitation E",
+       "correct": false,
+       "audio": {
+        "url": "https://audio-cdn.tarteel.ai/quran/surah/husary/murattal/mp3/052.mp3",
+        "start_ms": 24290,
+        "end_ms": 29217
+       },
+       "ref": "Surah At-Tur, Ayah 6"
+      }
+     ],
+     "rubric": null,
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null,
+     "edit": "Your edit: audio only. Each option is a recitation the student plays in the homework; the ayah text is hidden so the ghunna is found by ear. Answer: Recitation B (Muḥammad 47:6, ٱلْجَنَّةَ)."
+    },
+    {
+     "n": 6,
+     "format": "voice",
+     "prompt": "Recite the following words while applying the rule you’ve just learned: ٱلنَّاسِ — ٱلنَّفَّـٰثَـٰتِ — حَمَّالَةَ",
+     "points": 3,
+     "status": "new",
+     "was": null,
+     "why": "New recording task; “A mark will be awarded for each one recited correctly with the Ghunna.”",
+     "options": null,
+     "rubric": null,
+     "tap": null,
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null
+    },
+    {
+     "n": 7,
+     "format": "true_false",
+     "prompt": "Ghunna is not applied when the nūn or mīm mushaddadah is the last letter of a word.",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": "The video points out that the ghunna still applies at the end of a word; the paper never asked it.",
+     "options": [
+      {
+       "text": "True",
+       "correct": false
+      },
+      {
+       "text": "False",
+       "correct": true
+      }
+     ],
+     "rubric": null,
+     "tap": null,
+     "pairs": null,
+     "items": null,
+     "clip": null,
+     "reference": null,
+     "diagram": null,
+     "edit": "Your edit: replaces the teacher's Q7 (\"again same as above\" recording)."
+    },
+    {
+     "n": 8,
+     "format": "tap",
+     "prompt": "Read through Surah Al-Fajr and highlight the instances where you find an example of this week’s Tajweed lesson.",
+     "points": 1,
+     "status": "changed",
+     "was": 7,
+     "why": "Last year students recorded Al-Fajr and named the instances; now they highlight them in the text for 1 mark.",
+     "options": null,
+     "rubric": null,
+     "tap": {
+      "rule": "ghunnah",
+      "surah": 89,
+      "from": 1,
+      "to": 30,
+      "instances": 10,
+      "words": 137,
+      "ayahs": [
+       {
+        "ref": "89:1",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَٱلْفَجْرِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "فَ",
+            "key": false
+           },
+           {
+            "t": "جْ",
+            "key": false
+           },
+           {
+            "t": "رِ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:2",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَلَيَالٍ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "يَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "لٍ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "عَشْرٍۢ",
+          "key": false,
+          "letters": [
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "شْ",
+            "key": false
+           },
+           {
+            "t": "رٍۢ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:3",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَٱلشَّفْعِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           },
+           {
+            "t": "شَّ",
+            "key": false
+           },
+           {
+            "t": "فْ",
+            "key": false
+           },
+           {
+            "t": "عِ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "وَٱلْوَتْرِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "تْ",
+            "key": false
+           },
+           {
+            "t": "رِ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:4",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَٱلَّيْلِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لَّ",
+            "key": false
+           },
+           {
+            "t": "يْ",
+            "key": false
+           },
+           {
+            "t": "لِ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "إِذَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "إِ",
+            "key": false
+           },
+           {
+            "t": "ذَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "يَسْرِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "يَ",
+            "key": false
+           },
+           {
+            "t": "سْ",
+            "key": false
+           },
+           {
+            "t": "رِ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:5",
+        "audio": null,
+        "words": [
+         {
+          "t": "هَلْ",
+          "key": false,
+          "letters": [
+           {
+            "t": "هَ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "فِى",
+          "key": false,
+          "letters": [
+           {
+            "t": "فِ",
+            "key": false
+           },
+           {
+            "t": "ى",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ذَٰلِكَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ذَٰ",
+            "key": false
+           },
+           {
+            "t": "لِ",
+            "key": false
+           },
+           {
+            "t": "كَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "قَسَمٌۭ",
+          "key": false,
+          "letters": [
+           {
+            "t": "قَ",
+            "key": false
+           },
+           {
+            "t": "سَ",
+            "key": false
+           },
+           {
+            "t": "مٌۭ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "لِّذِى",
+          "key": false,
+          "letters": [
+           {
+            "t": "لِّ",
+            "key": false
+           },
+           {
+            "t": "ذِ",
+            "key": false
+           },
+           {
+            "t": "ى",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "حِجْرٍ",
+          "key": false,
+          "letters": [
+           {
+            "t": "حِ",
+            "key": false
+           },
+           {
+            "t": "جْ",
+            "key": false
+           },
+           {
+            "t": "رٍ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:6",
+        "audio": null,
+        "words": [
+         {
+          "t": "أَلَمْ",
+          "key": false,
+          "letters": [
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "مْ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "تَرَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "تَ",
+            "key": false
+           },
+           {
+            "t": "رَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "كَيْفَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "كَ",
+            "key": false
+           },
+           {
+            "t": "يْ",
+            "key": false
+           },
+           {
+            "t": "فَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "فَعَلَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "فَ",
+            "key": false
+           },
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "رَبُّكَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "بُّ",
+            "key": false
+           },
+           {
+            "t": "كَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "بِعَادٍ",
+          "key": false,
+          "letters": [
+           {
+            "t": "بِ",
+            "key": false
+           },
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "دٍ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:7",
+        "audio": null,
+        "words": [
+         {
+          "t": "إِرَمَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "إِ",
+            "key": false
+           },
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ذَاتِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ذَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "تِ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلْعِمَادِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "عِ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "دِ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:8",
+        "audio": null,
+        "words": [
+         {
+          "t": "ٱلَّتِى",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لَّ",
+            "key": false
+           },
+           {
+            "t": "تِ",
+            "key": false
+           },
+           {
+            "t": "ى",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "لَمْ",
+          "key": false,
+          "letters": [
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "مْ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "يُخْلَقْ",
+          "key": false,
+          "letters": [
+           {
+            "t": "يُ",
+            "key": false
+           },
+           {
+            "t": "خْ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "قْ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "مِثْلُهَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "مِ",
+            "key": false
+           },
+           {
+            "t": "ثْ",
+            "key": false
+           },
+           {
+            "t": "لُ",
+            "key": false
+           },
+           {
+            "t": "هَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "فِى",
+          "key": false,
+          "letters": [
+           {
+            "t": "فِ",
+            "key": false
+           },
+           {
+            "t": "ى",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلْبِلَـٰدِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "بِ",
+            "key": false
+           },
+           {
+            "t": "لَـٰ",
+            "key": false
+           },
+           {
+            "t": "دِ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:9",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَثَمُودَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "ثَ",
+            "key": false
+           },
+           {
+            "t": "مُ",
+            "key": false
+           },
+           {
+            "t": "و",
+            "key": false
+           },
+           {
+            "t": "دَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلَّذِينَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لَّ",
+            "key": false
+           },
+           {
+            "t": "ذِ",
+            "key": false
+           },
+           {
+            "t": "ي",
+            "key": false
+           },
+           {
+            "t": "نَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "جَابُوا۟",
+          "key": false,
+          "letters": [
+           {
+            "t": "جَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "بُ",
+            "key": false
+           },
+           {
+            "t": "و",
+            "key": false
+           },
+           {
+            "t": "ا۟",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلصَّخْرَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           },
+           {
+            "t": "صَّ",
+            "key": false
+           },
+           {
+            "t": "خْ",
+            "key": false
+           },
+           {
+            "t": "رَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "بِٱلْوَادِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "بِ",
+            "key": false
+           },
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "دِ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:10",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَفِرْعَوْنَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "فِ",
+            "key": false
+           },
+           {
+            "t": "رْ",
+            "key": false
+           },
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "وْ",
+            "key": false
+           },
+           {
+            "t": "نَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ذِى",
+          "key": false,
+          "letters": [
+           {
+            "t": "ذِ",
+            "key": false
+           },
+           {
+            "t": "ى",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلْأَوْتَادِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "وْ",
+            "key": false
+           },
+           {
+            "t": "تَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "دِ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:11",
+        "audio": null,
+        "words": [
+         {
+          "t": "ٱلَّذِينَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لَّ",
+            "key": false
+           },
+           {
+            "t": "ذِ",
+            "key": false
+           },
+           {
+            "t": "ي",
+            "key": false
+           },
+           {
+            "t": "نَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "طَغَوْا۟",
+          "key": false,
+          "letters": [
+           {
+            "t": "طَ",
+            "key": false
+           },
+           {
+            "t": "غَ",
+            "key": false
+           },
+           {
+            "t": "وْ",
+            "key": false
+           },
+           {
+            "t": "ا۟",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "فِى",
+          "key": false,
+          "letters": [
+           {
+            "t": "فِ",
+            "key": false
+           },
+           {
+            "t": "ى",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلْبِلَـٰدِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "بِ",
+            "key": false
+           },
+           {
+            "t": "لَـٰ",
+            "key": false
+           },
+           {
+            "t": "دِ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:12",
+        "audio": null,
+        "words": [
+         {
+          "t": "فَأَكْثَرُوا۟",
+          "key": false,
+          "letters": [
+           {
+            "t": "فَ",
+            "key": false
+           },
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "كْ",
+            "key": false
+           },
+           {
+            "t": "ثَ",
+            "key": false
+           },
+           {
+            "t": "رُ",
+            "key": false
+           },
+           {
+            "t": "و",
+            "key": false
+           },
+           {
+            "t": "ا۟",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "فِيهَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "فِ",
+            "key": false
+           },
+           {
+            "t": "ي",
+            "key": false
+           },
+           {
+            "t": "هَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلْفَسَادَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "فَ",
+            "key": false
+           },
+           {
+            "t": "سَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "دَ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:13",
+        "audio": null,
+        "words": [
+         {
+          "t": "فَصَبَّ",
+          "key": false,
+          "letters": [
+           {
+            "t": "فَ",
+            "key": false
+           },
+           {
+            "t": "صَ",
+            "key": false
+           },
+           {
+            "t": "بَّ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "عَلَيْهِمْ",
+          "key": false,
+          "letters": [
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "يْ",
+            "key": false
+           },
+           {
+            "t": "هِ",
+            "key": false
+           },
+           {
+            "t": "مْ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "رَبُّكَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "بُّ",
+            "key": false
+           },
+           {
+            "t": "كَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "سَوْطَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "سَ",
+            "key": false
+           },
+           {
+            "t": "وْ",
+            "key": false
+           },
+           {
+            "t": "طَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "عَذَابٍ",
+          "key": false,
+          "letters": [
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "ذَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "بٍ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:14",
+        "audio": null,
+        "words": [
+         {
+          "t": "إِنَّ",
+          "key": true,
+          "letters": [
+           {
+            "t": "إِ",
+            "key": false
+           },
+           {
+            "t": "نَّ",
+            "key": true
+           }
+          ]
+         },
+         {
+          "t": "رَبَّكَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "بَّ",
+            "key": false
+           },
+           {
+            "t": "كَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "لَبِٱلْمِرْصَادِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "بِ",
+            "key": false
+           },
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "مِ",
+            "key": false
+           },
+           {
+            "t": "رْ",
+            "key": false
+           },
+           {
+            "t": "صَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "دِ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:15",
+        "audio": null,
+        "words": [
+         {
+          "t": "فَأَمَّا",
+          "key": true,
+          "letters": [
+           {
+            "t": "فَ",
+            "key": false
+           },
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "مَّ",
+            "key": true
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلْإِنسَـٰنُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "إِ",
+            "key": false
+           },
+           {
+            "t": "ن",
+            "key": false
+           },
+           {
+            "t": "سَـٰ",
+            "key": false
+           },
+           {
+            "t": "نُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "إِذَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "إِ",
+            "key": false
+           },
+           {
+            "t": "ذَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "مَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱبْتَلَىٰهُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "بْ",
+            "key": false
+           },
+           {
+            "t": "تَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "ىٰ",
+            "key": false
+           },
+           {
+            "t": "هُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "رَبُّهُۥ",
+          "key": false,
+          "letters": [
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "بُّ",
+            "key": false
+           },
+           {
+            "t": "هُۥ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "فَأَكْرَمَهُۥ",
+          "key": false,
+          "letters": [
+           {
+            "t": "فَ",
+            "key": false
+           },
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "كْ",
+            "key": false
+           },
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "هُۥ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "وَنَعَّمَهُۥ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "نَ",
+            "key": false
+           },
+           {
+            "t": "عَّ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "هُۥ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "فَيَقُولُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "فَ",
+            "key": false
+           },
+           {
+            "t": "يَ",
+            "key": false
+           },
+           {
+            "t": "قُ",
+            "key": false
+           },
+           {
+            "t": "و",
+            "key": false
+           },
+           {
+            "t": "لُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "رَبِّىٓ",
+          "key": false,
+          "letters": [
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "بِّ",
+            "key": false
+           },
+           {
+            "t": "ىٓ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "أَكْرَمَنِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "كْ",
+            "key": false
+           },
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "نِ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:16",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَأَمَّآ",
+          "key": true,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "مَّ",
+            "key": true
+           },
+           {
+            "t": "آ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "إِذَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "إِ",
+            "key": false
+           },
+           {
+            "t": "ذَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "مَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱبْتَلَىٰهُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "بْ",
+            "key": false
+           },
+           {
+            "t": "تَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "ىٰ",
+            "key": false
+           },
+           {
+            "t": "هُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "فَقَدَرَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "فَ",
+            "key": false
+           },
+           {
+            "t": "قَ",
+            "key": false
+           },
+           {
+            "t": "دَ",
+            "key": false
+           },
+           {
+            "t": "رَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "عَلَيْهِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "يْ",
+            "key": false
+           },
+           {
+            "t": "هِ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "رِزْقَهُۥ",
+          "key": false,
+          "letters": [
+           {
+            "t": "رِ",
+            "key": false
+           },
+           {
+            "t": "زْ",
+            "key": false
+           },
+           {
+            "t": "قَ",
+            "key": false
+           },
+           {
+            "t": "هُۥ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "فَيَقُولُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "فَ",
+            "key": false
+           },
+           {
+            "t": "يَ",
+            "key": false
+           },
+           {
+            "t": "قُ",
+            "key": false
+           },
+           {
+            "t": "و",
+            "key": false
+           },
+           {
+            "t": "لُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "رَبِّىٓ",
+          "key": false,
+          "letters": [
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "بِّ",
+            "key": false
+           },
+           {
+            "t": "ىٓ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "أَهَـٰنَنِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "هَـٰ",
+            "key": false
+           },
+           {
+            "t": "نَ",
+            "key": false
+           },
+           {
+            "t": "نِ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:17",
+        "audio": null,
+        "words": [
+         {
+          "t": "كَلَّا ۖ",
+          "key": false,
+          "letters": [
+           {
+            "t": "كَ",
+            "key": false
+           },
+           {
+            "t": "لَّ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": " ۖ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "بَل",
+          "key": false,
+          "letters": [
+           {
+            "t": "بَ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "لَّا",
+          "key": false,
+          "letters": [
+           {
+            "t": "لَّ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "تُكْرِمُونَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "تُ",
+            "key": false
+           },
+           {
+            "t": "كْ",
+            "key": false
+           },
+           {
+            "t": "رِ",
+            "key": false
+           },
+           {
+            "t": "مُ",
+            "key": false
+           },
+           {
+            "t": "و",
+            "key": false
+           },
+           {
+            "t": "نَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلْيَتِيمَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "يَ",
+            "key": false
+           },
+           {
+            "t": "تِ",
+            "key": false
+           },
+           {
+            "t": "ي",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:18",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَلَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "تَحَـٰٓضُّونَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "تَ",
+            "key": false
+           },
+           {
+            "t": "حَـٰٓ",
+            "key": false
+           },
+           {
+            "t": "ضُّ",
+            "key": false
+           },
+           {
+            "t": "و",
+            "key": false
+           },
+           {
+            "t": "نَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "عَلَىٰ",
+          "key": false,
+          "letters": [
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "ىٰ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "طَعَامِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "طَ",
+            "key": false
+           },
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "مِ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلْمِسْكِينِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "مِ",
+            "key": false
+           },
+           {
+            "t": "سْ",
+            "key": false
+           },
+           {
+            "t": "كِ",
+            "key": false
+           },
+           {
+            "t": "ي",
+            "key": false
+           },
+           {
+            "t": "نِ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:19",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَتَأْكُلُونَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "تَ",
+            "key": false
+           },
+           {
+            "t": "أْ",
+            "key": false
+           },
+           {
+            "t": "كُ",
+            "key": false
+           },
+           {
+            "t": "لُ",
+            "key": false
+           },
+           {
+            "t": "و",
+            "key": false
+           },
+           {
+            "t": "نَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلتُّرَاثَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           },
+           {
+            "t": "تُّ",
+            "key": false
+           },
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "ثَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "أَكْلًۭا",
+          "key": false,
+          "letters": [
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "كْ",
+            "key": false
+           },
+           {
+            "t": "لًۭ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "لَّمًّۭا",
+          "key": true,
+          "letters": [
+           {
+            "t": "لَّ",
+            "key": false
+           },
+           {
+            "t": "مًّۭ",
+            "key": true
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:20",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَتُحِبُّونَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "تُ",
+            "key": false
+           },
+           {
+            "t": "حِ",
+            "key": false
+           },
+           {
+            "t": "بُّ",
+            "key": false
+           },
+           {
+            "t": "و",
+            "key": false
+           },
+           {
+            "t": "نَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلْمَالَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "حُبًّۭا",
+          "key": false,
+          "letters": [
+           {
+            "t": "حُ",
+            "key": false
+           },
+           {
+            "t": "بًّۭ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "جَمًّۭا",
+          "key": true,
+          "letters": [
+           {
+            "t": "جَ",
+            "key": false
+           },
+           {
+            "t": "مًّۭ",
+            "key": true
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:21",
+        "audio": null,
+        "words": [
+         {
+          "t": "كَلَّآ",
+          "key": false,
+          "letters": [
+           {
+            "t": "كَ",
+            "key": false
+           },
+           {
+            "t": "لَّ",
+            "key": false
+           },
+           {
+            "t": "آ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "إِذَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "إِ",
+            "key": false
+           },
+           {
+            "t": "ذَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "دُكَّتِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "دُ",
+            "key": false
+           },
+           {
+            "t": "كَّ",
+            "key": false
+           },
+           {
+            "t": "تِ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلْأَرْضُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "رْ",
+            "key": false
+           },
+           {
+            "t": "ضُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "دَكًّۭا",
+          "key": false,
+          "letters": [
+           {
+            "t": "دَ",
+            "key": false
+           },
+           {
+            "t": "كًّۭ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "دَكًّۭا",
+          "key": false,
+          "letters": [
+           {
+            "t": "دَ",
+            "key": false
+           },
+           {
+            "t": "كًّۭ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:22",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَجَآءَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "جَ",
+            "key": false
+           },
+           {
+            "t": "آ",
+            "key": false
+           },
+           {
+            "t": "ءَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "رَبُّكَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "بُّ",
+            "key": false
+           },
+           {
+            "t": "كَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "وَٱلْمَلَكُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "كُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "صَفًّۭا",
+          "key": false,
+          "letters": [
+           {
+            "t": "صَ",
+            "key": false
+           },
+           {
+            "t": "فًّۭ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "صَفًّۭا",
+          "key": false,
+          "letters": [
+           {
+            "t": "صَ",
+            "key": false
+           },
+           {
+            "t": "فًّۭ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:23",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَجِا۟ىٓءَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "جِ",
+            "key": false
+           },
+           {
+            "t": "ا۟",
+            "key": false
+           },
+           {
+            "t": "ىٓ",
+            "key": false
+           },
+           {
+            "t": "ءَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "يَوْمَئِذٍۭ",
+          "key": false,
+          "letters": [
+           {
+            "t": "يَ",
+            "key": false
+           },
+           {
+            "t": "وْ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "ئِ",
+            "key": false
+           },
+           {
+            "t": "ذٍۭ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "بِجَهَنَّمَ ۚ",
+          "key": true,
+          "letters": [
+           {
+            "t": "بِ",
+            "key": false
+           },
+           {
+            "t": "جَ",
+            "key": false
+           },
+           {
+            "t": "هَ",
+            "key": false
+           },
+           {
+            "t": "نَّ",
+            "key": true
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": " ۚ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "يَوْمَئِذٍۢ",
+          "key": false,
+          "letters": [
+           {
+            "t": "يَ",
+            "key": false
+           },
+           {
+            "t": "وْ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "ئِ",
+            "key": false
+           },
+           {
+            "t": "ذٍۢ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "يَتَذَكَّرُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "يَ",
+            "key": false
+           },
+           {
+            "t": "تَ",
+            "key": false
+           },
+           {
+            "t": "ذَ",
+            "key": false
+           },
+           {
+            "t": "كَّ",
+            "key": false
+           },
+           {
+            "t": "رُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلْإِنسَـٰنُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "إِ",
+            "key": false
+           },
+           {
+            "t": "ن",
+            "key": false
+           },
+           {
+            "t": "سَـٰ",
+            "key": false
+           },
+           {
+            "t": "نُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "وَأَنَّىٰ",
+          "key": true,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "نَّ",
+            "key": true
+           },
+           {
+            "t": "ىٰ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "لَهُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "هُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلذِّكْرَىٰ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           },
+           {
+            "t": "ذِّ",
+            "key": false
+           },
+           {
+            "t": "كْ",
+            "key": false
+           },
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "ىٰ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:24",
+        "audio": null,
+        "words": [
+         {
+          "t": "يَقُولُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "يَ",
+            "key": false
+           },
+           {
+            "t": "قُ",
+            "key": false
+           },
+           {
+            "t": "و",
+            "key": false
+           },
+           {
+            "t": "لُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "يَـٰلَيْتَنِى",
+          "key": false,
+          "letters": [
+           {
+            "t": "يَـٰ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "يْ",
+            "key": false
+           },
+           {
+            "t": "تَ",
+            "key": false
+           },
+           {
+            "t": "نِ",
+            "key": false
+           },
+           {
+            "t": "ى",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "قَدَّمْتُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "قَ",
+            "key": false
+           },
+           {
+            "t": "دَّ",
+            "key": false
+           },
+           {
+            "t": "مْ",
+            "key": false
+           },
+           {
+            "t": "تُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "لِحَيَاتِى",
+          "key": false,
+          "letters": [
+           {
+            "t": "لِ",
+            "key": false
+           },
+           {
+            "t": "حَ",
+            "key": false
+           },
+           {
+            "t": "يَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "تِ",
+            "key": false
+           },
+           {
+            "t": "ى",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:25",
+        "audio": null,
+        "words": [
+         {
+          "t": "فَيَوْمَئِذٍۢ",
+          "key": false,
+          "letters": [
+           {
+            "t": "فَ",
+            "key": false
+           },
+           {
+            "t": "يَ",
+            "key": false
+           },
+           {
+            "t": "وْ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "ئِ",
+            "key": false
+           },
+           {
+            "t": "ذٍۢ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "لَّا",
+          "key": false,
+          "letters": [
+           {
+            "t": "لَّ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "يُعَذِّبُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "يُ",
+            "key": false
+           },
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "ذِّ",
+            "key": false
+           },
+           {
+            "t": "بُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "عَذَابَهُۥٓ",
+          "key": false,
+          "letters": [
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "ذَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "بَ",
+            "key": false
+           },
+           {
+            "t": "هُۥٓ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "أَحَدٌۭ",
+          "key": false,
+          "letters": [
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "حَ",
+            "key": false
+           },
+           {
+            "t": "دٌۭ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:26",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَلَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "يُوثِقُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "يُ",
+            "key": false
+           },
+           {
+            "t": "و",
+            "key": false
+           },
+           {
+            "t": "ثِ",
+            "key": false
+           },
+           {
+            "t": "قُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "وَثَاقَهُۥٓ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "ثَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "قَ",
+            "key": false
+           },
+           {
+            "t": "هُۥٓ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "أَحَدٌۭ",
+          "key": false,
+          "letters": [
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "حَ",
+            "key": false
+           },
+           {
+            "t": "دٌۭ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:27",
+        "audio": null,
+        "words": [
+         {
+          "t": "يَـٰٓأَيَّتُهَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "يَـٰٓ",
+            "key": false
+           },
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "يَّ",
+            "key": false
+           },
+           {
+            "t": "تُ",
+            "key": false
+           },
+           {
+            "t": "هَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلنَّفْسُ",
+          "key": true,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           },
+           {
+            "t": "نَّ",
+            "key": true
+           },
+           {
+            "t": "فْ",
+            "key": false
+           },
+           {
+            "t": "سُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلْمُطْمَئِنَّةُ",
+          "key": true,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "مُ",
+            "key": false
+           },
+           {
+            "t": "طْ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "ئِ",
+            "key": false
+           },
+           {
+            "t": "نَّ",
+            "key": true
+           },
+           {
+            "t": "ةُ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:28",
+        "audio": null,
+        "words": [
+         {
+          "t": "ٱرْجِعِىٓ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "رْ",
+            "key": false
+           },
+           {
+            "t": "جِ",
+            "key": false
+           },
+           {
+            "t": "عِ",
+            "key": false
+           },
+           {
+            "t": "ىٓ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "إِلَىٰ",
+          "key": false,
+          "letters": [
+           {
+            "t": "إِ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "ىٰ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "رَبِّكِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "بِّ",
+            "key": false
+           },
+           {
+            "t": "كِ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "رَاضِيَةًۭ",
+          "key": false,
+          "letters": [
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "ضِ",
+            "key": false
+           },
+           {
+            "t": "يَ",
+            "key": false
+           },
+           {
+            "t": "ةًۭ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "مَّرْضِيَّةًۭ",
+          "key": false,
+          "letters": [
+           {
+            "t": "مَّ",
+            "key": false
+           },
+           {
+            "t": "رْ",
+            "key": false
+           },
+           {
+            "t": "ضِ",
+            "key": false
+           },
+           {
+            "t": "يَّ",
+            "key": false
+           },
+           {
+            "t": "ةًۭ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:29",
+        "audio": null,
+        "words": [
+         {
+          "t": "فَٱدْخُلِى",
+          "key": false,
+          "letters": [
+           {
+            "t": "فَ",
+            "key": false
+           },
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "دْ",
+            "key": false
+           },
+           {
+            "t": "خُ",
+            "key": false
+           },
+           {
+            "t": "لِ",
+            "key": false
+           },
+           {
+            "t": "ى",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "فِى",
+          "key": false,
+          "letters": [
+           {
+            "t": "فِ",
+            "key": false
+           },
+           {
+            "t": "ى",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "عِبَـٰدِى",
+          "key": false,
+          "letters": [
+           {
+            "t": "عِ",
+            "key": false
+           },
+           {
+            "t": "بَـٰ",
+            "key": false
+           },
+           {
+            "t": "دِ",
+            "key": false
+           },
+           {
+            "t": "ى",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "89:30",
+        "audio": null,
+        "words": [
+         {
+          "t": "وَٱدْخُلِى",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "دْ",
+            "key": false
+           },
+           {
+            "t": "خُ",
+            "key": false
+           },
+           {
+            "t": "لِ",
+            "key": false
+           },
+           {
+            "t": "ى",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "جَنَّتِى",
+          "key": true,
+          "letters": [
+           {
+            "t": "جَ",
+            "key": false
+           },
+           {
+            "t": "نَّ",
+            "key": true
+           },
+           {
+            "t": "تِ",
+            "key": false
+           },
+           {
+            "t": "ى",
+            "key": false
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     "diagram": null,
+     "pairs": null,
+     "items": null,
+     "clip": null
+    }
+   ]
+  },
+  {
+   "number": 9,
+   "series": "tajweed",
+   "course": "sifaat_old",
+   "ordinal": 1,
+   "term1_week": null,
+   "title": "The Heavy Letters (Ḥurūf al-Istiʿlāʾ)",
+   "total": 10,
+   "questions": [
+    {
+     "n": 1,
+     "format": "short",
+     "prompt": "What is a ṣifah?",
+     "points": 1,
+     "status": "kept",
+     "was": 1,
+     "why": null,
+     "options": null,
+     "rubric": [
+      {
+       "desc": "A characteristic of a letter",
+       "marks": 1
+      }
+     ],
+     "tap": null
+    },
+    {
+     "n": 2,
+     "format": "short",
+     "prompt": "What is meant by الإستعلاء literally?",
+     "points": 1,
+     "status": "kept",
+     "was": 2,
+     "why": null,
+     "options": null,
+     "rubric": [
+      {
+       "desc": "Elevation (rising / raising of the tongue)",
+       "marks": 1
+      }
+     ],
+     "tap": null
+    },
+    {
+     "n": 3,
+     "format": "tap",
+     "prompt": "Tap every word in this passage from Surah At-Ṭāriq that contains a heavy letter (one of the seven letters of Istiʿlāʾ).",
+     "points": 2,
+     "status": "changed",
+     "was": 3,
+     "why": "Was 'pick the seven heavy letters from the alphabet'; now students find each heavy letter in real mushaf text, letter by letter. Week-1 paper for Group 1: tapping words, which works in the app today, instead of tapping letters (not built yet).",
+     "options": null,
+     "rubric": null,
+     "tap": {
+      "rule": "heavy_letters",
+      "surah": 86,
+      "from": 1,
+      "to": 4,
+      "instances": 6,
+      "words": 14,
+      "ayahs": [
+       {
+        "ref": "86:1",
+        "words": [
+         {
+          "t": "وَٱلسَّمَآءِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           },
+           {
+            "t": "سَّ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "آ",
+            "key": false
+           },
+           {
+            "t": "ءِ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "وَٱلطَّارِقِ",
+          "key": true,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           },
+           {
+            "t": "طَّ",
+            "key": true
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "رِ",
+            "key": false
+           },
+           {
+            "t": "قِ",
+            "key": true
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "86:2",
+        "words": [
+         {
+          "t": "وَمَآ",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "آ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "أَدْرَىٰكَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "دْ",
+            "key": false
+           },
+           {
+            "t": "رَ",
+            "key": false
+           },
+           {
+            "t": "ىٰ",
+            "key": false
+           },
+           {
+            "t": "كَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "مَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلطَّارِقُ",
+          "key": true,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           },
+           {
+            "t": "طَّ",
+            "key": true
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "رِ",
+            "key": false
+           },
+           {
+            "t": "قُ",
+            "key": true
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "86:3",
+        "words": [
+         {
+          "t": "ٱلنَّجْمُ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           },
+           {
+            "t": "نَّ",
+            "key": false
+           },
+           {
+            "t": "جْ",
+            "key": false
+           },
+           {
+            "t": "مُ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلثَّاقِبُ",
+          "key": true,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           },
+           {
+            "t": "ثَّ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "قِ",
+            "key": true
+           },
+           {
+            "t": "بُ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "ref": "86:4",
+        "words": [
+         {
+          "t": "إِن",
+          "key": false,
+          "letters": [
+           {
+            "t": "إِ",
+            "key": false
+           },
+           {
+            "t": "ن",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "كُلُّ",
+          "key": false,
+          "letters": [
+           {
+            "t": "كُ",
+            "key": false
+           },
+           {
+            "t": "لُّ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "نَفْسٍۢ",
+          "key": false,
+          "letters": [
+           {
+            "t": "نَ",
+            "key": false
+           },
+           {
+            "t": "فْ",
+            "key": false
+           },
+           {
+            "t": "سٍۢ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "لَّمَّا",
+          "key": false,
+          "letters": [
+           {
+            "t": "لَّ",
+            "key": false
+           },
+           {
+            "t": "مَّ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "عَلَيْهَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "يْ",
+            "key": false
+           },
+           {
+            "t": "هَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "حَافِظٌۭ",
+          "key": true,
+          "letters": [
+           {
+            "t": "حَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           },
+           {
+            "t": "فِ",
+            "key": false
+           },
+           {
+            "t": "ظٌۭ",
+            "key": true
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "n": 4,
+     "format": "mcq",
+     "prompt": "Overall, how many levels of heaviness are there?",
+     "points": 1,
+     "status": "kept",
+     "was": 4,
+     "why": null,
+     "options": [
+      {
+       "text": "2",
+       "correct": false
+      },
+      {
+       "text": "3",
+       "correct": false
+      },
+      {
+       "text": "4",
+       "correct": false
+      },
+      {
+       "text": "5",
+       "correct": true
+      },
+      {
+       "text": "6",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 5,
+     "format": "short",
+     "prompt": "What determines the level of heaviness when the letter is sakin?",
+     "points": 1,
+     "status": "kept",
+     "was": 5,
+     "why": null,
+     "options": null,
+     "rubric": [
+      {
+       "desc": "The ḥarakah on the letter before it",
+       "marks": 1
+      }
+     ],
+     "tap": null
+    },
+    {
+     "n": 6,
+     "format": "mcq",
+     "prompt": "Levels of heaviness: 1 is the lightest, 5 is the heaviest.\nIn غَفُور, which level is the غ?",
+     "points": 1,
+     "status": "fixed",
+     "was": 6,
+     "why": "Week-1 paper for Group 1: back to the first draft's one-word level questions, because put-in-order isn't built yet.",
+     "options": [
+      {
+       "text": "1 (least heavy)",
+       "correct": false
+      },
+      {
+       "text": "2",
+       "correct": false
+      },
+      {
+       "text": "3",
+       "correct": false
+      },
+      {
+       "text": "4",
+       "correct": true
+      },
+      {
+       "text": "5 (most heavy)",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 7,
+     "format": "mcq",
+     "prompt": "In يَطُوفُ, which level is the ط?",
+     "points": 1,
+     "status": "fixed",
+     "was": 6,
+     "why": "Week-1 paper for Group 1: back to the first draft's one-word level questions, because put-in-order isn't built yet.",
+     "options": [
+      {
+       "text": "1 (least heavy)",
+       "correct": false
+      },
+      {
+       "text": "2",
+       "correct": false
+      },
+      {
+       "text": "3",
+       "correct": true
+      },
+      {
+       "text": "4",
+       "correct": false
+      },
+      {
+       "text": "5 (most heavy)",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 8,
+     "format": "mcq",
+     "prompt": "In ظِلَـٰلُهَا, which level is the ظ?",
+     "points": 1,
+     "status": "fixed",
+     "was": 6,
+     "why": "Week-1 paper for Group 1: back to the first draft's one-word level questions, because put-in-order isn't built yet.",
+     "options": [
+      {
+       "text": "1 (least heavy)",
+       "correct": true
+      },
+      {
+       "text": "2",
+       "correct": false
+      },
+      {
+       "text": "3",
+       "correct": false
+      },
+      {
+       "text": "4",
+       "correct": false
+      },
+      {
+       "text": "5 (most heavy)",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 9,
+     "format": "mcq",
+     "prompt": "Which of these words has a heavy letter at the highest level of heaviness?",
+     "points": 1,
+     "status": "fixed",
+     "was": 6,
+     "why": "Also from last year's broken grid: 'which word has a level-5 heavy letter', now one answer from three of its words (وَسَقَىٰهُمْ moved into the ordering question).",
+     "options": [
+      {
+       "text": "غَاسِقٍ",
+       "correct": true
+      },
+      {
+       "text": "خَلْقِ",
+       "correct": false
+      },
+      {
+       "text": "أُغْرِقُوا۟",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 10,
+     "format": "whatsapp",
+     "prompt": "Final task: record yourself reciting Surah At-Ṭāriq. Send the recording to your class WhatsApp group.",
+     "points": 0,
+     "status": "changed",
+     "was": 7,
+     "why": "Was a plain recording task; now the student hears Al-Ḥuṣarī's reading of At-Ṭāriq beside the record button first.",
+     "options": null,
+     "rubric": null,
+     "tap": null,
+     "reference": null,
+     "edit": "Your edit: back to the class WhatsApp group, as last year (end-of-homework task)."
+    }
+   ]
+  },
+  {
+   "number": 201,
+   "series": "umm_al_kitab",
+   "course": "ummul_kitab",
+   "ordinal": 1,
+   "term1_week": 1,
+   "title": "Al-Fātiḥah: Names, Virtues and Importance",
+   "total": 9,
+   "questions": [
+    {
+     "n": 1,
+     "format": "short",
+     "prompt": "What does \"Al-Fātiḥah\" translate to, and why is it called that?",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": null,
+     "rubric": [
+      {
+       "desc": "The Opening",
+       "marks": 1
+      },
+      {
+       "desc": "Because it is the opening chapter of the Qur'an",
+       "marks": 1
+      }
+     ],
+     "tap": null
+    },
+    {
+     "n": 2,
+     "format": "mcq",
+     "prompt": "\"Umm al-Kitāb\" translates to…",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Mother of the Book",
+       "correct": true
+      },
+      {
+       "text": "Key of the Book",
+       "correct": false
+      },
+      {
+       "text": "Heart of the Book",
+       "correct": false
+      },
+      {
+       "text": "Light of the Book",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 3,
+     "format": "short",
+     "prompt": "Which city is given a similar title, \"Umm al-Qurā\", and why?",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": null,
+     "rubric": [
+      {
+       "desc": "Makkah",
+       "marks": 1
+      },
+      {
+       "desc": "To show its virtue over all other settlements, just as Al-Fātiḥah's title shows its virtue over all other surahs",
+       "marks": 1
+      }
+     ],
+     "tap": null
+    },
+    {
+     "n": 4,
+     "format": "mcq",
+     "prompt": "Which name of Al-Fātiḥah is found in both the Qur'an and the Sunnah, with its exact meaning discussed among scholars?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "As-Sabʿ al-Mathānī",
+       "correct": true
+      },
+      {
+       "text": "Umm al-Qurā",
+       "correct": false
+      },
+      {
+       "text": "Al-Furqān",
+       "correct": false
+      },
+      {
+       "text": "Al-Kawthar",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 5,
+     "format": "select_all",
+     "prompt": "The angel told the Prophet ﷺ to rejoice in \"two lights\" given to no prophet before him. Which were they?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Al-Fātiḥah",
+       "correct": true
+      },
+      {
+       "text": "The last two verses of Al-Baqarah",
+       "correct": true
+      },
+      {
+       "text": "Āyat al-Kursī",
+       "correct": false
+      },
+      {
+       "text": "Surah Al-Ikhlāṣ",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 6,
+     "format": "odd_one_out",
+     "prompt": "Odd one out: which of these is NOT one of the virtues of Al-Fātiḥah given in the video?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": "Was a true/false on Al-Fātiḥah being a revelation like no other; now an odd one out across the video's three virtues, which also covers 'the greatest surah', the one virtue the paper never asked about.",
+     "options": [
+      {
+       "text": "It is the greatest surah in the Qur'an",
+       "correct": false
+      },
+      {
+       "text": "It is one of the two lights given to the Prophet ﷺ",
+       "correct": false
+      },
+      {
+       "text": "Nothing like it was revealed in the Tawrāh, the Injīl, the Zabūr or the rest of the Qur'an",
+       "correct": false
+      },
+      {
+       "text": "It is equal to a third of the Qur'an",
+       "correct": true
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 7,
+     "format": "mcq",
+     "prompt": "\"Whoever does not recite Al-Fātiḥah in his prayer, his prayer is…\"",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Invalid",
+       "correct": true
+      },
+      {
+       "text": "Accepted, but with less reward",
+       "correct": false
+      },
+      {
+       "text": "Makrūh",
+       "correct": false
+      },
+      {
+       "text": "Valid if he recites another surah",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    }
+   ]
+  }
+ ]
+}
