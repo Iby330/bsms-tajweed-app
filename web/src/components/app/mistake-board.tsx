@@ -21,6 +21,10 @@ import { cn } from "@/lib/utils";
 
 /** The seeded mushaf runs An-Nas back to Al-Mulk — pages 562–604. */
 const LAST_PAGE = 604;
+/** Al-Mulk's first page, and the first with a deployed QCF font. Earlier
+ *  pages have words but no font and render blank, so the heatmap offers no
+ *  surah that starts before it and never turns below it. */
+const FIRST_FONT_PAGE = 562;
 /** Below this many sessions the chart says nothing a sentence can't. */
 const CHART_FROM = 3;
 
@@ -165,7 +169,7 @@ export async function MistakeBoard({
   }
 
   // The heatmap: `heat` names a surah (open at its first page) or a page.
-  const onRun = run.filter((s) => startPages[s.number] !== undefined);
+  const onRun = run.filter((s) => (startPages[s.number] ?? 0) >= FIRST_FONT_PAGE);
   const counts = new Map(ranks.map((r) => [r.surah, r.count]));
   const heatNum = heat ? Number(heat) : NaN;
   const firstPage = Math.min(...onRun.map((s) => startPages[s.number]));
@@ -260,9 +264,13 @@ export async function MistakeBoard({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-col gap-0.5">
             <span className="label">Mushaf heatmap</span>
-            <span className="note">Any surah on your run, page by page. Tap a surah above to open it too.</span>
+            <span className="note">
+              {onRun.length
+                ? "Any surah on your run, page by page. Tap a surah above to open it too."
+                : "The mushaf here runs from An-Nas to Al-Mulk for now."}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
+          {onRun.length > 0 && <div className="flex items-center gap-2">
             <SurahPicker
               // keyed on the open surah, so turning pages into the next surah
               // (or tapping one in the list) moves the choice with it
@@ -273,7 +281,7 @@ export async function MistakeBoard({
               open={mushaf !== null}
               closeHref={href({ heat: "" }, "#heatmap")}
             />
-          </div>
+          </div>}
         </div>
         {mushaf}
       </section>
