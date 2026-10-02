@@ -132,8 +132,8 @@ export type Database = {
           surname: string
           tajweed_level: string
           university: string
-          year_of_study: string
           waitlist: boolean
+          year_of_study: string
         }
         Insert: {
           arabic_reading: string
@@ -165,8 +165,8 @@ export type Database = {
           surname: string
           tajweed_level: string
           university: string
-          year_of_study: string
           waitlist?: boolean
+          year_of_study: string
         }
         Update: {
           arabic_reading?: string
@@ -198,8 +198,8 @@ export type Database = {
           surname?: string
           tajweed_level?: string
           university?: string
-          year_of_study?: string
           waitlist?: boolean
+          year_of_study?: string
         }
         Relationships: [
           {
@@ -463,6 +463,13 @@ export type Database = {
           term3_strikes?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "deposit_entries_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "deposit_entries_season_id_fkey"
             columns: ["season_id"]
@@ -1156,6 +1163,7 @@ export type Database = {
       }
       revision_sessions: {
         Row: {
+          counts_as_result: boolean
           flags: string[]
           id: string
           kind: string
@@ -1168,6 +1176,7 @@ export type Database = {
           to_surah_number: number | null
         }
         Insert: {
+          counts_as_result?: boolean
           flags?: string[]
           id?: string
           kind?: string
@@ -1180,6 +1189,7 @@ export type Database = {
           to_surah_number?: number | null
         }
         Update: {
+          counts_as_result?: boolean
           flags?: string[]
           id?: string
           kind?: string
@@ -1860,7 +1870,10 @@ export type Database = {
       }
     }
     Functions: {
-      resend_api_key: { Args: never; Returns: string }
+      answer_on_paper: {
+        Args: { q_id: string; sub_id: string }
+        Returns: boolean
+      }
       apply_deposit_strike_delta: {
         Args: { p_delta: number; p_student: string; p_term: number }
         Returns: undefined
@@ -1877,12 +1890,33 @@ export type Database = {
         Args: { p_class: string; p_course: string; p_ordinal: number }
         Returns: string
       }
+      class_item_week: {
+        Args: { p_class: string; p_course: string; p_ordinal: number }
+        Returns: {
+          term_id: number
+          week_number: number
+        }[]
+      }
       get_homework_for_student: { Args: { hw_id: string }; Returns: Json }
+      homework_due_for: {
+        Args: { p_hw: string; p_student: string }
+        Returns: string
+      }
+      is_student_write: { Args: never; Returns: boolean }
       is_teacher: { Args: never; Returns: boolean }
       open_homework_redo: {
         Args: { failed_pct: number; sub_id: string }
         Returns: number
       }
+      record_fee_deposit: {
+        Args: { a: Database["public"]["Tables"]["applications"]["Row"] }
+        Returns: undefined
+      }
+      remove_fee_deposit: {
+        Args: { p_application: string }
+        Returns: undefined
+      }
+      resend_api_key: { Args: never; Returns: string }
       sees_all_content: { Args: never; Returns: boolean }
       voice_note_submission: { Args: { object_name: string }; Returns: string }
       voice_note_writable: { Args: { object_name: string }; Returns: boolean }
