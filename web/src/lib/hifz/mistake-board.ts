@@ -1,3 +1,4 @@
+import { londonDate } from "@/lib/attendance/session";
 import { DETAILS, type Category } from "./mistake-taxonomy";
 import type { MistakeRow } from "./mistakes";
 
@@ -18,6 +19,37 @@ export type SourceFilter = Source | "all";
 export type BoardSession = { id: string; source: Source; at: string };
 export type BoardMark = MistakeRow & { source: Source };
 export type Board = { sessions: BoardSession[]; marks: BoardMark[] };
+
+/** A submitted session as read for the board. */
+export type SessionRow = {
+  id: string; kind: string; submitted_at: string; reviewer_id: string; counts_as_result: boolean;
+};
+
+/**
+ * The sessions the board counts. Since marks save at once, a teacher's day
+ * of hearing is a marking session (the marks) and, when the teacher records
+ * Pass / Not passed, a result session with no marks of its own. Counted
+ * raw, every heard day would be two teacher hearings, one of them "clean".
+ * So a teacher session is on the board when it holds marks, or when it is a
+ * result with no marks from that teacher that UK day: a clean hearing,
+ * which is news. An emptied marking session is not. Partner sessions always
+ * count.
+ */
+export function boardSessions(rows: readonly SessionRow[], markSessionIds: ReadonlySet<string>): BoardSession[] {
+  const markedDays = new Set(
+    rows
+      .filter((r) => r.kind === "hearing" && markSessionIds.has(r.id))
+      .map((r) => `${r.reviewer_id}|${londonDate(new Date(r.submitted_at))}`),
+  );
+  return rows
+    .filter((r) => {
+      if (r.kind !== "hearing") return true;
+      if (markSessionIds.has(r.id)) return true;
+      if (!r.counts_as_result) return false;
+      return !markedDays.has(`${r.reviewer_id}|${londonDate(new Date(r.submitted_at))}`);
+    })
+    .map((r) => ({ id: r.id, source: (r.kind === "hearing" ? "teacher" : "partner") as Source, at: r.submitted_at }));
+}
 
 /** The switch's URL value: teacher or partner, anything else is all. */
 export function parseSource(raw: string | undefined): SourceFilter {

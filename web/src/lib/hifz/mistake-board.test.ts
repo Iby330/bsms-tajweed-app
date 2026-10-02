@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
-  MAKHRAJ_LETTERS, ayahsToDrill, bySession, bySurah, hifdhSplit, makhrajByLetter,
+  MAKHRAJ_LETTERS, ayahsToDrill, boardSessions, bySession, bySurah, hifdhSplit, makhrajByLetter,
   parseSource, pickSource, tajweedByRule,
-  type Board, type BoardMark, type BoardSession,
+  type Board, type BoardMark, type BoardSession, type SessionRow,
 } from "./mistake-board";
 
 const mark = (over: Partial<BoardMark>): BoardMark => ({
@@ -147,5 +147,44 @@ describe("ayahsToDrill", () => {
   it("names a makhraj chip by its letter", () => {
     const out = ayahsToDrill([mark({ category: "makhraj", detail: "ق" })]);
     expect(out[0].chips[0].label).toBe("Makhraj of ق");
+  });
+});
+
+describe("boardSessions", () => {
+  const row = (over: Partial<SessionRow> & { id: string }): SessionRow => ({
+    kind: "hearing", submitted_at: "2026-10-01T09:00:00Z", reviewer_id: "t1", counts_as_result: true, ...over,
+  });
+
+  it("a day of marks and its result is one teacher hearing, not two", () => {
+    const rows = [
+      row({ id: "marks", counts_as_result: false }),
+      row({ id: "result", submitted_at: "2026-10-01T09:40:00Z" }),
+    ];
+    expect(boardSessions(rows, new Set(["marks"])).map((s) => s.id)).toEqual(["marks"]);
+  });
+
+  it("a result with no marks that day is a clean hearing and stays", () => {
+    const rows = [
+      row({ id: "marks", counts_as_result: false, submitted_at: "2026-09-30T09:00:00Z" }),
+      row({ id: "result" }),
+    ];
+    expect(boardSessions(rows, new Set(["marks"])).map((s) => s.id)).toEqual(["marks", "result"]);
+  });
+
+  it("another teacher's marks that day leave this teacher's clean result in", () => {
+    const rows = [row({ id: "marks", counts_as_result: false, reviewer_id: "t2" }), row({ id: "result" })];
+    expect(boardSessions(rows, new Set(["marks"])).map((s) => s.id)).toEqual(["marks", "result"]);
+  });
+
+  it("an emptied marking session is not a hearing", () => {
+    expect(boardSessions([row({ id: "marks", counts_as_result: false })], new Set())).toEqual([]);
+  });
+
+  it("a result from before the split holds its own marks and stays; partner sessions always stay", () => {
+    const rows = [row({ id: "old" }), row({ id: "p", kind: "peer", reviewer_id: "s2" })];
+    expect(boardSessions(rows, new Set(["old"]))).toEqual([
+      { id: "old", source: "teacher", at: "2026-10-01T09:00:00Z" },
+      { id: "p", source: "partner", at: "2026-10-01T09:00:00Z" },
+    ]);
   });
 });

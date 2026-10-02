@@ -2,7 +2,7 @@ import "server-only";
 import { supabaseServer } from "@/lib/supabase/server";
 import { MISTAKE_COLS, type MistakeRow } from "./mistakes";
 import { CATEGORY_IDS } from "./mistake-taxonomy";
-import type { Board, Source } from "./mistake-board";
+import { boardSessions, type Board, type SessionRow } from "./mistake-board";
 
 /**
  * Every submitted session about a student — teacher hearings and partner
@@ -14,24 +14,22 @@ export async function boardFor(studentId: string): Promise<Board> {
   const db = await supabaseServer();
   const { data: rows } = await db
     .from("revision_sessions")
-    .select("id, kind, submitted_at")
+    .select("id, kind, submitted_at, reviewer_id, counts_as_result")
     .eq("reciter_id", studentId)
     .in("kind", ["hearing", "peer"])
     .not("submitted_at", "is", null);
-  const sessions = (rows ?? []).map((s) => ({
-    id: s.id as string,
-    source: (s.kind === "hearing" ? "teacher" : "partner") as Source,
-    at: s.submitted_at as string,
-  }));
-  if (!sessions.length) return { sessions: [], marks: [] };
+  const all = (rows ?? []) as SessionRow[];
+  if (!all.length) return { sessions: [], marks: [] };
 
-  const sourceOf = new Map(sessions.map((s) => [s.id, s.source]));
   const { data: mistakes } = await db
     .from("revision_mistakes")
     .select(MISTAKE_COLS)
-    .in("session_id", sessions.map((s) => s.id));
-  const marks = ((mistakes ?? []) as MistakeRow[])
-    .filter((m) => CATEGORY_IDS.includes(m.category))
+    .in("session_id", all.map((s) => s.id));
+  const rowsOfMarks = (mistakes ?? []) as MistakeRow[];
+  const sessions = boardSessions(all, new Set(rowsOfMarks.map((m) => m.session_id)));
+  const sourceOf = new Map(sessions.map((s) => [s.id, s.source]));
+  const marks = rowsOfMarks
+    .filter((m) => CATEGORY_IDS.includes(m.category) && sourceOf.has(m.session_id))
     .map((m) => ({ ...m, source: sourceOf.get(m.session_id)! }));
   return { sessions, marks };
 }
