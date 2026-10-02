@@ -13,6 +13,11 @@ import { teacherClass } from "@/lib/teacher/scope";
 import { timetableFor, weekdayNameFor } from "@/lib/attendance/calendar";
 import { hearingsForStudent } from "@/lib/hifz/hearing-queries";
 import { heardSurahs } from "@/lib/hifz/hearings";
+import { revisionActivityFor } from "@/lib/hifz/activity-queries";
+import { londonDayKey } from "@/lib/hifz/revision-activity";
+import { parseSource } from "@/lib/hifz/mistake-board";
+import { RevisionHeatmap } from "@/components/app/revision-heatmap";
+import { MistakeBoard } from "@/components/app/mistake-board";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -21,8 +26,9 @@ const PACE_LABEL = { ok: "Ahead", warn: "On pace", danger: "Behind" } as const;
 
 /**
  * One student's hifdh: where they are, their pace, the record as the
- * marking grid, and Pass / Not passed, the result popup for them. Hearing
- * (and their mistake picture) is on the register's Hear tab.
+ * marking grid, and Pass / Not passed, the result popup for them. Below the
+ * run, their revision: the same activity grid and mistakes board the
+ * student sees on their own Overview. Hearing is on the register's Hear tab.
  *
  * This is deliberately the student's own view of their year — the mushaf index,
  * banded by hizb — rather than a teacher-shaped list of rows. Both people end
@@ -35,9 +41,9 @@ export default async function StudentHifzDetail({
   searchParams,
 }: {
   params: Promise<{ studentId: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; src?: string; heat?: string }>;
 }) {
-  const [{ studentId }, { tab }] = await Promise.all([params, searchParams]);
+  const [{ studentId }, { tab, src, heat }] = await Promise.all([params, searchParams]);
   // Hear (once Review) moved to the register: old links land there.
   if (tab === "hear" || tab === "review") {
     redirect(`/teacher/hifdh?tab=hear&student=${encodeURIComponent(studentId)}`);
@@ -46,7 +52,7 @@ export default async function StudentHifzDetail({
 
   // Every read here is keyed on the student id alone, the guard included — it
   // decides whether to render, not what to fetch, so it goes out with the rest.
-  const [{ weeks }, mine, { data: student }, { data: hp }, surahs, { data: records }, hearings] = await Promise.all([
+  const [{ weeks }, mine, { data: student }, { data: hp }, surahs, { data: records }, hearings, activity] = await Promise.all([
     getTermsAndWeeks(),
     teacherClass(),
     db
@@ -61,6 +67,7 @@ export default async function StudentHifzDetail({
       .select("surah_number, teacher_comment, passed_at")
       .eq("student_id", studentId),
     hearingsForStudent(studentId),
+    revisionActivityFor(studentId),
   ]);
   if (!student) notFound();
   // A teacher with a class of their own sees only their own students, the same
@@ -207,6 +214,24 @@ export default async function StudentHifzDetail({
 
       <div className="field">
         <HifzGrid studentId={studentId} rows={rows} expected={expected} />
+      </div>
+
+      <Rule label="Their revision" />
+
+      <div className="field">
+        <section className="box c12" aria-label="Revision activity">
+          {/* UK day, resolved here: see the student Overview for why */}
+          <RevisionHeatmap days={activity} end={londonDayKey(new Date())} />
+        </section>
+        <MistakeBoard
+          studentId={studentId}
+          source={parseSource(src)}
+          heat={heat}
+          basePath={`/teacher/hifdh/${studentId}`}
+          run={list}
+          surahHref={(n, p) => `/teacher/hifdh/${studentId}/${n}${p ? `?p=${p}` : ""}`}
+          viewer="teacher"
+        />
       </div>
     </>,
     <div style={{ marginTop: 12 }}>

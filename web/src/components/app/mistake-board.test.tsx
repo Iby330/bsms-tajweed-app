@@ -23,10 +23,10 @@ const mark = (id: string, session: string, source: "teacher" | "partner") => ({
 });
 const at = (d: number) => `2026-09-${String(d).padStart(2, "0")}T10:00:00Z`;
 
-async function show(board: Board, source: "all" | "teacher" | "partner" = "all") {
+async function show(board: Board, source: "all" | "teacher" | "partner" = "all", viewer?: "student" | "teacher") {
   vi.mocked(boardFor).mockResolvedValueOnce(board);
   const ui = await MistakeBoard({
-    studentId: "adam", source, basePath: "/hifdh",
+    studentId: "adam", source, basePath: "/hifdh", viewer,
     run: [{ number: 88, name_en: "Al-Ghashiyah" }, { number: 87, name_en: "Al-A'la" }],
     surahHref: (n) => `/hifdh/${n}`,
   });
@@ -69,5 +69,11 @@ describe("MistakeBoard", () => {
     expect(screen.getByRole("img", { name: "Mistakes in the last 3 sessions" })).toBeTruthy();
     expect(screen.getByText("Teacher hearing")).toBeTruthy();
     expect(screen.getByText("Partner revision")).toBeTruthy();
+  });
+
+  it("speaks to a teacher about their student's run", async () => {
+    const board: Board = { sessions: [{ id: "t", source: "teacher", at: at(1) }], marks: [mark("a", "t", "teacher")] };
+    await show(board, "all", "teacher");
+    expect(screen.getByText(/Any surah on their run/)).toBeTruthy();
   });
 });

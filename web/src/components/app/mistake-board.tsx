@@ -47,9 +47,11 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
  * `basePath` is the page the board sits on, without a query.
  */
 export async function MistakeBoard({
-  studentId, source, heat, basePath, run, surahHref,
+  studentId, source, heat, basePath, run, surahHref, viewer = "student",
 }: {
   studentId: string;
+  /** who is looking: the student at their own board, or their teacher */
+  viewer?: "student" | "teacher";
   source: SourceFilter;
   heat?: string;
   basePath: string;
@@ -266,7 +268,7 @@ export async function MistakeBoard({
             <span className="label">Mushaf heatmap</span>
             <span className="note">
               {onRun.length
-                ? "Any surah on your run, page by page. Tap a surah above to open it too."
+                ? `Any surah on ${viewer === "teacher" ? "their" : "your"} run, page by page. Tap a surah above to open it too.`
                 : "The mushaf here runs from An-Nas to Al-Mulk for now."}
             </span>
           </div>
