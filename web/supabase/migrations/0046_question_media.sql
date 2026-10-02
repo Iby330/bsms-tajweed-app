@@ -35,34 +35,18 @@
 -- the function rebuilds each option from position/label/value instead of
 -- copying it: a whitelist fails closed, a pass-through fails open.
 --
--- THE GATE, FIXED WHILE WE ARE HERE. Since 0027 a class's syllabus decides
--- when its content opens (group 1 takes Mudūd in Term 1, groups 2–4 in Term
--- 3), and the homeworks RLS policy asks `sees_all_content() or
--- can_see_content(course_id, ordinal, week_id)`. The RPC was never brought
--- along: it still asked whether the homework's own WEEK had unlocked. So:
---
---   · a homework the syllabus has opened for a class but whose week is still
---     ahead was listed for the student (RLS let the row through) and then
---     404'd when they opened it (the RPC returned null). That is every early
---     course for group 1, and it is a launch blocker;
---   · the reverse leaked: a paper whose week had passed but which is outside
---     the class's syllabus was hidden from the list and yet fetchable, whole,
---     by anyone holding its id.
---
--- The gate below is the policy's own predicate, word for word, so the list
--- and the page answer the same question and cannot drift apart again.
---
--- Note the base this replaces. The live function is NOT 0001's: the
--- untracked-in-git 0023_unlock_all.sql (docs/schema-drift.md §1) widened the
--- week gate with `or sees_all_content()` for the demo account. That is kept,
--- as the first half of the new gate. Everything else, the payload and the
--- stripping of options[].correct and rubric, is that definition verbatim.
+-- THE BASE. This redefines get_homework_for_student on top of the live
+-- body from 0043_class_deadlines, verbatim: the gate is still the homeworks
+-- RLS predicate (`sees_all_content() or can_see_content(...)`), and `due_at`
+-- is still `homework_due_for(h.id, auth.uid())`, the per-class deadline.
+-- The ONLY change is the `media` key at the end of each question. Execute
+-- grants are untouched: 0039_prelaunch_hardening revoked anon EXECUTE and
+-- `create or replace` keeps that, so nothing here re-grants it.
 --
 -- WHAT DOES NOT CHANGE. Scoring is untouched: a listening question is an
 -- ordinary mcq and is marked like one. RLS is untouched: the column rides on
 -- the existing questions policies. The function stays `stable security
--- definer set search_path = public`. Both helpers it now calls are the same
--- kind (0023, 0027) and read only on behalf of auth.uid().
+-- definer set search_path = public`. The helpers it calls are 0043's.
 --
 -- After applying, web/supabase/checks/homework_rpc.sql checks, as a chosen
 -- student, that the list and the RPC agree on every homework and that no
@@ -79,17 +63,14 @@ comment on column questions.media is
   'keys optional, https URLs on an allowlisted host only. Parsed by '
   'web/src/lib/homework/media.ts, which ignores anything malformed. Only '
   'clip and option_audio are sent to students (get_homework_for_student). '
-  'Migration 0039.';
+  'Migration 0046.';
 
 -- ═══════════ RPC: sanitized homework fetch for students ═══════════
 -- Returns questions with options[].correct and rubric STRIPPED so answer
 -- keys never reach the client. Teachers query the table directly instead.
--- 0039: gated like the homeworks RLS policy (sees_all_content() or
--- can_see_content(...)), and returns `media` cut down to clip/option_audio.
-create or replace function get_homework_for_student(hw_id uuid)
-returns jsonb
-language sql stable security definer set search_path = public as
-$$
+-- 0046: 0043's body plus `media`, cut down to clip/option_audio.
+create or replace function public.get_homework_for_student(hw_id uuid)
+returns jsonb language sql stable security definer set search_path = public as $$
   select case
     when not exists (
       select 1 from homeworks h
@@ -101,7 +82,7 @@ $$
         'homework', jsonb_build_object(
           'id', h.id, 'number', h.number, 'title', h.title,
           'series', h.series, 'total_marks', h.total_marks,
-          'due_at', h.due_at, 'is_graded', h.is_graded
+          'due_at', homework_due_for(h.id, auth.uid()), 'is_graded', h.is_graded
         ),
         'questions', coalesce(jsonb_agg(
           jsonb_build_object(
