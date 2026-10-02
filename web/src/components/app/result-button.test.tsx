@@ -52,4 +52,20 @@ describe("ResultButton", () => {
     await vi.waitFor(() => expect(recordResults).toHaveBeenCalledWith(
       "s1", { from: 87, to: 87, passed: [87], note: "" }));
   }, SLOW);
+
+  it("opens with an empty note the next time, so an old note is never sent with a new result", async () => {
+    render(<ResultButton studentId="s1" studentName="Ali" run={[88, 87, 86]} from={88} names={names} passedBefore={{}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Pass / Not passed" }));
+    fireEvent.change(screen.getByPlaceholderText("Note for the student (optional)"), {
+      target: { value: "madd in ayah 3" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    await vi.waitFor(() => expect(screen.queryByRole("button", { name: "Confirm" })).toBeNull());
+    // The closing dialog keeps the page inert for a moment; reopen once it lets go.
+    await vi.waitFor(() => fireEvent.click(screen.getByRole("button", { name: "Pass / Not passed" })));
+    expect((screen.getByPlaceholderText("Note for the student (optional)") as HTMLTextAreaElement).value).toBe("");
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    await vi.waitFor(() => expect(recordResults).toHaveBeenLastCalledWith(
+      "s1", { from: 88, to: 88, passed: [88], note: "" }));
+  }, SLOW);
 });

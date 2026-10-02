@@ -55,6 +55,9 @@ export function HearingFinish({
     setTracked({ open, from, initialEnd });
     setEnd(initialEnd);
     setUnticked(new Set());
+    // The popup stays mounted behind its button between results, so a fresh
+    // open clears the last note; moving From keeps what is being typed.
+    if (open && !tracked.open) setNote("");
   }
 
   // Belt-and-braces: even if some future caller re-renders this component
