@@ -24,9 +24,11 @@ const SLOW = 20_000;
 /** What the student's own page renders: the button and, behind it, the popup. */
 describe("ResultButton", () => {
   it("opens the result popup at the student's next surah and submits the range, ticks and note", async () => {
-    render(<ResultButton studentId="s1" run={[88, 87, 86]} from={88} names={names} passedBefore={{}} />);
+    render(<ResultButton studentId="s1" studentName="Ali" run={[88, 87, 86]} from={88} names={names} passedBefore={{}} />);
     expect(screen.queryByRole("button", { name: "Confirm" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Pass / Not passed" }));
+    expect(screen.getByRole("heading", { name: "Pass / Not passed for Ali" })).toBeTruthy();
+    expect(screen.queryByText(/Finish hearing/)).toBeNull();
     expect((screen.getByLabelText("From") as HTMLSelectElement).value).toBe("88");
     expect(screen.getAllByRole("checkbox")).toHaveLength(1);
     fireEvent.click(screen.getByRole("button", { name: "One more" }));
@@ -43,7 +45,7 @@ describe("ResultButton", () => {
   }, SLOW);
 
   it("From can start the range further on in the run", async () => {
-    render(<ResultButton studentId="s1" run={[88, 87, 86]} from={88} names={names} passedBefore={{ 88: "2026-09-12" }} />);
+    render(<ResultButton studentId="s1" studentName="Ali" run={[88, 87, 86]} from={88} names={names} passedBefore={{ 88: "2026-09-12" }} />);
     fireEvent.click(screen.getByRole("button", { name: "Pass / Not passed" }));
     fireEvent.change(screen.getByLabelText("From"), { target: { value: "87" } });
     fireEvent.click(screen.getByRole("button", { name: "Confirm" }));

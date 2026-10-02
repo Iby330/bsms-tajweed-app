@@ -12,7 +12,7 @@ import type { SurahNames } from "./mushaf-reader";
 export type Verdict = { to: number; passed: number[]; note: string };
 
 /**
- * The end of a hearing: the range as rows, a tick per surah, the note.
+ * Pass / Not passed for one student: the range as rows, a tick per surah, the note.
  * Confirm signs off the ticked surahs; an unticked one is heard and not
  * passed. A surah passed before says so on its row, because unticking it
  * revokes that pass. The end moves one surah at a time; a surah that
@@ -22,7 +22,7 @@ export type Verdict = { to: number; passed: number[]; note: string };
  */
 export function HearingFinish({
   open, onOpenChange, from, initialEnd, minEnd, names, passedBefore, pending, onConfirm,
-  fromChoices, onFromChange,
+  fromChoices, onFromChange, title = "Pass / Not passed",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -36,6 +36,8 @@ export function HearingFinish({
   /** The surahs From may start at, in memorisation order. */
   fromChoices?: number[];
   onFromChange?: (from: number) => void;
+  /** The popup's heading. Nothing is being finished: it is the result step. */
+  title?: string;
 }) {
   const [end, setEnd] = useState(initialEnd);
   const [unticked, setUnticked] = useState<Set<number>>(new Set());
@@ -85,7 +87,7 @@ export function HearingFinish({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="space-y-3">
         <DialogHeader>
-          <DialogTitle>Finish hearing</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         {fromChoices && onFromChange && (
           <FilterSelect

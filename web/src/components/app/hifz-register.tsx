@@ -220,6 +220,7 @@ export function HifzRegister({ rows, surahs }: { rows: RegisterRow[]; surahs: Su
               <span className="shrink-0 pr-4">
                 <ResultButton
                   studentId={r.studentId}
+                  studentName={r.name}
                   run={r.run}
                   from={r.from}
                   names={names}

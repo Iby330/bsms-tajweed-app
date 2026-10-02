@@ -16,9 +16,10 @@ import type { SurahNames } from "./mushaf-reader";
  * student's own page.
  */
 export function ResultButton({
-  studentId, run, from: defaultFrom, names, passedBefore,
+  studentId, studentName, run, from: defaultFrom, names, passedBefore,
 }: {
   studentId: string;
+  studentName: string;
   /** The student's run, in memorisation order (down the mushaf). */
   run: number[];
   from: number;
@@ -62,6 +63,7 @@ export function ResultButton({
         onConfirm={confirm}
         fromChoices={run}
         onFromChange={setFrom}
+        title={`Pass / Not passed for ${studentName}`}
       />
     </>
   );

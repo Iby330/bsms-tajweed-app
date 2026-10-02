@@ -212,6 +212,7 @@ export default async function StudentHifzDetail({
     <div style={{ marginTop: 12 }}>
       <ResultButton
         studentId={studentId}
+        studentName={student.full_name}
         run={list.map((s) => s.number)}
         from={next?.number ?? list[list.length - 1].number}
         names={names}
