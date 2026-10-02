@@ -44,6 +44,11 @@ export function ResultButton({
       <Button
         size="sm"
         variant="outline"
+        // Dark mode only: an outline button reads as nearly invisible against
+        // the dark card, so it gets a filled look in the app's own accent
+        // instead, with the foreground token that keeps it readable. Light
+        // mode is untouched (plain outline).
+        className="dark:border-transparent dark:bg-brand dark:text-primary-foreground dark:hover:bg-brand/90 dark:hover:text-primary-foreground"
         onClick={() => {
           setFrom(defaultFrom);
           setOpen(true);
