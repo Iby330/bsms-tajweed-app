@@ -93,4 +93,65 @@ describe("HearingFinish", () => {
     fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
     expect(onConfirm).toHaveBeenCalledWith({ to: 85, passed: [85], note: "" });
   });
+
+  describe("the To select", () => {
+    const run = [88, 87, 86, 85];
+
+    it("lists From down to minEnd, regardless of the current end", () => {
+      render(
+        <HearingFinish {...base} minEnd={85} initialEnd={87} onConfirm={vi.fn()}
+          fromChoices={run} onFromChange={vi.fn()} />,
+      );
+      const to = screen.getByLabelText("To") as HTMLSelectElement;
+      const labels = Array.from(to.options).map((o) => o.textContent);
+      expect(labels).toEqual(["Al-Ghashiyah", "Al-A'la", "At-Tariq", "Al-Buruj"]);
+    });
+
+    it("picking a To shows the right rows all ticked and Confirm sends to/passed accordingly", () => {
+      const onConfirm = vi.fn();
+      render(
+        <HearingFinish {...base} minEnd={85} initialEnd={88} onConfirm={onConfirm}
+          fromChoices={run} onFromChange={vi.fn()} />,
+      );
+      fireEvent.change(screen.getByLabelText("To"), { target: { value: "86" } });
+      const boxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
+      expect(boxes.map((b) => b.checked)).toEqual([true, true, true]);
+      fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+      expect(onConfirm).toHaveBeenCalledWith({ to: 86, passed: [88, 87, 86], note: "" });
+    });
+
+    it("an untick on a surah that stays in range survives a To change", () => {
+      render(
+        <HearingFinish {...base} minEnd={85} initialEnd={87} onConfirm={vi.fn()}
+          fromChoices={run} onFromChange={vi.fn()} />,
+      );
+      fireEvent.click(screen.getByLabelText(/Al-A'la/)); // untick 87, in range both before and after
+      fireEvent.change(screen.getByLabelText("To"), { target: { value: "86" } });
+      const boxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
+      expect(boxes.map((b) => b.checked)).toEqual([true, false, true]);
+    });
+
+    it("One more after picking a To moves the To select too", () => {
+      render(
+        <HearingFinish {...base} minEnd={85} initialEnd={88} onConfirm={vi.fn()}
+          fromChoices={run} onFromChange={vi.fn()} />,
+      );
+      fireEvent.change(screen.getByLabelText("To"), { target: { value: "87" } });
+      fireEvent.click(screen.getByRole("button", { name: "One more" }));
+      expect((screen.getByLabelText("To") as HTMLSelectElement).value).toBe("86");
+    });
+
+    it("changing From above the end resets the end, and the To select follows", () => {
+      const onFromChange = vi.fn();
+      const { rerender } = render(
+        <HearingFinish {...base} minEnd={85} from={86} initialEnd={86} onConfirm={vi.fn()}
+          fromChoices={run} onFromChange={onFromChange} />,
+      );
+      rerender(
+        <HearingFinish {...base} minEnd={85} from={88} initialEnd={88} onConfirm={vi.fn()}
+          fromChoices={run} onFromChange={onFromChange} />,
+      );
+      expect((screen.getByLabelText("To") as HTMLSelectElement).value).toBe("88");
+    });
+  });
 });

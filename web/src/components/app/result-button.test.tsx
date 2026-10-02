@@ -68,4 +68,13 @@ describe("ResultButton", () => {
     await vi.waitFor(() => expect(recordResults).toHaveBeenLastCalledWith(
       "s1", { from: 88, to: 88, passed: [88], note: "" }));
   }, SLOW);
+
+  it("the To select lets the teacher jump straight to an end surah", async () => {
+    render(<ResultButton studentId="s1" studentName="Ali" run={[88, 87, 86]} from={88} names={names} passedBefore={{}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Pass / Not passed" }));
+    fireEvent.change(screen.getByLabelText("To"), { target: { value: "86" } });
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    await vi.waitFor(() => expect(recordResults).toHaveBeenCalledWith(
+      "s1", { from: 88, to: 86, passed: [88, 87, 86], note: "" }));
+  }, SLOW);
 });

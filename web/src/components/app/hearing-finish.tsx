@@ -17,8 +17,11 @@ export type Verdict = { to: number; passed: number[]; note: string };
  * passed. A surah passed before says so on its row, because unticking it
  * revokes that pass. The end moves one surah at a time; a surah that
  * comes into the range arrives ticked, one that leaves takes its tick
- * with it. Given `fromChoices` (the student's run), From is a select above
- * the rows: changing it brings the end back to the new From.
+ * with it. Given `fromChoices` (the student's run), From and To are selects
+ * above the rows: changing From brings the end back to the new From. To
+ * jumps the end straight to a chosen surah, going through the same
+ * leaving/arriving tick rule as One more / One fewer (both move through
+ * `setEndTo`), rather than duplicating it.
  */
 export function HearingFinish({
   open, onOpenChange, from, initialEnd, minEnd, names, passedBefore, pending, onConfirm,
@@ -72,17 +75,18 @@ export function HearingFinish({
       if (next.has(s)) next.delete(s); else next.add(s);
       return next;
     });
-  const move = (delta: number) => {
-    const next = end + delta;
+  // A surah leaving the range takes its tick with it; one arriving is
+  // ticked. That means an untick is not remembered across a round trip:
+  // moving the end out past a surah drops its entry from `unticked` along
+  // with it, and bringing it back in ticks it, same as any other surah
+  // newly in range — the earlier untick is gone, not restored. One
+  // more/fewer and the To select both go through this, so they agree.
+  const setEndTo = (next: number) => {
     if (next > from || next < minEnd) return;
-    // A surah leaving the range takes its tick with it; one arriving is
-    // ticked. That means an untick is not remembered across a round trip:
-    // "One fewer" pushes a surah out (dropping its entry from `unticked`
-    // along with it), and "One more" brings it back in ticked, same as any
-    // other surah newly in range — the earlier untick is gone, not restored.
     setUnticked((cur) => new Set([...cur].filter((s) => s >= next && s <= from)));
     setEnd(next);
   };
+  const move = (delta: number) => setEndTo(end + delta);
   const name = (s: number) => names[s]?.en ?? String(s);
   const count = surahs.length;
 
@@ -93,13 +97,24 @@ export function HearingFinish({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         {fromChoices && onFromChange && (
-          <FilterSelect
-            label="From"
-            value={String(from)}
-            onChange={(v) => onFromChange(Number(v))}
-            options={fromChoices.map((s) => ({ value: String(s), label: name(s) }))}
-            disabled={pending}
-          />
+          <div className="flex flex-wrap gap-2">
+            <FilterSelect
+              label="From"
+              value={String(from)}
+              onChange={(v) => onFromChange(Number(v))}
+              options={fromChoices.map((s) => ({ value: String(s), label: name(s) }))}
+              disabled={pending}
+            />
+            <FilterSelect
+              label="To"
+              value={String(safeEnd)}
+              onChange={(v) => setEndTo(Number(v))}
+              options={fromChoices
+                .filter((s) => s <= from && s >= minEnd)
+                .map((s) => ({ value: String(s), label: name(s) }))}
+              disabled={pending}
+            />
+          </div>
         )}
         <p className="text-sm font-medium">
           {count === 1 ? name(from) : `${name(from)} → ${name(safeEnd)} · ${count} surahs`}
