@@ -26,13 +26,11 @@ heavy. Split it into two simple acts:
 - **Every tap saves straight away** and is visible to the student at once.
   Tapping a marked word again changes or removes the mark, which covers
   mis-taps.
-- **Pass and Not passed** live in a popup opened from a button next to each
-  student's name on the register Overview, and the same popup is on the
-  student's own page.
-- **The popup lists the student's surahs;** each has Pass and Not passed,
-  neither chosen to begin with. An untouched surah stays exactly as it was,
-  so a teacher can pass a few and mark one not passed in one go. Each surah
-  has an optional note. One Save records everything.
+- **Pass and Not passed use the popup teachers already know,** the one
+  End hearing opens today: From and To, a tick per surah (ticked passes,
+  unticked is not passed), a note, Confirm. It is opened by a button on
+  each student's row on the register Overview, and by the same button on
+  the student's own page.
 - **"Not passed" stays the term,** and stays red on both sides.
 - **Mistakes alone never make a surah not passed.** Only the teacher's
   choice in the popup does.
@@ -98,57 +96,38 @@ edit and Undo pass), except "Hear from this surah" links to
 
 ### The result popup
 
-- **Title:** "Results for <name>".
-- **Rows:** the student's run from their next unpassed surah onwards,
-  plus every surah currently not passed, in memorisation order. A "Show
-  earlier surahs" link reveals the rest of the run (for correcting a past
-  result).
-- **Each row:** the surah name, its current state ("passed 12 Oct",
-  "not passed", or nothing), and two buttons, **Pass** and **Not passed**.
-  Neither is selected at the start; pressing the selected one again clears
-  it. A note icon opens a note box for that row.
-- **Save** is enabled once at least one row is chosen. It records every
-  chosen row, closes the popup and shows "3 passed, 1 not passed" briefly.
-- **Changing a passed surah to Not passed** removes the pass; the row's
-  "passed 12 Oct" label is what makes that visible before saving.
+`HearingFinish` as it is today, unchanged in look and behaviour: the range
+summary, From defaulting to the student's next unpassed surah and To to
+the same, "One more" / "One fewer", a tick per surah (on by default), the
+"passed 12 Oct" label on surahs passed before, the note, Confirm. Opened by
+a **Pass / Not passed** button on the student's row (register Overview)
+and on the student's own page, with no hearing in progress needed.
 
 ## Data
 
-**Results become explicit.** `hifz_records` keeps meaning "passed" (the
-register's progress view, `v_hifz_progress`, counts it). A new table holds
-"not passed":
+Nothing changes in what anyone sees: passed is green, not passed is red,
+on both sides, decided by the same rule as today (a pass record means
+passed; otherwise a submitted result covering the surah means not passed).
 
-```
-hifz_not_passed (
-  student_id    uuid  references profiles(id),
-  surah_number  int   references surahs(number),
-  marked_by     uuid  references profiles(id),
-  marked_at     timestamptz default now(),
-  teacher_comment text,
-  primary key (student_id, surah_number)
-)
-```
+One internal change keeps that rule true now that marks save at once:
+`revision_sessions` gains `counts_as_result boolean not null default true`.
+Every existing session keeps `true` (all of them ended with a confirmed
+range). Marking sessions created by Hear are inserted with `false`, so a
+surah never turns red just because a mistake was marked on it. The
+coverage rule in `surahState` (and its readers) counts only sessions with
+`counts_as_result = true`.
 
-RLS mirrors `hifz_records`: teachers manage; a student reads their own.
+**Results.** Confirming the popup inserts a submitted hearing session
+with `kind = 'hearing'`, `counts_as_result = true`, the chosen From/To and
+the note, then writes the passes and removes revoked passes exactly as
+`submitHearing` does today (records first, then the session).
 
-- **Pass** upserts `hifz_records` (comment = the row's note; `passed_at`
-  untouched on a re-pass) and deletes any `hifz_not_passed` row.
-- **Not passed** upserts `hifz_not_passed` (comment = the row's note) and
-  deletes any `hifz_records` row.
-- **State of a surah:** a record → passed; a not-passed row → not passed;
-  otherwise unheard. The "a covering hearing means not passed" rule goes.
-- **Backfill:** every surah that reads not passed today (a submitted
-  hearing covers it and it has no record) gets a `hifz_not_passed` row in
-  the migration, with the latest covering hearing's note and date, so
-  nothing that is red today turns grey.
-
-**Marks.** Each mark still needs a session. The first tap for a student
-on a given UK day by a teacher creates that day's hearing session for the
-pair, already submitted (so it is visible to the student at once), with
-`surah_number` and `to_surah_number` both set to the first marked surah;
-later taps that day reuse it. The range columns no longer mean anything to
-the app. Readers that showed a surah's hearing marks keep working: they
-read every hearing mistake on that surah.
+**Marks.** The first tap for a student on a given UK day by a teacher
+creates that day's marking session for the pair, already submitted (so the
+student sees it at once), `counts_as_result = false`, with `surah_number`
+and `to_surah_number` set to the first marked surah; later taps that day
+reuse it. Readers that show a surah's hearing marks read marks from both
+kinds of hearing session.
 
 ## Server actions
 
@@ -157,23 +136,24 @@ read every hearing mistake on that surah.
   mistake (one per word per session, as `logMistake` does). Guards: the
   teacher's own student; the word's surah on the student's run.
 - `removeHearingMistake(mistakeId)`: the teacher's own mistake only.
-- `setResults(studentId, rows: { surah, result: "passed" | "not_passed", note? }[])`:
-  validates every surah is on the student's run, then writes as above.
-  Revalidates the register, the student page, the Hear tab and each
-  surah's pages on both sides.
-- `startHearing`, `submitHearing` and the range popup go, with their
-  components (`hearing-start.tsx`, `hearing-finish.tsx`, `hear-panel.tsx`,
-  `hear-tab.tsx` in its current form) and their tests.
+- `recordResults(studentId, { from, to, passed, note })`: `submitHearing`'s
+  validation and writes, but creating its own result session instead of
+  finishing a draft. Revalidates the register, the student page, the Hear
+  tab and each surah's pages on both sides.
+- `startHearing`, `submitHearing`, the Start popup and the End-hearing
+  flow go (`hearing-start.tsx`, `hear-panel.tsx`, the Start/End parts of
+  `review-logger.tsx`, `hear-tab.tsx` in its current form) with their
+  tests. `hearing-finish.tsx` stays and is reused by the popup.
 
 ## Testing
 
-- Unit: the new state rule (record, not-passed row, neither; a surah with
-  marks but no result stays unheard); the result popup (rows offered,
-  nothing chosen to start, toggling, notes, Save payload, mixed results);
+- Unit: the state rule counts only result sessions (a surah with marks
+  but no result stays unheard); the popup opened from the register row and
+  the student page submits `recordResults` with the range, ticks and note;
   the Hear logger (a tap logs at once for the chosen student, switching
   student redirects taps, remove).
-- Live RLS check: a student reads their own not-passed rows, not
-  another's, and cannot write them; a teacher can.
-- Manual: mark mistakes for two students back to back; pass two surahs
-  and mark one not passed in one popup; check the student sees the marks,
+- Live RLS check: the existing hearings check still passes with marking
+  sessions (`counts_as_result = false`) included.
+- Manual: mark mistakes for two students back to back; from a register
+  row pass two surahs and leave one unticked in one popup; check the student sees the marks,
   notes, green and red.
