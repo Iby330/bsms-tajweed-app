@@ -52,9 +52,9 @@ heavy. Split it into two simple acts:
 
 Tabs **Overview | Hear** (`?tab=hear`).
 
-**Overview:** the class list and revision pairs, as now, plus a
-**Pass / Not passed** button on each student's row that opens the result
-popup for that student.
+**Overview:** exactly as it is now (the class list and revision pairs),
+plus a **Pass / Not passed** button on each student's row that opens the
+same result popup the student's own page has.
 
 **Hear:**
 1. **A student picker** (the teacher's roster, each with their next surah;
@@ -71,6 +71,12 @@ popup for that student.
    teacher change or remove it.
 4. **A small line** under the picker: "<n> mistakes marked today", and a
    link to that student's page.
+5. **Below the mushaf, for the chosen student,** the two sections the
+   per-student Hear tab has today: "Teacher hearings" (recurring mistakes
+   from teacher marks) and "Partner revision" (the peer feedback).
+
+This is today's per-student Hear tab, simplified and moved: the picker
+replaces arriving from the student's page.
 
 No Start, End, Finish, range, done line or Next student. Old
 `/teacher/hifdh/hear` links redirect to `/teacher/hifdh?tab=hear` (with the
@@ -78,11 +84,11 @@ No Start, End, Finish, range, done line or Next student. Old
 
 ### A student's page: `/teacher/hifdh/[studentId]`
 
-One page again, no tabs: where they are, pace, the surah grid, and the
-**Pass / Not passed** button that opens the same popup. Below the grid,
-"Partner revision" (the peer feedback the Hear tab shows today). Grid cells
-open the read-only surah record as today. `?tab=hear` and `?tab=review`
-redirect to the page itself.
+One page again, no tabs: today's Overview (where they are, pace, the
+surah grid) and the **Pass / Not passed** button that opens the result
+popup. Grid cells open the read-only surah record as today. The student's
+mistake sections move with Hear to the register. `?tab=hear` and
+`?tab=review` redirect to `/teacher/hifdh?tab=hear&student=<id>`.
 
 ### A surah's record: `/teacher/hifdh/[studentId]/[surah]`
 
