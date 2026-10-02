@@ -1,5 +1,5 @@
 /**
- * The audio a question carries: `questions.media`, jsonb (migration 0039).
+ * The audio a question carries: `questions.media`, jsonb (migration 0046).
  *
  *   {"clip":         {"url": "https://…/090006.mp3", "start_ms": 3590, "end_ms": 6200,
  *                     "label": "Al-Balad 90:6"},

@@ -1,4 +1,4 @@
--- Live check for get_homework_for_student after 0039. Read-only: it runs as
+-- Live check for get_homework_for_student after 0043 (the gate) and 0046 (media). Read-only: it runs as
 -- `authenticated` with one student's claims and writes nothing. Substitute
 -- the id (pick a student in a class WITH a syllabus, e.g. group 1, since
 -- that is where the list and the page used to disagree), then from the repo
@@ -25,7 +25,7 @@ begin
     -- What the homework list sees (the s_homeworks_unlocked policy) ...
     listed := exists (select 1 from homeworks h where h.id = hw_id);
     -- ... and what opening it returns. They must agree both ways: listed but
-    -- null is the 404 0039 fixes, null-listed but returned is the leak.
+    -- null is the 404 0043 fixed, null-listed but returned is the leak.
     payload := get_homework_for_student(hw_id);
     if listed and payload is null then
       raise exception 'homework % is listed but the RPC returns null', hw_id;
