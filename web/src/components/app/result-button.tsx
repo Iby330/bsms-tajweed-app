@@ -11,12 +11,15 @@ import type { SurahNames } from "./mushaf-reader";
  * Pass / Not passed: the result step, apart from hearing. Opens the result
  * popup teachers know from End hearing (From and To, a tick per surah, the
  * note, Confirm) for one student, with no hearing in progress needed. From
- * starts at `from`, the student's next unpassed surah; Confirm records the
- * results and refreshes the page. Used on each register row and on the
- * student's own page.
+ * starts at `from`, the student's next unpassed surah, and To starts equal
+ * to it — unless `initialFrom`/`initialTo` preset a different range, as a
+ * surah's own page does to pass that surah (and only that one) in two taps.
+ * Confirm records the results and refreshes the page. Used on each register
+ * row, the student's own page, and a surah's own page.
  */
 export function ResultButton({
   studentId, studentName, run, from: defaultFrom, names, passedBefore,
+  initialFrom, initialTo,
 }: {
   studentId: string;
   studentName: string;
@@ -25,10 +28,15 @@ export function ResultButton({
   from: number;
   names: SurahNames;
   passedBefore: Record<number, string>;   // surah → passed_at
+  /** Preset From/To for the popup's opening state. Both default to `from`
+   *  (today's behaviour) when absent. */
+  initialFrom?: number;
+  initialTo?: number;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [from, setFrom] = useState(defaultFrom);
+  const [end, setEnd] = useState(initialTo ?? defaultFrom);
   const [pending, startTransition] = useTransition();
   const minEnd = run[run.length - 1];
 
@@ -50,7 +58,9 @@ export function ResultButton({
         // mode is untouched (plain outline).
         className="dark:border-transparent dark:bg-brand dark:text-primary-foreground dark:hover:bg-brand/90 dark:hover:text-primary-foreground"
         onClick={() => {
-          setFrom(defaultFrom);
+          const openFrom = initialFrom ?? defaultFrom;
+          setFrom(openFrom);
+          setEnd(initialTo ?? openFrom);
           setOpen(true);
         }}
       >
@@ -60,7 +70,7 @@ export function ResultButton({
         open={open}
         onOpenChange={setOpen}
         from={from}
-        initialEnd={from}
+        initialEnd={end}
         minEnd={minEnd}
         names={names}
         passedBefore={passedBefore}
