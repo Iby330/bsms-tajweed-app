@@ -218,9 +218,17 @@ describe("termIndex", () => {
   }) as Course;
   const term = (
     id: number, courses: Course[], lockedWeeks: { number: number; unlockAt: string }[] = [],
+    /** Defaults keep every week "locked" — i.e. the term has not begun —
+     *  unless a test explicitly says otherwise, which is what every case
+     *  below except the "begun, nothing linkable" one needs. */
+    opts: { weekCount?: number; actionableCount?: number; doneCount?: number } = {},
   ) => ({
     id, startsOn: "2026-10-05", endsOn: "2026-11-26", examMax: 80, isCurrent: id === 1,
-    courses, moduleCount: 0, actionableCount: 5, doneCount: 2, weekCount: 8, lockedWeeks,
+    courses, moduleCount: 0,
+    actionableCount: opts.actionableCount ?? 5,
+    doneCount: opts.doneCount ?? 2,
+    weekCount: opts.weekCount ?? lockedWeeks.length,
+    lockedWeeks,
   }) as Term;
 
   it("opens the current term and links each course that has started", () => {
@@ -231,6 +239,23 @@ describe("termIndex", () => {
     expect(t1.href).toBe("/courses/1");
     expect(t1.courses.map((c) => c.href)).toEqual(["/courses/1/ghunna", "/courses/1/mudood"]);
     expect(t1.opensAt).toBeNull();
+  });
+
+  it("reads a begun term as open even when nothing in it is linkable yet", () => {
+    // Al-Aqsa's Term 1: it is running (weeks have unlocked), but its one
+    // course, Qāʿidah, has no content at all — moduleCount 0 — so there is
+    // nothing anywhere in the term to click. It must not read as locked and
+    // date itself "Opens <past date>".
+    const { terms: tiles } = termIndex([], [term(1, [
+      course("qaidah", "Qāʿidah Nūrāniyyah", 0, 0),
+    ], [], { weekCount: 5, actionableCount: 0, doneCount: 0 })], true);
+    expect(tiles[0].open).toBe(true);
+    expect(tiles[0].href).toBeNull();
+    expect(tiles[0].opensAt).toBeNull();
+    expect(tiles[0].progress).toBeNull();
+    expect(tiles[0].courses).toEqual([
+      { key: "qaidah", label: "Qāʿidah Nūrāniyyah", href: null },
+    ]);
   });
 
   it("never links a course in the open term that has not started or is empty", () => {
@@ -289,11 +314,22 @@ describe("termIndex", () => {
   it("puts every course outside the plan in the rest of the programme, content or not", () => {
     const tree = buildTree(asSeenBy(groupTwo, NOW), NOW, groupTwo);
     const { rest } = termIndex(cat(NOW), tree, true);
-    // Group 2 takes Mudūd in Term 3: it is in that term's tile, not here —
-    // even though "tajweed" (the series its rows live under) is also the
-    // series umm_al_kitab's term-1 sibling would share, were it unclaimed.
-    expect(rest.map((t) => t.block.series)).toEqual(["umm_al_kitab", "tfp", "seerah"]);
-    expect(rest.some((t) => t.block.series === "tajweed")).toBe(false);
+    // Group 2 takes Ghunna (Term 1) and Mudūd (Term 3): neither shows up here.
+    // Everything else COURSES names does — "Ṣifāt", "Mabādi'" and "Umm
+    // al-Kitāb" all have rows somewhere in the catalogue; "Ṣifāt series",
+    // "Makhārij series" and "Qāʿidah Nūrāniyyah" have none at all, which used
+    // to mean no tile for them (the live bug this fixes) — and still get one,
+    // by COURSES' own label, not whatever topic name a shared block carries.
+    expect(rest.map((t) => t.block.label)).toEqual([
+      "Ṣifāt", "Mabādi'", "Umm al-Kitāb", "Ṣifāt series", "Makhārij series", "Qāʿidah Nūrāniyyah",
+      "Ten Fundamental Principles", "Seerah",
+    ]);
+    expect(rest.some((t) => t.block.series === "ghunna" || t.block.series === "mudood")).toBe(false);
+    // Seerah and TFP have no course row at all (`courseKey: null`) — COURSES
+    // cannot name them, so they are appended from the catalogue directly,
+    // which is why they trail the course-based tiles (last two above)
+    // instead of leading them.
+    expect(rest.slice(-2).map((t) => t.block.series)).toEqual(["tfp", "seerah"]);
     expect(rest.every((t) => t.href === null)).toBe(true);
   });
 

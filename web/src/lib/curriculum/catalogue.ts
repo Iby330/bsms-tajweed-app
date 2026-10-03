@@ -31,6 +31,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getCachedTerms, getCachedWeeks, getCachedSectionWeeks } from "@/lib/reference/cached";
 import { weeksForSection } from "./section-weeks";
 import { seriesBlurb, seriesLabel, seriesRank, SERIES_ORDER } from "@/lib/lessons/series";
+import { COURSES } from "./syllabus";
 import type { Course, Term, TermRow, WeekRow } from "./tree";
 
 /** Structure only — the shape of the year, never its contents. The video id is
@@ -438,9 +439,24 @@ export type TermIndex = { terms: TermTile[]; rest: IndexTile[] };
  *
  * Built on courseIndex, which already joins the tree to the catalogue and
  * decides which course is openable: a course is linked here exactly when it
- * is an open tile there. A term is open when any of its courses is. A term
- * not yet open links nothing and is dated by its earliest course, or, with no
- * course planned, by its first week on the reader's calendar.
+ * is an open tile there.
+ *
+ * ── Open vs. linkable ─────────────────────────────────────────────────────
+ *
+ * Those are not the same question. A term is OPEN the moment it has begun for
+ * this reader — at least one of its weeks has unlocked — whether or not any
+ * course in it currently has something to click: Al-Aqsa's Term 1 is running,
+ * but its one course, Qāʿidah, has no content at all, so nothing in it is
+ * LINKABLE. Reading that as locked would print "Opens Sat 3 Oct" under a term
+ * that started weeks ago. So `open` is "has begun OR something is linkable",
+ * while `href` (the heading's own link) stays tied to linkable alone — a term
+ * with nothing to click gets no padlock and no link either, just its name and
+ * courses as plain text. `opensAt` and `progress` only mean anything for a
+ * term that has not begun / has begun respectively, so each reads null on the
+ * wrong side of `open`.
+ *
+ * A term not yet open is dated by its earliest course, or, with no course
+ * planned, by its first week on the reader's calendar.
  */
 export function termIndex(
   catalogue: CourseBlock[],
@@ -457,7 +473,11 @@ export function termIndex(
       const tile = tileById.get(`${term.id} ${course.series}`);
       return { key: course.series, label: tile?.block.label ?? course.label, href: tile?.href ?? null };
     });
-    const open = courses.some((c) => c.href !== null);
+    const linkable = courses.some((c) => c.href !== null);
+    // Begun: some week of the term has unlocked for this reader, regardless
+    // of whether what it unlocked is anything a course can link to.
+    const begun = term.weekCount > term.lockedWeeks.length;
+    const open = linkable || begun;
     const opensAt = open
       ? null
       : earliest(term.courses.flatMap((c) => (c.opensAt ? [c.opensAt] : [])))
@@ -468,20 +488,51 @@ export function termIndex(
       endsOn: term.endsOn,
       isCurrent: term.isCurrent,
       open,
-      href: open ? `/courses/${term.id}` : null,
+      href: linkable ? `/courses/${term.id}` : null,
       opensAt,
       courses,
-      progress: open ? { done: term.doneCount, total: term.actionableCount } : null,
+      progress: open && term.actionableCount > 0
+        ? { done: term.doneCount, total: term.actionableCount }
+        : null,
     };
   });
 
   // Without a syllabus the tree is the whole programme: nothing left over is
-  // someone else's, so there is no "rest" to show. With one, this is every
-  // course outside the plan, including one nobody has written any content
-  // for yet (termId null, e.g. a middle class's Ṣifāt series or Seerah for
-  // An-Nabawi) — it still belongs here, named, so the page shows the full
-  // breadth of the programme rather than just what happens to have rows.
-  const rest = hasSyllabus ? locked.filter((t) => t.reason === "not-running") : [];
+  // someone else's, so there is no "rest" to show.
+  //
+  // With one, "rest" is COURSE-based, not block-based, because a course with
+  // no content yet (Makhārij, the new Ṣifāt, Qāʿidah) has no catalogue block
+  // at all to find — there are no rows for `buildCatalogue` to fold it from.
+  // So the source of truth here is `COURSES`, the syllabus's own list of
+  // every named course, not the catalogue: for each one this reader's plan
+  // never mentions, make a tile — borrowing the catalogue's art and shape
+  // when a block exists for it, synthesizing a bare one when it doesn't —
+  // labelled with the COURSE's own name (not the topic name a shared block
+  // might carry, which is what a student actually takes it under).
+  //
+  // One thing COURSES cannot name: a series with rows but no course row at
+  // all (pre-0026, or simply never backfilled — Seerah today). Those still
+  // show up as catalogue blocks with `courseKey: null`, and are appended
+  // after the course-based tiles so they are not lost.
+  let rest: IndexTile[] = [];
+  if (hasSyllabus) {
+    const planned = new Set(terms.flatMap((t) => t.courses.map((c) => c.series)));
+    const courseTiles: IndexTile[] = Object.entries(COURSES)
+      .filter(([key]) => !planned.has(key))
+      .map(([key, def]) => {
+        const src = catalogue.find((b) => b.courseKey === key);
+        const block: CourseBlock = src
+          ? { ...src, label: def.label, parentLabel: null }
+          : {
+              series: key, termId: null, label: def.label, parentLabel: null, blurb: "",
+              slug: key, courseKey: key, moduleCount: 0, hasHomework: false, posterId: null,
+              opensAt: null, started: false, fullyOpen: false,
+            };
+        return { id: `rest ${key}`, block, href: null, reason: "not-running" as const };
+      });
+    const seriesTiles = locked.filter((t) => t.reason === "not-running" && t.block.courseKey === null);
+    rest = [...courseTiles, ...seriesTiles];
+  }
   return { terms: tiles, rest };
 }
 
