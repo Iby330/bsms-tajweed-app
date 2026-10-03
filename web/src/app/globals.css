@@ -2172,6 +2172,12 @@ body::after {
   /* A module whose week has not opened yet: present, but visibly not yours. */
   .tcard.locked { opacity: 0.62; }
   .tcard.locked:hover { background: var(--card); }
+  /* The term card is not itself a link (only its heading and courses are),
+     so it must not take the hover tint that signals a clickable tcard. */
+  .term-card:hover { background: var(--card); }
+  .term-courses { padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; }
+  .term-courses a { text-decoration: underline; text-underline-offset: 3px; }
+  .term-courses span { color: var(--muted-foreground); }
   /* — cover-art tiles (the courses index) — the card's padding moves inside
      so the image can go edge to edge, as it does on the platforms this grid is
      modelled on. — */
