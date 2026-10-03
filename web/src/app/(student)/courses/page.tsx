@@ -1,40 +1,32 @@
 import { currentProfile } from "@/lib/supabase/server";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
-import { getCatalogue, courseIndex } from "@/lib/curriculum/catalogue";
+import { getCatalogue, termIndex } from "@/lib/curriculum/catalogue";
 import { findCurrentModule } from "@/lib/curriculum/tree";
 import { CourseTile } from "@/components/app/course-tile";
+import { TermTile } from "@/components/app/term-tile";
 import { Rule } from "@/components/app/rule";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 /**
- * The programme, one square per course.
+ * The student's year, term by term, then the rest of the programme.
  *
- * It used to be one square per TERM, which answered a question nobody asks: a
- * student thinks in courses — "how am I doing in Tajweed" — and terms are the
- * calendar those courses are poured into. So the index is courses now, and the
- * term drill-down still exists underneath at /courses/[term].
- *
- * Two sections, and the second is the reason for the redesign. The top is what
- * this student is actually studying. The bottom is the rest of the programme,
- * locked: courses that open later in the year, and courses another class is on.
- * That half is not navigation — it is there to show the breadth of the thing
- * they have joined, so a student who progresses quickly, or comes back next
- * year, can see what is still ahead of them.
+ * Terms first because that is how the year is taught: the open term links
+ * through (and straight to each course that has started), and a term still
+ * ahead names what it will teach without opening it. Below, only courses
+ * that are in no term of this class's plan, locked, to show the breadth of
+ * the programme. A course this class takes later is in its term, not here.
  */
 export default async function Courses() {
   const profile = (await currentProfile())!;
   const [{ terms, hasSyllabus }, { blocks: catalogue }] = await Promise.all([
     getStudentCurriculum(profile.id),
-    // her section's calendar, so "opens later" agrees with her tree
+    // her section's calendar, so "opens" agrees with her tree
     getCatalogue(new Date(), profile.section),
   ]);
 
-  // Both halves are built from the student's own tree, so every tile links at
-  // a course that tree actually holds. The catalogue supplies the shape and
-  // the cover art — including for courses RLS has not released to them yet.
-  const { mine, locked } = courseIndex(catalogue, terms, hasSyllabus);
+  const { terms: tiles, rest } = termIndex(catalogue, terms, hasSyllabus);
 
   const live = findCurrentModule(terms);
   const totalDone = terms.reduce((n, t) => n + t.doneCount, 0);
@@ -44,11 +36,7 @@ export default async function Courses() {
     <>
       <header className="masthead">
         <h1><span>Courses</span></h1>
-        <p>
-          {mine.length
-            ? `The ${mine.length === 1 ? "topic" : mine.length + " topics"} open to you this year, and the rest of the programme below them.`
-            : "Your courses will appear here as they open."}
-        </p>
+        <p>Your year, term by term, and the rest of the programme below it.</p>
         {totalModules > 0 && (
           <div className="meta">
             <span className="label">{totalDone} of {totalModules} modules complete</span>
@@ -61,44 +49,24 @@ export default async function Courses() {
         )}
       </header>
 
-      <Rule label="What you're studying" />
+      <Rule label="Your year" />
+      <div className="cards">
+        {tiles.map((tile) => <TermTile key={tile.id} tile={tile} />)}
+      </div>
 
-      {mine.length === 0 ? (
-        <div className="field"><div className="box c12">
-          <div className="note">Nothing has opened for you yet. It will appear here when it does.</div>
-        </div></div>
-      ) : (
-        <div className="cards">
-          {mine.map((tile) => (
-            <CourseTile
-              key={tile.id}
-              block={tile.block}
-              href={tile.href}
-              progress={tile.progress}
-            />
-          ))}
-        </div>
-      )}
-
-      {locked.length > 0 && (
+      {rest.length > 0 && (
         <>
           <Rule label="The rest of the programme" />
           <p className="note" style={{ marginBottom: 18, maxWidth: "60ch" }}>
-            Not yours to open yet. It is here so you can see how much more
-            there is: what the other classes are studying, and what is waiting
-            for you if you keep going.
+            Not part of your class&apos;s plan this year. It is here so you can
+            see how much more there is.
           </p>
           <div
-            className={cn("cards", locked.length < 3 && "few")}
-            style={{ ["--n" as string]: locked.length }}
+            className={cn("cards", rest.length < 3 && "few")}
+            style={{ ["--n" as string]: rest.length }}
           >
-            {locked.map((tile) => (
-              <CourseTile
-                key={tile.id}
-                block={tile.block}
-                href={null}
-                reason={tile.reason}
-              />
+            {rest.map((tile) => (
+              <CourseTile key={tile.id} block={tile.block} href={null} reason={tile.reason} />
             ))}
           </div>
         </>
