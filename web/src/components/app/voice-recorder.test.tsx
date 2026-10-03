@@ -28,32 +28,76 @@ const recorder = (onRecorded = vi.fn()) =>
 beforeEach(() => vi.clearAllMocks());
 afterEach(cleanup);
 
-describe("VoiceRecorder — Delete", () => {
-  it("drops the rows first, then the audio", async () => {
+/** Just enough of a microphone for start() to reach `recorder.start()`. */
+const stopTrack = vi.fn();
+function fakeMicrophone() {
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: stopTrack }] })) },
+  });
+  vi.stubGlobal(
+    "MediaRecorder",
+    class {
+      static isTypeSupported = () => true;
+      mimeType = "audio/webm";
+      ondataavailable: unknown = null;
+      onstop: unknown = null;
+      start = vi.fn();
+      stop = vi.fn();
+    },
+  );
+}
+
+describe("VoiceRecorder — Record again", () => {
+  beforeEach(fakeMicrophone);
+  afterEach(() => vi.unstubAllGlobals());
+
+  /** One button, not two: a second recording replaces the first. */
+  it("offers no separate Delete", () => {
+    recorder();
+    expect(screen.queryByRole("button", { name: "Delete" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Record again" })).toBeTruthy();
+  });
+
+  it("drops the old recording, rows first then audio, and starts a new one", async () => {
     const onRecorded = vi.fn();
     recorder(onRecorded);
-    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
-    await vi.waitFor(() => expect(onRecorded).toHaveBeenCalledWith(false));
+    fireEvent.click(screen.getByRole("button", { name: "Record again" }));
+    expect(await screen.findByRole("button", { name: "Stop recording" })).toBeTruthy();
     expect(actions.deleteVoiceNote).toHaveBeenCalledWith("s1", "q1");
     expect(storage.remove).toHaveBeenCalledWith([PATH]);
     expect(actions.deleteVoiceNote.mock.invocationCallOrder[0])
       .toBeLessThan(storage.remove.mock.invocationCallOrder[0]);
-    expect(screen.getByRole("button", { name: "Record my recitation" })).toBeTruthy();
+    expect(onRecorded).toHaveBeenCalledWith(false);
   });
 
   /**
    * A refused delete left the row behind while the UI said it was gone: the
    * submit gate still counted the task as recorded, and the teacher got a
-   * recording that 404s because its audio had already been removed.
+   * recording that 404s because its audio had already been removed. So a
+   * refused delete keeps the old recording and records nothing new.
    */
-  it("keeps the recording and says so when the delete is refused", async () => {
+  it("keeps the old recording and says so when the delete is refused", async () => {
     actions.deleteVoiceNote.mockResolvedValueOnce({ ok: false, error: "permission denied" });
     const onRecorded = vi.fn();
     recorder(onRecorded);
-    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
-    expect(await screen.findByText(/Could not delete this recording/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Record again" }));
+    expect(await screen.findByText(/Could not replace your recording/)).toBeTruthy();
     expect(storage.remove).not.toHaveBeenCalled();
     expect(onRecorded).not.toHaveBeenCalled();
+    expect(stopTrack).toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Stop recording" })).toBeNull();
     expect(screen.getByRole("button", { name: "Record again" })).toBeTruthy();
+  });
+
+  /** No microphone, nothing deleted: the student keeps what they had. */
+  it("leaves the old recording alone when the microphone is refused", async () => {
+    (navigator.mediaDevices.getUserMedia as ReturnType<typeof vi.fn>)
+      .mockRejectedValueOnce(new Error("NotAllowedError"));
+    recorder();
+    fireEvent.click(screen.getByRole("button", { name: "Record again" }));
+    expect(await screen.findByText(/No microphone access/)).toBeTruthy();
+    expect(actions.deleteVoiceNote).not.toHaveBeenCalled();
+    expect(storage.remove).not.toHaveBeenCalled();
   });
 });

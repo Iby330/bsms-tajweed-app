@@ -75,10 +75,21 @@ export function VoiceRecorder({
     };
   }, []);
 
+  /**
+   * "Record again" replaces: the old recording is dropped before the new one
+   * starts, so there is never a second button to delete it with. The
+   * microphone is asked for first — a student who refuses it keeps what they
+   * had — and the delete is awaited before recording, so it can never land
+   * on top of the new upload.
+   */
   async function start() {
     setError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (path && !(await discard())) {
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
       streamRef.current = stream;
 
       const format = pickRecordingFormat(
@@ -164,22 +175,23 @@ export function VoiceRecorder({
    * no longer existed. A failed audio delete after the rows are gone only
    * strands a file nothing points at.
    */
-  async function discard() {
+  async function discard(): Promise<boolean> {
     setBusy(true);
-    setError(null);
     try {
       const dropped = await deleteVoiceNote(submissionId, questionId);
       if (!dropped.ok) {
-        setError("Could not delete this recording. Try again.");
-        return;
+        setError("Could not replace your recording. Try again.");
+        return false;
       }
       if (path) await supabaseBrowser().storage.from(BUCKET).remove([path]);
       setPath(null);
       setUrl(null);
       setDuration(0);
       onRecorded?.(false);
+      return true;
     } catch {
-      setError("Could not delete this recording. Try again.");
+      setError("Could not replace your recording. Try again.");
+      return false;
     } finally {
       setBusy(false);
     }
@@ -209,16 +221,9 @@ export function VoiceRecorder({
             </span>
           </>
         ) : (
-          <>
-            <Button variant={path ? "outline" : "default"} size="default" disabled={busy} onClick={start}>
-              {busy ? "Saving…" : path ? "Record again" : "Record my recitation"}
-            </Button>
-            {path && (
-              <Button variant="ghost" size="sm" disabled={busy} onClick={discard}>
-                Delete
-              </Button>
-            )}
-          </>
+          <Button variant={path ? "outline" : "default"} size="default" disabled={busy} onClick={start}>
+            {busy ? "Saving…" : path ? "Record again" : "Record my recitation"}
+          </Button>
         )}
       </div>
 
