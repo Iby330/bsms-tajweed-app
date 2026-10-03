@@ -73,7 +73,13 @@ export function HomeworkRow({
           ) : entry.submission === "draft" ? (
             <span className="chip warn">Draft</span>
           ) : entry.submission === "submitted" || entry.submission === "auto_marked" ? (
-            <span className="chip">Waiting to be marked</span>
+            /* The full words would squeeze the title on a phone, so it gets
+               the initials there, and a tap opens the tip to spell them out.
+               A screen reader hears the words at every width. */
+            <span className="chip">
+              <span className="sm:hidden" aria-hidden data-tip="Waiting to be marked">WTB</span>
+              <span className="max-sm:sr-only">Waiting to be marked</span>
+            </span>
           ) : null}
 
           {h.due_at && !entry.submission && <CountdownChip dueAt={h.due_at} />}
