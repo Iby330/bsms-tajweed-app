@@ -20,7 +20,9 @@ export default async function Calendar() {
   // their hifdh day class by class, so two sisters' classes can differ.
   const timetable = timetableFor(profile.section, profile.classes?.name);
   // Empty for a class with no syllabus — the sisters, until theirs is set.
-  const plans = await getTermPlans(profile.classes?.name, timetable, { classId: profile.class_id });
+  const plans = await getTermPlans(profile.classes?.name, timetable, {
+    classId: profile.class_id, section: profile.section,
+  });
 
   return (
     <>

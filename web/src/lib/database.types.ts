@@ -1283,6 +1283,35 @@ export type Database = {
         }
         Relationships: []
       }
+      section_weeks: {
+        Row: {
+          due_at: string
+          section: Database["public"]["Enums"]["section_t"]
+          unlock_at: string
+          week_id: string
+        }
+        Insert: {
+          due_at: string
+          section: Database["public"]["Enums"]["section_t"]
+          unlock_at: string
+          week_id: string
+        }
+        Update: {
+          due_at?: string
+          section?: Database["public"]["Enums"]["section_t"]
+          unlock_at?: string
+          week_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "section_weeks_week_id_fkey"
+            columns: ["week_id"]
+            isOneToOne: false
+            referencedRelation: "weeks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       strikes: {
         Row: {
           id: string

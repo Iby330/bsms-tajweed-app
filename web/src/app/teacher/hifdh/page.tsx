@@ -35,7 +35,7 @@ export default async function TeacherHifz({
   // The label and the roster both hang off the same cached class read, so
   // firing them together costs one class round trip rather than two.
   // (The Hear tab reads the roster itself; this read is then cached.)
-  const [{ weeks }, label, roster, mine] = await Promise.all([
+  const [{ weeksFor }, label, roster, mine] = await Promise.all([
     getTermsAndWeeks(),
     scopeLabel(),
     rosterWithNext(),
@@ -47,6 +47,8 @@ export default async function TeacherHifz({
     timetableFor(mine?.section ?? "brothers", mine?.name),
     "hifdh",
   );
+  // the class's section's calendar, so pace matches what its students see
+  const weeks = weeksFor(mine?.section);
 
   // The masthead and the tabs are the same on both tabs.
   const shell = (body: ReactNode) => (

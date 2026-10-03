@@ -5,12 +5,12 @@
  */
 
 import { supabaseServer } from "@/lib/supabase/server";
-import { getCachedTerms, getCachedWeeks } from "@/lib/reference/cached";
+import { getCachedTerms, getCachedWeeks, getCachedSectionWeeks } from "@/lib/reference/cached";
+import { rowsForSection, scheduleWeeks, weeksForSection } from "./section-weeks";
 import {
-  buildTree, overlayProgress, withClassDeadlines,
+  buildTree, overlayProgress,
   type Term, type SubStatus, type CurriculumRows, type ClassSchedule,
   type TermRow, type WeekRow, type LessonRow, type HomeworkRow, type RedoInfo,
-  type ScheduleWeek,
 } from "./tree";
 
 /** Both content tables, with the course columns 0026 added. One template
@@ -31,14 +31,15 @@ const HOMEWORK_COLS =
  * (`class_course_items`) are carried alongside the courses, so the client-side
  * arithmetic can match `class_item_unlock_at` / `class_item_due_at` in the
  * database exactly (0044). They cannot drift apart as long as they read the
- * same rows.
+ * same rows. The weeks are the CLASS's section's (0052), as those functions
+ * read them, so a sisters' class opens on its Wednesday.
  */
 export async function getClassSchedule(
   classId: string | null | undefined,
 ): Promise<ClassSchedule | null> {
   if (!classId) return null;
   const db = await supabaseServer();
-  const [{ data: rows }, { data: items }, weeks] = await Promise.all([
+  const [{ data: rows }, { data: items }, section, weeks, sectionWeeks] = await Promise.all([
     db.from("class_courses")
       .select(`course_id, term_id, position, courses(key, label)`)
       .eq("class_id", classId)
@@ -47,19 +48,14 @@ export async function getClassSchedule(
     db.from("class_course_items")
       .select("course_id, ordinal, week_number")
       .eq("class_id", classId),
+    classSection(classId),
     getCachedWeeks(),
+    getCachedSectionWeeks(),
   ]);
   if (!rows?.length) return null;
 
-  const firstUnlockByTerm: Record<number, string> = {};
-  const weeksByTerm: Record<number, ScheduleWeek[]> = {};
-  for (const w of weeks as WeekRow[]) {
-    const at = firstUnlockByTerm[w.term_id];
-    if (!at || Date.parse(w.unlock_at) < Date.parse(at)) firstUnlockByTerm[w.term_id] = w.unlock_at;
-    (weeksByTerm[w.term_id] ??= [])
-      .push({ number: w.number, unlock_at: w.unlock_at, due_at: w.due_at ?? null });
-  }
-  for (const list of Object.values(weeksByTerm)) list.sort((a, b) => a.number - b.number);
+  const { firstUnlockByTerm, weeksByTerm } =
+    scheduleWeeks(weeksForSection(weeks as WeekRow[], sectionWeeks, section));
 
   const itemWeeks: Record<string, Record<number, number>> = {};
   for (const i of items ?? []) (itemWeeks[i.course_id] ??= {})[i.ordinal] = i.week_number;
@@ -80,6 +76,14 @@ export async function getClassSchedule(
     weeksByTerm,
     itemWeeks,
   };
+}
+
+/** A class's section, whose week calendar its syllabus runs on. Null when the
+ *  class is unreadable, which leaves it on the shared weeks. */
+async function classSection(classId: string): Promise<string | null> {
+  const db = await supabaseServer();
+  const { data } = await db.from("classes").select("section").eq("id", classId).maybeSingle();
+  return data?.section ?? null;
 }
 
 export type StudentCurriculum = {
@@ -141,22 +145,28 @@ export async function getCurriculumTree(
 ): Promise<Term[]> {
   const db = await supabaseServer();
 
-  const [terms, weeks, lessons, homeworks, schedule] = await Promise.all([
+  const [terms, weeks, sectionWeeks, lessons, homeworks, schedule, section] = await Promise.all([
     getCachedTerms(),
     getCachedWeeks(),
+    getCachedSectionWeeks(),
     db.from("lessons").select(LESSON_COLS).order("position"),
     db.from("homeworks").select(HOMEWORK_COLS).order("number"),
     getClassSchedule(classId),
+    classId ? classSection(classId) : null,
   ]);
 
+  // Scoped to a class, its section's calendar and each homework due when that
+  // class's week says; unscoped, the shared weeks.
   return buildTree(
-    {
-      terms: terms as TermRow[],
-      weeks: weeks as WeekRow[],
-      lessons: (lessons.data ?? []) as LessonRow[],
-      // scoped to a class, each homework is due when that class's week says
-      homeworks: withClassDeadlines((homeworks.data ?? []) as HomeworkRow[], schedule),
-    },
+    rowsForSection(
+      {
+        terms: terms as TermRow[],
+        weeks: weeks as WeekRow[],
+        lessons: (lessons.data ?? []) as LessonRow[],
+        homeworks: (homeworks.data ?? []) as HomeworkRow[],
+      },
+      sectionWeeks, section, schedule,
+    ),
     now,
     schedule,
   );
@@ -172,11 +182,12 @@ export async function getStudentCurriculum(
   // from the calendar altogether. Read here rather than threaded through five
   // call sites that all pass the current user anyway.
   const { data: me } = await db
-    .from("profiles").select("class_id, unlock_all").eq("id", studentId).single();
+    .from("profiles").select("class_id, unlock_all, section").eq("id", studentId).single();
 
-  const [terms, weeks, lessons, homeworks, watches, subs, pcts, schedule] = await Promise.all([
+  const [terms, weeks, sectionWeeks, lessons, homeworks, watches, subs, pcts, schedule] = await Promise.all([
     getCachedTerms(),
     getCachedWeeks(),
+    getCachedSectionWeeks(),
     db.from("lessons").select(LESSON_COLS).order("position"),
     db.from("homeworks").select(HOMEWORK_COLS).order("number"),
     db.from("lesson_watches").select("lesson_id").eq("student_id", studentId),
@@ -191,16 +202,19 @@ export async function getStudentCurriculum(
   // The same condition `buildTree` applies, so the two cannot disagree.
   const hasSyllabus = !unlockAll && (schedule?.courses.length ?? 0) > 0;
 
-  const rows: CurriculumRows = {
-    terms: terms as TermRow[],
-    weeks: weeks as WeekRow[],
-    lessons: (lessons.data ?? []) as LessonRow[],
-    // The class's deadlines, on the flat rows as well as the tree: Home reads
-    // both, and `homework_due_for` is what the hand-in is stamped against.
-    homeworks: hasSyllabus
-      ? withClassDeadlines((homeworks.data ?? []) as HomeworkRow[], schedule)
-      : (homeworks.data ?? []) as HomeworkRow[],
-  };
+  // The reader's section's calendar (0052), and the deadlines on the flat rows
+  // as well as the tree: Home reads both, and `homework_due_for` is what the
+  // hand-in is stamped against — the class's week under a syllabus, the
+  // reader's section's week without one.
+  const rows: CurriculumRows = rowsForSection(
+    {
+      terms: terms as TermRow[],
+      weeks: weeks as WeekRow[],
+      lessons: (lessons.data ?? []) as LessonRow[],
+      homeworks: (homeworks.data ?? []) as HomeworkRow[],
+    },
+    sectionWeeks, me?.section, hasSyllabus ? schedule : null,
+  );
 
   const progress = {
     watchedLessonIds: new Set((watches.data ?? []).map((w) => w.lesson_id)),

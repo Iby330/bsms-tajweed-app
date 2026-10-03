@@ -59,7 +59,7 @@ export default async function TeacherHomework({
   // homework list is fetched while the teacher's class is still being looked
   // up. That leaves three waves — class, roster, submissions — where the
   // roster genuinely cannot start before the class is known.
-  const [scope, { terms, weeks }, { data: homeworks }] = await Promise.all([
+  const [scope, { terms, weeksFor }, { data: homeworks }] = await Promise.all([
     homeworkScope(classParam),
     getTermsAndWeeks(),
     db.from("homeworks")
@@ -72,6 +72,10 @@ export default async function TeacherHomework({
   // cohorts — and in both cases the screen behaves exactly as it always has,
   // showing the whole programme.
   const schedule = await getClassSchedule(scope.selected?.id);
+
+  // The section's own calendar (0052): the selected class's, else the one
+  // section every class in the filter shares. A sisters' week opens Wednesday.
+  const weeks = weeksFor(scope.selected?.section ?? scope.classes[0]?.section);
 
   const roster = scope.students;
   const rosterIds = roster.map((s) => s.id);

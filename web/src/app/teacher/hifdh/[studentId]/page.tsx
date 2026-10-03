@@ -52,7 +52,7 @@ export default async function StudentHifzDetail({
 
   // Every read here is keyed on the student id alone, the guard included — it
   // decides whether to render, not what to fetch, so it goes out with the rest.
-  const [{ weeks }, mine, { data: student }, { data: hp }, surahs, { data: records }, hearings, activity] = await Promise.all([
+  const [{ weeksFor }, mine, { data: student }, { data: hp }, surahs, { data: records }, hearings, activity] = await Promise.all([
     getTermsAndWeeks(),
     teacherClass(),
     db
@@ -146,7 +146,8 @@ export default async function StudentHifzDetail({
   // returning student's earlier years would otherwise inflate this year's work.
   const passed = rows.filter((r) => r.passed).length;
   const target = list.length;
-  const expected = expectedPassed(new Date(), weeks, target);
+  // the student's section's calendar, as her own Hifdh page reads it
+  const expected = expectedPassed(new Date(), weeksFor(student.section), target);
   const complete = passed === target;
   const pace = !complete && expected > 0 ? paceStatus(passed, expected) : null;
   const next = rows.find((r) => !r.passed);

@@ -27,7 +27,7 @@ export default async function TeacherHome() {
   // Who this teacher is responsible for. `teacherRoster` chains off
   // `teacherClass` internally, but both are React-cached, so asking for them
   // together costs one class read and one roster read — not two of each.
-  const [myClass, roster, { terms, weeks }] = await Promise.all([
+  const [myClass, roster, { terms, weeksFor }] = await Promise.all([
     teacherClass(),
     teacherRoster(),
     getTermsAndWeeks(),
@@ -64,7 +64,7 @@ export default async function TeacherHome() {
   // their own has no class-scoped figures, so those arms resolve to nothing
   // rather than querying for a scope that does not exist.
   const classRowsPromise: Promise<ClassRow[]> = myClass
-    ? getClassProgress(myClass.id, termId, weeks, roster)
+    ? getClassProgress(myClass.id, termId, weeksFor(myClass.section), roster)
     : Promise.resolve([]);
 
   const [leaderboards, submissions, classRows, hifz] = await Promise.all([

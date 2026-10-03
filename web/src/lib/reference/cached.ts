@@ -49,6 +49,23 @@ export const getCachedWeeks = unstable_cache(
   { tags: ["reference"], revalidate: 3600 },
 );
 
+/**
+ * A section's own unlock/due per week (0052), overriding the week's times for
+ * that section's readers. Every row, all sections: the table is readable by
+ * any signed-in user, so one shared entry is safe. Apply with `weeksForSection`.
+ */
+export const getCachedSectionWeeks = unstable_cache(
+  async () => {
+    const { data, error } = await supabaseAdmin()
+      .from("section_weeks")
+      .select("section, week_id, unlock_at, due_at");
+    if (error) throw error;
+    return data ?? [];
+  },
+  ["ref-section-weeks-v1"],
+  { tags: ["reference"], revalidate: 3600 },
+);
+
 export const getCachedSurahs = unstable_cache(
   async () => {
     const { data, error } = await supabaseAdmin()

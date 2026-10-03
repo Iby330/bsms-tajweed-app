@@ -10,7 +10,7 @@ import {
   type GroupId,
 } from "./syllabus";
 
-const GROUPS = [1, 2, 3, 4, 5] as const;
+const GROUPS = [1, 2, 3, 4, 5, 6] as const;
 
 describe("SYLLABUS", () => {
   it.each(GROUPS)("gives group %i a plan for all three terms", (group) => {
@@ -36,7 +36,7 @@ describe("SYLLABUS", () => {
     // Term 3. This is the case the week-bound content model cannot express,
     // and the reason Course.source exists.
     expect(SYLLABUS[1][1]).toContain("mudood");
-    for (const group of [2, 3, 4] as GroupId[]) {
+    for (const group of [2, 3, 4, 6] as GroupId[]) {
       expect(SYLLABUS[group][1]).not.toContain("mudood");
       expect(SYLLABUS[group][3]).toContain("mudood");
     }
@@ -67,14 +67,22 @@ describe("CLASS_GROUP", () => {
       expect(GROUPS).toContain(group);
   });
 
-  it("gives each group at most one class", () => {
-    const groups = Object.values(CLASS_GROUP);
-    expect(new Set(groups).size).toBe(groups.length);
+  it("gives each group at most one class per side", () => {
+    const brothers = ["Masjid An-Nabawi", "Masjid Al-Haram", "Masjid Al-Umawi", "Masjid Quba", "Masjid Al-Aqsa"];
+    const sisters = ["Zukhruf", "Salsabeel", "Hareer", "Rayyan"];
+    for (const side of [brothers, sisters]) {
+      const groups = side.map((name) => CLASS_GROUP[name]);
+      expect(new Set(groups).size).toBe(groups.length);
+    }
   });
 
-  it("leaves the sisters' classes without a syllabus", () => {
+  it("puts every sisters' class on a plan", () => {
+    expect(CLASS_GROUP.Zukhruf).toBe(1);
+    expect(CLASS_GROUP.Hareer).toBe(CLASS_GROUP["Masjid Al-Aqsa"]);
+    expect(coursesForTerm("Rayyan", 3)).toEqual(["mudood"]);
+    expect(coursesForTerm("Salsabeel", 3)).toEqual(["mudood", "mabadi"]);
     for (const name of ["Hareer", "Rayyan", "Salsabeel", "Zukhruf"])
-      expect(hasSyllabus(name)).toBe(false);
+      expect(hasSyllabus(name)).toBe(true);
   });
 });
 
@@ -86,7 +94,7 @@ describe("coursesForTerm", () => {
   });
 
   it("is empty for a class with no syllabus, and for an unknown one", () => {
-    expect(coursesForTerm("Hareer", 1)).toEqual([]);
+    expect(coursesForTerm("Demo: Brothers", 1)).toEqual([]);
     expect(coursesForTerm(null, 1)).toEqual([]);
     expect(coursesForTerm("Nowhere", 1)).toEqual([]);
   });

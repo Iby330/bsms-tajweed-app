@@ -27,7 +27,8 @@ export default async function Courses() {
   const profile = (await currentProfile())!;
   const [{ terms, hasSyllabus }, { blocks: catalogue }] = await Promise.all([
     getStudentCurriculum(profile.id),
-    getCatalogue(),
+    // her section's calendar, so "opens later" agrees with her tree
+    getCatalogue(new Date(), profile.section),
   ]);
 
   // Both halves are built from the student's own tree, so every tile links at

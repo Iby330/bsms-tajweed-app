@@ -5,6 +5,8 @@ import { ruleName } from "@/lib/lessons/rule-name";
 import { COURSES, coursesForTerm, hasSyllabus } from "./syllabus";
 import { classItemWeek, scheduledUnlockAt, type ClassSchedule } from "./tree";
 import { getClassSchedule } from "./queries";
+import { sectionWeekRows, type SectionWeekRow } from "./section-weeks";
+import { getCachedSectionWeeks } from "@/lib/reference/cached";
 
 /**
  * A class's syllabus, laid out across the Mondays it will actually be taught.
@@ -79,8 +81,25 @@ export type LessonRow = {
   series: string;
   position: number;
   youtube_id: string | null;
-  weeks: { term_id: number; number: number; unlock_at: string } | null;
+  /** `id` only to look the week up in the section's calendar. */
+  weeks: { id?: string; term_id: number; number: number; unlock_at: string } | null;
 };
+
+/**
+ * Each lesson's week opening when `section`'s calendar says (0052), as
+ * `can_see_content` releases it to that section. Only the no-schedule
+ * fallback reads it; a class schedule carries its section's weeks already.
+ */
+export function lessonsOnSection(
+  rows: LessonRow[], sectionWeeks: SectionWeekRow[], section: string | null | undefined,
+): LessonRow[] {
+  const mine = sectionWeekRows(sectionWeeks, section);
+  if (mine.size === 0) return rows;
+  return rows.map((r) => {
+    const sw = r.weeks?.id ? mine.get(r.weeks.id) : undefined;
+    return sw ? { ...r, weeks: { ...r.weeks!, unlock_at: sw.unlock_at } } : r;
+  });
+}
 
 /** Lessons of one course, in teaching order. */
 function courseLessons(rows: LessonRow[], series: string, termId: TermId): LessonRow[] {
@@ -189,18 +208,27 @@ export async function getTermPlans(
   className: string | null | undefined,
   timetable: Timetable,
   {
-    now = new Date(), audience = "student", classId = null,
-  }: { now?: Date; audience?: PlanAudience; classId?: string | null } = {},
+    now = new Date(), audience = "student", classId = null, section = null,
+  }: {
+    now?: Date; audience?: PlanAudience; classId?: string | null;
+    /** Whose week calendar the unscheduled fallback opens on: the reader's
+     *  for a student (as RLS gates them), the class's for a teacher. */
+    section?: string | null;
+  } = {},
 ): Promise<Record<number, PlannedWeek[]>> {
   if (!hasSyllabus(className)) return {};
 
-  const [{ data }, schedule] = await Promise.all([
+  const [{ data }, schedule, sectionWeeks] = await Promise.all([
     supabaseAdmin()
       .from("lessons")
-      .select("id, title, series, position, youtube_id, weeks(term_id, number, unlock_at)"),
+      .select("id, title, series, position, youtube_id, weeks(id, term_id, number, unlock_at)"),
     // the class's own weeks and dates, read as the viewer, as the tree reads them
     getClassSchedule(classId),
+    getCachedSectionWeeks(),
   ]);
 
-  return planFromLessons((data ?? []) as LessonRow[], className, timetable, now, audience, schedule);
+  return planFromLessons(
+    lessonsOnSection((data ?? []) as LessonRow[], sectionWeeks, section),
+    className, timetable, now, audience, schedule,
+  );
 }

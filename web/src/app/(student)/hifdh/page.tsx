@@ -50,7 +50,8 @@ export default async function StudentHifz({
   }
 
   const db = await supabaseServer();
-  const { weeks } = await getTermsAndWeeks();
+  // her section's calendar, so the pace agrees with Home's card
+  const weeks = (await getTermsAndWeeks()).weeksFor(profile.section);
 
   const [{ data: hp }, surahs, { data: records }, activity, hearings] = await Promise.all([
     db.from("hifz_profiles").select("start_surah, target_count").eq("student_id", profile.id).maybeSingle(),

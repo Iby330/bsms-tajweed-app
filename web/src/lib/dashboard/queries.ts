@@ -1,5 +1,6 @@
 import { supabaseServer } from "@/lib/supabase/server";
-import { getCachedTerms, getCachedWeeks, getCachedSurahs } from "@/lib/reference/cached";
+import { getCachedTerms, getCachedWeeks, getCachedSectionWeeks, getCachedSurahs } from "@/lib/reference/cached";
+import { weeksForSection } from "@/lib/curriculum/section-weeks";
 import { expectedPassed, memorisationList, paceStatus, type Surah } from "@/lib/hifz/pace";
 import { currentSurah, expectedSurah, type ClassRow } from "@/lib/teacher/class-progress";
 import { passRecords } from "@/lib/hifz/roster";
@@ -8,8 +9,20 @@ import { passRecords } from "@/lib/hifz/roster";
  *  verified formulas live in SQL and are never recomputed in JS. */
 
 export async function getTermsAndWeeks() {
-  const [terms, weeks] = await Promise.all([getCachedTerms(), getCachedWeeks()]);
-  return { terms, weeks };
+  const [terms, weeks, sectionWeeks] = await Promise.all([
+    getCachedTerms(), getCachedWeeks(), getCachedSectionWeeks(),
+  ]);
+  return {
+    terms,
+    /** The SHARED weeks. A student's or class's calendar is `weeksFor`. */
+    weeks,
+    /**
+     * The weeks as `section` reads them (0052): a sister's week opens on her
+     * Wednesday. A function rather than a parameter so the section can come
+     * from a read fired alongside this one.
+     */
+    weeksFor: (section: string | null | undefined) => weeksForSection(weeks, sectionWeeks, section),
+  };
 }
 
 /** The week currently in progress: latest unlocked week. */

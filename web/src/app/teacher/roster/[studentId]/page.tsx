@@ -55,7 +55,7 @@ export default async function StudentRecord({
   // Every read is keyed on the student id or on nothing at all, the class
   // guard included — it decides whether to render, not what to fetch.
   const [
-    { terms, weeks },
+    { terms, weeksFor },
     mine,
     { data: student },
     full,
@@ -69,7 +69,7 @@ export default async function StudentRecord({
   ] = await Promise.all([
     getTermsAndWeeks(),
     teacherClass(),
-    db.from("profiles").select("full_name, class_id, is_active").eq("id", studentId).maybeSingle(),
+    db.from("profiles").select("full_name, class_id, is_active, section").eq("id", studentId).maybeSingle(),
     getFullProgress(studentId),
     getIndividualLeaderboard(),
     db.from("v_hw_pct").select("number, pct, term_id").eq("student_id", studentId),
@@ -125,7 +125,8 @@ export default async function StudentRecord({
     .map((s) => ({ id: s.id, reason: s.reason, note: s.note, issued_at: s.issued_at! }));
   const earlier = (strikeRows ?? []).filter((s) => s.term_id !== termId);
 
-  const expected = expectedPassed(new Date(), weeks, full.hifz?.target ?? 43);
+  // the student's section's calendar, as her own Hifdh page reads it
+  const expected = expectedPassed(new Date(), weeksFor(student.section), full.hifz?.target ?? 43);
 
   // Where they ARE and where the calendar puts them, as surahs rather than
   // counts. `currentSurah` is the first in their own run not yet signed off —

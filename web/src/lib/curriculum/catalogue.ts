@@ -28,7 +28,8 @@
  */
 
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { getCachedTerms, getCachedWeeks } from "@/lib/reference/cached";
+import { getCachedTerms, getCachedWeeks, getCachedSectionWeeks } from "@/lib/reference/cached";
+import { weeksForSection } from "./section-weeks";
 import { seriesBlurb, seriesLabel, seriesRank, SERIES_ORDER } from "@/lib/lessons/series";
 import type { Course, Term, TermRow, WeekRow } from "./tree";
 
@@ -412,14 +413,19 @@ function tileBlock(
 
 /* ── IO ───────────────────────────────────────────────────────────────── */
 
-export async function getCatalogue(now: Date = new Date()): Promise<{
+export async function getCatalogue(
+  now: Date = new Date(),
+  /** Whose calendar `opensAt`/`started` follow (0052); none is the shared weeks. */
+  section: string | null = null,
+): Promise<{
   terms: TermRow[];
   blocks: CourseBlock[];
 }> {
   const db = supabaseAdmin();
-  const [terms, weeks, lessons, homeworks, courses] = await Promise.all([
+  const [terms, weeks, sectionWeeks, lessons, homeworks, courses] = await Promise.all([
     getCachedTerms(),
     getCachedWeeks(),
+    getCachedSectionWeeks(),
     db.from("lessons").select("week_id, series, course_id, youtube_id"),
     db.from("homeworks").select("week_id, series, course_id"),
     db.from("courses").select("id, key"),
@@ -428,7 +434,7 @@ export async function getCatalogue(now: Date = new Date()): Promise<{
   return {
     terms: terms as TermRow[],
     blocks: buildCatalogue(
-      weeks as WeekRow[],
+      weeksForSection(weeks as WeekRow[], sectionWeeks, section),
       (lessons.data ?? []) as CatalogueRow[],
       (homeworks.data ?? []) as CatalogueRow[],
       now,

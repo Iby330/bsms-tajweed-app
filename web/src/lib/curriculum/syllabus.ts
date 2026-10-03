@@ -64,11 +64,13 @@ export const COURSES: Readonly<Record<CourseKey, Course>> = {
   qaidah: { label: "Qāʿidah Nūrāniyyah", source: null },
 };
 
-/** Groups run 1 (highest) to 5, as the programme ranks them. */
-export type GroupId = 1 | 2 | 3 | 4 | 5;
+/** Groups run 1 (highest) to 5, as the programme ranks them; 6 is the
+ *  normal curriculum without Mabādi', which one sisters' class takes. */
+export type GroupId = 1 | 2 | 3 | 4 | 5 | 6;
 
 /**
- * The brothers' curriculum, as set for 2026/27.
+ * The curriculum, as set for 2026/27. A group is a plan, not a class: the
+ * sisters' classes take the brothers' plans (CLASS_GROUP below).
  *
  * Groups 2, 3 and 4 are identical today and are still written out
  * separately — group 2 is explicitly "TBC based on students' level", so they
@@ -88,14 +90,17 @@ export const SYLLABUS: Readonly<Record<GroupId, Readonly<Record<TermId, CourseKe
   // Group 5's Term 3 is TBC, and group 5 is itself "TBC based on how students
   // progress".
   5: { 1: ["qaidah"], 2: ["ummul_kitab"], 3: [] },
+  // Group 4 without Mabādi' (the matn): Rayyan, programme lead, 2026-10-03.
+  6: { 1: ["ghunna", "ummul_kitab"], 2: ["sifaat_old"], 3: ["mudood"] },
 };
 
 /**
  * Which group each class follows, by `classes.name`.
  *
- * Only the brothers' side has a curriculum so far; the sisters' classes are
- * deliberately absent and their calendars show class days without topics
- * until theirs is decided.
+ * The sisters' classes follow the brothers' plans (programme lead,
+ * 2026-10-03): Zukhruf the new curriculum with An-Nabawi, Salsabeel the normal
+ * one, Rayyan the normal one without Mabādi', and Hareer, a basics class, the
+ * same as Al-Aqsa. Their weeks run Wednesday to Wednesday (0052).
  *
  * Groups 3 and 4 were keyed to "Demo — Abdallah" and "Demo — Ibrahim" while
  * Abdallah and Ibrahim had no brothers' class to hold them. They have one
@@ -116,6 +121,10 @@ export const CLASS_GROUP: Readonly<Record<string, GroupId>> = {
   "Masjid Al-Umawi": 3, // Abdallah Ghouse
   "Masjid Quba": 4, // Ibrahim Ramadan
   "Masjid Al-Aqsa": 5, // Moadh Hwessa
+  Zukhruf: 1, // Ola Alghabra
+  Salsabeel: 4, // Rezarta Beka
+  Hareer: 5, // Sajeda Sufizada
+  Rayyan: 6, // Wala Mussa
 };
 
 /** The courses a class takes in a term, or [] when it has no syllabus. */

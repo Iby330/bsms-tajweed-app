@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { timetableFor } from "@/lib/attendance/calendar";
-import { itemsInWeek, planFromLessons, type LessonRow } from "./plan";
+import { itemsInWeek, lessonsOnSection, planFromLessons, type LessonRow } from "./plan";
 import type { ClassSchedule } from "./tree";
 
 const OPEN = "2026-01-01T00:00:00Z";
@@ -35,7 +35,7 @@ const ROWS: LessonRow[] = [
 
 describe("planFromLessons", () => {
   it("is empty for a class with no syllabus", () => {
-    expect(planFromLessons(ROWS, "Hareer", tt, NOW)).toEqual({});
+    expect(planFromLessons(ROWS, "Demo: Brothers", tt, NOW)).toEqual({});
     expect(planFromLessons(ROWS, null, tt, NOW)).toEqual({});
   });
 
@@ -215,5 +215,23 @@ describe("planFromLessons under a class's own item weeks", () => {
     expect(term1[1].lessons[0].href).toBeNull();
     const later = planFromLessons(rows, "Masjid An-Nabawi", tt, new Date("2026-10-09T12:00:00Z"), "student", groupOne)[1];
     expect(later[1].lessons[0].href).toBe("/lessons/tajweed-1-3");
+  });
+});
+
+describe("lessonsOnSection", () => {
+  const row = (weekId: string): LessonRow => ({
+    id: `l-${weekId}`, title: "Ghunna lesson", series: "tajweed", position: 1, youtube_id: "x",
+    weeks: { id: weekId, term_id: 1, number: 1, unlock_at: "2026-10-08T12:00:00Z" },
+  });
+  const sw = [{ section: "sisters", week_id: "w1", unlock_at: "2026-10-07T18:00:00Z", due_at: "2026-10-14T18:00:00Z" }];
+
+  it("opens a lesson on its section's week", () => {
+    expect(lessonsOnSection([row("w1")], sw, "sisters")[0].weeks!.unlock_at).toBe("2026-10-07T18:00:00Z");
+  });
+
+  it("leaves a week the section has no row for, and another section, alone", () => {
+    const rows = [row("w2")];
+    expect(lessonsOnSection(rows, sw, "sisters")[0]).toBe(rows[0]);
+    expect(lessonsOnSection(rows, sw, "brothers")).toBe(rows);
   });
 });
