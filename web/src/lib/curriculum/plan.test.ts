@@ -113,7 +113,7 @@ describe("planFromLessons", () => {
     // Group 1's Term 2 is sifaat (new), which does not exist.
     const term2 = planFromLessons(ROWS, "Masjid An-Nabawi", tt, NOW)[2];
     expect(term2[0].lessons[0]).toMatchObject({
-      courseLabel: "Ṣifāt (new)",
+      courseLabel: "Ṣifāt series",
       index: 1,
       missing: true,
       href: null,

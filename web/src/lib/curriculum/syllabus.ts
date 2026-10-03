@@ -59,8 +59,8 @@ export const COURSES: Readonly<Record<CourseKey, Course>> = {
   ummul_kitab: { label: "Umm al-Kitāb", source: { series: "umm_al_kitab", termId: 1 } },
   // Not in the app yet. Named so a class's calendar can still say what it is
   // being taught; they gain a source the moment the lessons are created.
-  sifaat_new: { label: "Ṣifāt (new)", source: null },
-  makharij: { label: "Makhārij", source: null },
+  sifaat_new: { label: "Ṣifāt series", source: null },
+  makharij: { label: "Makhārij series", source: null },
   qaidah: { label: "Qāʿidah Nūrāniyyah", source: null },
 };
 

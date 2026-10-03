@@ -101,18 +101,17 @@ export function CourseTile({
                     : `${progress.total - progress.done} left to do`}
               </p>
             </>
-          ) : (
+          ) : reason === "no-content" ? null : (
+            // Their own course with nothing behind it yet carries its name
+            // alone: what the series will hold is not decided, so the tile
+            // promises nothing about it.
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span aria-hidden>🔒</span>
               {reason === "later" && block.opensAt
                 ? `Opens ${fmtDay(block.opensAt)}`
-                : reason === "no-content"
-                  // Their own course, with nothing behind it yet. Saying it is
-                  // not taught would contradict the lesson they sat in today.
-                  ? "Taught in class, nothing here yet"
-                  : block.moduleCount > 0
-                    ? "Another class is studying this"
-                    : "Not taught this year"}
+                : block.moduleCount > 0
+                  ? "Another class is studying this"
+                  : "Not taught this year"}
             </p>
           )}
         </div>
