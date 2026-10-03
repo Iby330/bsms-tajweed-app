@@ -411,6 +411,80 @@ function tileBlock(
   };
 }
 
+/** A course named on a term tile: a link only when something in it is open. */
+export type TermCourse = { key: string; label: string; href: string | null };
+
+/** One term of the reader's year, as the Courses page shows it. */
+export type TermTile = {
+  id: number;
+  startsOn: string;
+  endsOn: string;
+  isCurrent: boolean;
+  /** Something in the term has opened for this reader. */
+  open: boolean;
+  /** The term page; an open term only. */
+  href: string | null;
+  /** When it opens for this reader; a term not yet open only. */
+  opensAt: string | null;
+  courses: TermCourse[];
+  /** Modules done / modules with something in them; an open term only. */
+  progress: { done: number; total: number } | null;
+};
+
+export type TermIndex = { terms: TermTile[]; rest: IndexTile[] };
+
+/**
+ * The year by term, and the programme beyond the reader's plan.
+ *
+ * Built on courseIndex, which already joins the tree to the catalogue and
+ * decides which course is openable: a course is linked here exactly when it
+ * is an open tile there. A term is open when any of its courses is. A term
+ * not yet open links nothing and is dated by its earliest course, or, with no
+ * course planned, by its first week on the reader's calendar.
+ */
+export function termIndex(
+  catalogue: CourseBlock[],
+  terms: Term[],
+  hasSyllabus: boolean,
+): TermIndex {
+  const { mine, locked } = courseIndex(catalogue, terms, hasSyllabus);
+  const tileById = new Map([...mine, ...locked].map((t) => [t.id, t]));
+  const earliest = (dates: string[]) =>
+    [...dates].sort((a, b) => Date.parse(a) - Date.parse(b))[0] ?? null;
+
+  const tiles = terms.map((term): TermTile => {
+    const courses = term.courses.map((course) => {
+      const tile = tileById.get(`${term.id} ${course.series}`);
+      return { key: course.series, label: tile?.block.label ?? course.label, href: tile?.href ?? null };
+    });
+    const open = courses.some((c) => c.href !== null);
+    const opensAt = open
+      ? null
+      : earliest(term.courses.flatMap((c) => (c.opensAt ? [c.opensAt] : [])))
+        ?? earliest(term.lockedWeeks.map((w) => w.unlockAt));
+    return {
+      id: term.id,
+      startsOn: term.startsOn,
+      endsOn: term.endsOn,
+      isCurrent: term.isCurrent,
+      open,
+      href: open ? `/courses/${term.id}` : null,
+      opensAt,
+      courses,
+      progress: open ? { done: term.doneCount, total: term.actionableCount } : null,
+    };
+  });
+
+  // Without a syllabus the tree is the whole programme: nothing left over is
+  // someone else's, so there is no "rest" to show. With one, this is every
+  // course outside the plan, including one nobody has written any content
+  // for yet (termId null, e.g. a middle class's Ṣifāt series or Seerah for
+  // An-Nabawi) — it still belongs here, named, so the page shows the full
+  // breadth of the programme rather than just what happens to have rows.
+  const rest = hasSyllabus ? locked.filter((t) => t.reason === "not-running") : [];
+  return { terms: tiles, rest };
+}
+
 /* ── IO ───────────────────────────────────────────────────────────────── */
 
 export async function getCatalogue(

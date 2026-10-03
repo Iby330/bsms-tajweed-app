@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { buildCatalogue, courseIndex, type CatalogueRow } from "./catalogue";
+import { buildCatalogue, courseIndex, termIndex, type CatalogueRow } from "./catalogue";
 import {
   buildTree, findCourse,
   type ClassSchedule, type TermRow, type WeekRow, type HomeworkRow, type LessonRow,
+  type Course, type Term,
 } from "./tree";
 
 /* ── The year, in miniature ───────────────────────────────────────────────
@@ -203,5 +204,101 @@ describe("courseIndex", () => {
     const tree = buildTree(asSeenBy(groupOne, NOW), NOW, groupOne);
     const { mine } = courseIndex(cat(NOW), tree, true);
     expect(mine.find((t) => t.href === "/courses/1/ghunna")!.block.label).toBe("Ghunna");
+  });
+});
+
+describe("termIndex", () => {
+  /** A course as the tree hands it over, without building a whole tree. */
+  const course = (
+    series: string, label: string, unlocked: number, modules: number, opensAt: string | null = null,
+  ) => ({
+    termId: 1, series, label, blurb: "", modules: [], moduleCount: modules,
+    unlockedCount: unlocked, actionableCount: unlocked, doneCount: 0,
+    hasHomework: modules > 0, opensAt, nextModule: null,
+  }) as Course;
+  const term = (
+    id: number, courses: Course[], lockedWeeks: { number: number; unlockAt: string }[] = [],
+  ) => ({
+    id, startsOn: "2026-10-05", endsOn: "2026-11-26", examMax: 80, isCurrent: id === 1,
+    courses, moduleCount: 0, actionableCount: 5, doneCount: 2, weekCount: 8, lockedWeeks,
+  }) as Term;
+
+  it("opens the current term and links each course that has started", () => {
+    const tree = buildTree(asSeenBy(groupOne, NOW), NOW, groupOne);
+    const { terms: tiles } = termIndex(cat(NOW), tree, true);
+    const t1 = tiles.find((t) => t.id === 1)!;
+    expect(t1.open).toBe(true);
+    expect(t1.href).toBe("/courses/1");
+    expect(t1.courses.map((c) => c.href)).toEqual(["/courses/1/ghunna", "/courses/1/mudood"]);
+    expect(t1.opensAt).toBeNull();
+  });
+
+  it("never links a course in the open term that has not started or is empty", () => {
+    const { terms: tiles } = termIndex([], [term(1, [
+      course("ghunna", "Ghunna", 2, 8),
+      course("mudood", "Mudūd", 0, 6, "2026-10-29T13:00:00Z"),
+      course("sifaat_new", "Ṣifāt series", 0, 0),
+    ])], true);
+    expect(tiles[0].open).toBe(true);
+    expect(tiles[0].courses).toEqual([
+      { key: "ghunna", label: "Ghunna", href: "/courses/1/ghunna" },
+      { key: "mudood", label: "Mudūd", href: null },
+      { key: "sifaat_new", label: "Ṣifāt series", href: null },
+    ]);
+    expect(tiles[0].progress).toEqual({ done: 2, total: 5 });
+  });
+
+  it("links nothing in a term that has not opened, and says when it opens", () => {
+    const { terms: tiles } = termIndex([], [term(2, [
+      course("sifaat_old", "Ṣifāt", 0, 7, "2026-12-31T13:00:00Z"),
+    ])], true);
+    expect(tiles[0]).toMatchObject({
+      open: false, href: null, opensAt: "2026-12-31T13:00:00Z", progress: null,
+      courses: [{ key: "sifaat_old", label: "Ṣifāt", href: null }],
+    });
+  });
+
+  it("dates a term with nothing planned by its first week, naming no courses", () => {
+    const { terms: tiles } = termIndex([], [term(3, [], [
+      { number: 2, unlockAt: "2027-03-18T13:00:00Z" },
+      { number: 1, unlockAt: "2027-03-11T13:00:00Z" },
+    ])], true);
+    expect(tiles[0]).toMatchObject({ open: false, href: null, courses: [], opensAt: "2027-03-11T13:00:00Z" });
+  });
+
+  it("dates a locked term by its earliest course, even out of order, ahead of its weeks", () => {
+    const { terms: tiles } = termIndex([], [term(2, [
+      course("mudood", "Mudūd", 0, 6, "2026-12-31T13:00:00Z"),
+      course("sifaat_old", "Ṣifāt", 0, 7, "2026-11-20T13:00:00Z"),
+    ], [
+      { number: 1, unlockAt: "2026-10-15T13:00:00Z" },
+    ])], true);
+    // The weeks' own date is earlier than either course's, but course dates
+    // win: weeks are only a fallback for a term with nothing planned at all.
+    expect(tiles[0].opensAt).toBe("2026-11-20T13:00:00Z");
+  });
+
+  it("dates a later term by the class's own calendar", () => {
+    const tree = buildTree(asSeenBy(groupTwo, NOW), NOW, groupTwo);
+    const t3 = termIndex(cat(NOW), tree, true).terms.find((t) => t.id === 3)!;
+    expect(t3.open).toBe(false);
+    expect(t3.courses.map((c) => c.href)).toEqual([null]);
+    expect(Date.parse(t3.opensAt!)).toBe(Date.parse("2027-03-15T00:00:00Z"));
+  });
+
+  it("puts every course outside the plan in the rest of the programme, content or not", () => {
+    const tree = buildTree(asSeenBy(groupTwo, NOW), NOW, groupTwo);
+    const { rest } = termIndex(cat(NOW), tree, true);
+    // Group 2 takes Mudūd in Term 3: it is in that term's tile, not here —
+    // even though "tajweed" (the series its rows live under) is also the
+    // series umm_al_kitab's term-1 sibling would share, were it unclaimed.
+    expect(rest.map((t) => t.block.series)).toEqual(["umm_al_kitab", "tfp", "seerah"]);
+    expect(rest.some((t) => t.block.series === "tajweed")).toBe(false);
+    expect(rest.every((t) => t.href === null)).toBe(true);
+  });
+
+  it("leaves the rest empty for a reader on the whole programme", () => {
+    const tree = buildTree(asSeenBy(null, NOW), NOW, null);
+    expect(termIndex(cat(NOW), tree, false).rest).toEqual([]);
   });
 });
