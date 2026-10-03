@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { readAll } from "@/lib/supabase/read-all";
-import { currentWeek, getTermsAndWeeks } from "@/lib/dashboard/queries";
+import { currentWeek, getTermsAndWeeks, weekEndsAt } from "@/lib/dashboard/queries";
 import { homeworkScope, scopedHref } from "@/lib/teacher/scope";
 import { ClassFilter } from "@/components/app/class-filter";
 import { MixedText } from "@/components/app/mixed-text";
@@ -161,19 +161,20 @@ export default async function TeacherHomework({
   // from the calendar ordering rather than from a clock read a render is not
   // allowed to make.
   const nowRef = week ? Date.parse(week.unlock_at) : Number.NEGATIVE_INFINITY;
-  const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+  const weekEnd = week ? weekEndsAt(weeks, week) : Number.NEGATIVE_INFINITY;
   const releasedHwIds = new Set(
     visible.filter((h) => {
       const at = unlockOf(h);
       return at !== null && Date.parse(at) <= nowRef;
     }).map((h) => h.id),
   );
-  /** Opening in the current teaching week — the reference point, up to the next. */
+  /** Opening in the current teaching week — the reference point, up to the
+   *  next week's opening (not a fixed seven days: week 1 was shorter). */
   const isThisWeek = (h: Hw) => {
     const at = unlockOf(h);
     if (at === null || !week) return false;
     const t = Date.parse(at);
-    return t >= nowRef && t < nowRef + WEEK_MS;
+    return t >= nowRef && t < weekEnd;
   };
 
   const thisWeekHws = visible.filter(isThisWeek);

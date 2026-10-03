@@ -31,6 +31,18 @@ export function currentWeek<T extends { unlock_at: string }>(weeks: T[], now = n
   return unlocked.length ? unlocked[unlocked.length - 1] : null;
 }
 
+/**
+ * When `week` stops being the current week: the moment the next one opens.
+ * Weeks are not always seven days apart — 2026/27's week 1 opened on a
+ * Saturday and week 2 the Thursday after — so a fixed seven days from the
+ * opening runs into the next week. The last week on the calendar gets seven.
+ */
+export function weekEndsAt<T extends { unlock_at: string }>(weeks: T[], week: T): number {
+  const start = Date.parse(week.unlock_at);
+  const later = weeks.map((w) => Date.parse(w.unlock_at)).filter((t) => t > start);
+  return later.length ? Math.min(...later) : start + 7 * 24 * 60 * 60 * 1000;
+}
+
 export function currentTermId(
   terms: { id: number; starts_on: string; ends_on: string }[],
   now = new Date(),
