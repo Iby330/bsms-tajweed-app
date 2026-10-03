@@ -17,14 +17,9 @@ import SectionRail, { type RailItem } from "@/components/landing/SectionRail";
 const SHOT_FRAME = TIMELINE.sections[0].beats[0].land + 4;
 
 /**
- * The landing page. Rendered at `/` — the first thing anyone sees on the
- * domain — and also at `/preview/landing`, which keeps the `?shot` lens for
- * screenshots while the design is being worked on.
- *
- * It replaced the splash that used to live at `/`. Note what changed with it:
- * the proxy no longer forwards a signed-in visitor from `/` to `/home`, so
- * students and teachers now land here too rather than on their dashboard. The
- * way back into the app is the Sign in link in the nav.
+ * The landing page. Rendered at `/landing`, and also at `/preview/landing`,
+ * which keeps the `?shot` lens for screenshots. Sign-ups are closed, so every
+ * call to action is Sign in; `/` itself redirects into the app (proxy.ts).
  *
  * ── The type system ────────────────────────────────────────────────────────
  * Helvetica Neue for everything a student reads, Fraunces Light for the things
@@ -245,7 +240,7 @@ const RAIL: readonly RailItem[] = [
   { id: "app", label: "The app" },
   { id: "covers", label: `What ${feeLabel()} covers` },
   { id: "questions", label: "Questions" },
-  { id: "apply", label: "Apply" },
+  { id: "apply", label: "Sign in" },
 ];
 
 /**
@@ -304,9 +299,8 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
               {l.label}
             </a>
           ))}
-          <Link href="/login">Sign in</Link>
-          <Link href="/apply" className="lp-btn lp-btn-light lp-btn-apply">
-            Apply to join
+          <Link href="/login" className="lp-btn lp-btn-light lp-btn-apply">
+            Sign in
           </Link>
         </nav>
       </header>
@@ -336,8 +330,8 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
             to a complete recitation.
           </p>
           <div className="lp-intro-actions">
-            <Link href="/apply" className="lp-btn lp-btn-light lp-btn-apply">
-              Apply to join
+            <Link href="/login" className="lp-btn lp-btn-light lp-btn-apply">
+              Sign in
             </Link>
             <a href="#course" className="lp-intro-link">
               What you learn
@@ -505,11 +499,11 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
           items={TESTIMONIALS}
           aside={
             <div className="lp-midcta">
-              <Link href="/apply" className="lp-btn lp-btn-light lp-btn-apply">
-                Apply to join
+              <Link href="/login" className="lp-btn lp-btn-light lp-btn-apply">
+                Sign in
               </Link>
               <p className="lp-muted">
-                {feeLabel()} for the year · Sign-ups close {CLOSES_LABEL}
+                Sign-ups for this year are closed
               </p>
             </div>
           }
@@ -707,21 +701,15 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
       <section id="apply" className="lp-band lp-apply">
         <div className="lp-head">
           <h2>
-            {feeLabel()} once, <em>for the whole year.</em>
+            Sign-ups are closed <em>for this year.</em>
           </h2>
           <p>
-            Apply with your university email. Payment details follow by email,
-            and your place is held while that is arranged.
-          </p>
-          <p className="lp-deadline">
-            Sign-ups close <mark>{CLOSES_LABEL}</mark>
+            They closed on {CLOSES_LABEL}. We open again next year, in shā&apos;
+            Allāh. Follow us on Instagram to hear when.
           </p>
         </div>
         <div className="lp-cta">
-          <Link href="/apply" className="lp-btn lp-btn-dark lp-btn-apply">
-            Apply to join
-          </Link>
-          <Link href="/login" className="lp-btn lp-btn-outline">
+          <Link href="/login" className="lp-btn lp-btn-dark lp-btn-apply">
             Sign in
           </Link>
           <p className="lp-muted lp-fine">
@@ -749,7 +737,6 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
             </div>
             <div>
               <span className="lp-label">Students</span>
-              <Link href="/apply">Apply to join</Link>
               <Link href="/login">Sign in</Link>
             </div>
             <div>
