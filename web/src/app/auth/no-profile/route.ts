@@ -14,7 +14,7 @@ import { NO_PROFILE_ERROR } from "@/lib/no-profile";
 export async function GET(request: NextRequest) {
   const to = (path: string) => NextResponse.redirect(new URL(path, request.url));
 
-  // Held and written onto the redirect by hand, as /auth/confirm does.
+  // Held and written onto the redirect by hand, as /auth/confirm/verify does.
   const pending: { name: string; value: string; options: CookieOptions }[] = [];
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

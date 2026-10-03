@@ -109,7 +109,7 @@ export async function changePassword(
  * Set a new password for someone who arrived through a reset email.
  *
  * No current password is asked for — they came here because they don't have
- * it. What stands in for it is the recovery cookie, which only /auth/confirm
+ * it. What stands in for it is the recovery cookie, which only /auth/confirm/verify
  * can mint and only after redeeming a real `type=recovery` token. A session
  * alone is not enough to reach this.
  */

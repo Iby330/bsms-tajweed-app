@@ -5,9 +5,16 @@ import { RECOVERY_COOKIE, RECOVERY_MAX_AGE } from "@/lib/account/recovery";
 import { safeNext } from "@/lib/safe-next";
 
 /**
- * Where the link in a Supabase auth email lands.
+ * Where the Continue button on /auth/confirm posts the token from an email.
  *
- * The email carries a `token_hash`, which this handler trades for a session
+ * POST only, never GET. University mail (Proofpoint, Mimecast and the like)
+ * opens every link in a message to scan it. When the emailed link itself
+ * redeemed the token, the scanner was the one signed in, seconds after
+ * delivery, and the student's own click met "expired or already used" every
+ * time. Scanners fetch links; they do not press buttons. So the link only
+ * shows a page (../page.tsx), and the token is spent here, on the press.
+ *
+ * The form carries a `token_hash`, which this handler trades for a session
  * server-side via `verifyOtp`. The alternative — letting the browser complete
  * a PKCE exchange — needs the code verifier that was stashed in the
  * *requesting* browser's storage, so it breaks in the single most common case
@@ -19,16 +26,22 @@ import { safeNext } from "@/lib/safe-next";
  * one and the same response, and doing it explicitly is the version that
  * cannot silently drop them.
  */
-export async function GET(request: NextRequest) {
-  const params = request.nextUrl.searchParams;
-  const tokenHash = params.get("token_hash");
-  const type = params.get("type") as EmailOtpType | null;
+export async function POST(request: NextRequest) {
+  const form = await request.formData();
+  const field = (name: string) => {
+    const value = form.get(name);
+    return typeof value === "string" && value ? value : null;
+  };
+  const tokenHash = field("token_hash");
+  const type = field("type") as EmailOtpType | null;
   // Only ever an in-app path — `next` arrives from an email, which is to say
   // from anywhere, and following it blindly would make this an open redirect.
-  const next = safeNext(params.get("next"));
+  const next = safeNext(field("next"));
 
+  // 303 on every way out: it turns the POST into a GET. The default 307 would
+  // repeat the POST, form body and all, against the page it lands on.
   const fail = () =>
-    NextResponse.redirect(new URL("/forgot-password?error=link", request.url));
+    NextResponse.redirect(new URL("/forgot-password?error=link", request.url), 303);
 
   if (!tokenHash || !type) return fail();
 
@@ -52,7 +65,7 @@ export async function GET(request: NextRequest) {
   const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
   if (error) return fail();
 
-  const response = NextResponse.redirect(new URL(next, request.url));
+  const response = NextResponse.redirect(new URL(next, request.url), 303);
   for (const { name, value, options } of pending) {
     response.cookies.set(name, value, options);
   }

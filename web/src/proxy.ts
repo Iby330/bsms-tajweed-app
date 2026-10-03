@@ -31,10 +31,11 @@ import { SURFACE_HEADER, isDarkOnlyPath } from "@/lib/theme/surface";
 /**
  * Reachable signed out. Everything else requires a session.
  *
- * The password-reset paths have to be here, and /auth/confirm especially:
- * that is where the link in the email lands, carrying the token that creates
- * the session. Gate it and it would bounce every reset to /login *before*
- * redeeming the token — the flow could never complete.
+ * The password-reset paths have to be here, and the /auth/confirm pair
+ * especially: the link in the email lands on /auth/confirm, and its Continue
+ * button posts the token to /auth/confirm/verify, which creates the session.
+ * Gate either and it would bounce every reset to /login *before* redeeming
+ * the token — the flow could never complete.
  */
 const PUBLIC_PATHS = [
   "/",
@@ -45,6 +46,7 @@ const PUBLIC_PATHS = [
   "/reset-password",
   "/welcome",
   "/auth/confirm",
+  "/auth/confirm/verify",
   /* Signs out a session with no profile behind it (see lib/no-profile.ts).
      Public so a signed-out visit goes straight to /login rather than being
      sent there with ?next= pointing back at it. */
