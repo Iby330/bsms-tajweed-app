@@ -57,6 +57,22 @@ describe("homeworkNav", () => {
   });
 });
 
+describe("homeworkNav — breadcrumb", () => {
+  it("hides the breadcrumb when there is a way back, so Progress is not crowded by the course", () => {
+    // From Progress the crumbs offered "Tajweed" beside "Back to Progress" and
+    // the video: three ways out where the student wanted two.
+    for (const origin of HOMEWORK_ORIGINS) {
+      expect(homeworkNav(origin, ctx).crumbs).toBe(false);
+    }
+  });
+
+  it("shows the breadcrumb when there is no back link to speak instead", () => {
+    expect(homeworkNav(null, ctx).crumbs).toBe(true);
+    // a video origin whose lesson is gone has no back link either
+    expect(homeworkNav("video", { ...ctx, lessonId: null }).crumbs).toBe(true);
+  });
+});
+
 describe("homeworkNav — degraded context", () => {
   it("offers nothing at all when a video-origin has no lesson", () => {
     // a course whose video was removed: a broken "back" is worse than none

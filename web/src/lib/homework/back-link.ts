@@ -11,6 +11,10 @@
  * no param (a bookmark, a shared link) is a normal state rather than an error:
  * the breadcrumb already says where the page sits, so we simply offer no
  * back link and let it speak for itself.
+ *
+ * The reverse holds too: once there IS a back link, the breadcrumb goes. From
+ * Progress it offered "Tajweed" beside "Back to Progress" and the video, three
+ * ways out where the student wanted two.
  */
 
 export const HOMEWORK_ORIGINS = ["video", "home", "progress", "course"] as const;
@@ -33,9 +37,22 @@ export type HomeworkNav = {
   /** The lesson this homework belongs to. Null when the video IS the back
    *  link (never offer the same destination twice) or the course has no video. */
   video: NavLink | null;
+  /** Show the course breadcrumb. Only when there is no back link to retrace
+   *  the student's route; alongside one it is a competing way out. */
+  crumbs: boolean;
 };
 
+type Links = Omit<HomeworkNav, "crumbs">;
+
 export function homeworkNav(
+  origin: HomeworkOrigin | null,
+  ctx: Parameters<typeof links>[1],
+): HomeworkNav {
+  const nav = links(origin, ctx);
+  return { ...nav, crumbs: nav.back === null };
+}
+
+function links(
   origin: HomeworkOrigin | null,
   ctx: {
     lessonId?: string | null;
@@ -43,7 +60,7 @@ export function homeworkNav(
     series?: string | null;
     courseLabel?: string | null;
   },
-): HomeworkNav {
+): Links {
   const video: NavLink | null = ctx.lessonId
     ? { href: `/lessons/${ctx.lessonId}`, label: "Go to the video" }
     : null;

@@ -85,7 +85,7 @@ export default async function HomeworkPage({
 
   // "Back" is named after wherever they actually came from; the video stays
   // reachable regardless, since it's a fact about this homework rather than
-  // about their route.
+  // about their route. The breadcrumb only shows when there is no "back".
   const nav = homeworkNav(origin, {
     lessonId: lesson?.id,
     termId: week?.term_id,
@@ -96,9 +96,9 @@ export default async function HomeworkPage({
   return (
     <>
       <header className="masthead">
-        {(week || nav.back || nav.video) && (
+        {((week && nav.crumbs) || nav.back || nav.video) && (
           <div className="flex flex-col items-start gap-1">
-            {week && (
+            {week && nav.crumbs && (
               <Crumbs
                 items={[
                   { label: "Courses", href: "/courses" },

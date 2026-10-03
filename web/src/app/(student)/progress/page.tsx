@@ -4,6 +4,7 @@ import { currentTermId, getFullProgress } from "@/lib/dashboard/queries";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
 import { listHomework, bucketHomework } from "@/lib/curriculum/tree";
 import { MarkedHomework } from "@/components/app/marked-homework";
+import { HomeworkRow } from "@/components/app/homework-row";
 import { TermBars } from "@/components/app/term-bars";
 import { CountUp } from "@/components/app/count-up";
 
@@ -28,9 +29,13 @@ export default async function Progress() {
   ]);
 
   const termId = currentTermId(curriculum.rows.terms, now);
+  const buckets = bucketHomework(listHomework(curriculum.terms));
+  // Handed in, not yet marked. Home lists what is still due and the list below
+  // holds marks, so without this a submitted homework had nowhere to show.
+  const waiting = buckets.withTeacher;
   // Each row carries its own score, so re-ordering is a pure client-side view
   // over data the page already has.
-  const marked = bucketHomework(listHomework(curriculum.terms)).marked.map((entry) => ({
+  const marked = buckets.marked.map((entry) => ({
     entry,
     pct: curriculum.pctByHomeworkId.get(entry.homework.id) ?? null,
   }));
@@ -43,6 +48,9 @@ export default async function Progress() {
         <div className="meta">
           <span className="label">Term {termId}</span>
           <span className="label hi">{marked.length} marked so far</span>
+          {waiting.length > 0 && (
+            <span className="label">{waiting.length} waiting to be marked</span>
+          )}
         </div>
       </header>
 
@@ -110,6 +118,26 @@ export default async function Progress() {
           </div>
         </section>
       </div>
+
+      {waiting.length > 0 && (
+        <>
+          <div className="divider">
+            <span className="label">Waiting to be marked · {waiting.length}</span>
+            <span className="r" />
+            <span className="m" />
+          </div>
+
+          <div className="field">
+            <section className="box c12" style={{ gap: 0 }}>
+              <ul className="rowlist">
+                {waiting.map((entry) => (
+                  <HomeworkRow key={entry.homework.id} entry={entry} from="progress" />
+                ))}
+              </ul>
+            </section>
+          </div>
+        </>
+      )}
 
       <div className="divider">
         <span className="label">Marked homework · {marked.length}</span>

@@ -72,6 +72,8 @@ export function HomeworkRow({
             <span className="chip bad">Redo</span>
           ) : entry.submission === "draft" ? (
             <span className="chip warn">Draft</span>
+          ) : entry.submission === "submitted" || entry.submission === "auto_marked" ? (
+            <span className="chip">With teacher</span>
           ) : null}
 
           {h.due_at && !entry.submission && <CountdownChip dueAt={h.due_at} />}
