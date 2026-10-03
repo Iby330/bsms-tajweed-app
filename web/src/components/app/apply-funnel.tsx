@@ -281,7 +281,7 @@ function FunnelHeader({ big, waitlist = false }: { big: boolean; waitlist?: bool
   if (big) {
     return (
       <header className="masthead pb-8">
-        <Link href="/" aria-label="BSMS Tajweed home">
+        <Link href="/landing" aria-label="BSMS Tajweed home">
           <Image
             src={BRAND_LOGO} alt="BSMS Tajweed" width={80} height={80}
             className="mb-8 rounded-2xl" priority

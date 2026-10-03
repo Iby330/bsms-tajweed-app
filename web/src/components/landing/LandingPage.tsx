@@ -297,7 +297,7 @@ export default function LandingPage({ shot = false }: { shot?: boolean }) {
         {/* The real wordmark, as a mask filled with the ink colour — the same
             technique the app uses for the rail mark, so it recolours with the
             palette instead of carrying a background of its own. */}
-        <Link href="/" className="lp-logo" aria-label="BSMS Tajweed, home" />
+        <Link href="/landing" className="lp-logo" aria-label="BSMS Tajweed, home" />
         <nav className="lp-navlinks">
           {NAV.map((l) => (
             <a key={l.href} href={l.href}>

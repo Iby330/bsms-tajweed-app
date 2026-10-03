@@ -38,7 +38,7 @@ import { SURFACE_HEADER, isDarkOnlyPath } from "@/lib/theme/surface";
  * the token — the flow could never complete.
  */
 const PUBLIC_PATHS = [
-  "/",
+  "/landing",
   "/apply",
   "/login",
   "/locked",
@@ -121,6 +121,16 @@ export async function proxy(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims ?? null;
 
+  // The bare domain is the way into the app, now that sign-ups are closed and
+  // the landing page lives at /landing. Signed in: /home (the student layout
+  // forwards teachers to /teacher/home). Signed out: the login screen, with no
+  // ?next= since /home is where it lands anyway.
+  if (pathname === "/") {
+    const to = request.nextUrl.clone();
+    to.pathname = claims ? "/home" : "/login";
+    return NextResponse.redirect(to);
+  }
+
   const isPublic = PUBLIC_PATHS.includes(pathname);
 
   // Signed out on a protected page — send to login, remembering where they were
@@ -132,14 +142,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(login);
   }
 
-  // Already signed in — skip the login screen. It used to skip `/` as well,
-  // which meant nobody with an account could ever see the domain's own front
-  // page: typing bsmstajweed.com bounced a teacher straight to /teacher/home.
-  //
-  // That was right when `/` was a splash with nothing on it but a Sign in
-  // button. It is wrong now that `/` is the landing page — the thing you send
-  // people to, and the thing you want to look at yourself. Signing in is a
-  // link in the nav instead of an automatic detour.
+  // Already signed in — skip the login screen.
   //
   // Not when /login carries an ?error= — it is saying why the visitor is here
   // (see lib/no-profile.ts), and bouncing it to /home is how that case looped.

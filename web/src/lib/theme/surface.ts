@@ -17,7 +17,7 @@
  * The signed-in app was never in here: students are in it daily and at
  * night, and the rail carries a theme toggle.
  */
-export const DARK_ONLY_PATHS: readonly string[] = ["/"];
+export const DARK_ONLY_PATHS: readonly string[] = ["/landing"];
 
 export function isDarkOnlyPath(pathname: string): boolean {
   return DARK_ONLY_PATHS.includes(pathname);
