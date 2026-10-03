@@ -4,7 +4,6 @@ import { currentTermId, getFullProgress } from "@/lib/dashboard/queries";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
 import { listHomework, bucketHomework } from "@/lib/curriculum/tree";
 import { MarkedHomework } from "@/components/app/marked-homework";
-import { HomeworkRow } from "@/components/app/homework-row";
 import { TermBars } from "@/components/app/term-bars";
 import { CountUp } from "@/components/app/count-up";
 
@@ -30,15 +29,17 @@ export default async function Progress() {
 
   const termId = currentTermId(curriculum.rows.terms, now);
   const buckets = bucketHomework(listHomework(curriculum.terms));
-  // Handed in, not yet marked. Home lists what is still due and the list below
-  // holds marks, so without this a submitted homework had nowhere to show.
-  const waiting = buckets.withTeacher;
   // Each row carries its own score, so re-ordering is a pure client-side view
   // over data the page already has.
   const marked = buckets.marked.map((entry) => ({
     entry,
     pct: curriculum.pctByHomeworkId.get(entry.homework.id) ?? null,
   }));
+  // Handed in but not yet marked sits in the same list, with no score: Home
+  // lists what is still due, so without it a submitted homework showed nowhere.
+  // No score means the score sorts sink it below the real marks.
+  const waiting = buckets.withTeacher.map((entry) => ({ entry, pct: null }));
+  const handedIn = [...marked, ...waiting];
 
   return (
     <>
@@ -119,38 +120,18 @@ export default async function Progress() {
         </section>
       </div>
 
-      {waiting.length > 0 && (
-        <>
-          <div className="divider">
-            <span className="label">Waiting to be marked · {waiting.length}</span>
-            <span className="r" />
-            <span className="m" />
-          </div>
-
-          <div className="field">
-            <section className="box c12" style={{ gap: 0 }}>
-              <ul className="rowlist">
-                {waiting.map((entry) => (
-                  <HomeworkRow key={entry.homework.id} entry={entry} from="progress" />
-                ))}
-              </ul>
-            </section>
-          </div>
-        </>
-      )}
-
       <div className="divider">
-        <span className="label">Marked homework · {marked.length}</span>
+        <span className="label">Homework · {handedIn.length}</span>
         <span className="r" />
         <span className="m" />
       </div>
 
       <div className="field">
         <section className="box c12" style={{ gap: 0 }}>
-          {marked.length === 0 ? (
-            <div className="note">Nothing marked yet.</div>
+          {handedIn.length === 0 ? (
+            <div className="note">Nothing handed in yet.</div>
           ) : (
-            <MarkedHomework rows={marked} />
+            <MarkedHomework rows={handedIn} />
           )}
         </section>
       </div>

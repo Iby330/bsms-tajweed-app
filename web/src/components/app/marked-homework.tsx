@@ -13,7 +13,7 @@ const SORTS: { value: HomeworkSort; label: string; announce: string }[] = [
 ];
 
 /**
- * Marked homework, sorted by date or by score.
+ * Handed-in homework, marked or waiting to be, sorted by date or by score.
  *
  * Every mark is already on the page, so this reorders in the browser — no
  * round trip, and no URL state to keep in step with a server render. The term
@@ -39,7 +39,7 @@ export function MarkedHomework({ rows }: { rows: ScoredHomework[] }) {
       {/* Reordering is silent to a screen reader, and this is always mounted so
           the change is announced rather than merely appearing. */}
       <p className="sr-only" aria-live="polite">
-        Marked homework sorted {announce}, within each term.
+        Homework sorted {announce}, within each term.
       </p>
 
       <div id={uid} className="flex flex-col gap-6">
