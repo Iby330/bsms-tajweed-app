@@ -26,6 +26,9 @@ their section's calendar.
   the reader.** A course in the open term that has not started yet (e.g.
   An-Nabawi's Mudūd before week 5) or has no content (Ṣifāt series,
   Makhārij series, Qāʿidah) is plain text, not a link.
+- **Term begun but nothing to open** (e.g. Al-Aqsa's Term 1, whose only
+  course, Qāʿidah, has no content yet): not locked and not dated — it is
+  running — but not a link either, with its course names as plain text.
 - **Term not yet open**: not a link at all. Shows a lock and "Opens <date>",
   the date being the first unlock among the term's modules for this reader
   (so a sister sees her Wednesday). Course names are listed as plain text.
@@ -35,7 +38,9 @@ their section's calendar.
   section calendar. It never says that nothing is planned. Not a link.
 
 **2. "Rest of the programme"**, below the terms: only courses that appear in
-no term of the reader's plan. Locked tiles with name and cover, never links —
+no term of the reader's plan, by course (`COURSES` in `syllabus.ts`), named
+by their course name and including courses with no content yet (the Ṣifāt
+and Makhārij series, Qāʿidah), plus any series with no course row (Seerah). Locked tiles with name and cover, never links —
 the same `CourseTile` with `href={null}` as today. Courses the class takes in a
 later term no longer appear here; they are named in that term's tile.
 
