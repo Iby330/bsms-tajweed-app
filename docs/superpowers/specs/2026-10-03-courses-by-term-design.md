@@ -30,7 +30,9 @@ their section's calendar.
   the date being the first unlock among the term's modules for this reader
   (so a sister sees her Wednesday). Course names are listed as plain text.
 - **Term with no courses planned** (e.g. Term 3 for Al-Aqsa and Hareer):
-  "To be confirmed", not a link.
+  shown exactly like a locked term with no course names — dates, a lock and
+  "Opens <date>", the date being the term's first week unlock on the reader's
+  section calendar. It never says that nothing is planned. Not a link.
 
 **2. "Rest of the programme"**, below the terms: only courses that appear in
 no term of the reader's plan. Locked tiles with name and cover, never links —
@@ -60,7 +62,7 @@ links, calendars, homework pages, and every teacher screen.
   `rest` tiles. Unit-tested against fixtures for An-Nabawi, a middle class,
   Al-Aqsa and a sisters' class, including: no link for a not-yet-started
   course in the open term, no link for an empty course, no link anywhere in a
-  locked term, and "To be confirmed" for an empty term.
+  locked term, and an empty term reading only "Opens <date>".
 - A `TermTile` component; `courses/page.tsx` renders three `TermTile`s and the
   rest. House styles (`cards`, `box`, `Rule`), no new design language.
 - Security does not depend on the tile: RLS already withholds unopened
