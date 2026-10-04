@@ -39,7 +39,7 @@ const PACE_EDGE: Record<PaceStatus, string> = {
  * the surah span both — and four from `lg`.
  */
 const COLS = cn(
-  "grid-cols-2 items-center gap-x-5 gap-y-3.5",
+  "grid-cols-2 items-center gap-x-5 gap-y-3.5 max-md:grid-cols-3 max-md:gap-x-3 max-md:gap-y-2",
   "lg:grid-cols-[minmax(0,1.3fr)_8rem_8rem_minmax(0,1.2fr)] lg:gap-x-6 lg:gap-y-0",
 );
 
@@ -76,18 +76,18 @@ function Metric({
     <div>
       {/* On `lg` the header row above names the columns; repeating it on every
           row would be twenty labels for four facts. */}
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground lg:hidden">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground lg:hidden max-md:hidden">
         {label}
       </div>
       <div
         className={cn(
-          "mt-0.5 font-heading text-lg leading-none tabular-nums lg:mt-0",
+          "mt-0.5 font-heading text-lg leading-none tabular-nums lg:mt-0 max-md:text-[15px]",
           empty && "text-muted-foreground/50",
         )}
       >
         {empty ? "–" : `${pct.toFixed(1)}%`}
       </div>
-      <div aria-hidden className="mt-2 h-1.5 overflow-hidden rounded-full bg-foreground/10">
+      <div aria-hidden className="mt-2 h-1.5 overflow-hidden rounded-full bg-foreground/10 max-md:mt-1.5 max-md:h-1">
         {!empty && (
           <div
             className={cn("h-full rounded-full transition-[width] duration-700 ease-out", bar)}
@@ -96,6 +96,20 @@ function Metric({
         )}
       </div>
     </div>
+  );
+}
+
+function PaceChip({ pace, className }: { pace: ClassRow["pace"]; className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 rounded-md px-2 py-0.5 text-xs font-medium max-md:px-1.5 max-md:text-[10px]",
+        pace === null ? "bg-muted text-muted-foreground" : PACE_TINT[pace],
+        className,
+      )}
+    >
+      {pace === null ? "no target" : PACE_LABEL[pace]}
+    </span>
   );
 }
 
@@ -148,11 +162,13 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
         <div
           className={cn(
             COLS,
-            "hidden border-b border-line px-4 py-2.5 lg:grid lg:px-5",
+            "hidden border-b border-line px-4 py-2.5 lg:grid lg:px-5 max-md:grid max-md:px-3 max-md:py-2",
             "text-[10px] uppercase tracking-wider text-muted-foreground",
           )}
         >
-          <span>Student</span>
+          {/* A phone row puts the name on its own line, so the header names
+              only the three columns under it. */}
+          <span className="max-md:hidden">Student</span>
           <span>Homework · T{termId}</span>
           <span>Hifdh</span>
           <span>Currently on</span>
@@ -171,40 +187,43 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
                 href={`/teacher/hifdh/${r.studentId}`}
                 className={cn(
                   COLS,
-                  "classrow grid px-4 py-3.5 lg:px-5",
+                  "classrow grid px-4 py-3.5 lg:px-5 max-md:px-3 max-md:py-2.5",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                 )}
               >
-                <span className="col-span-2 flex min-w-0 items-center gap-3 lg:col-span-1">
+                <span className="col-span-2 flex min-w-0 items-center gap-3 lg:col-span-1 max-md:col-span-3 max-md:gap-2">
                   <span
                     aria-hidden
                     className={cn(
-                      "grid size-9 shrink-0 place-items-center rounded-full",
+                      "grid size-9 shrink-0 place-items-center rounded-full max-md:size-7 max-md:text-[10px]",
                       "bg-foreground/10 text-[11px] font-semibold tracking-wide text-ink-2",
                     )}
                   >
                     {initials(r.name)}
                   </span>
                   <span className="min-w-0 truncate text-sm font-medium">{r.name}</span>
+                  {/* The pace chip rides on the name line on a phone, so the
+                      row is two lines rather than four. */}
+                  <PaceChip pace={r.pace} className="ml-auto md:hidden" />
                 </span>
 
                 <Metric label="Homework" pct={r.hwAvg} bar="bg-viz-hw" />
                 <Metric label="Hifdh" pct={r.hifzAvg} bar="bg-viz-exam" />
 
-                <span className="col-span-2 flex items-end justify-between gap-3 lg:col-span-1">
+                <span className="col-span-2 flex items-end justify-between gap-3 lg:col-span-1 max-md:col-span-1 max-md:flex-col max-md:items-start max-md:gap-1">
                   <span className="min-w-0">
-                    <span className="block text-[10px] uppercase tracking-wider text-muted-foreground lg:hidden">
+                    <span className="block text-[10px] uppercase tracking-wider text-muted-foreground lg:hidden max-md:hidden">
                       Currently on
                     </span>
                     {r.surah ? (
                       <>
                         <span className="mt-0.5 flex min-w-0 items-baseline gap-2 lg:mt-0">
-                          <span className="truncate text-sm font-medium">{r.surah.nameEn}</span>
-                          <span dir="rtl" lang="ar" className="ar-quran shrink-0 text-tertiary">
+                          <span className="truncate text-sm font-medium max-md:text-xs">{r.surah.nameEn}</span>
+                          <span dir="rtl" lang="ar" className="ar-quran shrink-0 text-tertiary max-md:hidden">
                             {r.surah.nameAr}
                           </span>
                         </span>
-                        <span className="mt-0.5 block text-[11px] tabular-nums text-muted-foreground">
+                        <span className="mt-0.5 block text-[11px] tabular-nums text-muted-foreground max-md:hidden">
                           {r.surah.index} of {r.outOf}
                         </span>
                       </>
@@ -217,17 +236,10 @@ export function ClassProgress({ rows, termId }: { rows: ClassRow[]; termId: numb
                     )}
                   </span>
 
-                  <span className="shrink-0 text-right">
-                    <span
-                      className={cn(
-                        "inline-flex rounded-md px-2 py-0.5 text-xs font-medium",
-                        r.pace === null ? "bg-muted text-muted-foreground" : PACE_TINT[r.pace],
-                      )}
-                    >
-                      {r.pace === null ? "no target" : PACE_LABEL[r.pace]}
-                    </span>
+                  <span className="shrink-0 text-right max-md:hidden">
+                    <PaceChip pace={r.pace} />
                     {r.expectedIndex !== null && (
-                      <span className="mt-0.5 block text-[11px] tabular-nums text-muted-foreground">
+                      <span className="mt-0.5 block text-[11px] tabular-nums text-muted-foreground max-md:hidden">
                         should be on {r.expectedIndex}
                       </span>
                     )}

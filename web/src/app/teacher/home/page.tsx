@@ -150,7 +150,7 @@ export default async function TeacherHome() {
                   submission{pending.length === 1 ? "" : "s"} waiting for you
                 </span>
               </div>
-              <ul className="mt-3 space-y-1 border-t border-line pt-3">
+              <ul className="mt-3 space-y-1 border-t border-line pt-3 max-md:space-y-2">
                 {pending.slice(0, 5).map((s) => {
                   const hw = hwOf.get(s.homework_id);
                   // seed titles repeat their own designation ("Tajweed
@@ -158,10 +158,12 @@ export default async function TeacherHome() {
                   const title = hw ? moduleTitle(hw.title) : "";
                   return (
                     <li key={s.id} className="flex items-center justify-between gap-3 text-sm">
-                      <span className="flex min-w-0 items-baseline gap-2">
-                        <span className="truncate">{nameOf.get(s.student_id) ?? "Student"}</span>
+                      {/* On a phone the name and the homework stack, so neither
+                          is cut to four letters to share one line. */}
+                      <span className="flex min-w-0 items-baseline gap-2 max-md:flex-col max-md:gap-0">
+                        <span className="truncate max-md:max-w-full">{nameOf.get(s.student_id) ?? "Student"}</span>
                         {hw && (
-                          <span className="min-w-0 truncate text-xs text-muted-foreground">
+                          <span className="min-w-0 truncate text-xs text-muted-foreground max-md:max-w-full">
                             {homeworkLabel(hw.number, hw.series)}
                             {title && (
                               <>
@@ -204,16 +206,19 @@ export default async function TeacherHome() {
             value={roster.length || null}
             sub="open the roster"
             href="/teacher/roster"
+            className="tile3"
           />
           <StatTile
             label={`Class homework avg · T${termId}`}
             value={classAvg === null ? null : `${classAvg.toFixed(1)}%`}
             sub="mean of each student's term average"
+            className="tile3"
           />
           <StatTile
             label="Class hifdh avg"
             value={hifzAvg === null ? null : `${hifzAvg.toFixed(1)}%`}
             sub="mean of each student's % of target"
+            className="tile3"
           />
       </div>
 
