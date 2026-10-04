@@ -15,6 +15,7 @@ import type { SurahNames } from "./mushaf-reader";
 import {
   DrillCarousel, MakhrajGrid, SourceDot, SurahPicker, SurahRanks,
   type DrillCard, type LetterWord,
+  PhoneTabs,
 } from "./mistake-board-parts";
 import { CAT_BG, CAT_FILL } from "./mistake-colors";
 import { cn } from "@/lib/utils";
@@ -199,7 +200,12 @@ export async function MistakeBoard({
     <>
       {header}
 
-      <section className="box c12" aria-label="Hifdh mistakes by kind">
+      <PhoneTabs tabs={[
+        { id: "hifdh", label: "Hifdh", figure: String(hifdh.total) },
+        { id: "tajweed", label: "Tajweed", figure: String(tajweed.total) },
+        { id: "makhraj", label: "Makhraj", figure: String(makhraj.total) },
+      ]}>
+      <section className="box c12" data-tab="hifdh" aria-label="Hifdh mistakes by kind">
         <CardHead title="Hifdh" count={`${hifdh.total} of ${board.marks.length}`} aside="what kind of slip" />
         {hifdh.total ? (
           <>
@@ -222,7 +228,7 @@ export async function MistakeBoard({
         ) : <p className="note">No hifdh slips marked.</p>}
       </section>
 
-      <section className="box c6" aria-label="Tajweed mistakes by rule">
+      <section className="box c6" data-tab="tajweed" aria-label="Tajweed mistakes by rule">
         <CardHead title="Tajweed" count={String(tajweed.total)} aside="by rule" />
         <div className="flex flex-col gap-2">
           {tajweed.rules.map((r) => (
@@ -237,26 +243,33 @@ export async function MistakeBoard({
         </div>
       </section>
 
-      <section className="box c6" aria-label="Makhraj mistakes by letter">
+      <section className="box c6" data-tab="makhraj" aria-label="Makhraj mistakes by letter">
         <CardHead title="Makhraj" count={String(makhraj.total)} aside="by letter" />
         <MakhrajGrid letters={makhraj.letters} counts={makhraj.counts} words={letterWords} />
         <p className="note">{makhraj.total ? "Tap a letter to see the words." : "No makhraj mistakes marked."}</p>
       </section>
+      </PhoneTabs>
 
-      <section className="box c6" aria-label="Mistakes session by session">
+      <PhoneTabs tabs={[
+        { id: "sessions", label: "Sessions", figure: String(columns.length) },
+        { id: "surahs", label: "Surahs", figure: String(ranks.length) },
+      ]}>
+
+      <section className="box c6" data-tab="sessions" aria-label="Mistakes session by session">
         <CardHead title="Session by session" aside={`last ${columns.length}`} />
         {columns.length >= CHART_FROM
           ? <SessionChart columns={columns} />
           : <p className="note">{plural(columns.length, "session")} so far. The chart starts at {CHART_FROM}.</p>}
       </section>
 
-      <section className="box c6" aria-label="Surahs with the most mistakes">
+      <section className="box c6" data-tab="surahs" aria-label="Surahs with the most mistakes">
         <CardHead title="Surahs, most mistakes" aside={plural(ranks.length, "surah")} />
         <SurahRanks ranks={ranks.map((r) => ({
           surah: r.surah, name: nameOf.get(r.surah) ?? String(r.surah), count: r.count,
           href: href({ heat: r.surah }, "#heatmap"),
         }))} />
       </section>
+      </PhoneTabs>
 
       <section className="box c12" aria-label="Ayahs to drill">
         <DrillCarousel cards={cards} />

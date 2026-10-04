@@ -68,7 +68,7 @@ export function MistakeSheet({
               </span>
             </DialogTitle>
           ) : (
-            <DialogTitle dir="rtl" lang="ar" className="ar-quran text-center">
+            <DialogTitle dir="rtl" lang="ar" className="ar-quran sheet-word text-center">
               {word?.text}
             </DialogTitle>
           )}
@@ -127,9 +127,9 @@ export function MistakeSheet({
           placeholder="Note (optional)" className="md:h-8" />
         <div className="flex items-center justify-between gap-2">
           {onRemove ? (
-            <Button size="sm" variant="outline" onClick={onRemove}>Remove</Button>
-          ) : <span />}
-          <Button size="sm" disabled={!category}
+            <Button size="sm" variant="outline" onClick={onRemove} className="max-md:flex-1">Remove</Button>
+          ) : <span className="max-md:hidden" />}
+          <Button size="sm" disabled={!category} className="max-md:flex-1"
             onClick={() => category && onSave({ category, detail, note })}>
             Save
           </Button>

@@ -142,8 +142,12 @@ export function ReviewLogger({
   // spreadHeat keys history by wordKey for every word, end markers included.
   const previous = tapped ? history?.[wordKey(tapped)] : undefined;
 
+  // `mushaf-bleed`: on a phone the page runs to the screen's edges, so the
+  // words being tapped are as large as the width allows.
   const reader = (
-    <MushafReader pages={pages} marks={marks} heat={heat} surahNames={surahNames} onWordTap={setTapped} />
+    <div className="mushaf-bleed">
+      <MushafReader pages={pages} marks={marks} heat={heat} surahNames={surahNames} onWordTap={setTapped} />
+    </div>
   );
 
   return (

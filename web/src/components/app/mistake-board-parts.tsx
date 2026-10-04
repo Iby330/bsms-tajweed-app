@@ -286,3 +286,43 @@ export function SurahPicker({
     </form>
   );
 }
+
+/**
+ * On a phone, sibling panels of the board share one slot: a strip of figure
+ * tiles across the top picks which panel shows below it, so three panels a
+ * screen each become one row of tiles and one panel. From `md` up the strip
+ * is hidden and every panel shows, in the desktop grid, as before.
+ *
+ * `display: contents` keeps the panels direct children of the `.field` grid,
+ * so their desktop spans are untouched. Hiding is CSS (`globals.css`, under
+ * "board tabs"), keyed on `data-active` here and `data-tab` on each panel.
+ */
+export function PhoneTabs({
+  tabs,
+  children,
+}: {
+  tabs: { id: string; label: string; figure: string }[];
+  children: React.ReactNode;
+}) {
+  const [active, setActive] = useState(tabs[0]?.id);
+  return (
+    <div className="contents boardtabs" data-active={active}>
+      <div className="box c12 boardtabs-strip md:hidden" role="tablist">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={active === t.id}
+            onClick={() => setActive(t.id)}
+          >
+            <span className="label">{t.label}</span>
+            <span className="fig">{t.figure}</span>
+          </button>
+        ))}
+      </div>
+      {children}
+    </div>
+  );
+}
+
