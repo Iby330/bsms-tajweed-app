@@ -87,9 +87,9 @@ export const SYLLABUS: Readonly<Record<GroupId, Readonly<Record<TermId, CourseKe
   // Group 4 is the same as group 3, Mabādi' included: settled by the
   // programme lead, 2026-10-02 (0043).
   4: { 1: ["ghunna", "ummul_kitab"], 2: ["sifaat_old"], 3: ["mudood", "mabadi"] },
-  // Group 5's Term 3 is TBC, and group 5 is itself "TBC based on how students
-  // progress".
-  5: { 1: ["qaidah"], 2: ["ummul_kitab"], 3: [] },
+  // Group 5 takes Umm al-Kitab alongside Qaidah in Term 1 (programme lead,
+  // 2026-10-04: it was filed under Term 2 by mistake); Terms 2 and 3 are TBC.
+  5: { 1: ["qaidah", "ummul_kitab"], 2: [], 3: [] },
   // Group 4 without Mabādi' (the matn): Rayyan, programme lead, 2026-10-03.
   6: { 1: ["ghunna", "ummul_kitab"], 2: ["sifaat_old"], 3: ["mudood"] },
 };
