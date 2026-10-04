@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { currentProfile } from "@/lib/supabase/server";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
+import { getCatalogue, courseIndex } from "@/lib/curriculum/catalogue";
 import { findTerm } from "@/lib/curriculum/tree";
-import { CourseCard } from "@/components/app/course-card";
+import { CourseTile } from "@/components/app/course-tile";
 import { Crumbs } from "@/components/app/crumbs";
 
 export const dynamic = "force-dynamic";
@@ -10,8 +11,9 @@ export const dynamic = "force-dynamic";
 const dmy = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
-/** The courses running in one term — derived from content, so a term with no
- *  Umm al-Kitāb simply doesn't show it. */
+/** The courses running in one term, each as a tile with its first video as the
+ *  cover. A course opens only once something in it has: one still ahead says
+ *  when, and one with nothing in it yet carries its name alone. */
 export default async function TermPage({
   params,
 }: {
@@ -22,9 +24,19 @@ export default async function TermPage({
   if (!Number.isInteger(termId)) notFound();
 
   const profile = (await currentProfile())!;
-  const { terms } = await getStudentCurriculum(profile.id);
+  const [{ terms, hasSyllabus }, { blocks: catalogue }] = await Promise.all([
+    getStudentCurriculum(profile.id),
+    // her section's calendar, so "opens" agrees with her tree
+    getCatalogue(new Date(), profile.section),
+  ]);
   const term = findTerm(terms, termId);
   if (!term) notFound();
+
+  // courseIndex dresses every course of the year; this page wants one term's
+  const { mine, locked } = courseIndex(catalogue, terms, hasSyllabus);
+  const tiles = [...mine, ...locked].filter((t) => t.id.startsWith(`${term.id} `));
+  const order = new Map(term.courses.map((c, i) => [`${term.id} ${c.series}`, i]));
+  tiles.sort((a, b) => (order.get(a.id) ?? 99) - (order.get(b.id) ?? 99));
 
   return (
     <>
@@ -51,8 +63,14 @@ export default async function TermPage({
         </div></div>
       ) : (
         <div className="cards">
-          {term.courses.map((course) => (
-            <CourseCard key={course.series} course={course} />
+          {tiles.map((tile) => (
+            <CourseTile
+              key={tile.id}
+              block={tile.block}
+              href={tile.href}
+              reason={tile.reason}
+              progress={tile.progress}
+            />
           ))}
         </div>
       )}

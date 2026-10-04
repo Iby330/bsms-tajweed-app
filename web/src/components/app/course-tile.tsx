@@ -53,10 +53,10 @@ export function CourseTile({
   note?: string;
 }) {
   // Three covers, in order of preference: art you have supplied, else the
-  // opening lesson's poster frame — which is why the student module cards look
-  // right and these did not — else the branded plate. The poster is withheld
-  // from a locked block, since its content is not the reader's to see.
-  const src = coverSrc(block.slug) ?? (href ? thumbnailUrl(block.posterId) : null);
+  // opening lesson's poster frame, else the branded plate. A locked block
+  // shows its poster too: a thumbnail gives nothing of the course away, and
+  // the locked half of the page is there to show what the programme holds.
+  const src = coverSrc(block.slug) ?? thumbnailUrl(block.posterId);
   const shape = block.moduleCount
     ? `${block.moduleCount} ${block.moduleCount === 1 ? "module" : "modules"}` +
       (block.termId ? ` · Term ${block.termId}` : "") +

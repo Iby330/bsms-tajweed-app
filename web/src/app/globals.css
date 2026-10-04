@@ -2174,7 +2174,13 @@ body::after {
   .tcard.locked:hover { background: var(--card); }
   /* The term card is not itself a link (only its heading and courses are),
      so it must not take the hover tint that signals a clickable tcard. */
-  .term-card:hover { background: var(--card); }
+  /* Not a link, so no hover tint; a linked term is clickable all over:
+     its heading's link is stretched across the card, and the course links
+     are lifted above that so they still open their own course. */
+  .term-card:not(.linked):hover { background: var(--card); }
+  .term-card.linked { position: relative; }
+  .term-card.linked h2 a::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+  .term-card.linked .term-courses a { position: relative; z-index: 2; }
   .term-courses { padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; }
   .term-courses a { text-decoration: underline; text-underline-offset: 3px; }
   .term-courses span { color: var(--muted-foreground); }
@@ -2186,6 +2192,8 @@ body::after {
                        background: color-mix(in oklab, var(--foreground) 6%, var(--card));
                        border-bottom: 1px solid var(--border); overflow: hidden; }
   .cover-card .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* two videos side by side, each cropped to its half */
+  .cover-card .cover.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; }
   /* The stand-in until real art lands: the course's own name, set the way the
      masthead sets a name. */
   .cover-card .plate { position: absolute; inset: 0; display: flex; flex-direction: column;

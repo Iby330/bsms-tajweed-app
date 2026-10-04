@@ -9,6 +9,7 @@ afterEach(cleanup);
 const base: Tile = {
   id: 1, startsOn: "2026-10-05", endsOn: "2026-11-26", isCurrent: true,
   open: true, href: "/courses/1", opensAt: null, progress: { done: 2, total: 5 },
+  posters: ["vidA", "vidB"],
   courses: [
     { key: "ghunna", label: "Ghunna", href: "/courses/1/ghunna" },
     { key: "mudood", label: "Mudūd", href: null },
@@ -22,6 +23,8 @@ describe("TermTile", () => {
     expect(hrefs).toEqual(["/courses/1", "/courses/1/ghunna"]);
     expect(getByText("Mudūd").closest("a")).toBeNull();
     expect(getByText("Current term")).toBeTruthy();
+    // the whole card opens the term
+    expect(container.querySelector("article")!.classList.contains("linked")).toBe(true);
     // startsOn/endsOn are Postgres `date` columns, formatted in UTC (fmtDay).
     expect(getByText("5 Oct – 26 Nov")).toBeTruthy();
     expect(container.querySelector("article")?.classList.contains("current")).toBe(true);
@@ -34,6 +37,7 @@ describe("TermTile", () => {
       courses: [{ key: "sifaat_old", label: "Ṣifāt", href: null }],
     }} />);
     expect(container.querySelectorAll("a")).toHaveLength(0);
+    expect(container.querySelector("article")!.classList.contains("linked")).toBe(false);
     // opensAt is a timestamptz, formatted in Europe/London (fmtStamp). The
     // match anchors on the end of the string since the lock glyph precedes
     // the text node inside the same <p>.
@@ -49,5 +53,16 @@ describe("TermTile", () => {
     }} />);
     expect(container.querySelectorAll("li")).toHaveLength(0);
     expect(container.textContent).toMatch(/Opens /);
+  });
+
+  it("covers the tile with its videos' thumbnails, or the plate without", () => {
+    const two = render(<TermTile tile={base} />);
+    const imgs = [...two.container.querySelectorAll(".cover img")].map((i) => i.getAttribute("src"));
+    expect(imgs).toEqual(["https://i.ytimg.com/vi/vidA/hqdefault.jpg", "https://i.ytimg.com/vi/vidB/hqdefault.jpg"]);
+    expect(two.container.querySelector(".cover")!.classList.contains("duo")).toBe(true);
+    cleanup();
+    const none = render(<TermTile tile={{ ...base, posters: [] }} />);
+    expect(none.container.querySelectorAll(".cover img")).toHaveLength(0);
+    expect(none.container.querySelector(".cover .plate")!.textContent).toBe("Term 1");
   });
 });
