@@ -1,8 +1,7 @@
 import { MixedText } from "@/components/app/mixed-text";
-import { TapWords } from "@/components/app/tap-words";
+import { InteractiveAnswer, isInteractive } from "@/components/app/interactive-answer";
 import { VoicePlayback } from "@/components/app/voice-playback";
 import { RecitationClip } from "@/components/app/recitation-clip";
-import { isTapWords } from "@/lib/homework/tap-words";
 import { fmtMarks, selectedOf, textOf } from "@/lib/homework/logic";
 import { parseMedia } from "@/lib/homework/media";
 import { questionLabels } from "@/lib/homework/letters";
@@ -210,11 +209,11 @@ export function PastAttempts({
                         {clip && <RecitationClip clip={clip} className="mt-2" />}
 
                         <div className="mt-2 text-sm">
-                          {isTapWords(q.options) ? (
-                            /* Their taps with the key drawn over them, the same
-                               way the live panel shows a tap-the-rule answer —
-                               a bare list of Arabic words says nothing. */
-                            <TapWords options={q.options!} selected={chosen} readOnly reveal />
+                          {isInteractive(q.options) ? (
+                            /* Their answer with the key drawn over it, the same
+                               way the live panel shows one — a bare list of
+                               Arabic words or grid cells says nothing. */
+                            <InteractiveAnswer options={q.options!} selected={chosen} readOnly reveal />
                           ) : q.options ? (
                             chosen.length ? (
                               <ul className="space-y-1">

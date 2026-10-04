@@ -2,8 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { MixedText } from "@/components/app/mixed-text";
-import { TapWords } from "@/components/app/tap-words";
-import { isTapWords } from "@/lib/homework/tap-words";
+import { InteractiveAnswer, isInteractive } from "@/components/app/interactive-answer";
 import { VoicePlayback } from "@/components/app/voice-playback";
 import { RecitationClip } from "@/components/app/recitation-clip";
 import { Button } from "@/components/ui/button";
@@ -294,11 +293,12 @@ export function ReviewPanel({
                 <p className="text-sm italic text-muted-foreground">No answer given.</p>
               )}
 
-              {isTapWords(q.options) ? (
-                /* The passage as the student saw it, with the key drawn over
-                   their taps — a list of thirty Arabic words tells a teacher
-                   nothing about where the rule was missed. */
-                <TapWords options={q.options!} selected={chosen} readOnly reveal />
+              {isInteractive(q.options) ? (
+                /* The passage, pairs or drawing as the student saw it, with
+                   the key drawn over their answer — a list of thirty Arabic
+                   words tells a teacher nothing about where the rule was
+                   missed. */
+                <InteractiveAnswer options={q.options!} selected={chosen} readOnly reveal />
               ) : q.options ? (
                 /* Two channels, so one row can say both things at once: the
                    fill is whether the option is RIGHT, the ring is whether the

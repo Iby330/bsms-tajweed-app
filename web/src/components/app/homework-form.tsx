@@ -3,8 +3,7 @@
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MixedText } from "@/components/app/mixed-text";
-import { TapWords } from "@/components/app/tap-words";
-import { isTapWords } from "@/lib/homework/tap-words";
+import { InteractiveAnswer, isInteractive } from "@/components/app/interactive-answer";
 import { MarkBadge } from "@/components/app/mark-badge";
 import { VoiceRecorder } from "@/components/app/voice-recorder";
 import { RecitationClip } from "@/components/app/recitation-clip";
@@ -176,11 +175,12 @@ export function HomeworkForm({
                 Open this homework to start recording.
               </p>
             )
-          ) : isTapWords(q.options) ? (
-            /* A passage to tap rather than options to pick — the same
-               {selected:[…]} answer either way, so nothing downstream
-               knows the difference. */
-            <TapWords
+          ) : isInteractive(q.options) ? (
+            /* Something to work on — a passage or letters to tap, pairs
+               to match, items to order, a drawing to point at — rather
+               than options to pick. The same {selected:[…]} answer either
+               way, so nothing downstream knows the difference. */
+            <InteractiveAnswer
               options={q.options!}
               selected={selectedOf(value)}
               readOnly={readOnly}

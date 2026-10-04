@@ -3,6 +3,8 @@ import { MixedText } from "@/components/app/mixed-text";
 import { RecitationClip } from "@/components/app/recitation-clip";
 import { parseOptions, parseRubric } from "@/lib/marking/objective";
 import { isTapWords } from "@/lib/homework/tap-words";
+import { isTapLetters } from "@/lib/homework/tap-letters";
+import { choiceGrid } from "@/lib/homework/choice-grid";
 import { questionStats, tallyOptions, type ScoreAnswer } from "@/lib/marking/responses";
 import { parseMedia } from "@/lib/homework/media";
 import { isLetterGrid, questionLabels } from "@/lib/homework/letters";
@@ -164,11 +166,21 @@ export function QuestionBreakdown({
                 says nothing a teacher can act on — the useful figure is how
                 many found each spot, which the per-question average above
                 already carries. The passage itself belongs on the script. */}
-            {options && isTapWords(options) ? (
+            {options && (isTapWords(options) || isTapLetters(options)) ? (
               <p className="mt-4 text-xs text-muted-foreground">
-                A passage of {options.length} words with{" "}
+                A passage of {options.length} {isTapWords(options) ? "words" : "letters"} with{" "}
                 {options.filter((o) => o.correct).length} to find. Open a student
                 under Individual to see the passage with their taps on it.
+              </p>
+            ) : options && choiceGrid(options) ? (
+              /* A grid's cells are pairings, not answers: a tally of sixteen
+                 cells says less than the average above, which is already the
+                 share of rows the class got right. */
+              <p className="mt-4 text-xs text-muted-foreground">
+                {choiceGrid(options)!.kind === "match"
+                  ? `A match of ${choiceGrid(options)!.rows.length} pairs.`
+                  : `${choiceGrid(options)!.rows.length} items to put in order.`}{" "}
+                Open a student under Individual to see their answer against the key.
               </p>
             ) : options && (
               <ul className="mt-4 space-y-1">

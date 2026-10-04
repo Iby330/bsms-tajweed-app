@@ -196,3 +196,31 @@ describe("parseAutoRubric", () => {
     expect(parseAutoRubric([{ id: "c1", present: "yes" }])).toBeNull();
   });
 });
+
+// ─── match / order (choice-grid.ts) ─────────────────────────────────────────
+
+describe("scoreObjective: a match or order grid", () => {
+  // 3 rows × 3 columns, key: row 0 → col 2, row 1 → col 0, row 2 → col 1.
+  const KEY = [2, 0, 1];
+  const grid = (kind: "match" | "order", scoring: "exact" | "per_option"): MarkableQuestion => ({
+    qtype: "checkbox", scoring, points: 3,
+    options: [0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => ({
+      position: r * 3 + c, label: `${kind}:${r}:${c}`, value: `L${r}\tR${c}`, correct: KEY[r] === c,
+    }))),
+  });
+
+  it("marks each row on its own, whatever the stored scoring", () => {
+    // Rows 1 and 2 swapped: row 0 right, two wrong. Per option this was 0.
+    for (const scoring of ["exact", "per_option"] as const) {
+      expect(scoreObjective(grid("match", scoring), { selected: [2, 4, 6] })).toBe(1);
+    }
+  });
+
+  it("gives full marks for the key, in either kind", () => {
+    expect(scoreObjective(grid("order", "per_option"), { selected: [2, 3, 7] })).toBe(3);
+  });
+
+  it("gives nothing for an empty answer", () => {
+    expect(scoreObjective(grid("match", "per_option"), { selected: [] })).toBe(0);
+  });
+});

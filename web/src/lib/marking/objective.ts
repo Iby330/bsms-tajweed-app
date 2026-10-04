@@ -9,6 +9,8 @@
  * of the pipeline can trust its types.
  */
 
+import { choiceGrid, gridScore } from "@/lib/homework/choice-grid";
+
 /* ── types ───────────────────────────────────────────────────────────── */
 
 export type Scoring = "exact" | "per_option" | "manual";
@@ -136,6 +138,12 @@ export function scoreObjective(
 
   const parsed = parseResponse(response);
   const selected = [...new Set(parsed.selected ?? [])];
+
+  // Match / put-in-order: marked a row at a time, whatever `scoring` says —
+  // a swapped pair is two wrong rows, not a reason to cancel two right ones.
+  const grid = choiceGrid(question.options);
+  if (grid) return gridScore(grid, correct, selected, question.points);
+
   const correctSet = new Set(correct);
   const hits = selected.filter((p) => correctSet.has(p)).length;
   const misses = selected.filter((p) => !correctSet.has(p)).length;

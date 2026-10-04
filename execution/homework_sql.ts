@@ -28,6 +28,20 @@
  *   whatsapp (sent to the class group)     → mcq, 0 marks, one "sent" option —
  *                                            last year's shape; an in-app task
  *                                            would block hand-in until recorded
+ *   listen (name the rule you heard)       → mcq, exact, media.clip = the slice
+ *   voice_reference (record after hearing) → voice task + media.clip = Al-Ḥuṣarī's
+ *                                            reading of the ayahs, from QUL timings
+ *   match / order                          → checkbox, one option per CELL of the
+ *                                            grid (label match:r:c / order:r:c),
+ *                                            columns shuffled; marked a row at a
+ *                                            time (web/src/lib/homework/choice-grid.ts)
+ *   diagram (tap where the sound is made)  → mcq, one option per region of the
+ *                                            mouth diagram (label diagram:<region>)
+ *   tap_letters                            → checkbox, per_option, one option per
+ *                                            LETTER (label L:surah:ayah:word:letter)
+ *
+ * `--rows <file>` also writes the computed rows as JSON, so a review page can
+ * show exactly what would be loaded.
  *
  * Audio on options, and a question's own `clip`, land in questions.media,
  * written only if that column exists (migration 0048), so this file applies
@@ -41,6 +55,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
+import { REGIONS, type Region } from "../web/src/lib/homework/diagram";
+import { ordinal } from "../web/src/lib/homework/choice-grid";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "..");
@@ -52,11 +68,17 @@ type Audio = { url: string; start_ms?: number; end_ms?: number };
  *  is this?"): always a slice, as lib/homework/media.ts requires of a clip. */
 type Clip = { url: string; start_ms: number; end_ms: number; label?: string };
 type Opt = { text: string; correct: boolean; audio?: string | Audio };
-type TapWord = { t: string; key: boolean };
+type TapLetter = { t: string; key: boolean };
+type TapWord = { t: string; key: boolean; letters?: TapLetter[] };
 type Q = {
   n: number; format: string; prompt: string; points: number;
   options?: Opt[] | null; rubric?: { desc: string; marks: number }[] | null; clip?: Clip | null;
   tap?: { surah: number; from: number; to: number; ayahs: { ref: string; words: TapWord[] }[] } | null;
+  clip?: { audio_url: string; start_ms: number; end_ms: number } | null;
+  reference?: { surah: number; from: number; to: number } | null;
+  pairs?: { left: string; right: string }[] | null;
+  items?: string[] | null;
+  diagram?: { answer: string } | null;
 };
 type Paper = { number: number; series: string; course: string; ordinal: number; term1_week: number | null; title: string; questions: Q[] };
 
@@ -107,6 +129,88 @@ async function tapOptions(q: Q) {
   }));
 }
 
+/**
+ * A deterministic shuffle that never leaves the items where they started: the
+ * grid's labels reach the student, so a column order that matched the key
+ * would give it away. Seeded per question so a re-run loads the same grid.
+ */
+function shuffled(n: number, seed: number): number[] {
+  let x = (Math.imul(seed, 2654435761) >>> 0) || 1;
+  const rand = () => { // xorshift32: integer maths only, so it is the same everywhere
+    x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0;
+    return x / 4294967296;
+  };
+  for (let tries = 0; ; tries++) {
+    const perm = [...Array(n).keys()];
+    for (let i = n - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [perm[i], perm[j]] = [perm[j], perm[i]];
+    }
+    if (perm.some((v, i) => v !== i) || n < 2 || tries > 20) return perm;
+  }
+}
+
+/**
+ * Rows × columns as checkbox options. `rows[r]` belongs with `cols[key[r]]`;
+ * the columns are laid out in shuffled order, so cell (r, c) is right when
+ * the column at c is row r's partner.
+ */
+function gridOptions(kind: "match" | "order", rows: string[], cols: string[], seed: number) {
+  const perm = shuffled(cols.length, seed); // perm[c] = which original column sits at c
+  return rows.flatMap((rowText, r) => perm.map((orig, c) => ({
+    position: r * cols.length + c,
+    label: `${kind}:${r}:${c}`,
+    value: `${rowText}\t${cols[orig]}`,
+    correct: orig === r,
+  })));
+}
+
+const qulCache = new Map<number, Record<string, { time_from: number; time_to: number }>>();
+/** Al-Ḥuṣarī's reading of surah:from–to, as a slice of QUL's surah file. */
+async function referenceClip(ref: { surah: number; from: number; to: number }) {
+  if (!qulCache.has(ref.surah)) {
+    const res = await fetch(`https://qul.tarteel.ai/api/v1/audio/surah_segments/6?surah=${ref.surah}&per_page=300`,
+      { headers: { "User-Agent": "Mozilla/5.0 (bsms homework_sql)" } }); // QUL answers 403 without one
+    if (!res.ok) throw new Error(`QUL ${ref.surah}: HTTP ${res.status}`);
+    qulCache.set(ref.surah, (await res.json()).segments);
+  }
+  const seg = qulCache.get(ref.surah)!;
+  const a = seg[`${ref.surah}:${ref.from}`], b = seg[`${ref.surah}:${ref.to}`];
+  if (!a || !b) throw new Error(`QUL has no timing for ${ref.surah}:${ref.from}-${ref.to}`);
+  return {
+    url: `https://audio-cdn.tarteel.ai/quran/surah/husary/murattal/mp3/${String(ref.surah).padStart(3, "0")}.mp3`,
+    start_ms: a.time_from, end_ms: b.time_to,
+  };
+}
+
+async function letterOptions(q: Q) {
+  const t = q.tap!;
+  // Each word's letters must spell the word as the mushaf has it.
+  const { data, error } = await db
+    .from("quran_words")
+    .select("ayah_number, word_position, text_uthmani, is_end")
+    .eq("surah_number", t.surah).gte("ayah_number", t.from).lte("ayah_number", t.to)
+    .order("ayah_number").order("word_position");
+  if (error) throw error;
+  const words = (data as { ayah_number: number; word_position: number; text_uthmani: string; is_end: boolean }[]).filter((w) => !w.is_end);
+  const drafted = t.ayahs.flatMap((a) => a.words);
+  const norm = (x: string) => x.normalize("NFC");
+  if (words.length !== drafted.length) throw new Error(`Q${q.n}: ${drafted.length} drafted words, the mushaf has ${words.length}`);
+  const out = [];
+  let position = 1;
+  for (const [i, w] of words.entries()) {
+    const letters = drafted[i].letters;
+    if (!letters?.length) throw new Error(`Q${q.n}: word ${i + 1} has no letters`);
+    if (norm(letters.map((l) => l.t).join("")) !== norm(w.text_uthmani))
+      throw new Error(`Q${q.n}: letters of ${w.text_uthmani} spell ${letters.map((l) => l.t).join("")}`);
+    for (const [k, l] of letters.entries()) {
+      out.push({ position: position++, label: `L:${t.surah}:${w.ayah_number}:${w.word_position}:${k + 1}`, value: l.t, correct: l.key });
+    }
+  }
+  return out;
+}
+
+let paperNumber = 0;
 async function row(q: Q, position: number) {
   const base = { position, prompt: q.prompt, points: q.points, is_task: false, scoring: "exact", options: null as unknown, rubric: null as unknown, media: null as unknown };
   // Past Z (the 29-letter alphabet grid) an option is numbered instead.
@@ -131,6 +235,33 @@ async function row(q: Q, position: number) {
     case "short": return { ...base, qtype: "text", rubric: rubric(q.rubric) };
     case "extended": return { ...base, qtype: "paragraph", rubric: rubric(q.rubric) };
     case "voice": return { ...base, qtype: "text", scoring: "manual", points: 0, is_task: true };
+    case "voice_reference":
+      if (!q.reference) throw new Error(`Q${q.n}: voice_reference without a reference`);
+      return { ...base, qtype: "text", scoring: "manual", points: 0, is_task: true, media: { clip: await referenceClip(q.reference) } };
+    case "listen": {
+      if (!q.clip) throw new Error(`Q${q.n}: listen without a clip`);
+      return { ...base, qtype: "mcq", options: opts(q.options ?? []),
+        media: { clip: { url: q.clip.audio_url, start_ms: q.clip.start_ms, end_ms: q.clip.end_ms } } };
+    }
+    case "match": {
+      const pairs = q.pairs ?? [];
+      if (pairs.length < 2) throw new Error(`Q${q.n}: match needs pairs`);
+      return { ...base, qtype: "checkbox", scoring: "per_option",
+        options: gridOptions("match", pairs.map((p) => p.left), pairs.map((p) => p.right), paperNumber * 100 + q.n) };
+    }
+    case "order": {
+      const items = q.items ?? [];
+      if (items.length < 2) throw new Error(`Q${q.n}: order needs items`);
+      return { ...base, qtype: "checkbox", scoring: "per_option",
+        options: gridOptions("order", items.map((_, i) => ordinal(i + 1)), items, paperNumber * 100 + q.n) };
+    }
+    case "diagram": {
+      const answer = q.diagram?.answer as Region | undefined;
+      if (!answer || !(answer in REGIONS)) throw new Error(`Q${q.n}: diagram answer "${answer}" is not a region`);
+      return { ...base, qtype: "mcq", options: (Object.keys(REGIONS) as Region[]).map((r, i) => ({
+        position: i, label: `diagram:${r}`, value: REGIONS[r], correct: r === answer })) };
+    }
+    case "tap_letters": return { ...base, qtype: "checkbox", scoring: "per_option", options: await letterOptions(q) };
     case "whatsapp":
       return { ...base, qtype: "mcq", points: 0,
         options: [{ position: 0, label: "Option A", value: "Done: I sent my recording to the class WhatsApp group", correct: true }] };
@@ -139,8 +270,12 @@ async function row(q: Q, position: number) {
 }
 
 async function main() {
-  const [bundlePath, outPath] = process.argv.slice(2);
-  if (!bundlePath || !outPath) throw new Error("usage: homework_sql.ts <bundle.json> <out.sql>");
+  const argv = process.argv.slice(2);
+  const rowsAt = argv.indexOf("--rows");
+  const rowsPath = rowsAt >= 0 ? argv.splice(rowsAt, 2)[1] : null;
+  const [bundlePath, outPath] = argv;
+  if (!bundlePath || !outPath) throw new Error("usage: homework_sql.ts <bundle.json> <out.sql> [--rows <rows.json>]");
+  const dumped: Record<number, unknown[]> = {};
   const { papers } = JSON.parse(readFileSync(bundlePath, "utf8")) as { papers: Paper[] };
   const replaced = papers.map((p) => p.number);
   const out: string[] = [];
@@ -160,7 +295,9 @@ async function main() {
   const mediaUpdates: string[] = [];
   for (const p of papers) {
     const rows = [];
+    paperNumber = p.number;
     for (const [i, q] of p.questions.entries()) rows.push(await row(q, i + 1));
+    dumped[p.number] = rows;
     const total = rows.reduce((s, r) => s + Number(r.points), 0);
     out.push(`-- ── Homework ${p.number}: ${p.title} (${total} marks, ${rows.length} questions)`);
     if (p.term1_week != null && p.number > 100) {
@@ -194,6 +331,7 @@ async function main() {
   out.push(`select number, title, total_marks, (select count(*) from questions q where q.homework_id = h.id) as questions`,
     `  from homeworks h where number in (${replaced.join(", ")}) order by number;`);
   writeFileSync(outPath, out.join("\n") + "\n");
+  if (rowsPath) writeFileSync(rowsPath, JSON.stringify(dumped, null, 1));
   console.log(`wrote ${outPath}: ${papers.length} papers, ${papers.reduce((s, p) => s + p.questions.length, 0)} questions${mediaUpdates.length ? `, ${mediaUpdates.length} with audio` : ""}`);
 }
 
