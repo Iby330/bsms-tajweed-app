@@ -1,0 +1,272 @@
+{
+ "course": "mabadi",
+ "source_files": [
+  "new/mabadi.json"
+ ],
+ "findings": [
+  {
+   "ordinal": null,
+   "n": null,
+   "severity": "suggest",
+   "issue": "Every paper's review_notes say the keys were written without the video because no transcript existed. The YouTube auto-captions for all 7 episodes can be fetched, and this review checked every key against them. Several open review notes are now settled: HW5 Q1 (fiqh is not listed), HW2 Q1 (as-Sabbaan is confirmed), HW7 Q1/Q4 (fard 'ayn / fard kifayah are confirmed). Update the notes so the teachers aren't asked to check what has already been verified.",
+   "evidence": "Captions for video IDs 4RPXFovubos, pxNNJDg5W6Q, 90kQy_y0Hn8, 6BFn6wFbKE0, gOlE0EJUE3k, NsNm36-TQZw, bNA4ndK2_yg (from migration 0024), saved to scratchpad rev_mabadi/mabadi_1..7.txt",
+   "proposed": {
+    "field": "homeworks[*].review_notes[1]",
+    "from": "Every answer key and rubric in this paper was written WITHOUT the video (no transcript and no answer guide exist for this series)...",
+    "to": "Answer keys were checked against the video's auto-captions (rev_mabadi/mabadi_<n>.txt). Arabic terms are dropped in the captions, so names/terms flagged below still need the teacher."
+   }
+  },
+  {
+   "ordinal": 1,
+   "n": 2,
+   "severity": "fix",
+   "issue": "The rubric adds 'a firm foundation that teachers then explain (through commentary)', but the video never says this. The video's purpose is to collect and organise a science's information so it is easy to understand, digest and remember. A student who writes the video's answer could be marked down by the AI marker.",
+   "evidence": "Video 1: 'the idea behind these is to collect and organize the information in a digestible and easy to understand manner for the students'; 'these are methods of knowledge retention'",
+   "proposed": {
+    "field": "rubric[0].desc",
+    "from": "To make the essentials of a science easy to memorise, giving the student a firm foundation that teachers then explain (through commentary)",
+    "to": "To collect and organise the information of a science in a digestible, easy-to-understand form so students can learn and retain (memorise) it"
+   }
+  },
+  {
+   "ordinal": 1,
+   "n": 3,
+   "severity": "fix",
+   "issue": "The match teaches different meanings from the video. The video says matn comes from 'to strengthen and solidify' and nazm from 'to organise and collect'. The draft has 'Text' and 'Poem/verse'. It also adds sharh/shaarih, which the video never mentions. The key isn't false Arabic, but students are tested on wordings they weren't taught and on two terms they never met.",
+   "evidence": "Video 1: 'nazm comes from the word ... which means to organize and to collect ... the one who authors a nazm is known as [naazim], the collector or the organizer'; 'matn ... means to strengthen and solidify ... plural of matn is mutoon and the one who authors a matn is known as a [maatin?]'",
+   "proposed": {
+    "field": "pairs",
+    "from": "matn->Text; nazm->Poem/verse; naazim->versifier; sharh->Commentary; shaarih->commentator",
+    "to": [
+     {
+      "left": "مَتْن (matn)",
+      "right": "To strengthen and solidify (the knowledge)"
+     },
+     {
+      "left": "نَظْم (nazm)",
+      "right": "To organise and collect (the information)"
+     },
+     {
+      "left": "نَاظِم (naazim)",
+      "right": "The one who authors a nazm (the collector / organiser)"
+     },
+     {
+      "left": "مُتُون (mutoon)",
+      "right": "The plural of matn"
+     },
+     {
+      "left": "مَاتِن (maatin)",
+      "right": "The one who authors a matn"
+     }
+    ],
+    "note": "The caption garbles the author-of-a-matn word ('a men'). Confirm it is maatin before using that pair, or drop it and set points to 2."
+   }
+  },
+  {
+   "ordinal": 2,
+   "n": 5,
+   "severity": "error",
+   "issue": "The rubric marks 'Tajweed' as the answer, but the video says the opposite: the Ten Principles is not a Tajweed text. It is a general text whose principles apply to any science, and the course applies them to Tajweed. A student who answers as the video teaches would be marked wrong.",
+   "evidence": "Video 2: 'in all honesty this is not actually a text of tajweed, it's more so a generic text that covers 10 fundamental principles that if you were to apply them to any science ...'",
+   "proposed": {
+    "field": "rubric[0].desc",
+    "from": "Tajweed — the ten principles are being applied to the science of Tajweed (see review note)",
+    "to": "It is not a Tajweed text: it is a general/generic text whose ten principles apply to any science (in this course they are applied to Tajweed). Accept 'any science' / 'general'."
+   }
+  },
+  {
+   "ordinal": 2,
+   "n": 2,
+   "severity": "suggest",
+   "issue": "The rubric names the principles only by their Arabic terms and textbook glosses. The video teaches them in English as 'defining limits, structured contents, mastery's fruits, relationships, virtues, original founder, name, sources, status according to the Lawgiver, issues'. Adding these wordings stops the AI marker rejecting a student who uses the course's English.",
+   "evidence": "Video 2, recitation of the lines in translation",
+   "proposed": {
+    "field": "rubric",
+    "from": "definition/subject matter/fruit ...",
+    "to": "Append to each line the course wording, e.g. 'definition / defining limits (al-hadd), structured contents / subject matter (al-mawdoo'), fruits (ath-thamarah)' etc."
+   }
+  },
+  {
+   "ordinal": 2,
+   "n": 6,
+   "severity": "suggest",
+   "issue": "The new voice task asks students to recite the lines of the Ten Principles, but the app doesn't show the Arabic lines, and the video doesn't say they must be memorised. The captions only carry the English translation.",
+   "evidence": "Video 2 transcript: the Arabic lines are dropped from the captions; no instruction to memorise",
+   "proposed": {
+    "field": "prompt",
+    "from": "Record yourself here reciting the lines of the Ten Fundamental Principles (as many lines as you have memorised from this lesson).",
+    "to": "Same prompt with the Arabic lines printed under it, using the text from the teacher's slide (don't type them from memory). Or drop the task if the teacher doesn't want them memorised."
+   }
+  },
+  {
+   "ordinal": 3,
+   "n": 5,
+   "severity": "error",
+   "issue": "The rubric gives 1 mark for 'the subject matter is the words/letters of the Qur'an', which the video never says. The video gives four structured contents: makhaarij, sifaat, the Tajweed rules (ikhfaa, idghaam, iqlaab...), and stopping/starting with its emphasis. A student who lists all four could lose a mark. The prompt's '(subject matter)' also steers students toward the untaught answer.",
+   "evidence": "Video 3: 'With regards to the contents of the science of tajwid ... Number one, makharij ... The second thing is the sifat ... Number three are the various tajwid rules ... ikhfa and idgham and iqlab ... finally ... adab and certain emphasis ... depending on where you're stopping and starting'",
+   "proposed": {
+    "field": "rubric + prompt",
+    "from": "[words/letters of the Qur'an (1); names topic areas (1)]; prompt '... structured contents (subject matter) ...'",
+    "to": {
+     "prompt": "What are the structured contents (the parts) of the science of Tajweed?",
+     "rubric": [
+      {
+       "desc": "Names the articulation points (makhaarij) and the characteristics of the letters (sifaat)",
+       "marks": 1
+      },
+      {
+       "desc": "Names the Tajweed rules (e.g. ikhfaa, idghaam, iqlaab) and stopping/starting (waqf and ibtidaa') with its emphasis",
+       "marks": 1
+      }
+     ]
+    }
+   }
+  },
+  {
+   "ordinal": 3,
+   "n": 4,
+   "severity": "suggest",
+   "issue": "The key is correct by standard teaching, but one correct option ('heavy or light pronunciation ... e.g. of raa'') sits right next to the video's example of a RIGHT, which is isti'laa' (heaviness inherent to the letter). Students may reasonably hesitate. The video's own example of a due is the vowel on the letter, so using it keeps the key tied to what was taught.",
+   "evidence": "Video 3: rights = makhraj + inherent characteristics, 'for example ... al-isti'la'; dues = 'the harakah that's on the letter ... a fatha, a damma, a kasra, it can be a sakin. And also ... madd or idgham'",
+   "proposed": {
+    "field": "options[2].text",
+    "from": "Heavy or light pronunciation (tafkheem/tarqeeq) that depends on the vowel, e.g. of raa'",
+    "to": "The vowel on the letter (fathah, dammah, kasrah or sukoon), which changes from word to word"
+   }
+  },
+  {
+   "ordinal": 3,
+   "n": 2,
+   "severity": "suggest",
+   "issue": "The video calls this the 'practical' definition ('practically speaking, tajweed refers to the study of the enunciation of the contents of the Quran by giving every letter its right and its due'). It never uses the word 'technical', so the prompt should use the course's word.",
+   "evidence": "Video 3",
+   "proposed": {
+    "field": "prompt",
+    "from": "What is the technical definition of Tajweed?",
+    "to": "What is the practical (technical) definition of Tajweed?"
+   }
+  },
+  {
+   "ordinal": 5,
+   "n": 3,
+   "severity": "fix",
+   "issue": "The second rubric mark ('a clear mistake (lahn jaliyy) and therefore sinful') comes from a different video. In this lesson the point is that changing a letter changes the word's meaning, which then affects the tafseer of the ayah (qalb to kalb, heart to dog). A student who gives the lesson's answer would get only 1 of 2 marks.",
+   "evidence": "Video 5: 'we say kalb instead of qalb ... changed the meaning of the word from heart to dog ... that will affect the tafsir of that particular ayah'",
+   "proposed": {
+    "field": "rubric[1].desc",
+    "from": "It is a clear mistake (lahn jaliyy) and therefore sinful",
+    "to": "So the understanding/tafseer of the ayah is affected (e.g. qalb 'heart' becomes kalb 'dog'); also accept: it is a clear mistake (lahn jaliyy) and sinful"
+   }
+  },
+  {
+   "ordinal": 5,
+   "n": 5,
+   "severity": "suggest",
+   "issue": "The order is historically correct: Hafs took the recitation from 'Aasim. But no video in this series teaches 'Aasim or Hafs or their order. Episode 6 does teach the steps between the Prophet (ﷺ) and today: the Companions, then their students, and so on. Testing those keeps the order inside what was taught, and it is closer to last year's question, which asked for the last three links (the Prophet, Jibreel, Allah).",
+   "evidence": "Video 6: 'he then taught his companions the Quran and the companions taught the Quran to their students ... until it reached us today'; Video 5: 'the sanad ... continues on to Jibreel and from Jibreel to Allah'",
+   "proposed": {
+    "field": "items",
+    "from": [
+     "Allah SWT",
+     "Jibreel (AS)",
+     "The Prophet (ﷺ)",
+     "Imam 'Aasim",
+     "Imam Hafs",
+     "Your teacher"
+    ],
+    "to": [
+     "Allah SWT",
+     "Jibreel (AS)",
+     "The Prophet (ﷺ)",
+     "The Companions",
+     "The Companions' students",
+     "Your teacher"
+    ]
+   }
+  },
+  {
+   "ordinal": 6,
+   "n": 3,
+   "severity": "suggest",
+   "issue": "The captions drop the name ('these Scholars came a few centuries after and include the likes of Abu ... '), so I can't verify which founder the video gives. 'A few centuries after' fits Abu 'Ubayd al-Qaasim ibn Sallaam (d. 224 AH) and Abu Muzaahim al-Khaaqaani (d. 325 AH) better than Abul-Aswad ad-Du'ali (d. 69 AH). The lenient rubric is fine, but put the video's name(s) first.",
+   "evidence": "Video 6 transcript; scholars' death dates are from general knowledge and should be checked against the teacher's source",
+   "proposed": {
+    "field": "rubric[0].desc",
+    "from": "Any one of: Abu Muzaahim al-Khaaqaani, Abu 'Ubayd ..., al-Khaleel ..., Abul-Aswad ...",
+    "to": "Lead with the name(s) the teacher says in the video (check around the 'theoretical perspective' section); keep the others as accepted alternatives"
+   }
+  },
+  {
+   "ordinal": 6,
+   "n": 6,
+   "severity": "suggest",
+   "issue": "Option C ('Students can get a fancy certificate to show they can teach Qur'an') is meant to be wrong, but the video describes the ijazah as a certificate after which the student 'is able to teach others and pass on that ijazah'. Only the word 'fancy' makes C wrong, which a student could reasonably miss.",
+   "evidence": "Video 6: 'Ana is basically simply put a certificate ... when this person receives this certificate then they are both able to teach others and pass on thata'",
+   "proposed": {
+    "field": "options[2].text",
+    "from": "Students can get a fancy certificate to show they can teach Qur'an",
+    "to": "It gives students a certificate to hang on the wall, whatever their level of recitation"
+   }
+  },
+  {
+   "ordinal": 7,
+   "n": 2,
+   "severity": "suggest",
+   "issue": "The verse reference is right (73:4 contains وَرَتِّلِ ٱلْقُرْءَانَ تَرْتِيلًا). But this episode quotes the verse without defining tarteel. The course's own definition is 'Ali (RA)'s, taught in the first Tajweed video: reciting the letters with tajweed and knowing where to stop. That definition should be the main rubric answer, not 'slowly and in a measured way'.",
+   "evidence": "tanzil 73:4 'أَوْ زِدْ عَلَيْهِ وَرَتِّلِ ٱلْقُرْءَانَ تَرْتِيلًا'; transcripts/ghunna_1.txt: 'in explaining what [tarteel] is it is narrated that [Ali] said that is to recite the letters with [tajweed] and to have knowledge of where to stop'",
+   "proposed": {
+    "field": "rubric[0].desc",
+    "from": "Reciting slowly and in a measured way with Tajweed (accept 'perfecting the letters and knowing where to stop', the definition from 'Ali (RA))",
+    "to": "Reciting the letters with Tajweed and knowing where to stop (the definition from 'Ali RA); also accept: reciting slowly and in a measured way with Tajweed"
+   }
+  },
+  {
+   "ordinal": 7,
+   "n": 5,
+   "severity": "suggest",
+   "issue": "The video defines masaa'il as specific rulings within Tajweed, with the example of iqlaab (noon saakinah/tanween before baa' becomes meem with ghunnah). The correct options here are whole topic areas, and HW3 taught makhaarij as part of the 'structured contents'. That makes 'The articulation points of the letters' arguable. Wording the correct options as specific rulings matches the course's definition.",
+   "evidence": "Video 7: 'Masail, specific issues, this refers to the specific rulings within tajwid ... the ruling of iqlab ... whenever we have a noon sakin or tanwin followed by the letter ba, then we must flip the noon into a mim and apply a ghunnah'; Video 3 lists makhaarij as a structured content",
+   "proposed": {
+    "field": "options[0..2].text",
+    "from": [
+     "The rules of noon saakinah and tanween",
+     "The articulation points of the letters (makhaarij)",
+     "The types of madd"
+    ],
+    "to": [
+     "Noon saakinah or tanween before baa' is changed into a meem with ghunnah (Iqlaab)",
+     "Noon saakinah or tanween before a throat letter is pronounced clearly (Idhaar Halqi)",
+     "Madd Laazim is lengthened 6 counts"
+    ]
+   }
+  },
+  {
+   "ordinal": 7,
+   "n": 6,
+   "severity": "suggest",
+   "issue": "The order is correct for both the video's sequence and the six chosen principles. But the item labels use textbook English ('Subject matter', 'Ruling'), while the course teaches 'structured contents' and 'status according to the Lawgiver'. Students recognise the items more easily under the names they were taught.",
+   "evidence": "Video 2 lines: 'defining limits, structured contents, mastery's fruits, relationships, virtues, original founder, name, sources, status according to the lawgiver, issues'",
+   "proposed": {
+    "field": "items",
+    "from": [
+     "Definition (al-hadd)",
+     "Subject matter (al-mawdoo')",
+     "Fruit (ath-thamarah)",
+     "Founder (al-waadi')",
+     "Ruling (hukm ash-shaari')",
+     "Issues (al-masaa'il)"
+    ],
+    "to": [
+     "Definition (al-hadd)",
+     "Structured contents (al-mawdoo')",
+     "Fruits (ath-thamarah)",
+     "Original founder (al-waadi')",
+     "Ruling of the Lawgiver (hukm ash-shaari')",
+     "Issues (al-masaa'il)"
+    ]
+   }
+  }
+ ],
+ "checked": 36,
+ "summary": "The structure is sound: all 7 totals match, every rubric adds up to its points, and every mcq has exactly one correct option. The draft was written without the videos, so this review fetched the YouTube auto-captions for all 7 episodes (rev_mabadi/) and checked each key against them. Most keys match what the teacher says: as-Sabbaan (d. 1792), the order of the ten principles, the fruits, the related sciences (tafseer, qiraa'aat, waqf; not fiqh), the reason the theory was written down, fard 'ayn for practice and fard kifayah for theory, and the chain ending Prophet, Jibreel, Allah. Two keys contradict the video: HW2 Q5 (the video says the Ten Principles is NOT a Tajweed text) and HW3 Q5 (the four structured contents, not 'the words of the Qur'an'). Several rubrics and the HW1 match use textbook wording or terms the course never teaches, which risks the AI marker penalising correct answers. Arabic names and terms are dropped in the captions (the theory founder, the author-of-a-matn word), so those still need the teacher."
+}

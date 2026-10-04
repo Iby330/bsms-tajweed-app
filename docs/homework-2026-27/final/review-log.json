@@ -1,0 +1,490 @@
+{
+ "applied": [
+  {
+   "paper": 1,
+   "course": "ghunna",
+   "ordinal": 1,
+   "n": 2,
+   "kind": "fix",
+   "what": "Typo \"the the\"; asks for the technical definition, which is what the rubric marks."
+  },
+  {
+   "paper": 1,
+   "course": "ghunna",
+   "ordinal": 1,
+   "n": 7,
+   "kind": "fix",
+   "what": "Two answers are right, so the prompt says to select all."
+  },
+  {
+   "paper": 1,
+   "course": "ghunna",
+   "ordinal": 1,
+   "n": 8,
+   "kind": "fix",
+   "what": "True/false needs a statement, not a question. Key (False) unchanged."
+  },
+  {
+   "paper": 2,
+   "course": "ghunna",
+   "ordinal": 2,
+   "n": 4,
+   "kind": "error",
+   "what": "اُمَّمٌ is not a word in the Qur'an (the word is أُمَمٌ, no shaddah, no ghunna) and was keyed correct. Replaced with ثُمَّ (6:38)."
+  },
+  {
+   "paper": 2,
+   "course": "ghunna",
+   "ordinal": 2,
+   "n": 8,
+   "kind": "error",
+   "what": "Key missed مَّرْضِيَّةً (89:28): a meem with shaddah, so ghunna. Now in the key (11 to find)."
+  },
+  {
+   "paper": 2,
+   "course": "ghunna",
+   "ordinal": 2,
+   "n": 5,
+   "kind": "fix",
+   "what": "Only one recitation (B) is right and the prompt says \"select the one\": now single-answer."
+  },
+  {
+   "paper": 3,
+   "course": "ghunna",
+   "ordinal": 3,
+   "n": 5,
+   "kind": "fix",
+   "what": "A \"how many\" with the verse typed into the prompt: now a plain multiple choice (same prompt, same options)."
+  },
+  {
+   "paper": 3,
+   "course": "ghunna",
+   "ordinal": 3,
+   "n": 7,
+   "kind": "fix",
+   "what": "Two verses are right."
+  },
+  {
+   "paper": 3,
+   "course": "ghunna",
+   "ordinal": 3,
+   "n": 4,
+   "kind": "fix",
+   "what": "Missing hamza: أَنذَرَ."
+  },
+  {
+   "paper": 5,
+   "course": "ghunna",
+   "ordinal": 5,
+   "n": 1,
+   "kind": "fix",
+   "what": "Only one meaning (To flip) is right: now single-answer."
+  },
+  {
+   "paper": 5,
+   "course": "ghunna",
+   "ordinal": 5,
+   "n": 4,
+   "kind": "fix",
+   "what": "Ayah number added, as on the other options."
+  },
+  {
+   "paper": 5,
+   "course": "ghunna",
+   "ordinal": 5,
+   "n": 6,
+   "kind": "fix",
+   "what": "Spelling (Iqlaab) and \"them\" for the three instances."
+  },
+  {
+   "paper": 7,
+   "course": "ghunna",
+   "ordinal": 7,
+   "n": 3,
+   "kind": "suggest",
+   "what": "Clip moved from 78:16 (وَجَنَّٰتٍ has its own held ghunna, which could mislead) to 88:4 نَارًا حَامِيَةً, a clean Idhaar."
+  },
+  {
+   "paper": 18,
+   "course": "mudood",
+   "ordinal": 3,
+   "n": 10,
+   "kind": "error",
+   "what": "The key counts only Madd Munfasil inside an ayah; \"if you did not stop\" would make 13 more across ayah ends right."
+  },
+  {
+   "paper": 20,
+   "course": "mudood",
+   "ordinal": 5,
+   "n": 4,
+   "kind": "error",
+   "what": "The rubric was a placeholder, so nothing could be marked. Now one mark per correct example."
+  },
+  {
+   "paper": 21,
+   "course": "mudood",
+   "ordinal": 6,
+   "n": 6,
+   "kind": "error",
+   "what": "The teacher asked for a recording; the prompt said \"Describe\". A recording in the app carries no marks, so this paper is out of 16, not 18."
+  },
+  {
+   "paper": 21,
+   "course": "mudood",
+   "ordinal": 6,
+   "n": 5,
+   "kind": "fix",
+   "what": "Three answers were cut off (\"…\") from a cropped screenshot; full wording from last year's form."
+  },
+  {
+   "paper": 17,
+   "course": "mudood",
+   "ordinal": 2,
+   "n": 3,
+   "kind": "fix",
+   "what": "Spelling: Qaṣr is قصر (the teacher's own note asked for this)."
+  },
+  {
+   "paper": 19,
+   "course": "mudood",
+   "ordinal": 4,
+   "n": 3,
+   "kind": "fix",
+   "what": "Spelling: Qaṣr is قصر. This one is a correct answer students tick."
+  },
+  {
+   "paper": 20,
+   "course": "mudood",
+   "ordinal": 5,
+   "n": 5,
+   "kind": "fix",
+   "what": "Spelling: Qaṣr is قصر."
+  },
+  {
+   "paper": 20,
+   "course": "mudood",
+   "ordinal": 5,
+   "n": 10,
+   "kind": "fix",
+   "what": "Prompt left over from the grid."
+  },
+  {
+   "paper": 9,
+   "course": "sifaat",
+   "ordinal": 1,
+   "n": 2,
+   "kind": "fix",
+   "what": "Spelling: الاستعلاء starts with a hamzatul wasl."
+  },
+  {
+   "paper": 13,
+   "course": "sifaat",
+   "ordinal": 5,
+   "n": 1,
+   "kind": "fix",
+   "what": "Spelling: الاستعلاء."
+  },
+  {
+   "paper": 11,
+   "course": "sifaat",
+   "ordinal": 3,
+   "n": 8,
+   "kind": "fix",
+   "what": "Word as in the mushaf (110:3)."
+  },
+  {
+   "paper": 12,
+   "course": "sifaat",
+   "ordinal": 4,
+   "n": 5,
+   "kind": "fix",
+   "what": "Typos (qalala, \"an word\"); the subtle level also covers an original sukoon at a word end you read through (يَلِدْ in Q4)."
+  },
+  {
+   "paper": 12,
+   "course": "sifaat",
+   "ordinal": 4,
+   "n": 5,
+   "kind": "fix",
+   "what": "Typos (qalala, \"an word\"); the subtle level also covers an original sukoon at a word end you read through (يَلِدْ in Q4)."
+  },
+  {
+   "paper": 12,
+   "course": "sifaat",
+   "ordinal": 4,
+   "n": 6,
+   "kind": "fix",
+   "what": "Typos (qalala, \"an word\"); the subtle level also covers an original sukoon at a word end you read through (يَلِدْ in Q4)."
+  },
+  {
+   "paper": 12,
+   "course": "sifaat",
+   "ordinal": 4,
+   "n": 6,
+   "kind": "fix",
+   "what": "Typos (qalala, \"an word\"); the subtle level also covers an original sukoon at a word end you read through (يَلِدْ in Q4)."
+  },
+  {
+   "paper": 12,
+   "course": "sifaat",
+   "ordinal": 4,
+   "n": 8,
+   "kind": "suggest",
+   "what": "The higher level only exists when you stop; the key assumes stopping at each ayah end."
+  },
+  {
+   "paper": 12,
+   "course": "sifaat",
+   "ordinal": 4,
+   "n": 2,
+   "kind": "suggest",
+   "what": "Letters put in alphabetical order so they are quicker to scan. Key unchanged."
+  },
+  {
+   "paper": 15,
+   "course": "sifaat",
+   "ordinal": 7,
+   "n": 2,
+   "kind": "suggest",
+   "what": "Two sukoons also meet inside one word (madd lāzim); the prompt now says it means this lesson's rule."
+  },
+  {
+   "paper": 10,
+   "course": "sifaat",
+   "ordinal": 2,
+   "n": 5,
+   "kind": "suggest",
+   "what": "Easier to read than a \"do NOT\" select-all."
+  },
+  {
+   "paper": 11,
+   "course": "sifaat",
+   "ordinal": 3,
+   "n": 5,
+   "kind": "suggest",
+   "what": "Rubric covers looking one letter further back past a sakin letter, the case Q9 tests."
+  },
+  {
+   "paper": 209,
+   "course": "umm",
+   "ordinal": 9,
+   "n": 8,
+   "kind": "error",
+   "what": "Pointed students at a week-1 recording that no paper asks for; the compare step is dropped."
+  },
+  {
+   "paper": 209,
+   "course": "umm",
+   "ordinal": 9,
+   "n": 7,
+   "kind": "fix",
+   "what": "Clip started 0.7 s late, cutting off the ض and part of the six-count madd."
+  },
+  {
+   "paper": 209,
+   "course": "umm",
+   "ordinal": 9,
+   "n": 5,
+   "kind": "fix",
+   "what": "\"Allowed to\" read as \"permitted to\", the opposite of the point."
+  },
+  {
+   "paper": 209,
+   "course": "umm",
+   "ordinal": 9,
+   "n": 2,
+   "kind": "suggest",
+   "what": "The آ after ض is pronounced heavy but is not keyed; the prompt now says to leave it out."
+  },
+  {
+   "paper": 209,
+   "course": "umm",
+   "ordinal": 9,
+   "n": 6,
+   "kind": "suggest",
+   "what": "Standard definition of istiṭālah (\"filling the mouth\" describes heaviness)."
+  },
+  {
+   "paper": 204,
+   "course": "umm",
+   "ordinal": 4,
+   "n": 6,
+   "kind": "suggest",
+   "what": "The hamzah is a throat letter too; \"middle of the throat\" is the ع."
+  },
+  {
+   "paper": 201,
+   "course": "umm",
+   "ordinal": 1,
+   "n": 7,
+   "kind": "suggest",
+   "what": "Ties the key to the hadith (two distractors are close to a real fiqh position)."
+  },
+  {
+   "paper": 101,
+   "course": "mabadi",
+   "ordinal": 1,
+   "n": 2,
+   "kind": "fix",
+   "what": "Rubric now follows the video (collect and organise a science so it is easy to learn and retain)."
+  },
+  {
+   "paper": 101,
+   "course": "mabadi",
+   "ordinal": 1,
+   "n": 3,
+   "kind": "fix",
+   "what": "Meanings now as the video teaches them (matn: to strengthen; nazm: to organise). Dropped sharh/shaarih, which the series never mentions. 4 pairs, 2 marks."
+  },
+  {
+   "paper": 102,
+   "course": "mabadi",
+   "ordinal": 2,
+   "n": 5,
+   "kind": "error",
+   "what": "Key said \"Tajweed\"; the video says the Ten Principles is a general text for any science."
+  },
+  {
+   "paper": 102,
+   "course": "mabadi",
+   "ordinal": 2,
+   "n": 2,
+   "kind": "suggest",
+   "what": "Rubric accepts the course's English names for the principles too."
+  },
+  {
+   "paper": 103,
+   "course": "mabadi",
+   "ordinal": 3,
+   "n": 5,
+   "kind": "error",
+   "what": "Rubric and prompt now follow the video's four contents."
+  },
+  {
+   "paper": 103,
+   "course": "mabadi",
+   "ordinal": 3,
+   "n": 4,
+   "kind": "suggest",
+   "what": "The video's own example of a due."
+  },
+  {
+   "paper": 103,
+   "course": "mabadi",
+   "ordinal": 3,
+   "n": 2,
+   "kind": "suggest",
+   "what": "The video calls it the 'practical' definition."
+  },
+  {
+   "paper": 105,
+   "course": "mabadi",
+   "ordinal": 5,
+   "n": 3,
+   "kind": "fix",
+   "what": "Second mark now follows this lesson (tafseer affected, qalb/kalb)."
+  },
+  {
+   "paper": 105,
+   "course": "mabadi",
+   "ordinal": 5,
+   "n": 5,
+   "kind": "suggest",
+   "what": "Links now the ones episode 6 teaches (Companions, their students), not 'Aasim and Hafs, which the series never covers."
+  },
+  {
+   "paper": 106,
+   "course": "mabadi",
+   "ordinal": 6,
+   "n": 6,
+   "kind": "suggest",
+   "what": "Only 'fancy' made the old wording wrong."
+  },
+  {
+   "paper": 107,
+   "course": "mabadi",
+   "ordinal": 7,
+   "n": 2,
+   "kind": "suggest",
+   "what": "Rubric leads with the course's own definition of tarteel ('Ali RA)."
+  },
+  {
+   "paper": 107,
+   "course": "mabadi",
+   "ordinal": 7,
+   "n": 5,
+   "kind": "suggest",
+   "what": "Correct options are now specific rulings, as the video defines masaa'il."
+  },
+  {
+   "paper": 107,
+   "course": "mabadi",
+   "ordinal": 7,
+   "n": 6,
+   "kind": "suggest",
+   "what": "Items named as the course teaches them."
+  }
+ ],
+ "open": [
+  {
+   "paper": 2,
+   "n": 7,
+   "who": "teacher",
+   "what": "Double negative (the answer is False). Could become a positive claim with True as the answer; it is live, so only if past answers can stand."
+  },
+  {
+   "paper": 18,
+   "n": 10,
+   "who": "teacher",
+   "what": "This tap covers the whole of Surah An-Najm (422 words, three mushaf pages). Fine in the app, but long."
+  },
+  {
+   "paper": 20,
+   "n": 10,
+   "who": "teacher",
+   "what": "طسٓمٓ has both kinds of Harfi madd (sīn heavy, mīm light). Consider labelling \"the lām of الٓر\" and \"the sīn of طسٓمٓ\"."
+  },
+  {
+   "paper": 21,
+   "n": 3,
+   "who": "teacher",
+   "what": "The prompt asks only about stopping in the wrong place, but the rubric accepts letter and harakah examples too. One of them should change."
+  },
+  {
+   "paper": 17,
+   "n": 6,
+   "who": "teacher",
+   "what": "Model answer could say ṭūl applies only when the hamzah is the last letter of the word you stop on."
+  },
+  {
+   "paper": 16,
+   "n": 3,
+   "who": "teacher",
+   "what": "Rubric lists only نُوحِيهَا; widen it to any word with all three letters of madd."
+  },
+  {
+   "paper": 21,
+   "n": 6,
+   "who": "teacher",
+   "what": "Was worth 2 marks; a recording carries no marks in the app, so the paper is now out of 16. If the marks matter, add a 2-mark written \"Describe how to read this ayah\" before it."
+  },
+  {
+   "paper": 102,
+   "n": 6,
+   "who": "teacher",
+   "what": "Recording of the Ten Principles lines: the Arabic lines are not shown. Add them from the teacher's slide (not typed from memory), or drop the task."
+  },
+  {
+   "paper": 106,
+   "n": 3,
+   "who": "teacher",
+   "what": "The captions drop the founder's name. Lead the rubric with the name(s) the video gives."
+  },
+  {
+   "paper": 101,
+   "n": 3,
+   "who": "teacher",
+   "what": "The author of a matn (māṭin?) was left out because the captions garble the word. Add it back as a fifth pair if confirmed."
+  }
+ ]
+}

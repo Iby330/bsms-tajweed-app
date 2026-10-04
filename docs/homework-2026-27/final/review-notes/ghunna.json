@@ -1,0 +1,247 @@
+{
+ "course": "ghunna",
+ "source_files": [
+  "new/teacher.json",
+  "new/ghunna.json"
+ ],
+ "findings": [
+  {
+   "ordinal": 1,
+   "n": 2,
+   "severity": "fix",
+   "issue": "Typo \"the the\", and \"technical term\" should be \"technical definition\" (Q1 asks for the linguistic definition; the rubric is the technical definition).",
+   "evidence": "Prompt text; video: 'from a technical perspective, to recite the Quran with tajweed is…'.",
+   "proposed": {
+    "field": "prompt",
+    "from": "What is the the technical term of the word “Tajweed”?",
+    "to": "What is the technical definition of the word “Tajweed”?"
+   }
+  },
+  {
+   "ordinal": 1,
+   "n": 7,
+   "severity": "fix",
+   "issue": "Select-all question (two answers are correct) is phrased as a single answer (\"Which … is not\"), so students may stop after one tick.",
+   "evidence": "Two options marked correct: Missing a ghunna, Forgetting to do qalqala.",
+   "proposed": {
+    "field": "prompt",
+    "from": "Which of the following examples is not deemed as a major mistake?",
+    "to": "Which of the following are NOT major mistakes? Select all that apply."
+   }
+  },
+  {
+   "ordinal": 1,
+   "n": 8,
+   "severity": "fix",
+   "issue": "A true/false item written as a question (\"Are minor mistakes … deemed Haram?\") — True/False doesn't answer a question cleanly. Make it a statement; the key (False) stays.",
+   "evidence": "Video: minor mistakes are makrūh (disliked), not haram.",
+   "proposed": {
+    "field": "prompt",
+    "from": "True or False: Are minor mistakes in recitation deemed Haram?",
+    "to": "True or False: Minor mistakes in recitation are deemed haram."
+   }
+  },
+  {
+   "ordinal": 2,
+   "n": 4,
+   "severity": "error",
+   "issue": "Option C \"اُمَّمٌ\" is not a Qur'anic word and is keyed correct. The Qur'anic word is أُمَمٌ (nations), which has NO shaddah, so it carries no ghunna. Students who know the word, or who leave it unticked, are marked wrong. Inherited from last year's live paper.",
+   "evidence": "tanzil 6:38 and 13:30 'أُمَمٌ' (no shaddah); no word أُمَّمٌ anywhere in the mushaf text. Replacement ثُمَّ is copied from tanzil 6:38.",
+   "proposed": {
+    "field": "options[2].text",
+    "from": "اُمَّمٌ",
+    "to": "ثُمَّ"
+   }
+  },
+  {
+   "ordinal": 2,
+   "n": 8,
+   "severity": "error",
+   "issue": "مَّرْضِيَّةًۭ (89:28) begins with a meem carrying a shaddah but is not in the key. The video teaches 'whenever we come across a meem or a noon with a shaddah, we must apply a ghunna', so a student who taps it is marked wrong. The tajweed data files it under Idghaam with ghunna (the tanween of رَاضِيَةً merging), which is why the script left it out.",
+   "evidence": "tanzil 89:28: ٱرْجِعِىٓ إِلَىٰ رَبِّكِ رَاضِيَةًۭ مَّرْضِيَّةًۭ; transcript ghunna_2. Every other noon/meem with shaddah in 89:1–30 is keyed (checked by script).",
+   "proposed": {
+    "field": "tap.ayahs[27].words[4].key (+ its first letter's key; tap.instances 10 → 11)",
+    "from": false,
+    "to": true
+   }
+  },
+  {
+   "ordinal": 2,
+   "n": 5,
+   "severity": "fix",
+   "issue": "Only one recitation (B) is correct and the prompt says \"select the one\", but the format is select_all, which tells students to tick several. (Audio offsets checked against QUL's Al-Ḥuṣarī segments for 47:5, 47:6, 50:32, 51:27, 52:6: they match, and A, C, D, E contain no noon/meem ghunna.)",
+   "evidence": "tanzil 47:5, 47:6, 50:32, 51:27, 52:6; QUL surah_segments resource 6.",
+   "proposed": {
+    "field": "format",
+    "from": "select_all",
+    "to": "mcq"
+   }
+  },
+  {
+   "ordinal": 2,
+   "n": 7,
+   "severity": "suggest",
+   "issue": "Double negative: the claim says ghunna is \"not applied\" and the answer is False. A positive claim tests the same point (the video: 'this rule is also applied when the noon or meem with shaddah is at the end of a word') without the trap. It is live, so change it only if past answers can be left as they are.",
+   "evidence": "Transcript ghunna_2.",
+   "proposed": {
+    "field": "prompt + key",
+    "from": "Ghunna is not applied when the nūn or mīm mushaddadah is the last letter of a word. (False)",
+    "to": "Ghunna is still applied when the nūn or mīm mushaddadah is the last letter of a word. (True)"
+   }
+  },
+  {
+   "ordinal": 2,
+   "n": 6,
+   "severity": "suggest",
+   "issue": "The voice task is worth 3 marks and the paper total (10) counts them, whereas every other paper's recording is 0 marks and left out of the total. If teachers do mark these recordings in the app, fine; if not, no student can score above 7/10.",
+   "evidence": "Teacher's note: 'A mark will be awarded for each one recited correctly'; BRIEF: voice = 0 marks, total = sum of non-voice points.",
+   "proposed": {
+    "field": "points / total",
+    "from": "3 / 10",
+    "to": "keep 3 / 10 only if the teacher marks recordings in the app; otherwise 0 / 7"
+   }
+  },
+  {
+   "ordinal": 3,
+   "n": 5,
+   "severity": "fix",
+   "issue": "Format is count but there is no tap passage: the verse is typed into the prompt instead. A count question shows its passage from the tap field, so it may render without the verse (or with it twice). The key itself (1: مِّنْ خَوْفٍ) is right — the other junctions are Ikhfaa, Idghaam and Idghaam Shafawi.",
+   "evidence": "tanzil 106:4: ٱلَّذِىٓ أَطْعَمَهُم مِّن جُوعٍۢ وَءَامَنَهُم مِّنْ خَوْفٍۭ",
+   "proposed": {
+    "field": "format",
+    "from": "count",
+    "to": "mcq (same prompt with the verse, same options)"
+   }
+  },
+  {
+   "ordinal": 3,
+   "n": 7,
+   "severity": "fix",
+   "issue": "Select-all question with two correct verses (88:2 and 88:4) is phrased as single-answer (\"Select the verse which contains\").",
+   "evidence": "tanzil 88:2 يَوْمَئِذٍ خَٰشِعَةٌ and 88:4 نَارًا حَامِيَةً (tanween before خ / ح); 88:1, 88:3 have no Idhaar.",
+   "proposed": {
+    "field": "prompt",
+    "from": "Select the verse which contains an example of idhaar halqy.",
+    "to": "Select the verses which contain an example of Idhaar Halqy. Select all that apply."
+   }
+  },
+  {
+   "ordinal": 3,
+   "n": 4,
+   "severity": "fix",
+   "issue": "Option \"اَنذَرَ\" is written with a bare alif (the hamza is missing); the mushaf has أَنذَرَ, and Ghunna 2 and 6 already write it that way.",
+   "evidence": "tanzil 46:21 'أَنذَرَ'.",
+   "proposed": {
+    "field": "options[2].text",
+    "from": "اَنذَرَ",
+    "to": "أَنذَرَ"
+   }
+  },
+  {
+   "ordinal": 4,
+   "n": 9,
+   "severity": "fix",
+   "issue": "Stale notes for the lead: the paper flag says Q9 'still needs its build' (recite against the reference), and Q9's why says students record it in the app beside Al-Ḥuṣarī. Q9 is now a WhatsApp task, so both are out of date.",
+   "evidence": "Q9 format whatsapp; prompt sends to the class WhatsApp group.",
+   "proposed": {
+    "field": "flags[0] and questions[8].why",
+    "from": "Q7 (name the rule you heard) is being built in the app. Q9 (recite against the reference) still needs its build before it can go live.",
+    "to": "Q7 (name the rule you heard) is being built in the app. | why: Same task as last year: recite Surah Al-Balad and send it to the class WhatsApp group."
+   }
+  },
+  {
+   "ordinal": 5,
+   "n": 1,
+   "severity": "fix",
+   "issue": "Only one meaning (To flip) is correct, but the format is select_all.",
+   "evidence": "Options: merge/show/flip/hide; one keyed.",
+   "proposed": {
+    "field": "format",
+    "from": "select_all",
+    "to": "mcq"
+   }
+  },
+  {
+   "ordinal": 5,
+   "n": 4,
+   "severity": "fix",
+   "issue": "Option 3 (96:16) is the only verse without its ayah number, so it stands out from the other three.",
+   "evidence": "tanzil 96:16.",
+   "proposed": {
+    "field": "options[2].text",
+    "from": "نَاصِيَةٍ كَٰذِبَةٍ خَاطِئَةٍۢ",
+    "to": "نَاصِيَةٍ كَٰذِبَةٍ خَاطِئَةٍۢ ١٦"
+   }
+  },
+  {
+   "ordinal": 5,
+   "n": 6,
+   "severity": "fix",
+   "issue": "\"Iqlab\" is spelt differently from the rest of the paper (Iqlaab), and \"record it\" should be \"record them\" (three instances).",
+   "evidence": "Prompt text.",
+   "proposed": {
+    "field": "prompt",
+    "from": "Find 3 instances of Iqlab in the last juz (Juz' Amma) and record it. Send the recording to your class WhatsApp group.",
+    "to": "Find 3 instances of Iqlaab in the last juz (Juz' Amma) and record yourself reciting them. Send the recording to your class WhatsApp group."
+   }
+  },
+  {
+   "ordinal": 6,
+   "n": 9,
+   "severity": "fix",
+   "issue": "Stale notes for the lead: Q9's why and changes_v2 say the task became voice_reference with Al-Ḥuṣarī beside the record button, but it is back to a WhatsApp task.",
+   "evidence": "Q9 format whatsapp.",
+   "proposed": {
+    "field": "questions[8].why; changes_v2[2]",
+    "from": "Was a plain recording of Surah Al-Infitar; Al-Ḥuṣarī's reading of the surah now plays beside the record button. | Q9 'recite Surah Al-Infitar' → voice_reference against Al-Ḥuṣarī, 82:1–19",
+    "to": "Same task as last year: recite Surah Al-Infitar and send it to the class WhatsApp group. | (remove)"
+   }
+  },
+  {
+   "ordinal": 7,
+   "n": 3,
+   "severity": "suggest",
+   "issue": "The clip وَجَنَّـٰتٍ أَلْفَافًا also carries a held ghunna on the noon mushaddadah of وَجَنَّـٰتٍ, so a student may hear 'ghunna' and pick Idghaam (a shaddah noon is literally a noon sakin merged into a noon) or Ikhfaa. 88:4 نَارًا حَامِيَةًۭ has a clean tanween-before-ح Idhaar with no other noon/meem rule; QUL timings checked.",
+   "evidence": "tanzil 88:4: تَصْلَىٰ نَارًا حَامِيَةًۭ; QUL segments 88:4 word 2 = 25560–26990 ms, word 3 = 27040–29018 ms (088.mp3). Current clip timings for 78:16 match QUL.",
+   "proposed": {
+    "field": "clip + prompt",
+    "from": {
+     "surah": 78,
+     "ayah": 16,
+     "positions": [
+      1,
+      2
+     ],
+     "text": "وَجَنَّـٰتٍ أَلْفَافًا"
+    },
+    "to": {
+     "surah": 88,
+     "ayah": 4,
+     "positions": [
+      2,
+      3
+     ],
+     "text": "نَارًا حَامِيَةًۭ",
+     "start_ms": 25560,
+     "end_ms": 29018,
+     "audio_url": "https://audio-cdn.tarteel.ai/quran/surah/husary/murattal/mp3/088.mp3",
+     "prompt": "Listen to this recitation of Al-Ghāshiyah 88:4. Which rule of noon sakin and tanween did you hear?"
+    }
+   }
+  },
+  {
+   "ordinal": 7,
+   "n": 11,
+   "severity": "fix",
+   "issue": "Stale notes for the lead: Q11's why and changes_v2 say Al-Ḥuṣarī's reading plays beside the record button (voice_reference), but the task is back to WhatsApp.",
+   "evidence": "Q11 format whatsapp.",
+   "proposed": {
+    "field": "questions[10].why; changes_v2[2]",
+    "from": "Was a plain recording of Surah An-Naba'; Al-Ḥuṣarī's reading of the surah now plays beside the record button. | Q11 'recite Surah An-Naba'' → voice_reference against Al-Ḥuṣarī, 78:1–40",
+    "to": "Same task as last year: recite Surah An-Naba' and send it to the class WhatsApp group. | (remove)"
+   }
+  }
+ ],
+ "checked": 68,
+ "summary": "Answer keys and tajweed facts are sound across all 8 papers; Qur'anic text in options and prompts matches the mushaf except one live word. Two errors, both in the live Ghunna 2: the non-Qur'anic option اُمَّمٌ (real word أُمَمٌ has no shaddah, so no ghunna) is keyed correct, and the Al-Fajr tap key leaves out مَّرْضِيَّةً (89:28) although the video says every meem/noon with shaddah takes ghunna. Systemic: four select_all questions are worded as single-answer or have only one right answer (G1 Q7, G2 Q5, G3 Q7, G5 Q1). Lead-facing why/flags/changes_v2 notes on the end-of-paper WhatsApp tasks (G4, G6, G7) still describe the abandoned in-app recording. All tap/count keys spot-checked word by word; all listen and audio-option timings match QUL's Al-Ḥuṣarī segments. Ghunna 8 is clean."
+}

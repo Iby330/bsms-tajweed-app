@@ -1,0 +1,130 @@
+{
+ "course": "umm",
+ "source_files": [
+  "new/umm.json"
+ ],
+ "findings": [
+  {
+   "ordinal": 9,
+   "n": 8,
+   "severity": "error",
+   "issue": "The task tells students to 'listen back to the recording you made in week 1 (Ghunna 1)', but the final Ghunna 1 (the teacher's version, live in migration 0047) has no recording task, and Umm 1 left one out on purpose because it expected Ghunna 1 to have it. So no week-1 recording of Al-Fātiḥah exists to compare with. The Umm 1 review note saying 'Ghunna 1 already asks every student to record Al-Fātiḥah' is out of date for the same reason. Or keep the compare step and add a short baseline voice task ('record yourself reciting Al-Fātiḥah here, as you recite it today') to Umm 2, which isn't live yet, then point this prompt at Umm 2 instead of Ghunna 1.",
+   "evidence": "new/teacher.json Ghunna 1 = 9 questions, none of them voice; web/supabase/migrations/0047_homework_term1_week1.sql Homework 1 (Ghunna 1) Q1–Q9 have no recording task; Homework 201 (Umm 1) has none either.",
+   "proposed": {
+    "field": "prompt",
+    "from": "Final task: listen to this recitation of the whole of Surah Al-Fātiḥah, then record yourself here reciting it slowly and carefully, with everything from this series in mind. Then listen back to the recording you made in week 1 (Ghunna 1) and compare the two: notice how far you've come.",
+    "to": "Final task: listen to this recitation of the whole of Surah Al-Fātiḥah, then record yourself here reciting it slowly and carefully, with everything from this series in mind."
+   }
+  },
+  {
+   "ordinal": 9,
+   "n": 7,
+   "severity": "fix",
+   "issue": "The listen clip starts too late. QUL's word timings give the 'لَا ٱلضّ' join to word 8, so the clip (42240 ms) begins about 0.7 s into the long ā. The student never hears the ض the prompt mentions, and only hears about three quarters of the six-count madd they are asked to name. That makes it sound much like the madd ʿāriḍ at the stop.",
+   "evidence": "I downloaded both Al-Ḥuṣarī files and aligned the everyayah 001007.mp3 to the QUL 001.mp3 by loudness envelope (correlation 0.989, offset 33.22 s). everyayah word 9 starts at 7700 ms, which is 40920 ms in the QUL file. In the QUL file 'lā' runs 40.6–40.9 s, the ḍḍ hold 41.0–41.4 s and the ā 41.5–44.4 s. The clip starts at 42.24 s.",
+   "proposed": {
+    "field": "clip.start_ms",
+    "from": 42240,
+    "to": 40920
+   }
+  },
+  {
+   "ordinal": 9,
+   "n": 5,
+   "severity": "fix",
+   "issue": "The correct option reads 'The heavy ض after it is ALLOWED to influence it', which a student can take as 'it is permitted to'. That is the opposite of the point being made.",
+   "evidence": "umm_9 transcript: 'many people unfortunately allow the [ض] to influence the [lām] … it should not be'.",
+   "proposed": {
+    "field": "options[0].text",
+    "from": "The heavy ض after it is allowed to influence it, but the lām must stay light",
+    "to": "People let the heavy ض after it make the lām heavy, but the lām must stay light"
+   }
+  },
+  {
+   "ordinal": 9,
+   "n": 2,
+   "severity": "suggest",
+   "issue": "In the tap_letters passage the آ of ٱلضَّآلِّينَ is a separate, unkeyed tile. It is pronounced heavy because it follows the ض, so a careful student may tap it and lose marks. The ص/ط/غ/ض keys and the ر exclusion are correct (6 letters: صِ طَ غَ غْ ضُ ضَّ).",
+   "evidence": "Letter keys in new/umm.json umm-9 Q2 checked against the seven always-heavy letters (خ ص ض غ ط ق ظ) in 1:7. The 1:6 passage (umm-8 Q5) has no separate alif tile after a heavy letter, so it doesn't have this problem.",
+   "proposed": {
+    "field": "prompt",
+    "from": "Tap every heavy letter in this verse. Leave out the ر: it is heavy in one word and light in another, so it is not counted here.",
+    "to": "Tap every one of the always-heavy letters in this verse. Leave out the ر (it is heavy in one word and light in another) and the alif, which only follows the letter before it."
+   }
+  },
+  {
+   "ordinal": 9,
+   "n": 6,
+   "severity": "suggest",
+   "issue": "The correct option for istiṭālah ('using the tongue to fill the mouth') follows the video's loose wording, but filling the mouth describes heaviness (tafkhīm/iṭbāq) more than istiṭālah. The standard definition is the sound stretching along the side of the tongue, from back to front. The lead may want the option to carry both.",
+   "evidence": "Standard definition of istiṭālah: the sound of the ض extends along the edge of the tongue from its beginning to its end. umm_9 transcript: 'when you use your tongue to fill your mouth producing a sound similar to this'.",
+   "proposed": {
+    "field": "options[0].text",
+    "from": "Using the tongue to fill the mouth, so the sound stretches along it",
+    "to": "The sound stretches along the side of the tongue, from the back towards the front"
+   }
+  },
+  {
+   "ordinal": 4,
+   "n": 6,
+   "severity": "suggest",
+   "issue": "'Come clearly from the throat' doesn't separate ع from the hamzah, which is also a throat letter (deepest part). The rubric's point is that ع turns into a hamzah, so the prompt should name where the ع is made.",
+   "evidence": "Makhārij: ء ه = deepest throat, ع ح = middle of the throat. The paper's own Q2 diagram uses throat_middle for ح.",
+   "proposed": {
+    "field": "prompt",
+    "from": "Why must the ع in ٱلْعَـٰلَمِينَ come clearly from the throat? What goes wrong if it doesn't?",
+    "to": "Why must the ع in ٱلْعَـٰلَمِينَ come clearly from the middle of the throat? What goes wrong if it doesn't?"
+   }
+  },
+  {
+   "ordinal": 1,
+   "n": 7,
+   "severity": "suggest",
+   "issue": "Live paper; the key is correct for the hadith as the video gives it ('lā ṣalāta li-man lam yaqraʾ bi-Fātiḥat al-Kitāb', Bukhārī 756 / Muslim 394, from ʿUbādah ibn aṣ-Ṣāmit). But the prompt is a quote with no attribution, and two distractors ('Makrūh', 'Valid if he recites another surah') are close to a real fiqh position (Ḥanafī: Fātiḥah wājib, not farḍ). Tying the prompt to the hadith keeps the key unarguable. I checked the other Umm 1 attributions and they hold: As-Sabʿ al-Mathānī in 15:87 and Bukhārī (Abū Saʿīd ibn al-Muʿallā; Abū Hurayrah); the 'two lights' in Muslim 806 (Ibn ʿAbbās); 'nothing like it in the Tawrāh, Injīl, Zabūr or Furqān' in Tirmidhī (Abū Hurayrah/Ubayy); 'a third of the Qur'an' is Al-Ikhlāṣ; Umm al-Qurā = Makkah (6:92, 42:7).",
+   "evidence": "umm_1 transcript: 'the prophet … said that whoever does not recite Al[-Fātiḥah] in his prayer his prayer is invalid'. The hadith references above are from memory; I didn't look them up again online.",
+   "proposed": {
+    "field": "prompt",
+    "from": "\"Whoever does not recite Al-Fātiḥah in his prayer, his prayer is…\"",
+    "to": "According to the hadith in the video, whoever does not recite Al-Fātiḥah in his prayer, his prayer is…"
+   }
+  },
+  {
+   "ordinal": 3,
+   "n": null,
+   "severity": "fix",
+   "issue": "The review notes still use the first-pass numbering. 'Q5/Q6: … takrīr … ح vs ه' now means Q4 (match) and Q5. 'Q6 is a select_all where ٱللَّهِ is the trap' now means Q5. A lead checking the notes against the paper will look at the wrong questions.",
+   "evidence": "new/umm.json umm-3 review_notes compared with changes_v2 and the current question order.",
+   "proposed": {
+    "field": "review_notes[2..3]",
+    "from": "Q5/Q6 … / Q6 is a select_all …",
+    "to": "Q4/Q5 … / Q5 is a select_all …"
+   }
+  },
+  {
+   "ordinal": 4,
+   "n": null,
+   "severity": "fix",
+   "issue": "The review notes are stale. 'Q2 (light lām …) and Q4 (only the ر is heavy)' are now Q3 and Q5. 'Lighter paper on purpose: 6 marks' is now 7 marks after the diagram was added.",
+   "evidence": "new/umm.json umm-4 review_notes compared with the current questions (total 7).",
+   "proposed": {
+    "field": "review_notes",
+    "from": "Q2 (light lām of Allah …) and Q4 (only the ر is heavy) … / 6 marks instead of the usual 8–10",
+    "to": "Q3 (light lām of Allah …) and Q5 (only the ر is heavy) … / 7 marks instead of the usual 8–10"
+   }
+  },
+  {
+   "ordinal": 8,
+   "n": null,
+   "severity": "fix",
+   "issue": "The review notes contradict the paper. One note says the ر (with fatḥah) is marked heavy in Q5, but the tap_letters version leaves the ر out. Q2 has two notes, and the older one ('Technically both are throat letters; the wording follows the video') no longer matches the diagram prompt.",
+   "evidence": "new/umm.json umm-8 review_notes[1], [2] and [3] compared with Q2 (diagram, throat_deep) and Q5 (tap_letters, ص ط ق).",
+   "proposed": {
+    "field": "review_notes",
+    "from": "notes [1] and [2] as written",
+    "to": "drop note [2] (old Q2 wording); in note [1] remove 'the ر (with fatḥah)' from the heavy-letter list, since Q5 now leaves the ر out"
+   }
+  }
+ ],
+ "checked": 65,
+ "summary": "The answer keys are sound. All 65 questions pass the structural checks (totals, one correct option, rubric sums, count = script instances 0). The Arabic in prompts and options matches the Uthmani text of 1:1–7 and 16:98; the only differences are shaddah/ḥarakah order and آ vs ا+madda. The diagram answers are right (ح and ع throat_middle, ه throat_deep), and the tap_letters keys for 1:6 (ص ط ق) and 1:7 (ص ط غ غ ض ض) are correct with the ر left out on purpose. Umm 1 (live) has no errors. There are two real problems in Umm 9. Q8 asks students to compare with a week-1 Fātiḥah recording that the final Ghunna 1 never asks for. Q7's listen clip starts about 0.7 s late and cuts off the ض and the start of the six-count madd. That second one is systemic: QUL word timings give the joined sound across a waṣl to the previous word, so other courses' listen clips that start on a joined word may be clipped the same way. The rest is wording (Umm 9 Q5 'allowed', istiṭālah, 'from the throat'), one ambiguous alif tile, and stale review notes in Umm 3, 4 and 8."
+}

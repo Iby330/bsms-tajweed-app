@@ -1,0 +1,196 @@
+{
+ "course": "mudood",
+ "source_files": [
+  "new/teacher.json"
+ ],
+ "findings": [
+  {
+   "ordinal": 3,
+   "n": 10,
+   "severity": "error",
+   "issue": "The prompt says to tap Madd Munfasil 'if you did not stop', but the key only counts the 8 instances INSIDE an ayah. Read literally (no stopping at all), 13 more Madd Munfasil happen across ayah ends, every one printed with the madd sign (e.g. ٱلْهَوَىٰٓ → إِنْ, 53:3–4), so a student who taps them is marked wrong.",
+   "evidence": "tanzil 53:1–62: ayah-final words with madd sign followed by a hamzah-initial ayah: 53:3, 11, 15, 18, 20, 22, 23, 26, 32, 34, 35, 37, 56. Within-ayah key checked by hand: 53:10 (×2), 53:23 (×3), 53:32, 53:50, 53:51 = 8, matches tap.instances.",
+   "proposed": {
+    "field": "prompt",
+    "from": "Read through Surah Najm and highlight the examples of Madd Munfasil if you did not stop. (Ensure you select the cause and result of Madd Ul Munfasil to get the mark.)",
+    "to": "Read through Surah Najm, stopping at the end of every ayah, and highlight the examples of Madd Munfasil. (Ensure you select the cause and result of Madd Ul Munfasil to get the mark.)"
+   }
+  },
+  {
+   "ordinal": 5,
+   "n": 4,
+   "severity": "error",
+   "issue": "The rubric is a placeholder ('no model answer given'), worth all 3 marks. The AI marker has nothing to mark against, so this question cannot be marked.",
+   "evidence": "rubric[0].desc in new/teacher.json; example words below taken from tanzil 1:7, 69:1, 10:51, 2:1.",
+   "proposed": {
+    "field": "rubric",
+    "from": [
+     {
+      "desc": "(no model answer given in the doc or last year)",
+      "marks": 3
+     }
+    ],
+    "to": [
+     {
+      "desc": "First correct example IN ARABIC of Madd Lazim (a letter of madd followed by an original sukoon or shaddah, in a word or in an opening letter), e.g. ٱلضَّآلِّينَ, ٱلْحَآقَّةُ, ءَآلْـَٰٔنَ, الٓمٓ",
+      "marks": 1
+     },
+     {
+      "desc": "Second correct, different example of Madd Lazim",
+      "marks": 1
+     },
+     {
+      "desc": "Third correct, different example of Madd Lazim",
+      "marks": 1
+     }
+    ]
+   }
+  },
+  {
+   "ordinal": 6,
+   "n": 6,
+   "severity": "error",
+   "issue": "This is a `voice` question but carries 2 points and a rubric, and the paper total (18) counts them. The seeder forces every voice question to 0 marks (execution/homework_sql.ts line 124), so the 2 marks and the rubric silently vanish and the live total becomes 16. The prompt also says 'Describe' rather than telling the student to record. (Minor: the rubric says you 'should' stop at one of the two places; reading straight through without stopping at either is also allowed. The question also carries a leftover tap block with rule madd_6 and 0 instances.)",
+   "evidence": "execution/homework_sql.ts: case \"voice\" → points: 0, is_task: true; ayah checked against tanzil 2:2.",
+   "proposed": {
+    "field": "prompt / points / homework total",
+    "from": {
+     "prompt": "Describe how to read this ayah.\nذَٰلِكَ ٱلْكِتَـٰبُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًۭى لِّلْمُتَّقِينَ",
+     "points": 2,
+     "total": 18
+    },
+    "to": {
+     "prompt": "Record yourself here reciting this ayah, showing how you deal with the two sets of three dots (ۛ).\nذَٰلِكَ ٱلْكِتَـٰبُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًۭى لِّلْمُتَّقِينَ",
+     "points": 0,
+     "total": 16,
+     "tap": null
+    },
+    "note": "If the teacher wants the 2 marks kept, keep this as a 0-mark voice task and add a 2-mark `short` 'Describe how to read this ayah' with the existing rubric before it."
+   }
+  },
+  {
+   "ordinal": 6,
+   "n": 5,
+   "severity": "fix",
+   "issue": "Three of the five right-hand labels are cut off with '…', taken from a cropped screenshot. Students see 'Permissible to continue but stopping is …', which is the word the match turns on.",
+   "evidence": "Full labels in reference/forms_export.json (last year's form): 'Permissible to continue but stopping is preferred', 'Impermissible to stop and continue from it', 'Permissible to stop but continuing is preferred'.",
+   "proposed": {
+    "field": "pairs[1..3].right",
+    "from": [
+     "Permissible to continue but stopping is …",
+     "Impermissible to stop and continue fro…",
+     "Permissible to stop but continuing is pr…"
+    ],
+    "to": [
+     "Permissible to continue but stopping is preferred",
+     "Impermissible to stop and continue from it",
+     "Permissible to stop but continuing is preferred"
+    ]
+   }
+  },
+  {
+   "ordinal": 2,
+   "n": 3,
+   "severity": "fix",
+   "issue": "Option spelt قسر; Qaṣr is قصر (ṣād, not sīn). The teacher's own note on this question asks for the spelling to be fixed, but it still reads قسر.",
+   "evidence": "Standard term قصر; the earlier draft (new/mudood.json mudood-2 Q3) already has قصر.",
+   "proposed": {
+    "field": "options[0].text",
+    "from": "قسر",
+    "to": "قصر"
+   }
+  },
+  {
+   "ordinal": 4,
+   "n": 3,
+   "severity": "fix",
+   "issue": "Option spelt قسر; Qaṣr is قصر (ṣād, not sīn). Here it is a CORRECT (ticked) option, so students see a misspelt right answer.",
+   "evidence": "Standard term قصر; the earlier draft (new/mudood.json mudood-2 Q3) already has قصر.",
+   "proposed": {
+    "field": "options[0].text",
+    "from": "قسر",
+    "to": "قصر"
+   }
+  },
+  {
+   "ordinal": 5,
+   "n": 5,
+   "severity": "fix",
+   "issue": "Option spelt قسر; Qaṣr is قصر (ṣād, not sīn).",
+   "evidence": "Standard term قصر; the earlier draft (new/mudood.json mudood-2 Q3) already has قصر.",
+   "proposed": {
+    "field": "options[0].text",
+    "from": "قسر",
+    "to": "قصر"
+   }
+  },
+  {
+   "ordinal": 5,
+   "n": 10,
+   "severity": "fix",
+   "issue": "The prompt 'Select the correct answer.' is left over from the grid; this is now a matching question.",
+   "evidence": "format: match, 4 pairs.",
+   "proposed": {
+    "field": "prompt",
+    "from": "Select the correct answer.",
+    "to": "Match each example to its type of Madd Lazim."
+   }
+  },
+  {
+   "ordinal": 5,
+   "n": 10,
+   "severity": "suggest",
+   "issue": "طسٓمٓ has BOTH kinds: the sīn is Harfi Muthaqal (its nūn merges into the mīm) and the final mīm is Harfi Mukhafaf. A student who knows this may hesitate. The match only works out because الٓر takes the other Harfi slot.",
+   "evidence": "tanzil 26:1 طسٓمٓ; the earlier draft labelled these 'The sīn of طسٓمٓ' and 'The lām of الٓر'.",
+   "proposed": {
+    "field": "pairs[0].left / pairs[3].left",
+    "from": [
+     "الٓر",
+     "طسٓمٓ"
+    ],
+    "to": [
+     "The lām of الٓر",
+     "The sīn of طسٓمٓ"
+    ]
+   }
+  },
+  {
+   "ordinal": 6,
+   "n": 3,
+   "severity": "suggest",
+   "issue": "The prompt asks only about STOPPING at the wrong place, but the rubric gives full marks for any example, including changing a letter (Qalb/Kalb) or a harakah (أَنْعَمْتَ). Either the prompt or the rubric should change so they agree.",
+   "evidence": "rubric[0].desc lists three kinds; only the 4:43 example is about stopping (checked against tanzil 4:43, 1:7).",
+   "proposed": {
+    "field": "prompt",
+    "from": "Can you give an example of where stopping at the wrong place changes the meaning?",
+    "to": "Can you give an example of where a mistake in recitation (a wrong letter, a wrong harakah, or stopping at the wrong place) changes the meaning?"
+   }
+  },
+  {
+   "ordinal": 2,
+   "n": 6,
+   "severity": "suggest",
+   "issue": "The model answer 'when stopping at a word with Mad Ul Mutasil' is too broad. Ṭūl comes in only when you stop on a word whose last letter is the hamzah (e.g. ٱلسَّمَآءِ), because the madd is then also ʿāriḍ. Stopping on a word where the hamzah is not last gives no ṭūl.",
+   "evidence": "tanzil 86:11 وَٱلسَّمَآءِ (from the At-Tariq task in this paper).",
+   "proposed": {
+    "field": "rubric[0].desc",
+    "from": "When stopping at a word with Mad Ul Mutasil",
+    "to": "When stopping on a word with Mad Ul Mutasil where the hamzah is the last letter (e.g. ٱلسَّمَآءِ)"
+   }
+  },
+  {
+   "ordinal": 1,
+   "n": 3,
+   "severity": "suggest",
+   "issue": "The rubric lists only نُوحِيهَا, so the AI marker may reject other valid words that hold all three letters of madd.",
+   "evidence": "نُوحِيهَآ checked in tanzil 11:49.",
+   "proposed": {
+    "field": "rubric[0].desc",
+    "from": "نُوحِيهَا",
+    "to": "Any one word (in Arabic) with all three letters of madd, each after its matching harakah, e.g. نُوحِيهَا"
+   }
+  }
+ ],
+ "checked": 48,
+ "summary": "All 48 questions in Mudood 1–6 (teacher version) checked. The mcq, select_all and count keys are correct: every Qur'anic option and passage matches tanzil (only some madd signs are dropped from options, as last year), and the count keys (3, 2, 4) are right, including the hā' at-tanbīh in هَـٰٓؤُلَآءِ. Real problems: the An-Najm tap prompt ('if you did not stop') disagrees with its within-ayah key; Mudood-5 Q4 has a placeholder rubric; Mudood-6 Q6 gives 2 marks to a voice task, which the seeder zeroes, so the total silently drops from 18 to 16. Systemic: قسر for قصر appears in three papers (M2 Q3, M4 Q3, M5 Q5), even though the teacher flagged it. The waqf match labels are truncated from a cropped screenshot; the full text is in last year's form export."
+}

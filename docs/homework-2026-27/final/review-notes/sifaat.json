@@ -1,0 +1,240 @@
+{
+ "course": "sifaat",
+ "source_files": [
+  "new/sifaat.json"
+ ],
+ "findings": [
+  {
+   "ordinal": 1,
+   "n": 2,
+   "severity": "fix",
+   "issue": "Arabic term misspelt: the maṣdar of istafʿala starts with a hamzatul wasl, so it is الاستعلاء, not الإستعلاء with a hamza under the alif. Live in HW 9 now; same spelling in Sifaat 5 Q1.",
+   "evidence": "Standard spelling الاستعلاء (cf. الاستعاذة, الاستفهام); live prompt in web/supabase/migrations/0047_homework_term1_week1.sql line 86.",
+   "proposed": {
+    "field": "prompt",
+    "from": "What is meant by الإستعلاء literally?",
+    "to": "What is meant by الاستعلاء literally?"
+   }
+  },
+  {
+   "ordinal": 1,
+   "n": 3,
+   "severity": "fix",
+   "issue": "The `why` says students find heavy letters 'letter by letter', but the question (and the live HW 9) is a word-level tap. Lead-facing only; the key itself is correct (وَٱلطَّارِقِ, ٱلطَّارِقُ, ٱلثَّاقِبُ, حَافِظٌۭ; ر and ن in the passage rightly not keyed).",
+   "evidence": "86:1–4 checked word by word against the seven letters خ ص ض غ ط ق ظ; live options in 0047 match the draft.",
+   "proposed": {
+    "field": "why",
+    "from": "Was 'pick the seven heavy letters from the alphabet'; now students find each heavy letter in real mushaf text, letter by letter. Week-1 paper ...",
+    "to": "Was 'pick the seven heavy letters from the alphabet'; now students tap every word in At-Ṭāriq 86:1–4 that has a heavy letter."
+   }
+  },
+  {
+   "ordinal": 1,
+   "n": 10,
+   "severity": "fix",
+   "issue": "`why`/`status` are stale: they say the student hears Al-Ḥuṣarī beside the record button, but the task is last year's WhatsApp recording (reference null, live as a 'Done' tick).",
+   "evidence": "Draft Q10 fields format 'whatsapp', reference null; live 0047 line 111.",
+   "proposed": {
+    "field": "why",
+    "from": "Was a plain recording task; now the student hears Al-Ḥuṣarī's reading of At-Ṭāriq beside the record button first.",
+    "to": null,
+    "also": {
+     "field": "status",
+     "from": "changed",
+     "to": "kept"
+    }
+   }
+  },
+  {
+   "ordinal": 1,
+   "n": null,
+   "severity": "fix",
+   "issue": "Homework `summary` and `changes_v2` describe things that are not in the paper (an order question, tap_letters, voice_reference against Al-Ḥuṣarī). The lead reading them would think the live HW 9 differs from what students see.",
+   "evidence": "Questions list of sifaat-1 vs its summary/changes_v2.",
+   "proposed": {
+    "field": "summary",
+    "from": "Same knowledge, more hands-on: students tap the heavy letters in At-Ṭāriq, put words in order of heaviness, and recite At-Ṭāriq against Al-Ḥuṣarī.",
+    "to": "Same knowledge, more hands-on: students tap the words with heavy letters in At-Ṭāriq, the broken levels grid becomes four one-word level questions, and the recitation stays a WhatsApp task."
+   }
+  },
+  {
+   "ordinal": 2,
+   "n": 5,
+   "severity": "suggest",
+   "issue": "Negative select-all ('do NOT contain') right before an odd-one-out on the same idea; easy for a 12-year-old to invert. Key is correct (B ٱلْحَمْدُ لِلَّهِ light after kasra; D has no Name of Allah).",
+   "evidence": "Options checked against 10:10, 1:2, 39:1/40:2, 69:8 in tanzil.",
+   "proposed": {
+    "field": "prompt",
+    "from": "Which of these examples do NOT contain a ل that is recited heavily?",
+    "to": "Which of these examples have NO heavy ل in them? Select all that apply."
+   }
+  },
+  {
+   "ordinal": 2,
+   "n": 7,
+   "severity": "fix",
+   "issue": "`why` says students record their examples in the app, but the task is back to the class WhatsApp group; the homework summary says the same ('the examples are recorded in the app').",
+   "evidence": "Draft Q7 format 'whatsapp'.",
+   "proposed": {
+    "field": "why",
+    "from": "Students now record their examples in the app instead of promising to send them to the group chat.",
+    "to": "Same task as last year, sent to the class WhatsApp group."
+   }
+  },
+  {
+   "ordinal": 3,
+   "n": 5,
+   "severity": "suggest",
+   "issue": "The rubric never covers the case Q9 tests: stopping on a ر whose letter before is sakin but not ي, where you look one letter further back (وَٱلْفَجْرِ heavy, ٱلذِّكْرِ light). A student who explains this would get no credit for it.",
+   "evidence": "Q9 key (89:1 وَٱلْفَجْرِ, heavy via the fatha on ف) relies on this condition.",
+   "proposed": {
+    "field": "rubric[2].desc",
+    "from": "When stopping, a sakin ي before it makes it light",
+    "to": "When stopping and the letter before is sakin: a sakin ي makes it light; any other sakin letter, look one letter further back (e.g. وَٱلْفَجْرِ heavy)"
+   }
+  },
+  {
+   "ordinal": 3,
+   "n": 8,
+   "severity": "fix",
+   "issue": "Option D's word is missing the ḍamma on the final ه and uses a plain alif with a tatweel; the mushaf has وَٱسْتَغْفِرْهُ. Key (D light: sakin ر after an original kasra) is right.",
+   "evidence": "110:3 tanzil: فَسَبِّحْ بِحَمْدِ رَبِّكَ وَٱسْتَغْفِرْهُ",
+   "proposed": {
+    "field": "options[3].text",
+    "from": "Continuing at وَاسْتَغْفِـرْه",
+    "to": "Continuing at وَٱسْتَغْفِرْهُ"
+   }
+  },
+  {
+   "ordinal": 4,
+   "n": 5,
+   "severity": "fix",
+   "issue": "Kept options carry last year's typos: 'qalala' (twice) and 'in the end of an word'. Same text in Q6.",
+   "evidence": "Q5/Q6 options.",
+   "proposed": {
+    "field": "options[*].text (Q5 and Q6)",
+    "from": "When there is a letter of qalala which is sakin and is in the end of an word where you are stopping",
+    "to": "When there is a Qalqala letter which is sakin at the end of a word where you are stopping",
+    "also": {
+     "from": "When there is a letter of qalala which is sakin and is in the middle of a word",
+     "to": "When there is a Qalqala letter which is sakin in the middle of a word"
+    }
+   }
+  },
+  {
+   "ordinal": 4,
+   "n": 5,
+   "severity": "suggest",
+   "issue": "'Subtle = sakin in the middle of a word' leaves out an original sukoon at the END of a word you carry on from, which is also the subtle level (e.g. يَلِدْ in لَمْ يَلِدْ وَلَمْ, the correct answer to Q4). A student may think يَلِدْ has no Qalqala.",
+   "evidence": "112:3 لَمْ يَلِدْ وَلَمْ يُولَدْ; Qalqala ṣughrā = any sukoon aṣlī not at a stop.",
+   "proposed": {
+    "field": "options[0].text",
+    "from": "When there is a letter of qalala which is sakin and is in the middle of a word",
+    "to": "When a Qalqala letter has its own (original) sukoon and you are not stopping on it, e.g. in the middle of a word"
+   }
+  },
+  {
+   "ordinal": 4,
+   "n": 8,
+   "severity": "suggest",
+   "issue": "The higher level only exists if you stop; the prompt doesn't say the student is stopping at the end of each ayah (the key assumes it: ٱلْبَلَدِ, قُعُودٌ, وَتَبَّ).",
+   "evidence": "90:1, 85:6, 111:1 keyed; 100:5, 90:8, 90:11 not.",
+   "proposed": {
+    "field": "prompt",
+    "from": "Which of these have the higher level of Qalqala?",
+    "to": "Stopping at the end of each ayah, which of these have the higher level of Qalqala? Select all that apply."
+   }
+  },
+  {
+   "ordinal": 4,
+   "n": 2,
+   "severity": "suggest",
+   "issue": "The 29-letter list is out of alphabetical order (ع غ before ط ظ, ك before ف, ي before و), which makes it slower to scan; Sifaat 5 Q3 uses the same order.",
+   "evidence": "Option order in Q2 (and Sifaat 5 Q3).",
+   "proposed": {
+    "field": "options order",
+    "from": "… ص ض ع غ ط ظ ك ف ق ل م ن ه ي و ء",
+    "to": "… ص ض ط ظ ع غ ف ق ك ل م ن ه و ي ء"
+   }
+  },
+  {
+   "ordinal": 4,
+   "n": 11,
+   "severity": "fix",
+   "issue": "`why` says students now record the task in the app; it is back to the class WhatsApp group.",
+   "evidence": "Draft Q11 format 'whatsapp'.",
+   "proposed": {
+    "field": "why",
+    "from": "Students now record the task in the app; the 'say which level' half of last year's task stays here.",
+    "to": "Same task as last year, sent to the class WhatsApp group; the 'find 5 examples' half is now practised in Q10."
+   }
+  },
+  {
+   "ordinal": 5,
+   "n": 1,
+   "severity": "fix",
+   "issue": "Same misspelling as Sifaat 1 Q2: الإستعلاء should be الاستعلاء.",
+   "evidence": "Standard spelling with hamzatul wasl.",
+   "proposed": {
+    "field": "pairs[1].left",
+    "from": "Istiʿlāʾ (الإستعلاء)",
+    "to": "Istiʿlāʾ (الاستعلاء)"
+   }
+  },
+  {
+   "ordinal": 5,
+   "n": 7,
+   "severity": "fix",
+   "issue": "`why` and the homework summary say Al-Muddaththir is recited against Al-Ḥuṣarī, but the task is last year's WhatsApp recording.",
+   "evidence": "Draft Q7 format 'whatsapp', reference null.",
+   "proposed": {
+    "field": "why",
+    "from": "Was a plain recording task; now the student hears Al-Ḥuṣarī's reading of Al-Muddaththir beside the record button first.",
+    "to": null,
+    "also": {
+     "field": "status",
+     "from": "changed",
+     "to": "kept"
+    }
+   }
+  },
+  {
+   "ordinal": 6,
+   "n": 7,
+   "severity": "fix",
+   "issue": "`why` says students record in the app instead of ticking 'Yes!'; the task is a WhatsApp recording, and last year's HW 14 task had no 'Yes' tick.",
+   "evidence": "hw_live HW 14 Q7 (text task); draft Q7 format 'whatsapp'.",
+   "proposed": {
+    "field": "why",
+    "from": "Students now record the task in the app instead of ticking 'Yes!'.",
+    "to": "Same task as last year, now asking students to read the examples aloud and send the recording to the class WhatsApp group."
+   }
+  },
+  {
+   "ordinal": 7,
+   "n": 2,
+   "severity": "suggest",
+   "issue": "Option A ('between 2 letters in the same word') is keyed wrong, but two sukoons do meet inside one word (madd lāzim, e.g. ٱلضَّآلِّينَ, and when stopping). Students who did the Mudūd series could fairly hesitate; the question should say it means the rule taught here.",
+   "evidence": "1:7 ٱلضَّآلِّينَ (alif + first ل of the shadda).",
+   "proposed": {
+    "field": "prompt",
+    "from": "When does it occur?",
+    "to": "In the rule taught in this lesson, where do the two sukoons meet?"
+   }
+  },
+  {
+   "ordinal": 7,
+   "n": 7,
+   "severity": "fix",
+   "issue": "`why` says the student hears Al-Ḥuṣarī's Al-Qiyāmah first; the task is a WhatsApp recording with no reference.",
+   "evidence": "Draft Q7 format 'whatsapp', reference null.",
+   "proposed": {
+    "field": "why",
+    "from": "Was a plain recording task; now the student hears Al-Ḥuṣarī's reading of Al-Qiyāmah first, and still points out three places where two sukoons meet.",
+    "to": "Same recitation of Al-Qiyāmah as last year, sent to the class WhatsApp group; students now also point out three places where two sukoons meet."
+   }
+  }
+ ],
+ "checked": 59,
+ "summary": "No answer-key, tajweed or Qur'anic-text errors found in any of the 7 papers; Sifaat 1 (live HW 9) keys match the live migration 0047 and are correct (levels 4/3/1, غَاسِقٍ level 5, tap key in 86:1–4). Rā' keys (Q3, Q4, Q7, Q8, listen وَٱلْفَجْرِ heavy) and lām-of-Allah keys (tap 62:10–11, Q5, Q6 incl. قُلِ ٱللَّهُمَّ light) all check out; qalqala letter set ق ط ب ج د and both level keys (Q7, Q8, tap 96:1–8, listen 113:1) are right. All quoted Arabic matches tanzil (only a missing ḍamma in وَٱسْتَغْفِرْهُ). Totals, rubric sums and single-answer counts all validate. Systemic: after the 'back to WhatsApp' edit, the `why`/`status`, summaries and changes_v2 of the end tasks still describe in-app / Al-Ḥuṣarī reference recordings (6 of 7 papers); Sifaat 4's review notes also contradict each other on whether tap_letters is safe. Content suggestions: the subtle-qalqala definition omits word-final original sukoon, and the rā' Q5 rubric lacks the 'look one further back' stop case that Q9 tests."
+}
