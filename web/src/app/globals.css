@@ -2385,6 +2385,36 @@ html {
   .box:hover { background: var(--card); }
   .lb .row:hover { transform: none; }
 
+  /* — card grids: two to a row, the way a phone app shelves a catalogue.
+     One card per row put eight modules eight screens deep. The hairlines move
+     from the container onto each card (an outline that spills into the 1px
+     gap), so an odd last card leaves empty page beside it rather than a
+     slab of border colour. — */
+  .cards, .cards.few {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); width: auto;
+    background: none; border: 0; gap: 1px; padding: 1px;
+  }
+  .cards:has(> :only-child) { grid-template-columns: minmax(0, 1fr); }
+  .cards > * { outline: 1px solid var(--border); }
+  .tcard { gap: 8px; }
+  .tcard h2, .tcard h3 { font-size: 1.12rem; font-weight: 400; letter-spacing: -0.02em; }
+  .cover-card .tbody { padding: 10px 12px 12px; }
+  .cover-card .tbody .label { margin-bottom: 3px; font-size: 0.56rem; }
+  .cover-card .tbody .mt-auto { padding-top: 10px; }
+  .cover-card .plate { padding: 0 8px; }
+  .cover-card .plate i { font-size: 0.86rem; }
+  .term-courses { font-size: 13px; gap: 4px 10px; }
+  .tcard:active { background: color-mix(in oklab, var(--foreground) 6%, var(--card)); }
+
+  /* — the lesson player: edge to edge, actions as full-width buttons — */
+  .player-field { margin-inline: calc(var(--gutter) * -1); border-inline: 0; }
+  .player-box { padding: 0 0 12px; }
+  .player-box .empty { margin: 14px var(--gutter) 0; }
+  .player-acts { padding: 12px var(--gutter); }
+  .player-acts .chip {
+    flex: 1 1 0; justify-content: center; min-height: 2.75rem; font-size: 0.68rem;
+  }
+
   /* Pressed state, the way native lists acknowledge a touch. */
   .rowlist .rowlink:active, a.box:active, .box a.rowlink:active {
     background: color-mix(in oklab, var(--foreground) 6%, var(--card));

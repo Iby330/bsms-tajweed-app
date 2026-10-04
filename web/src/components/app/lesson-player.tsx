@@ -227,7 +227,7 @@ export function LessonPlayer({
 
   return (
     <div className="space-y-3">
-      <div className="overflow-hidden rounded-lg border border-line bg-ink">
+      <div className="overflow-hidden rounded-lg border border-line bg-ink max-md:rounded-none max-md:border-0">
         {/* The API replaces this div with the iframe, so the ratio lives on the
             wrapper — and so does the rule stretching whatever replaces it. */}
         <div className="aspect-video w-full [&>iframe]:size-full">
@@ -235,7 +235,7 @@ export function LessonPlayer({
         </div>
       </div>
       {track && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground max-md:px-4">
           {watched
             ? "✓ Watched. This one's marked off for you."
             : "Watch to the end and this marks itself off."}

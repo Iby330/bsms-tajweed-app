@@ -104,8 +104,10 @@ export default async function Lesson({
         </div>
       </header>
 
-      <div className="field">
-        <div className="box c12">
+      {/* On a phone the player runs to the screen's edges, as a video app's
+          does; `player-field` lets the stylesheet bleed it past the gutter. */}
+      <div className="field player-field">
+        <div className="box c12 player-box">
           {lesson.youtube_id ? (
             <LessonPlayer
               lessonId={lesson.id}
@@ -121,7 +123,7 @@ export default async function Lesson({
         </div>
 
         {(next || homework) && (
-          <div className="box c12" style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+          <div className="box c12 player-acts" style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
             {homework && (
               <Link href={`/homework/${homework.number}?from=video`} className="chip due">
                 This week&apos;s homework →

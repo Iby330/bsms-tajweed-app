@@ -44,7 +44,7 @@ export function ModulePoster({
   const src = thumbnailUrl(youtubeId);
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden bg-muted">
+    <div className="relative aspect-video w-full overflow-hidden bg-muted max-md:order-first">
       {locked ? (
         <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground">
           <span aria-hidden className="text-lg">🔒</span>
@@ -114,12 +114,14 @@ export function ModuleCard({
     <li className={cn("tcard relative overflow-hidden", !m.unlocked && "locked")}
         style={{ padding: 0, gap: 0 }}>
       {/* ── title strip ── */}
-      <div className="flex items-baseline gap-2 px-3 py-2">
+      {/* On a phone the card is a grid cell: poster first (it moves up by
+          order), then the week over a two-line title, as a video app lists. */}
+      <div className="flex items-baseline gap-2 px-3 py-2 max-md:flex-col max-md:gap-0.5 max-md:px-2.5 max-md:pb-1 max-md:pt-2">
         {m.title ? (
           <MixedText
             text={m.title}
             className={cn(
-              "line-clamp-1 min-w-0 flex-1 text-sm font-medium leading-snug",
+              "line-clamp-1 min-w-0 flex-1 text-sm font-medium leading-snug max-md:line-clamp-2 max-md:w-full max-md:text-[13px]",
               !m.unlocked && "text-muted-foreground",
             )}
           />
@@ -128,7 +130,7 @@ export function ModuleCard({
              beyond a number. The week label carries the strip alone. */
           <span className="min-w-0 flex-1" />
         )}
-        <span className="shrink-0 text-[11px] uppercase tracking-wider text-muted-foreground">
+        <span className="shrink-0 text-[11px] uppercase tracking-wider text-muted-foreground max-md:order-first max-md:text-[10px]">
           Week {m.weekNumber}
         </span>
       </div>
@@ -144,7 +146,7 @@ export function ModuleCard({
 
       {/* ── actions ── */}
       {m.unlocked && (
-        <div className="flex flex-wrap items-center gap-2 px-3 py-2.5">
+        <div className="flex flex-wrap items-center gap-2 px-3 py-2.5 max-md:gap-1.5 max-md:px-2.5 max-md:pb-2.5 max-md:pt-1">
           {lesson && (
             /* Stretched overlay: makes the whole card the lesson link without
                wrapping the homework link in an anchor. */
@@ -152,11 +154,12 @@ export function ModuleCard({
               href={`/lessons/${lesson.id}`}
               className="text-xs text-muted-foreground transition-colors before:absolute before:inset-0 hover:text-foreground"
             >
-              <span aria-hidden>▸</span> {watchable ? "Watch" : "Details"}
+              {/* The whole card is this link on a phone; the word is desktop-only. */}
+              <span className="max-md:hidden"><span aria-hidden>▸</span> {watchable ? "Watch" : "Details"}</span>
             </Link>
           )}
 
-          <span className="ml-auto flex items-center gap-2">
+          <span className="ml-auto flex items-center gap-2 max-md:ml-0 max-md:flex-wrap max-md:gap-1.5">
             {m.homework?.due_at && !m.submission && (
               <CountdownChip dueAt={m.homework.due_at} />
             )}
