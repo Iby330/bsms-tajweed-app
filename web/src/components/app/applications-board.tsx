@@ -594,7 +594,8 @@ export function ApplicationsBoard({
     <div className="space-y-6">
       <div className="field">
         <section className="box c12 gap-5">
-          <div className="flex flex-wrap gap-x-10 gap-y-5">
+          {/* Three to a row on a phone: the figures are a glance, not a page. */}
+          <div className="flex flex-wrap gap-x-10 gap-y-5 max-md:grid max-md:grid-cols-3 max-md:gap-x-3 max-md:gap-y-3">
             <Figure label="Applications" value={counts.total} />
             <Figure label="Still to decide" value={counts.toHear} tone="brand" />
             <Figure label="Placed" value={counts.placed} />
@@ -607,7 +608,7 @@ export function ApplicationsBoard({
         </section>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 max-md:gap-2">
         <select
           aria-label="Side"
           className={selectCls}
@@ -638,7 +639,7 @@ export function ApplicationsBoard({
           placeholder="Search by name or email"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          className="h-8 w-full max-w-[16rem] text-sm"
+          className="h-8 w-full max-w-[16rem] text-sm max-md:max-w-none"
         />
       </div>
 
@@ -810,10 +811,10 @@ function Figure({
 }: { label: string; value: number; tone?: "brand" | "danger" }) {
   return (
     <div>
-      <span className="label">{label}</span>
+      <span className="label max-md:block max-md:truncate max-md:text-[0.52rem] max-md:tracking-[0.06em]">{label}</span>
       <div
         className={cn(
-          "mt-1 font-heading text-3xl tabular-nums",
+          "mt-1 font-heading text-3xl tabular-nums max-md:mt-0.5 max-md:text-2xl",
           tone === "brand" && value > 0 && "text-brand",
           tone === "danger" && value > 0 && "text-danger",
         )}

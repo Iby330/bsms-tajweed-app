@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
  * same string. Two columns on a phone, five from `lg`.
  */
 const COLS = cn(
-  "grid-cols-2 items-center gap-x-5 gap-y-3 px-4 lg:px-5",
+  "grid-cols-2 items-center gap-x-5 gap-y-3 px-4 lg:px-5 max-md:grid-cols-4 max-md:gap-x-2 max-md:gap-y-1.5 max-md:px-3",
   // Hifdh is 9rem rather than 6.5: it carries a surah name under the count
   // now, and the longer ones (Al-Mutaffifin, Al-Ghashiyah) were ellipsised
   // into uselessness at the old width.
@@ -41,7 +41,7 @@ function Cell({
 }) {
   return (
     <span className={cn("min-w-0", className)}>
-      <span className="block text-[10px] uppercase tracking-wider text-muted-foreground lg:hidden">
+      <span className="block text-[10px] uppercase tracking-wider text-muted-foreground lg:hidden max-md:hidden">
         {label}
       </span>
       <span className="mt-0.5 block lg:mt-0">{children}</span>
@@ -133,13 +133,15 @@ export default async function Roster() {
           <div
             className={cn(
               COLS,
-              "hidden border-b border-line py-2.5 lg:grid",
+              "hidden border-b border-line py-2.5 lg:grid max-md:grid max-md:py-2",
               "text-[10px] uppercase tracking-wider text-muted-foreground",
             )}
           >
-            <span>Student</span>
+            {/* On a phone the name has a line of its own, so the header names
+                the four figures under it and nothing else. */}
+            <span className="max-md:hidden">Student</span>
             <span>Rank</span>
-            <span>Strikes · T{termId}</span>
+            <span>Strikes<span className="max-md:hidden"> · T{termId}</span></span>
             <span>Hifdh</span>
             {/* The figure below is right-aligned from `lg`, so the heading is
                 too — left-aligned here, the two sat visibly out of line. */}
@@ -159,16 +161,16 @@ export default async function Roster() {
                     href={`/teacher/roster/${s.id}`}
                     className={cn(
                       COLS,
-                      "classrow grid py-3.5",
+                      "classrow grid py-3.5 max-md:py-2.5",
                       !s.is_active && "opacity-50",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                     )}
                   >
-                    <span className="col-span-2 flex min-w-0 items-center gap-3 lg:col-span-1">
+                    <span className="col-span-2 flex min-w-0 items-center gap-3 lg:col-span-1 max-md:col-span-4 max-md:gap-2">
                       <span
                         aria-hidden
                         className={cn(
-                          "grid size-9 shrink-0 place-items-center rounded-full",
+                          "grid size-9 shrink-0 place-items-center rounded-full max-md:size-7 max-md:text-[10px]",
                           "bg-foreground/10 text-[11px] font-semibold tracking-wide text-ink-2",
                         )}
                       >
@@ -183,7 +185,7 @@ export default async function Roster() {
                     </span>
 
                     <Cell label="Rank">
-                      <span className="font-heading text-lg leading-none tabular-nums">
+                      <span className="font-heading text-lg leading-none tabular-nums max-md:text-base">
                         {rank ?? <span className="text-muted-foreground/50">–</span>}
                       </span>
                     </Cell>
@@ -207,7 +209,7 @@ export default async function Roster() {
                         </span>
                         <span
                           className={cn(
-                            "text-xs tabular-nums",
+                            "text-xs tabular-nums max-md:text-[11px]",
                             taken >= 2 ? "text-danger" : "text-muted-foreground",
                           )}
                         >
@@ -240,7 +242,7 @@ export default async function Roster() {
                     <Cell label="Overall" className="text-left lg:text-right">
                       <span
                         className={cn(
-                          "font-heading text-lg leading-none tabular-nums",
+                          "font-heading text-lg leading-none tabular-nums max-md:text-base",
                           eoy === undefined && "text-muted-foreground/50",
                         )}
                       >

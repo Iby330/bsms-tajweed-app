@@ -210,21 +210,21 @@ export default async function StudentRecord({
 
         <div className="box c7" style={{ padding: 0 }}>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[420px] text-sm">
+            <table className="w-full min-w-[420px] text-sm max-md:min-w-0">
               <thead>
                 <tr className="border-b border-line text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-                  <th className="px-4 py-2.5 font-medium">Term</th>
+                  <th className="px-4 py-2.5 font-medium max-md:px-3">Term</th>
                   <th className="px-2 py-2.5 text-right font-medium">Homework</th>
                   <th className="px-2 py-2.5 text-right font-medium">Exam</th>
-                  <th className="px-4 py-2.5 text-right font-medium">Term %</th>
+                  <th className="px-4 py-2.5 text-right font-medium max-md:px-3">Term %</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {full.terms.map((t) => (
                   <tr key={t.termId} className={cn(t.termId === termId && "bg-foreground/4")}>
-                    <td className="px-4 py-2.5 font-medium">
+                    <td className="px-4 py-2.5 font-medium max-md:px-3">
                       Term {t.termId}
-                      {t.termId === termId && <span className="label ml-2">current</span>}
+                      {t.termId === termId && <span className="label ml-2 max-md:ml-0 max-md:block">current</span>}
                     </td>
                     <td className="px-2 py-2.5 text-right tabular-nums">{pct(t.hwAvg)}</td>
                     <td className="px-2 py-2.5">
@@ -237,7 +237,7 @@ export default async function StudentRecord({
                         />
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 text-right font-medium tabular-nums">
+                    <td className="px-4 py-2.5 text-right font-medium tabular-nums max-md:px-3">
                       {pct(t.termPct)}
                     </td>
                   </tr>

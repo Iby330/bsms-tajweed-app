@@ -2467,6 +2467,11 @@ html {
   }
   .submitbar:hover { background: var(--card); }
 
+  /* A quarter-width panel on a desktop is a half-width one on a phone:
+     four headline figures read as a 2×2 block, not four full-width rows. */
+  .box.c3 { grid-column: span 6; }
+  .box.c3 .note { font-size: 0.74rem; }
+
   /* — three figures in one row (StatTile with `tile3`): label, figure,
      no footnote; a strip rather than three panels a screen tall — */
   .box.tile3 { grid-column: span 4; padding: 12px 10px; gap: 6px; }
