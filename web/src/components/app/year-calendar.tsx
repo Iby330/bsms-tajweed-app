@@ -93,12 +93,15 @@ function TermBlock({
   section,
   today,
   days,
+  fold = false,
 }: {
   term: Term;
   timetable: Timetable;
   section: Section;
   today: string;
   days: Record<string, CalendarDay>;
+  /** Folded on a phone: every term but the one in hand. */
+  fold?: boolean;
 }) {
   // Counted, never derived from the span: Term 2 opens on a Tuesday, so it is
   // not a whole number of weeks for either subject, and the two sections do
@@ -109,37 +112,64 @@ function TermBlock({
   }));
   const events = eventsFor(section, term.startsOn, term.endsOn);
 
+  const head = (
+    <>
+      <span className="label">
+        {short(term.startsOn)} – {short(term.endsOn)}
+      </span>
+      <span className="label hi">
+        {counts.map((c) => `${c.n} ${sessionLabel(c.type)}`).join(" · ")}
+      </span>
+    </>
+  );
+  const body = (
+    <>
+      <CalendarMonths
+        months={monthsBetween(term.startsOn, term.endsOn)}
+        days={days}
+        today={today}
+      />
+
+      {events.length > 0 && (
+        <ul className="space-y-1 border-t border-line pt-3">
+          {events.map((e) => (
+            <li key={`${e.date}-${e.title}`} className="text-sm">
+              <span className="font-medium">{e.title}</span>
+              <span className="text-muted-foreground"> · {long(e.date)}</span>
+              {e.detail && <div className="note">{e.detail}</div>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+
   return (
-    <div className="field">
-      <section className="box c12">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-          <span className="label">
-            {short(term.startsOn)} – {short(term.endsOn)}
-          </span>
-          <span className="label hi">
-            {counts.map((c) => `${c.n} ${sessionLabel(c.type)}`).join(" · ")}
-          </span>
+    <>
+      <div className={cn("field", fold && "max-md:hidden")}>
+        <section className="box c12">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+            {head}
+          </div>
+          {body}
+        </section>
+      </div>
+      {/* On a phone only the term in hand is laid open; the others fold to
+          their dates, so the year is three rows and one calendar rather than
+          seven months to scroll through. */}
+      {fold && (
+        <div className="field md:hidden">
+          <details className="box c12 fold">
+            <summary>
+              <span className="flex flex-1 flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                {head}
+              </span>
+            </summary>
+            {body}
+          </details>
         </div>
-
-        <CalendarMonths
-          months={monthsBetween(term.startsOn, term.endsOn)}
-          days={days}
-          today={today}
-        />
-
-        {events.length > 0 && (
-          <ul className="space-y-1 border-t border-line pt-3">
-            {events.map((e) => (
-              <li key={`${e.date}-${e.title}`} className="text-sm">
-                <span className="font-medium">{e.title}</span>
-                <span className="text-muted-foreground"> · {long(e.date)}</span>
-                {e.detail && <div className="note">{e.detail}</div>}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+      )}
+    </>
   );
 }
 
@@ -159,6 +189,8 @@ export function YearCalendar({
   const upcomingType = sessionTypeFor(upcoming, timetable);
   const gaps = breaks();
   const yearOver = today > TERMS[TERMS.length - 1].endsOn;
+  // The term in hand: the one running, else the next to open, else the last.
+  const focusId = (TERMS.find((t) => today <= t.endsOn) ?? TERMS[TERMS.length - 1]).id;
 
   // Everything the grid needs, keyed by date and flattened into plain data —
   // the grid is a client component, so what crosses to it has to serialize.
@@ -226,6 +258,7 @@ export function YearCalendar({
             section={section}
             today={today}
             days={days}
+            fold={term.id !== focusId}
           />
           {gaps[i] && (
             <div className="field">

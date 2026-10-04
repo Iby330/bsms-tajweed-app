@@ -283,7 +283,9 @@ export function HomeworkForm({
       })}
 
       {!readOnly && submissionId && (
-        <div className="box c12" style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+        // `submitbar`: on a phone this row rides above the tab bar while the
+        // questions scroll, so handing in is never a scroll to the bottom away.
+        <div className="box c12 submitbar" style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
           <span className={cn("text-xs", saveStatus.error && !saving ? "text-danger" : "text-muted-foreground")}>
             {saving
               ? "Saving…"

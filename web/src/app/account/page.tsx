@@ -75,7 +75,8 @@ export default async function AccountPage() {
 
         <section className="box c12">
           <span className="label">Profile picture</span>
-          <p className="mt-2 max-w-[65ch] text-sm text-muted-foreground">
+          {/* Phones have no sidebar, so the sentence about it goes there. */}
+          <p className="mt-2 max-w-[65ch] text-sm text-muted-foreground max-md:hidden">
             Shown beside your name in the sidebar. Entirely optional. Your
             initials stand in when there isn&rsquo;t one.
           </p>

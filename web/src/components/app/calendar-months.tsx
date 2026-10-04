@@ -125,7 +125,7 @@ export function CalendarMonths({
                 );
 
                 const shape =
-                  "flex h-9 w-full flex-col items-center justify-center gap-1 rounded-md text-xs tabular-nums";
+                  "flex h-9 w-full flex-col items-center justify-center gap-1 rounded-md text-xs tabular-nums max-md:h-8 max-md:gap-0.5";
 
                 if (opens) {
                   return (

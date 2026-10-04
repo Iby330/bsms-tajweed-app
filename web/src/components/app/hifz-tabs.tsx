@@ -23,11 +23,11 @@ export function HifzTabs({
 }) {
   const cls = (id: string) =>
     cn(
-      "rounded-lg px-3 py-1.5 text-sm transition-colors",
+      "rounded-lg px-3 py-1.5 text-sm transition-colors max-md:flex-1 max-md:text-center",
       active === id ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground",
     );
   return (
-    <nav className="glass inline-flex rounded-xl p-1">
+    <nav className="glass inline-flex rounded-xl p-1 max-md:flex max-md:w-full">
       {tabs.map((t, i) => (
         <Link key={t.id} href={i === 0 ? basePath : `${basePath}?tab=${t.id}`} className={cls(t.id)}>
           {t.label}

@@ -2442,7 +2442,7 @@ html {
   .herodesc.fold { margin-top: 12px; padding-top: 12px; }
   .fold > summary {
     list-style: none; display: flex; align-items: center; justify-content: space-between;
-    min-height: 2.25rem; cursor: pointer;
+    min-height: 2.25rem; cursor: pointer; gap: 12px;
   }
   .fold > summary::-webkit-details-marker { display: none; }
   .fold > summary::after {
@@ -2458,6 +2458,14 @@ html {
      (≈64px). At 390px that is 18.5px Qur'an type where it had been 15.2px,
      with a page that ended 60px short of the panel's edges. — */
   .mushaf-page { font-size: min(1.3rem, calc((100vw - 64px) / 17.6)); padding-inline: 0.8em; }
+
+  /* — the homework hand-in rides above the tab bar — */
+  .submitbar {
+    position: sticky; bottom: var(--chrome-bottom); z-index: 20;
+    padding-block: 10px; gap: 10px !important;
+    box-shadow: 0 -1px 0 var(--border), 0 -10px 24px -18px color-mix(in oklab, var(--foreground) 40%, transparent);
+  }
+  .submitbar:hover { background: var(--card); }
 
   /* Pressed state, the way native lists acknowledge a touch. */
   .rowlist .rowlink:active, a.box:active, .box a.rowlink:active {

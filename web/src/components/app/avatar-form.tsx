@@ -99,12 +99,12 @@ export function AvatarForm({
   const shown = preview ?? currentSrc;
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-4">
+    <div className="mt-3 flex flex-wrap items-center gap-4 max-md:flex-nowrap">
       <button
         type="button"
         onClick={() => fileInput.current?.click()}
         disabled={pending}
-        className="group relative grid size-20 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full border border-line bg-muted text-muted-foreground transition-colors hover:border-ok focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ok disabled:opacity-50"
+        className="group relative grid size-20 shrink-0 cursor-pointer max-md:size-16 place-items-center overflow-hidden rounded-full border border-line bg-muted text-muted-foreground transition-colors hover:border-ok focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ok disabled:opacity-50"
         aria-label={shown ? "Change your profile picture" : "Add a profile picture"}
       >
         {shown ? (
@@ -120,7 +120,7 @@ export function AvatarForm({
         </span>
       </button>
 
-      <div className="min-w-0 space-y-2">
+      <div className="min-w-0 space-y-2 max-md:flex-1">
         <p className="text-sm text-muted-foreground">
           {preview
             ? "This is how it will look. Save it to keep it."
