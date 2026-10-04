@@ -149,21 +149,39 @@ export function HifzHero({
       {/* What the student is on now, in context — revealed when, and about
           what. Static data, so this costs nothing at request time. */}
       {number !== null && SURAH_INFO[number]?.revealed && (
-        <div className="herodesc">
-          <span className="label">About this surah</span>
-          <p>{SURAH_INFO[number].revealed}</p>
-          {SURAH_INFO[number].theme && <p>{SURAH_INFO[number].theme}</p>}
-          <div className="src">{SURAH_INFO[number].source}</div>
-          <a
-            className="readon"
-            href={`https://quran.com/${number}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read it on Quran.com →
-          </a>
-        </div>
+        <>
+          {/* Open on a desktop; folded on a phone, where two paragraphs of
+              background pushed the surah grid a full screen down. Two copies
+              rather than a script, so neither width flashes the wrong state. */}
+          <div className="herodesc max-md:hidden">
+            <span className="label">About this surah</span>
+            <AboutSurah number={number} />
+          </div>
+          <details className="herodesc fold md:hidden">
+            <summary className="label">About this surah</summary>
+            <AboutSurah number={number} />
+          </details>
+        </>
       )}
     </section>
+  );
+}
+
+function AboutSurah({ number }: { number: number }) {
+  const info = SURAH_INFO[number];
+  return (
+    <>
+      <p>{info.revealed}</p>
+      {info.theme && <p>{info.theme}</p>}
+      <div className="src">{info.source}</div>
+      <a
+        className="readon"
+        href={`https://quran.com/${number}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Read it on Quran.com →
+      </a>
+    </>
   );
 }

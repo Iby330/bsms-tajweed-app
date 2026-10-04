@@ -222,37 +222,24 @@ export default async function SurahPage({
       {/* ── then the surah itself, briefly ── */}
       {summary && (
         <>
-          <div className="divider">
+          <div className="divider max-md:hidden">
             <span className="label">About this surah</span>
             <span className="r" />
             <span className="m" />
           </div>
 
-          <div className="field">
-            <article className="box c12 reading">
-              {summary.paragraphs.map((para, i) => (
-                <p key={i}>{para}</p>
-              ))}
-              {summary.dispute && <p className="dispute">{summary.dispute}</p>}
+          {/* On a phone the summary folds behind one row: it is background to
+              read once, and open it ran three screens below the mushaf. */}
+          <div className="field md:hidden">
+            <details className="box c12 reading fold">
+              <summary className="label">About this surah</summary>
+              <SummaryBody summary={summary} number={number} />
+            </details>
+          </div>
 
-              {/* summary.reflection is written and kept in the data, but not
-                  shown yet. The reflections make claims about how to live
-                  rather than about what a surah says, so they wait for a
-                  teacher's review before any student reads them. Render this
-                  block again once that has happened. */}
-              {!REVIEWED && (
-                <p className="draftnote">
-                  Draft summary. Not yet checked by a teacher.
-                </p>
-              )}
-              <a
-                className="readon"
-                href={`https://quran.com/${number}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Read the surah on Quran.com →
-              </a>
+          <div className="field max-md:hidden">
+            <article className="box c12 reading">
+              <SummaryBody summary={summary} number={number} />
             </article>
           </div>
         </>
@@ -265,6 +252,42 @@ export default async function SurahPage({
         <span className="wm" role="img" aria-label="BSMS Tajweed" />
         <span className="lines right">{surah.name_en}</span>
       </div>
+    </>
+  );
+}
+
+function SummaryBody({
+  summary,
+  number,
+}: {
+  summary: NonNullable<(typeof SURAH_SUMMARY)[number]>;
+  number: number;
+}) {
+  return (
+    <>
+      {summary.paragraphs.map((para, i) => (
+        <p key={i}>{para}</p>
+      ))}
+      {summary.dispute && <p className="dispute">{summary.dispute}</p>}
+
+      {/* summary.reflection is written and kept in the data, but not
+          shown yet. The reflections make claims about how to live
+          rather than about what a surah says, so they wait for a
+          teacher's review before any student reads them. Render this
+          block again once that has happened. */}
+      {!REVIEWED && (
+        <p className="draftnote">
+          Draft summary. Not yet checked by a teacher.
+        </p>
+      )}
+      <a
+        className="readon"
+        href={`https://quran.com/${number}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Read the surah on Quran.com →
+      </a>
     </>
   );
 }

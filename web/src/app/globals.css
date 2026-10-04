@@ -2425,6 +2425,40 @@ html {
     flex: 1 1 0; justify-content: center; min-height: 2.75rem; font-size: 0.68rem;
   }
 
+  /* — hifdh: the surah index three to a row, and a folded "about" — */
+  .hifzindex { gap: 18px; }
+  .index {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    background: none; border: 0; padding: 1px;
+  }
+  .index > * { outline: 1px solid var(--border); }
+  .cell { min-height: 76px; padding: 8px 8px 7px; gap: 2px; }
+  .cell .ar-quran { font-size: 1.18rem; line-height: 1.6; }
+  .cell .en { font-size: 0.66rem; }
+  .cell .tag { top: 7px; right: 7px; }
+  .cell .cmt { top: 7px; right: 7px; }
+  .cell.next .cmt { right: 38px; }
+  .cell:active { filter: brightness(0.96); }
+  .herodesc.fold { margin-top: 12px; padding-top: 12px; }
+  .fold > summary {
+    list-style: none; display: flex; align-items: center; justify-content: space-between;
+    min-height: 2.25rem; cursor: pointer;
+  }
+  .fold > summary::-webkit-details-marker { display: none; }
+  .fold > summary::after {
+    content: ""; width: 7px; height: 7px; margin-right: 4px;
+    border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg); transition: transform 0.2s;
+  }
+  .fold[open] > summary::after { transform: rotate(-135deg); }
+
+  /* — the mushaf page fills the panel. Its width is 17.49em of its own
+     font-size (measured), so the type is sized from the screen: the panel's
+     content box is the viewport less two gutters, two pads and a hairline
+     (≈64px). At 390px that is 18.5px Qur'an type where it had been 15.2px,
+     with a page that ended 60px short of the panel's edges. — */
+  .mushaf-page { font-size: min(1.3rem, calc((100vw - 64px) / 17.6)); padding-inline: 0.8em; }
+
   /* Pressed state, the way native lists acknowledge a touch. */
   .rowlist .rowlink:active, a.box:active, .box a.rowlink:active {
     background: color-mix(in oklab, var(--foreground) 6%, var(--card));
