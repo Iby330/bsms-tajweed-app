@@ -274,7 +274,7 @@ export default async function StudentHome() {
               <Link
                 key={l.id}
                 href={`/lessons/${l.id}`}
-                className={cn("box lesson", odd ? "c12" : "c6")}
+                className={cn("box lesson", odd ? "c12" : "c6 max-md:col-span-6")}
               >
                 <span className="label">{SERIES_LABELS[l.series] ?? l.series}</span>
                 <MixedText text={moduleTitle(l.title) || l.title} className="t" />
@@ -309,7 +309,7 @@ export default async function StudentHome() {
       </div>
 
       <div className="field">
-        <section className="box c7">
+        <section className="box c7 max-md:col-span-6">
           <span className="label">Homework average · Term {termId}</span>
           <div className="stat">
             <span className="v">{hwAvg === null ? "\u2013" : Math.round(hwAvg)}</span>
@@ -326,13 +326,13 @@ export default async function StudentHome() {
               </div>
             </>
           ) : (
-            <div className="note">
+            <div className="note max-md:hidden">
               {hwAvg === null ? "No marks yet." : "One mark so far. The trend appears at two."}
             </div>
           )}
         </section>
 
-        <section className="box c5">
+        <section className="box c5 max-md:col-span-6">
           <span className="label">Handed in</span>
           <div className="stat">
             <span className="v sm">{handedIn}</span>
@@ -359,7 +359,7 @@ export default async function StudentHome() {
               />
             ))}
           </div>
-          <div className="note">One block per homework released so far.</div>
+          <div className="note max-md:hidden">One block per homework released so far.</div>
         </section>
 
         <section className="box c8">

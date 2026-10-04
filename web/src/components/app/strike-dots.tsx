@@ -102,7 +102,7 @@ export function StrikeDots({ strikes }: { strikes: StrikeInfo[] }) {
         </ul>
       )}
 
-      <div className="note">Strikes reset at the start of each term.</div>
+      <div className="note max-md:hidden">Strikes reset at the start of each term.</div>
     </section>
   );
 }
