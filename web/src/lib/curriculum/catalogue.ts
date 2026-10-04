@@ -385,12 +385,12 @@ function tileBlock(
 ): CourseBlock {
   const open = course.unlockedCount > 0;
   const moduleCount = Math.max(course.moduleCount, src?.moduleCount ?? 0);
-  // The first video the reader is actually allowed to see. A locked course
-  // shows no poster at all — its content is not theirs yet.
-  const poster = open
-    ? (course.modules.flatMap((m) => m.lessons).find((l) => l.youtube_id)?.youtube_id
-       ?? src?.posterId ?? null)
-    : null;
+  // The cover: the first video the reader has been handed, else the
+  // catalogue's poster. A course still ahead keeps its poster too: a
+  // thumbnail gives nothing of the course away.
+  const poster =
+    (open ? course.modules.flatMap((m) => m.lessons).find((l) => l.youtube_id)?.youtube_id : null)
+    ?? src?.posterId ?? null;
 
   return {
     series: course.series,
@@ -428,6 +428,8 @@ export type TermTile = {
   /** When it opens for this reader; a term not yet open only. */
   opensAt: string | null;
   courses: TermCourse[];
+  /** Up to two video ids for the tile's cover, one per course that has one. */
+  posters: string[];
   /** Modules done / modules with something in them; an open term only. */
   progress: { done: number; total: number } | null;
 };
@@ -473,6 +475,16 @@ export function termIndex(
       const tile = tileById.get(`${term.id} ${course.series}`);
       return { key: course.series, label: tile?.block.label ?? course.label, href: tile?.href ?? null };
     });
+    // The cover: the first video of each course, as far as two. What the
+    // student has been handed comes first; for a course still ahead, the
+    // catalogue's poster, since a thumbnail gives nothing of the course away.
+    const posters = [...new Set(term.courses.flatMap((course) => {
+      const seen = course.modules.flatMap((m) => m.lessons).find((l) => l.youtube_id)?.youtube_id;
+      const poster = seen
+        ?? catalogue.find((b) => b.courseKey !== null && b.courseKey === course.series)?.posterId
+        ?? catalogue.find((b) => b.series === course.series && b.termId === term.id)?.posterId;
+      return poster ? [poster] : [];
+    }))].slice(0, 2);
     const linkable = courses.some((c) => c.href !== null);
     // Begun: some week of the term has unlocked for this reader, regardless
     // of whether what it unlocked is anything a course can link to.
@@ -491,6 +503,7 @@ export function termIndex(
       href: linkable ? `/courses/${term.id}` : null,
       opensAt,
       courses,
+      posters,
       progress: open && term.actionableCount > 0
         ? { done: term.doneCount, total: term.actionableCount }
         : null,
@@ -517,10 +530,25 @@ export function termIndex(
   let rest: IndexTile[] = [];
   if (hasSyllabus) {
     const planned = new Set(terms.flatMap((t) => t.courses.map((c) => c.series)));
+    // A course's block, by its key, else by where COURSES says its lessons
+    // live, for a block whose rows were never tied to a course. Either way the
+    // block is spoken for, so it is not shown again as a series of its own,
+    // nor, for a course this class takes, as someone else's.
+    const used = new Set<CourseBlock>();
+    const blockOf = (key: string, def: (typeof COURSES)[keyof typeof COURSES]) => {
+      const src = catalogue.find((b) => b.courseKey === key)
+        ?? (def.source
+          ? catalogue.find((b) => b.courseKey === null
+              && b.series === def.source!.series && b.termId === def.source!.termId)
+          : undefined);
+      if (src) used.add(src);
+      return src;
+    };
+    for (const [key, def] of Object.entries(COURSES)) if (planned.has(key)) blockOf(key, def);
     const courseTiles: IndexTile[] = Object.entries(COURSES)
       .filter(([key]) => !planned.has(key))
       .map(([key, def]) => {
-        const src = catalogue.find((b) => b.courseKey === key);
+        const src = blockOf(key, def);
         const block: CourseBlock = src
           ? { ...src, label: def.label, parentLabel: null }
           : {
@@ -530,7 +558,9 @@ export function termIndex(
             };
         return { id: `rest ${key}`, block, href: null, reason: "not-running" as const };
       });
-    const seriesTiles = locked.filter((t) => t.reason === "not-running" && t.block.courseKey === null);
+    const seriesTiles = locked.filter(
+      (t) => t.reason === "not-running" && t.block.courseKey === null && !used.has(t.block),
+    );
     rest = [...courseTiles, ...seriesTiles];
   }
   return { terms: tiles, rest };

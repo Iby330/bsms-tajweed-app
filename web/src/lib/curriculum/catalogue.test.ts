@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildCatalogue, courseIndex, termIndex, type CatalogueRow } from "./catalogue";
+import { buildCatalogue, courseIndex, termIndex, type CatalogueRow, type CourseBlock } from "./catalogue";
+import { COURSES } from "./syllabus";
 import {
   buildTree, findCourse,
   type ClassSchedule, type TermRow, type WeekRow, type HomeworkRow, type LessonRow,
@@ -142,8 +143,8 @@ describe("courseIndex", () => {
     expect(mudood.block.opensAt).toBe("2027-03-15T00:00:00.000Z");
     // RLS gave the student none of its rows; the tile still knows it is there.
     expect(mudood.block.moduleCount).toBe(1);
-    // …and gives nothing behind the lock away.
-    expect(mudood.block.posterId).toBeNull();
+    // ...and is dressed in the catalogue's poster, which gives nothing away.
+    expect(mudood.block.posterId).toBe("yt-m1");
   });
 
   it("leaves a class with no syllabus exactly as it was", () => {
@@ -230,6 +231,15 @@ describe("termIndex", () => {
     weekCount: opts.weekCount ?? lockedWeeks.length,
     lockedWeeks,
   }) as Term;
+
+  it("covers a term with the first video of each course, two at most", () => {
+    // group 1 takes Ghunna and Mudūd in Term 1; group 2 meets Mudūd only in Term 3
+    const one = termIndex(cat(NOW), buildTree(asSeenBy(groupOne, NOW), NOW, groupOne), true);
+    expect(one.terms.find((t) => t.id === 1)!.posters).toEqual(["yt-g1", "yt-m1"]);
+    const two = termIndex(cat(NOW), buildTree(asSeenBy(groupTwo, NOW), NOW, groupTwo), true);
+    // locked, but the catalogue's poster still dresses it
+    expect(two.terms.find((t) => t.id === 3)!.posters).toEqual(["yt-m1"]);
+  });
 
   it("opens the current term and links each course that has started", () => {
     const tree = buildTree(asSeenBy(groupOne, NOW), NOW, groupOne);
@@ -331,6 +341,25 @@ describe("termIndex", () => {
     // instead of leading them.
     expect(rest.slice(-2).map((t) => t.block.series)).toEqual(["tfp", "seerah"]);
     expect(rest.every((t) => t.href === null)).toBe(true);
+  });
+
+  it("shows a series never tied to its course once, as that course, and not to a class taking it", () => {
+    const block = (o: Partial<CourseBlock>) => ({
+      series: "x", termId: null, label: "x", parentLabel: null, blurb: "", slug: "x",
+      courseKey: null, moduleCount: 0, hasHomework: false, posterId: null,
+      opensAt: null, started: false, fullyOpen: false, ...o,
+    }) as CourseBlock;
+    // Mabādi's lessons live in the "tfp" series, Term 3: rows with no course id
+    const tfp = block({ series: "tfp", termId: 3, label: "Ten Fundamental Principles", moduleCount: 7, posterId: "yt-t1" });
+
+    const without = termIndex([tfp], [term(1, [course("ghunna", "Ghunna", 1, 8)])], true).rest;
+    const shown = without.filter((t) => t.block.series === "tfp");
+    expect(shown).toHaveLength(1);
+    expect(shown[0].block.label).toBe(COURSES.mabadi.label);
+    expect(shown[0].block.posterId).toBe("yt-t1");
+
+    const taking = termIndex([tfp], [term(3, [course("mabadi", COURSES.mabadi.label, 0, 7)])], true).rest;
+    expect(taking.some((t) => t.block.series === "tfp")).toBe(false);
   });
 
   it("leaves the rest empty for a reader on the whole programme", () => {
