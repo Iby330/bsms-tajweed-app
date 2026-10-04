@@ -57,7 +57,7 @@ export function LessonVideoInput({
   }
 
   return (
-    <span className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+    <span className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 max-md:w-full max-md:justify-start">
       <Input
         autoFocus
         value={value}
@@ -71,7 +71,7 @@ export function LessonVideoInput({
             setError(null);
           }
         }}
-        className="h-7 w-56 text-xs"
+        className="h-7 w-56 text-xs max-md:w-full"
       />
       <Button size="xs" disabled={pending} onClick={() => save(value)}>
         {pending ? "Saving…" : "Save"}

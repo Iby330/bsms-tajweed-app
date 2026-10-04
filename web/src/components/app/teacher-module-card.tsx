@@ -45,21 +45,23 @@ export function TeacherModuleCard({
   return (
     <li className="tcard overflow-hidden" style={{ padding: 0, gap: 0 }}>
       {/* ── title strip ── */}
-      <div className="flex items-baseline gap-2 px-3 py-2">
+      {/* On a phone the card is a grid cell: the poster leads (by order) and
+          the week sits over a two-line title, as on the student's card. */}
+      <div className="flex items-baseline gap-2 px-3 py-2 max-md:flex-col max-md:gap-0.5 max-md:px-2.5 max-md:pb-1 max-md:pt-2">
         {m.title ? (
           <MixedText
             text={m.title}
-            className="line-clamp-1 min-w-0 flex-1 text-sm font-medium leading-snug"
+            className="line-clamp-1 min-w-0 flex-1 text-sm font-medium leading-snug max-md:line-clamp-2 max-md:w-full max-md:text-[13px]"
           />
         ) : (
           <span className="min-w-0 flex-1" />
         )}
-        <span className="shrink-0 text-[11px] uppercase tracking-wider text-muted-foreground">
+        <span className="shrink-0 text-[11px] uppercase tracking-wider text-muted-foreground max-md:order-first max-md:text-[10px]">
           Week {m.weekNumber}
         </span>
       </div>
 
-      <div className="relative">
+      <div className="relative max-md:order-first">
         {poster ? (
           <Link
             href={`/teacher/lessons/${poster.id}`}
@@ -85,13 +87,13 @@ export function TeacherModuleCard({
       </div>
 
       {/* ── actions ── */}
-      <div className="flex flex-1 flex-col gap-2 px-3 py-2.5">
+      <div className="flex flex-1 flex-col gap-2 px-3 py-2.5 max-md:gap-1.5 max-md:px-2.5 max-md:pt-1">
         {/* The input says it all in its collapsed state — the video id, or "no
             video" in warn — so nothing here repeats it. */}
         {m.lessons.map((l) => (
           <div
             key={l.id}
-            className="flex flex-wrap items-center justify-end gap-2 text-xs"
+            className="flex flex-wrap items-center justify-end gap-2 text-xs max-md:justify-start"
           >
             {m.lessons.length > 1 && (
               <MixedText
@@ -110,7 +112,7 @@ export function TeacherModuleCard({
         {m.homework && homeworkHref ? (
           <Link
             href={homeworkHref}
-            className="mt-auto flex items-center justify-between gap-2 rounded-md border border-line bg-page px-2.5 py-1.5 text-xs transition-colors hover:border-ink/30"
+            className="mt-auto flex items-center justify-between gap-2 rounded-md border border-line bg-page px-2.5 py-1.5 text-xs transition-colors hover:border-ink/30 max-md:flex-col max-md:items-start max-md:gap-0.5 max-md:px-2"
           >
             <span className="font-medium">
               {homeworkLabel(m.homework.number, m.homework.series)}

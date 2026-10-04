@@ -115,12 +115,16 @@ export default async function StudentHifzDetail({
       <>
         <Rule label="The run" />
         <div className="field">
+          {/* One span: `.box` is a flex column, so loose text and the link
+              were three stacked items rather than one sentence. */}
           <p className="box c12 note">
-            No target set yet. Choose one on the{" "}
-            <Link href="/teacher/hifdh" className="underline">
-              register
-            </Link>{" "}
-            and this student’s run appears here.
+            <span>
+              No target set yet. Choose one on the{" "}
+              <Link href="/teacher/hifdh" className="underline">
+                register
+              </Link>{" "}
+              and this student’s run appears here.
+            </span>
           </p>
         </div>
       </>,

@@ -94,8 +94,9 @@ export default async function TeacherLesson({
         </div>
       </header>
 
-      <div className="field">
-        <div className="box c12">
+      {/* Edge to edge on a phone, as the student's player is. */}
+      <div className="field player-field">
+        <div className="box c12 player-box">
           {lesson.youtube_id ? (
             <LessonPlayer lessonId={lesson.id} youtubeId={lesson.youtube_id} track={false} />
           ) : (
@@ -110,7 +111,7 @@ export default async function TeacherLesson({
         </div>
 
         {(next || homework) && (
-          <div className="box c12" style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+          <div className="box c12 player-acts" style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
             {homework && (
               <Link
                 href={`/teacher/homework/${homework.number}?from=course`}
