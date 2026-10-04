@@ -2326,6 +2326,10 @@ html {
   /* Taps answer with a press, not the grey browser flash. */
   html { -webkit-tap-highlight-color: transparent; }
   a, button, summary, [role="button"] { touch-action: manipulation; }
+  /* The bars are chrome, not content: a long press on a tab should not
+     select its label or raise the link callout. */
+  .topbar, .tabs { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .tabs a:active, .tabs button:active { opacity: 0.6; }
 
   /* — the top bar: a slimmer band so the page starts higher — */
   .topbar { padding-top: calc(7px + env(safe-area-inset-top, 0px)); padding-bottom: 7px; }
