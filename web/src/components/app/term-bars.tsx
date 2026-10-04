@@ -36,7 +36,7 @@ export function TermBars({
             data-term={t.termId}
             className="flex min-w-0 flex-1 flex-col items-center gap-2"
           >
-            <div className="flex h-36 w-full max-w-14 items-end">
+            <div className="flex h-36 w-full max-w-14 items-end max-md:h-24 max-md:max-w-12">
               <div
                 className={cn(
                   "relative w-full overflow-hidden rounded-lg",

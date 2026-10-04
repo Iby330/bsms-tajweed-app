@@ -2373,6 +2373,16 @@ html {
   .signoff { grid-template-columns: 1fr auto 1fr; justify-items: stretch; text-align: left; }
   .signoff .lines { text-align: left; }
   .signoff .lines.right { text-align: right; }
+  .signoff span.lines { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .signoff a.lines { text-wrap: balance; }
+
+  /* — mark tables: phone row height, and a current-term tag that stays on
+     its row instead of wrapping under the name — */
+  table.marks { font-size: 0.86rem; }
+  table.marks td { padding: 9px 6px; }
+  table.marks th { padding-inline: 6px; }
+  table.marks td .label { display: block; font-size: 0.54rem; margin-top: 1px; }
+  .legend { gap: 12px; font-size: 0.6rem; }
 
   /* This week's videos sit two to a row, so the tile's type steps down. */
   .box.lesson { gap: 8px; }
