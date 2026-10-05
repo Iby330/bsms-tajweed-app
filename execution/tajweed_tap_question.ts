@@ -208,6 +208,13 @@ export function deriveRule(
   let instances = 0;
   const lw = ws.map((w) => letters(w.text).filter((l) => l.ch !== 0x640));
 
+  if (rule === "ghunnah") {
+    lw.forEach((ls, i) => ls.forEach((l, j) => {
+      if ((l.ch !== 0x645 && l.ch !== 0x646) || !l.marks.includes(0x651)) return;
+      instances++; marked.add(i); letterKeys.add(`${i}:${j}`);
+    }));
+    return { marked, letterKeys, instances, warnings };
+  }
   if (rule === "heavy_letters") {
     lw.forEach((ls, i) => ls.forEach((l, j) => {
       if (!HEAVY.has(l.ch)) return;
@@ -412,7 +419,14 @@ function parseTajweed(markup: string): { bases: { ch: number; rules: Set<string>
   return { bases: bases.map(({ ch, rules }) => ({ ch, rules })), instances };
 }
 
-const DERIVED = new Set(["idhaar_halqi", "idhaar_shafawi", "heavy_letters", "lam_allah_heavy", "lam_allah_light"]);
+/**
+ * Ghunna of the mīm and nūn mushaddadah is derived too, not read from the
+ * markup: quran.com files a shaddah that comes from idghām (the مّ of
+ * رَاضِيَةً مَّرْضِيَّةً, the tanwīn merging into it) under idghām rather than
+ * ghunna, but the course teaches — and the teachers confirmed — that EVERY
+ * mīm or nūn carrying a shaddah takes the ghunna, whatever made the shaddah.
+ */
+const DERIVED = new Set(["idhaar_halqi", "idhaar_shafawi", "heavy_letters", "lam_allah_heavy", "lam_allah_light", "ghunnah"]);
 
 /**
  * Said in the question when nothing better is given. It has to state the

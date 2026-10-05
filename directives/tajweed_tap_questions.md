@@ -167,6 +167,15 @@ remake drafts was re-derived from the new source: none changed at word level.
 
 ## Gotchas
 
+- **`ghunnah` is derived from the text, not read from the markup (2026-10-05).**
+  The course teaches, and the teachers confirmed, that EVERY mīm or nūn carrying
+  a shaddah takes the ghunna, including a shaddah made by idghām (the مّ of
+  رَاضِيَةً مَّرْضِيَّةً, 89:28). quran.com files those under idghām, so the
+  markup-based key missed مَّرْضِيَّةً in Homework 2 Q8 and students who tapped it
+  were marked wrong (fixed live by migration 0058). The script now keys any word
+  with م or ن + U+0651 for `ghunnah`. If a paper means only the idghām, use
+  `idghaam_ghunnah` / `idghaam_shafawi` instead.
+
 - The shell here is zsh: an unquoted `$args` is NOT split into words, so
   `--rule $1 …` built from one variable is silently ignored and the script
   prints its DEFAULT passage (An-Naba' 12–18, ikhfā') for every run. Pass the
