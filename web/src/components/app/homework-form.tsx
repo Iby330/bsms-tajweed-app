@@ -11,6 +11,7 @@ import { RecitationClip } from "@/components/app/recitation-clip";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { saveAnswer, submitHomework } from "@/lib/homework/actions";
+import { STALE_PAGE, whyActionFailed } from "@/lib/homework/stale-page";
 import { createSaveQueue, type SaveStatus } from "@/lib/homework/save-queue";
 import {
   mcqResponse, checkboxResponse, textResponse,
@@ -74,17 +75,25 @@ export function HomeworkForm({
     Object.fromEntries(voiceNotes.map((v) => [v.question_id, true])),
   );
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // Set when an action threw on a working connection: the page has outlived
+  // its deploy (lib/homework/stale-page.ts), and only a reload mends it.
+  const [stale, setStale] = useState(false);
   // One queue for the page's life: the hand-in has to flush and wait on the
   // same timers and saves the typing started.
   const [queue] = useState(() =>
     createSaveQueue<unknown>({
       save: async (questionId, response) => {
         if (!submissionId) return;
-        // A throw (the network, or a server fault whose message production
-        // hides) becomes a sentence a student can act on.
-        const { error } = await saveAnswer(submissionId, questionId, response).catch(() => ({
-          error: "Check your connection and try again.",
-        }));
+        // A throw (the network, a page older than the deploy, or a server
+        // fault whose message production hides) becomes a sentence a student
+        // can act on.
+        const { error } = await saveAnswer(submissionId, questionId, response).catch(async () => {
+          if ((await whyActionFailed()) === "updated") {
+            setStale(true);
+            return { error: STALE_PAGE };
+          }
+          return { error: "Check your connection and try again." };
+        });
         if (error) throw new Error(error);
         setSaved("saved");
       },
@@ -326,9 +335,14 @@ export function HomeworkForm({
                     }
                     router.refresh();
                   } catch {
-                    // The network, or a fault the server could not word: its
-                    // message is replaced with a generic one in production.
-                    setSubmitError("Could not hand in. Check your connection and try again.");
+                    // The network, a page older than the deploy, or a fault
+                    // the server could not word (production hides its message).
+                    if ((await whyActionFailed()) === "updated") {
+                      setStale(true);
+                      setSubmitError(STALE_PAGE);
+                    } else {
+                      setSubmitError("Could not hand in. Check your connection and try again.");
+                    }
                   }
                 })
               }
@@ -336,6 +350,11 @@ export function HomeworkForm({
               {pending ? "Submitting…" : "Submit homework"}
             </Button>
             {submitError && <p className="text-xs text-danger">{submitError}</p>}
+            {stale && (
+              <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                Reload page
+              </Button>
+            )}
           </div>
         </div>
       )}

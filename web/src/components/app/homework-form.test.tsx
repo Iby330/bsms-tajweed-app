@@ -61,3 +61,50 @@ describe("HomeworkForm hand-in", () => {
     expect(await findByText("Record every task before you hand in.")).toBeTruthy();
   });
 });
+
+/**
+ * A page left open across a release keeps the old build's server-action ids;
+ * after the deploy every save and hand-in throws, and the student was told to
+ * check their connection — on a connection that was fine (5 Oct, 17:00 deadline).
+ */
+describe("HomeworkForm on a page older than the app", () => {
+  const reachable = (ok: boolean) =>
+    vi.stubGlobal("fetch", vi.fn(async () => (ok ? new Response(null, { status: 200 }) : Promise.reject(new TypeError("offline")))));
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("says the app was updated and offers a reload, when the site answers but the hand-in throws", async () => {
+    reachable(true);
+    submitHomework.mockRejectedValueOnce(new Error("Server Action not found"));
+    const reload = vi.fn();
+    vi.stubGlobal("location", { ...window.location, reload });
+    const { getByRole, findByText } = form();
+    fireEvent.click(getByRole("button", { name: "Submit homework" }));
+    expect(await findByText(/The app was updated while this page was open/)).toBeTruthy();
+    fireEvent.click(getByRole("button", { name: "Reload page" }));
+    expect(reload).toHaveBeenCalled();
+  });
+
+  it("still blames the connection when the site cannot be reached either", async () => {
+    reachable(false);
+    submitHomework.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    const { getByRole, findByText, queryByRole } = form();
+    fireEvent.click(getByRole("button", { name: "Submit homework" }));
+    expect(await findByText("Could not hand in. Check your connection and try again.")).toBeTruthy();
+    expect(queryByRole("button", { name: "Reload page" })).toBeNull();
+  });
+
+  it("says the same when an answer will not save for that reason", async () => {
+    reachable(true);
+    // An earlier test queues a reply it never uses; start from a clean mock.
+    saveAnswer.mockReset();
+    saveAnswer.mockRejectedValue(new Error("Server Action not found"));
+    const { getByRole, findAllByText } = form();
+    fireEvent.change(getByRole("textbox"), { target: { value: "x" } });
+    fireEvent.click(getByRole("button", { name: "Submit homework" }));
+    expect((await findAllByText(/The app was updated while this page was open/)).length).toBeGreaterThan(0);
+    expect(getByRole("button", { name: "Reload page" })).toBeTruthy();
+    expect(submitHomework).not.toHaveBeenCalled();
+    saveAnswer.mockReset();
+    saveAnswer.mockImplementation(async (_s: string, _q: string, r: unknown) => { calls.push(`save ${JSON.stringify(r)}`); return { error: null }; });
+  });
+});
