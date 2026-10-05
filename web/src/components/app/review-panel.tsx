@@ -67,14 +67,12 @@ export function ReviewPanel({
   answers,
   voiceNotes = [],
   approved,
-  backHref = "/teacher/homework",
 }: {
   submissionId: string;
   questions: ReviewQuestion[];
   answers: ReviewAnswer[];
   voiceNotes?: ReviewVoiceNote[];
   approved: boolean;
-  backHref?: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -166,9 +164,8 @@ export function ReviewPanel({
                 // Production strips a server action's error message, so the
                 // line is ours: the usual cause is a script that stopped
                 // waiting (a redo reopened it, or a second click got there).
-                let result: Awaited<ReturnType<typeof approveSubmission>>;
                 try {
-                  result = await approveSubmission(
+                  await approveSubmission(
                     submissionId,
                     Object.fromEntries(finalMarks),
                     comments,
@@ -177,17 +174,11 @@ export function ReviewPanel({
                   setRefused(true);
                   return;
                 }
-                if (approved && !result.redo) {
-                  // an edit of released marks: stay put, show the new state
-                  setEditing(false);
-                  router.refresh();
-                } else {
-                  // A release, or an edit that dropped the mark under the pass
-                  // line — the second one has just blanked this very script, so
-                  // staying would leave the teacher on an empty paper.
-                  router.push(backHref);
-                  router.refresh();
-                }
+                // Stay on the script either way: the queue bar above then
+                // says it was released and offers the next one. A mark under
+                // the pass line reopens it as a redo, which this page shows.
+                setEditing(false);
+                router.refresh();
               })
             }
           >

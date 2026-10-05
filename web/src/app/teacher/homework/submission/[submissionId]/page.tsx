@@ -10,6 +10,8 @@ import { PastAttempts } from "@/components/app/past-attempts";
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { moduleTitle } from "@/lib/curriculum/tree";
+import { reviewQueue } from "@/lib/marking/queue";
+import { ReviewQueueBar } from "@/components/app/review-queue-bar";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +41,7 @@ export default async function SubmissionReview({
   // FK hint of its own, `submission_attempts` naming a profile twice (the
   // student, and whoever released that attempt); the bare form fails at runtime
   // with PGRST201 while typechecking clean. See LEARNINGS.md 2026-08-12.
-  const [allowed, { data: sub }, { data: attemptRows }] = await Promise.all([
+  const [allowed, { data: sub }, { data: attemptRows }, queue] = await Promise.all([
     teacherClasses(),
     db
       .from("submissions")
@@ -66,6 +68,7 @@ export default async function SubmissionReview({
       `)
       .eq("submission_id", submissionId)
       .order("attempt", { ascending: false }),
+    reviewQueue(),
   ]);
   if (!sub) notFound();
 
@@ -157,6 +160,12 @@ export default async function SubmissionReview({
         <MixedText text={hw ? moduleTitle(hw.title) : ""} className="block text-sm text-muted-foreground" />
       </header>
 
+      <ReviewQueueBar
+        queue={queue.filter((q) => q.id !== sub.id)}
+        released={sub.status === "approved"}
+        doneHref={backHref}
+      />
+
       <PastAttempts attempts={pastAttempts} questions={(questions ?? []) as never} />
 
       {/* A draft has nothing to approve. A redo reopens this same row at
@@ -169,7 +178,6 @@ export default async function SubmissionReview({
           answers={(answers ?? []) as never}
           voiceNotes={voiceNotes ?? []}
           approved={sub.status === "approved"}
-          backHref={backHref}
         />
       ) : (
         <p className="empty">

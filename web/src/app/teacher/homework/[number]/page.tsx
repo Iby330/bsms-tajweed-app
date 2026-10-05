@@ -583,7 +583,6 @@ export default async function HomeworkResults({
                           answers={review.answers}
                           voiceNotes={review.voiceNotes}
                           approved={review.approved}
-                          backHref={individualHref(selected.id)}
                         />
                       )}
                       {/* Under the live script, as on the marking screen: the

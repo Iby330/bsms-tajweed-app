@@ -233,21 +233,23 @@ describe("ReviewPanel — where approving lands", () => {
     expect(router.refresh).toHaveBeenCalled();
   });
 
-  it("leaves the page when an edit drops the mark below the pass line", async () => {
+  it("stays on the page when an edit drops the mark below the pass line", async () => {
     approve.mockResolvedValue({ pct: 45, redo: true });
     const container = editReleased();
     fireEvent.change(markField(container, "a1"), { target: { value: "1" } });
 
     fireEvent.click(approveButton(container));
     await vi.waitFor(() => expect(approve).toHaveBeenCalled());
-    // the script this page was showing has just been blanked for the redo
-    await vi.waitFor(() => expect(router.push).toHaveBeenCalledWith("/teacher/homework"));
+    // the refreshed page shows the redo now in progress, with the queue above it
+    await vi.waitFor(() => expect(router.refresh).toHaveBeenCalled());
+    expect(router.push).not.toHaveBeenCalled();
   });
 
-  it("leaves the page on a first release, as it always did", async () => {
+  it("stays on the page on a first release, so the queue can offer the next", async () => {
     const { container } = panel([WRITTEN], [answer({ id: "a1", question_id: "q1", auto_marks: 4 })]);
     fireEvent.click(approveButton(container));
-    await vi.waitFor(() => expect(router.push).toHaveBeenCalledWith("/teacher/homework"));
+    await vi.waitFor(() => expect(router.refresh).toHaveBeenCalled());
+    expect(router.push).not.toHaveBeenCalled();
   });
 });
 
