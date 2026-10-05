@@ -70,7 +70,7 @@ export function TapLetters({
                       !reveal && !picked && !readOnly && "hover:bg-muted",
                       hit && "bg-ok/20 text-ok",
                       wrong && "bg-danger/20 text-danger",
-                      missed && "bg-warn/15 text-warn",
+                      missed && "bg-miss text-[#00004d]",
                     )}
                   >
                     {l.value}
@@ -92,7 +92,7 @@ export function TapLetters({
         {reveal ? (
           <>
             <span className="text-ok">Found</span> · <span className="text-danger">wrongly tapped</span> ·{" "}
-            <span className="text-warn">missed</span>
+            <span className="rounded-sm bg-miss px-1 text-[#00004d]">missed</span>
           </>
         ) : readOnly ? (
           `${selected.length} letter${selected.length === 1 ? "" : "s"} tapped.`

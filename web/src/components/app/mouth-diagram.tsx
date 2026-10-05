@@ -100,7 +100,7 @@ export function MouthDiagram({
                 !reveal && (isPick ? "fill-ink/45" : "fill-background"),
                 reveal && isPick && isKey && "fill-ok/55",
                 reveal && isPick && !isKey && "fill-danger/50",
-                reveal && !isPick && isKey && "fill-warn/45",
+                reveal && !isPick && isKey && "fill-miss",
                 reveal && !isPick && !isKey && "fill-background",
               )}
             />

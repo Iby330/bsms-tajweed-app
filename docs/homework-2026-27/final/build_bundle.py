@@ -90,7 +90,7 @@ assert len(hit) == 1 and hit[0]['key'] is False
 hit[0]['key'] = True
 q['tap']['instances'] = q['tap'].get('instances', 10) + 1
 applied.append({'paper': 2, 'course': 'ghunna', 'ordinal': 2, 'n': 8, 'kind': 'error',
-                'what': 'Key missed مَّرْضِيَّةً (89:28): a meem with shaddah, so ghunna. Now in the key (11 to find).'})
+                'what': 'Key missed مَّرْضِيَّةً (89:28): a meem with shaddah, so ghunna. Its shaddah comes from idghaam, but a teacher confirmed it should count. Now in the key (11 to find).'})
 setf('ghunna', 2, 5, 'format', 'select_all', 'mcq', 'Only one recitation (B) is right and the prompt says "select the one": now single-answer.')
 setf('ghunna', 3, 5, 'format', 'count', 'mcq', 'A "how many" with the verse typed into the prompt: now a plain multiple choice (same prompt, same options).')
 setf('ghunna', 3, 7, 'prompt', 'Select the verse which contains an example of idhaar halqy.',
