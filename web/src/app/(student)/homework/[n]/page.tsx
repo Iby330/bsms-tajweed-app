@@ -11,6 +11,8 @@ import { homeworkLabel } from "@/components/app/homework-row";
 import { seriesShort } from "@/lib/lessons/series";
 import { moduleTitle } from "@/lib/curriculum/tree";
 import { parseOrigin, homeworkNav } from "@/lib/homework/back-link";
+import { courseAddress } from "@/lib/curriculum/course-address";
+import { getClassSchedule } from "@/lib/curriculum/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +35,7 @@ export default async function HomeworkPage({
   // the crumbs and the "watch the video" link cost no extra round trip.
   const { data: row } = await db
     .from("homeworks")
-    .select("id, number, title, is_graded, week_id, series, weeks(term_id, lessons(id, series, position))")
+    .select("id, number, title, is_graded, week_id, series, course_id, weeks(term_id, lessons(id, series, position))")
     .eq("number", number)
     .maybeSingle();
   if (!row) notFound();
@@ -49,12 +51,18 @@ export default async function HomeworkPage({
 
   // answer keys are stripped server-side — students never receive them.
   // Neither read depends on the other, so they share one wave.
-  const [{ data: payload }, { data: sub }] = await Promise.all([
+  const [{ data: payload }, { data: sub }, schedule] = await Promise.all([
     db.rpc("get_homework_for_student", { hw_id: row.id }),
     db
       .from("submissions").select("id, status, attempt, previous_pct")
       .eq("homework_id", row.id).eq("student_id", profile.id).maybeSingle(),
+    // the course page this homework sits under, as this class files it
+    profile.unlock_all ? null : getClassSchedule(profile.class_id),
   ]);
+  const course = week
+    ? courseAddress(schedule, { courseId: row.course_id, series: row.series, termId: week.term_id })
+    : null;
+  const courseLabel = course?.label ?? seriesShort(row.series);
   const parsed = parseStudentHomework(payload);
   if (!parsed) notFound();
 
@@ -88,9 +96,9 @@ export default async function HomeworkPage({
   // about their route. The breadcrumb only shows when there is no "back".
   const nav = homeworkNav(origin, {
     lessonId: lesson?.id,
-    termId: week?.term_id,
-    series: row.series,
-    courseLabel: seriesShort(row.series),
+    termId: course?.termId,
+    series: course?.slug,
+    courseLabel,
   });
 
   return (
@@ -102,10 +110,10 @@ export default async function HomeworkPage({
               <Crumbs
                 items={[
                   { label: "Courses", href: "/courses" },
-                  { label: `Term ${week.term_id}`, href: `/courses/${week.term_id}` },
+                  { label: `Term ${course!.termId}`, href: `/courses/${course!.termId}` },
                   {
-                    label: seriesShort(row.series),
-                    href: `/courses/${week.term_id}/${row.series}`,
+                    label: courseLabel,
+                    href: `/courses/${course!.termId}/${course!.slug}`,
                   },
                   { label },
                 ]}

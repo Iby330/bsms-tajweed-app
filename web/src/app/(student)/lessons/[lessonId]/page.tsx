@@ -4,6 +4,7 @@ import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { SERIES_LABELS, seriesShort } from "@/lib/lessons/series";
 import { classItemWeek, moduleTitle } from "@/lib/curriculum/tree";
 import { getClassSchedule } from "@/lib/curriculum/queries";
+import { courseAddress } from "@/lib/curriculum/course-address";
 import { LessonPlayer } from "@/components/app/lesson-player";
 import { MixedText } from "@/components/app/mixed-text";
 import { Crumbs } from "@/components/app/crumbs";
@@ -51,11 +52,17 @@ export default async function Lesson({
   if (!week) notFound();
 
   // Where the class meets this lesson, for the labels and the crumbs: its own
-  // term and week under a syllabus, else the row's.
-  const scheduled = schedule?.courses.find((c) => c.courseId === lesson.course_id);
-  const termId = scheduled ? scheduled.termId : week.term_id;
+  // term and week under a syllabus, else the row's. A reader exempt from the
+  // calendar has the whole programme as their tree, filed by series.
+  const plan = profile.unlock_all ? null : schedule;
+  const scheduled = plan?.courses.find((c) => c.courseId === lesson.course_id);
+  const course = courseAddress(plan, {
+    courseId: lesson.course_id, series: lesson.series, termId: week.term_id,
+  });
+  const termId = course.termId;
+  const courseHref = `/courses/${course.termId}/${course.slug}`;
   const weekNumber =
-    scheduled && schedule ? classItemWeek(schedule, lesson.ordinal ?? 1, lesson.course_id) : week.number;
+    scheduled && plan ? classItemWeek(plan, lesson.ordinal ?? 1, lesson.course_id) : week.number;
 
   // Both lists are narrowed to this lesson's SERIES, not just its week. A week
   // can carry two courses at once — Term 3 week 1 has Tajweed 16 and TFP 1 —
@@ -83,8 +90,8 @@ export default async function Lesson({
             { label: "Courses", href: "/courses" },
             { label: `Term ${termId}`, href: `/courses/${termId}` },
             {
-              label: seriesShort(lesson.series),
-              href: `/courses/${termId}/${lesson.series}`,
+              label: course.label ?? seriesShort(lesson.series),
+              href: courseHref,
             },
             { label: `Week ${weekNumber}` },
           ]}
@@ -139,7 +146,7 @@ export default async function Lesson({
       </div>
 
       <div className="signoff">
-        <Link href={`/courses/${termId}/${lesson.series}`} className="lines">
+        <Link href={courseHref} className="lines">
           ← All modules
         </Link>
         <span className="wm" role="img" aria-label="BSMS Tajweed" />
