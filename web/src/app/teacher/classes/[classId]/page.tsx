@@ -72,7 +72,7 @@ export default async function ClassDetail({
   if (!cls) notFound();
   // Section decides. A brothers' teacher guessing a sisters' class id gets the
   // same nothing the list gave them, rather than a roster they may not read.
-  if (!canOpenSection(profile?.section, cls.section)) notFound();
+  if (!canOpenSection(profile?.section, cls.section, profile?.is_admin)) notFound();
 
   const termId = currentTermId(terms);
 

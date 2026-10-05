@@ -41,6 +41,8 @@ export type Invite = {
   className: string;
   studentCount: number;
   section: "brothers" | "sisters";
+  /** An admin has no class: `className` is "Every class" and the copy says so. */
+  admin?: boolean;
   /** the one-time link that signs them in and lands on /welcome */
   link: string;
 };
@@ -60,8 +62,15 @@ export function inviteText(i: Invite): string {
   return [
     `Assalamu alaikum ${i.firstName},`,
     ``,
-    `Your teacher account on BSMS Tajweed is ready. ${i.className} is already`,
-    `set up with your ${i.studentCount} students, their homework and their hifdh records.`,
+    ...(i.admin
+      ? [
+          `Your admin account on BSMS Tajweed is ready. You can open every class,`,
+          `brothers' and sisters', with all ${i.studentCount} students, their homework and hifdh records.`,
+        ]
+      : [
+          `Your teacher account on BSMS Tajweed is ready. ${i.className} is already`,
+          `set up with your ${i.studentCount} students, their homework and their hifdh records.`,
+        ]),
     ``,
     `Set your password and finish setting up here:`,
     i.link,
@@ -82,7 +91,9 @@ export function inviteHtml(i: Invite): string {
   const cls = esc(i.className);
   const link = esc(i.link);
   const people = i.studentCount === 1 ? "1 student" : `${i.studentCount} students`;
-  const sectionLabel = i.section === "brothers" ? "Brothers" : "Sisters";
+  const sectionLabel = i.admin
+    ? "Brothers and sisters"
+    : i.section === "brothers" ? "Brothers" : "Sisters";
 
   return `<!doctype html>
 <html lang="en">
@@ -101,7 +112,7 @@ export function inviteHtml(i: Invite): string {
 <!-- Preheader: the grey line of text a client shows next to the subject.
      Left empty it would scrape the first words of the markup instead. -->
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">
-  ${cls} is set up with your ${people}. Set your password to get in.
+  ${i.admin ? "Every class is open to you" : `${cls} is set up with your ${people}`}. Set your password to get in.
 </div>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
@@ -127,7 +138,7 @@ export function inviteHtml(i: Invite): string {
               Assalamu alaikum ${name},
             </p>
             <p style="margin:0 0 16px 0;font-size:16px;line-height:1.65;color:#00004d;">
-              Your teacher account is ready. You don&rsquo;t need to sign up &mdash;
+              Your ${i.admin ? "admin" : "teacher"} account is ready. You don&rsquo;t need to sign up &mdash;
               it already exists and is waiting for you.
             </p>
           </td>
@@ -141,7 +152,7 @@ export function inviteHtml(i: Invite): string {
               <tr>
                 <td style="padding:18px 20px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
                   <div style="font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#2f4fd0;font-weight:700;">
-                    Your class
+                    ${i.admin ? "Your access" : "Your class"}
                   </div>
                   <div style="font-size:21px;line-height:1.3;color:#00004d;font-weight:700;padding-top:6px;">
                     ${cls}

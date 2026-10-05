@@ -59,7 +59,7 @@ export const currentProfile = cache(async () => {
   // reaches the nearest error boundary, where Try again can recover it.
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, role, section, class_id, is_active, avatar_url, setup_complete, unlock_all, classes!profiles_class_id_fkey(name)")
+    .select("id, full_name, role, section, class_id, is_active, is_admin, avatar_url, setup_complete, unlock_all, classes!profiles_class_id_fkey(name)")
     .eq("id", userId)
     .maybeSingle();
   if (error) throw new Error(`Couldn't load your profile: ${error.message}`);

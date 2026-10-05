@@ -4,6 +4,9 @@
  * Run:  cd web && RESEND_API_KEY=re_xxx npx tsx ../execution/send_invites.ts [--commit]
  *       ... --only wala            send to one person
  *       ... --to me@example.com    send every message to one inbox, for testing
+ *       ... --email a@b.com        invite this one account instead of the handover list
+ *                                  (an admin, with is_admin and no class, gets the admin copy)
+ * RESEND_API_KEY may be left out: the key is then read from Vault, as the app does.
  * Without --commit it prints the plan and sends nothing.
  *
  * WHY NOT `inviteUserByEmail`: these accounts already exist. promote_teachers.ts
@@ -54,6 +57,8 @@ const OVERRIDE_TO = argOf("to");
 type Recipient = { email: string; firstName: string };
 
 function recipients(): Recipient[] {
+  const one = argOf("email");
+  if (one) return [{ email: one, firstName: "" }];
   const raw = JSON.parse(readFileSync(join(here, "handover.local.json"), "utf8")) as {
     handover: Record<string, string>;
   };
@@ -66,8 +71,12 @@ const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_
 });
 
 async function sendViaResend(to: string, subject: string, html: string, text: string) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) throw new Error("RESEND_API_KEY not set in the environment");
+  let key = process.env.RESEND_API_KEY;
+  if (!key) {
+    const { data } = await db.rpc("resend_api_key");
+    key = typeof data === "string" && data ? data : undefined;
+  }
+  if (!key) throw new Error("No Resend key: set RESEND_API_KEY or add it to Vault");
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
@@ -98,16 +107,21 @@ async function main() {
 
     // Name, class and roster size, so the mail is about them specifically.
     const { data: profile } = await db
-      .from("profiles").select("full_name, section").eq("id", user.id).single();
-    const { data: cls } = await db
+      .from("profiles").select("full_name, section, is_admin").eq("id", user.id).single();
+    const { data: own } = await db
       .from("classes").select("id, name").eq("teacher_id", user.id).maybeSingle();
-    if (!profile || !cls) {
+    const admin = !own && !!profile?.is_admin;
+    if (!profile || (!own && !admin)) {
       console.log(`  ! ${r.email} — no profile or class, skipped`);
       continue;
     }
+    // An admin's count is every active student in the real (non-demo) classes.
+    const { data: real } = await db.from("classes").select("id").neq("section", "demo");
+    const classIds = own ? [own.id] : (real ?? []).map((c: { id: string }) => c.id);
+    const cls = own ?? { id: "", name: "Every class" };
     const { count } = await db
       .from("profiles").select("id", { count: "exact", head: true })
-      .eq("class_id", cls.id).eq("role", "student").eq("is_active", true);
+      .in("class_id", classIds).eq("role", "student").eq("is_active", true);
 
     // generateLink mints the token WITHOUT emailing it — the whole point, since
     // the message itself is ours to shape.
@@ -128,6 +142,7 @@ async function main() {
       className: cls.name,
       studentCount: count ?? 0,
       section: profile.section as "brothers" | "sisters",
+      admin,
       link,
     };
 

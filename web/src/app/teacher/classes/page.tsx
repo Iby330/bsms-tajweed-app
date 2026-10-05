@@ -77,7 +77,7 @@ export default async function Classes() {
         // Whole sections open or they do not, so the reason is said once under
         // the heading rather than repeated down every row of somebody else's
         // cohort. The rows themselves differ only in being links or not.
-        const openable = canOpenSection(profile?.section, section);
+        const openable = canOpenSection(profile?.section, section, profile?.is_admin);
 
         return (
         <section key={section}>

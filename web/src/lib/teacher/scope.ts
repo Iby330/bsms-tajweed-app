@@ -58,7 +58,7 @@ export const teacherClass = cache(async (): Promise<TeacherClass | null> => {
  */
 export const teacherRoster = cache(
   async (): Promise<{ id: string; full_name: string }[]> => {
-    const cls = await teacherClass();
+    const [cls, profile] = await Promise.all([teacherClass(), currentProfile()]);
     const db = await supabaseServer();
     let q = db
       .from("profiles")
@@ -66,6 +66,11 @@ export const teacherRoster = cache(
       .eq("role", "student")
       .eq("is_active", true);
     if (cls) q = q.eq("class_id", cls.id);
+    // An admin's everything is both cohorts' real classes, not the demo one.
+    else if (profile?.is_admin) {
+      const classes = await teacherClasses();
+      q = q.in("class_id", classes.map((c) => c.id));
+    }
     const { data } = await q.order("full_name");
     return data ?? [];
   },
@@ -94,11 +99,10 @@ export const teacherClasses = cache(async (): Promise<TeacherClass[]> => {
   const profile = await currentProfile();
   if (!profile || profile.role !== "teacher") return [];
   const db = await supabaseServer();
-  const { data } = await db
-    .from("classes")
-    .select("id, name, section")
-    .eq("section", profile.section)
-    .order("name");
+  let q = db.from("classes").select("id, name, section");
+  // An admin oversees both cohorts; the training classes stay out of it.
+  q = profile.is_admin ? q.neq("section", "demo") : q.eq("section", profile.section);
+  const { data } = await q.order("section").order("name");
   return (data ?? []) as TeacherClass[];
 });
 
@@ -189,7 +193,9 @@ export async function homeworkScope(classParam?: string): Promise<HomeworkScope>
 export function canOpenSection(
   viewerSection: string | null | undefined,
   classSection: string | null | undefined,
+  viewerIsAdmin = false,
 ): boolean {
+  if (viewerIsAdmin) return !!classSection && classSection !== "demo";
   return !!viewerSection && !!classSection && viewerSection === classSection;
 }
 
