@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { MixedText } from "@/components/app/mixed-text";
 import { TapWords } from "@/components/app/tap-words";
 import { isTapWords } from "@/lib/homework/tap-words";
@@ -74,7 +73,6 @@ export function ReviewPanel({
   voiceNotes?: ReviewVoiceNote[];
   approved: boolean;
 }) {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
   const [refused, setRefused] = useState(false);
@@ -174,11 +172,10 @@ export function ReviewPanel({
                   setRefused(true);
                   return;
                 }
-                // Stay on the script either way: the queue bar above then
-                // says it was released and offers the next one. A mark under
-                // the pass line reopens it as a redo, which this page shows.
+                // Stay on the script either way: the action refreshes this
+                // page, so the queue bar says it was released and offers the
+                // next one. A mark under the pass line shows the redo instead.
                 setEditing(false);
-                router.refresh();
               })
             }
           >

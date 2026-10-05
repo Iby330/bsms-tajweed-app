@@ -230,7 +230,6 @@ describe("ReviewPanel — where approving lands", () => {
     fireEvent.click(approveButton(container));
     await vi.waitFor(() => expect(approve).toHaveBeenCalled());
     expect(router.push).not.toHaveBeenCalled();
-    expect(router.refresh).toHaveBeenCalled();
   });
 
   it("stays on the page when an edit drops the mark below the pass line", async () => {
@@ -240,15 +239,14 @@ describe("ReviewPanel — where approving lands", () => {
 
     fireEvent.click(approveButton(container));
     await vi.waitFor(() => expect(approve).toHaveBeenCalled());
-    // the refreshed page shows the redo now in progress, with the queue above it
-    await vi.waitFor(() => expect(router.refresh).toHaveBeenCalled());
+    // the action refreshes the page, which then shows the redo in progress
     expect(router.push).not.toHaveBeenCalled();
   });
 
   it("stays on the page on a first release, so the queue can offer the next", async () => {
     const { container } = panel([WRITTEN], [answer({ id: "a1", question_id: "q1", auto_marks: 4 })]);
     fireEvent.click(approveButton(container));
-    await vi.waitFor(() => expect(router.refresh).toHaveBeenCalled());
+    await vi.waitFor(() => expect(approve).toHaveBeenCalled());
     expect(router.push).not.toHaveBeenCalled();
   });
 });
