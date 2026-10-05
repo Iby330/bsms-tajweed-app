@@ -6,6 +6,25 @@ import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+/** The order the programme lists its classes in. Any class not named here
+ *  follows these, alphabetically. Sisters' classes run by teacher: Ola,
+ *  Rezarta, Wala, Sajeda. */
+const CLASS_ORDER = [
+  "Masjid An-Nabawi",
+  "Masjid Al-Haram",
+  "Masjid Al-Umawi",
+  "Masjid Quba",
+  "Masjid Al-Aqsa",
+  "Zukhruf",
+  "Salsabeel",
+  "Rayyan",
+  "Hareer",
+];
+const rank = (name: string) => {
+  const i = CLASS_ORDER.indexOf(name);
+  return i === -1 ? CLASS_ORDER.length : i;
+};
+
 export default async function Classes() {
   const db = await supabaseServer();
   // Neither list waits on the other, and the profile already carries what the
@@ -41,7 +60,7 @@ export default async function Classes() {
         <p>
           {profile?.section === "demo"
             ? "Your training class. It is made of demo students, so nothing you do here touches a real record."
-            : "All seven classes across the programme. Every class is listed; the ones in your own section open."}
+            : "Every class across the programme. The ones in your own section open."}
         </p>
       </header>
 
@@ -49,7 +68,9 @@ export default async function Classes() {
           the last, which outranks `.divider`'s own and cost these headings the
           whole rhythm of the page. `.field` spaces the panel instead. */}
       {sections.map((section) => {
-        const inSection = (classes ?? []).filter((c) => c.section === section);
+        const inSection = (classes ?? [])
+          .filter((c) => c.section === section)
+          .sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name));
         // A section with no classes would otherwise draw an empty hairline frame.
         if (inSection.length === 0) return null;
 
