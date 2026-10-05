@@ -80,7 +80,7 @@ setf('ghunna', 1, 2, 'prompt', 'What is the the technical term of the word “Ta
 setf('ghunna', 1, 7, 'prompt', 'Which of the following examples is not deemed as a major mistake?',
      'Which of the following are NOT major mistakes? Select all that apply.', 'Two answers are right, so the prompt says to select all.')
 setf('ghunna', 1, 8, 'prompt', 'True or False: Are minor mistakes in recitation deemed Haram?',
-     'True or False: Minor mistakes in recitation are deemed haram.', 'True/false needs a statement, not a question. Key (False) unchanged.')
+     'True or False: Minor mistakes in recitation are deemed Haram.', 'True/false needs a statement, not a question. Key (False) unchanged. Now live too.')
 opt('ghunna', 2, 4, 2, 'اُمَّمٌ', [w for w in W('6:38', 1, 40).split() if w.startswith('ثُمَّ') or N(w).startswith(N('ثُمَّ'))][0],
     'اُمَّمٌ is not a word in the Qur\'an (the word is أُمَمٌ, no shaddah, no ghunna) and was keyed correct. Replaced with ثُمَّ (6:38).', 'error')
 # 89:28 مَّرْضِيَّةً: meem with shaddah, so ghunna, as the video teaches; the markup files it under idghaam.
