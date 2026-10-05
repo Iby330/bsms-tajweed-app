@@ -2461,7 +2461,7 @@ html {
      content box is the viewport less two gutters, two pads and a hairline
      (≈64px). At 390px that is 18.5px Qur'an type where it had been 15.2px,
      with a page that ended 60px short of the panel's edges. — */
-  .mushaf-page { font-size: min(1.3rem, calc((100vw - 64px) / 17.6)); padding-inline: 0.8em; }
+  .mushaf-page { font-size: min(1.3rem, calc((100vw - 64px) / 18.2)); padding-inline: 0.8em; }
 
   /* — the homework hand-in rides above the tab bar — */
   .submitbar {
@@ -2505,12 +2505,16 @@ html {
   table.ledger tr:has(> td[data-col="t1"]) td[data-col="notes"]::before { margin: 0; }
   table.ledger tr:has(> td[data-col="t1"]) td[data-col="notes"] input { height: 2.25rem; min-height: 0; }
 
-  /* — the mushaf being marked (peer review, the hear desk) breaks out of its
-     panels to the screen's edges: its words are tap targets, and every
-     pixel of width is a bigger word. 100vw rather than negative margins, so
-     it holds whatever padding the panels around it carry. — */
-  .mushaf-bleed { width: 100vw; margin-inline: calc(50% - 50vw); }
-  .mushaf-bleed .mushaf-page { font-size: min(1.3rem, calc((100vw - 14px) / 17.6)); }
+  /* — the mushaf being marked (peer review, the hear desk): its words are
+     tap targets, so the page fills exactly the panel it sits in. Sized from
+     the wrapper as a container, not from the viewport: a 100vw break-out
+     overhung the panel's edges on a 375px phone. The peer-review panel
+     itself runs edge to edge on a phone (review-tab), which is where the
+     extra width comes from. — */
+  .mushaf-bleed { container-type: inline-size; }
+  /* The page measures ~17.9em wide at these sizes (frame and padding
+     included); 18.2 leaves a hair of slack so it never touches the edge. */
+  .mushaf-bleed .mushaf-page { font-size: min(1.3rem, calc(100cqi / 18.2)); }
   /* The word a mistake is being logged on, large enough to read its marks. */
   .sheet-word { font-size: 2.1rem; line-height: 1.7; }
 

@@ -110,7 +110,9 @@ export async function ReviewTab({
   }
 
   return (
-    <section className="glass rounded-2xl p-4 space-y-3">
+    // Edge to edge on a phone: the mushaf inside is marked by tapping words,
+    // and the panel's side margins were width taken from them.
+    <section className="glass rounded-2xl p-4 space-y-3 max-md:-mx-4 max-md:rounded-none max-md:border-x-0 max-md:px-3">
       <p className="text-sm">
         Revising with <span className="font-medium">{pair.partnerName}</span>
       </p>

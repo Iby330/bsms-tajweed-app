@@ -142,12 +142,8 @@ export function ReviewLogger({
   // spreadHeat keys history by wordKey for every word, end markers included.
   const previous = tapped ? history?.[wordKey(tapped)] : undefined;
 
-  // `mushaf-bleed`: on a phone the page runs to the screen's edges, so the
-  // words being tapped are as large as the width allows.
   const reader = (
-    <div className="mushaf-bleed">
-      <MushafReader pages={pages} marks={marks} heat={heat} surahNames={surahNames} onWordTap={setTapped} />
-    </div>
+    <MushafReader pages={pages} marks={marks} heat={heat} surahNames={surahNames} onWordTap={setTapped} />
   );
 
   return (
@@ -175,7 +171,13 @@ export function ReviewLogger({
         )}
       </div>
 
-      {pager ? <MushafPager {...pager}>{reader}</MushafPager> : reader}
+      {/* `mushaf-bleed`: on a phone the page fills this full-width box
+          exactly, so the words being tapped are as large as the width
+          allows. Outside the pager, which shrinks to fit its page and so
+          cannot be what the page measures itself against. */}
+      <div className="mushaf-bleed">
+        {pager ? <MushafPager {...pager}>{reader}</MushafPager> : reader}
+      </div>
 
       <MistakeSheet
         key={tapped ? markKey(targetOf(tapped)) : "closed"}
