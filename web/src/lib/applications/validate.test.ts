@@ -3,7 +3,7 @@ import { validateApplication, type ApplicationInput } from "./validate";
 import {
   ANOTHER_UNIVERSITY, CLOSES_LABEL, COLLEGE, FEE_PENCE, NO_YEAR, PAYMENT_LINK, HEARD_FROM,
   OPENING_VERSE, OTHER, SIGNUPS_CLOSE, SITUATIONS, TAJWEED_LEVELS, UNIVERSITIES, YEARS,
-  signupsOpen, termsFor,
+  signupsOpen, termsFor, waitlistOpen,
 } from "./form";
 import { SISTERS_HIFDH_DAY_PROVISIONAL } from "@/lib/attendance/calendar";
 import { COUNTRIES, DEFAULT_COUNTRY, countryByCode, flagFor } from "./countries";
@@ -308,6 +308,15 @@ describe("the closing deadline", () => {
     // 2pm is too late, which is how anybody reading it would take it.
     expect(signupsOpen(new Date(t))).toBe(false);
     expect(signupsOpen(new Date(t + 60_000))).toBe(false);
+  });
+
+  // The waiting list ran from the deadline until it was closed by hand on
+  // 5 October. Nothing after the deadline takes an application now: not the
+  // form, not the waiting list.
+  it("has no waiting list either side of the deadline", () => {
+    const t = SIGNUPS_CLOSE.getTime();
+    expect(waitlistOpen(new Date(t - 60_000))).toBe(false);
+    expect(waitlistOpen(new Date(t + 60_000))).toBe(false);
   });
 });
 

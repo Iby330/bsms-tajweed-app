@@ -5,7 +5,7 @@ import { ApplyFunnel } from "@/components/app/apply-funnel";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { BRAND_LOGO } from "@/lib/theme/brand";
-import { CLOSES_LABEL, feeLabel, signupsOpen } from "@/lib/applications/form";
+import { CLOSES_LABEL, feeLabel, signupsOpen, waitlistOpen } from "@/lib/applications/form";
 
 /**
  * The public application form.
@@ -64,7 +64,10 @@ export default async function Apply({
   const open = signupsOpen();
   // Past the deadline, the same form is the waiting list — but only once
   // they have read that it is one and chosen it, via the button below.
-  const waitlist = !open && (await searchParams).waitlist !== undefined;
+  // Once the waiting list itself is closed, ?waitlist is ignored and the
+  // closed page below drops its way in.
+  const waitingList = waitlistOpen();
+  const waitlist = waitingList && (await searchParams).waitlist !== undefined;
 
   return (
     <div className="shellview">
@@ -109,7 +112,7 @@ export default async function Apply({
 
             {/* The way in after the deadline. Named for what it is, so nobody
                 mistakes it for a late application with a place attached. */}
-            <div className="mt-6 rounded-xl border border-line p-6">
+            {waitingList && <div className="mt-6 rounded-xl border border-line p-6">
               <h2 className="text-sm font-medium">Missed the deadline?</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 If you&apos;ve missed the deadline, you can still join the waiting
@@ -123,7 +126,7 @@ export default async function Apply({
               >
                 Join the waiting list
               </Link>
-            </div>
+            </div>}
           </div>
         </>
       )}

@@ -152,6 +152,19 @@ export function signupsOpen(now: Date = new Date()): boolean {
 }
 
 /**
+ * Whether the waiting list is taking names. After the deadline /apply offered
+ * it in place of the form (migration 0038); it was closed by hand on
+ * 5 October 2026, so a late applicant is now simply told sign-ups are over.
+ * Set back to true to reopen it; nothing else needs to change.
+ */
+export const WAITLIST_OPEN = false;
+
+/** Past the deadline and the waiting list still open. Same clock as above. */
+export function waitlistOpen(now: Date = new Date()): boolean {
+  return WAITLIST_OPEN && !signupsOpen(now);
+}
+
+/**
  * Which year of the programme this intake is. 2025/26 was the fifth, so
  * 2026/27 is the sixth (confirmed 2026-09-22).
  */

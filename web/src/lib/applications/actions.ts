@@ -7,6 +7,7 @@ import type { Database } from "@/lib/database.types";
 import { randomBytes } from "node:crypto";
 import {
   CLOSES_LABEL, PAYMENT_LINK, RETURNING_CONTACTS, WHATSAPP_GROUPS, feeLabel, signupsOpen,
+  waitlistOpen,
 } from "./form";
 import { MAX, clean, validateApplication, type ApplicationInput } from "./validate";
 import { sendEmail } from "@/lib/email/send";
@@ -47,7 +48,16 @@ export async function submitApplication(
   // said so: someone who filled in the ordinary form in a tab left open over
   // the deadline agreed to a place and a payment, not to a waiting list, so
   // they are told to refresh rather than quietly filed as one.
+  //
+  // Once the waiting list is closed too, nothing gets in: a waiting-list form
+  // left open in a tab is refused like any other late write.
   const waitlist = !signupsOpen();
+  if (waitlist && !waitlistOpen()) {
+    return {
+      ok: false,
+      error: `Applications closed on ${CLOSES_LABEL}, and the waiting list is now closed too.`,
+    };
+  }
   if (waitlist && !asWaitlist) {
     return {
       ok: false,
