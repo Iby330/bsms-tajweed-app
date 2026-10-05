@@ -1568,6 +1568,11 @@ body::after {
     color: var(--foreground); opacity: 0.13;
   }
   @media (max-width: 1023px) { .backdrop { left: 0; } }
+  /* A phone sees a narrow slice of a wide photograph; a class whose subject
+     is off-centre sets --photo-x (class-backdrop.tsx, PHONE_X) to bring it in. */
+  @media (max-width: 767px) {
+    .backdrop-photo { background-position: var(--photo-x, 50%) center; }
+  }
 }
 
 /* — strikes: the panel escalates with the count, and a boot approaches — */

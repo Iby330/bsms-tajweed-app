@@ -35,6 +35,28 @@ const PHOTOS: Record<string, string> = {
   zukhruf: "/brand/classes/zukhruf.jpg",
 };
 
+/**
+ * The phone's crop of each photograph. A phone shows a narrow upright slice
+ * of these wide pictures, and a centred slice missed nearly every subject:
+ * the Kaaba stands ~70% across the Haram photograph, the Dome of the Rock
+ * ~64% across Al-Aqsa's, and the made images all put their subject right of
+ * centre. Each value is the background-position x (globals.css, `--photo-x`)
+ * that brings the subject to the middle of a cover crop at 390×~830px,
+ * worked out from where it sits in the photograph and checked at 375px too.
+ * Hareer's silk runs the full width, so it keeps the centre. Desktop keeps
+ * its centred crop throughout.
+ */
+const PHONE_X: Record<string, string> = {
+  "masjid an-nabawi": "74%", // the green dome
+  "masjid al-haram": "75%", // the Kaaba
+  "masjid al-aqsa": "68%", // the Dome of the Rock
+  "masjid al-umawi": "70%", // the prayer hall's dome and facade
+  "masjid quba": "66%", // the domes
+  rayyan: "77%", // the gate
+  salsabeel: "70%", // the falls
+  zukhruf: "75%", // the vessels
+};
+
 /** Fold count per class, for the four that aren't buildings. */
 const FOLDS: Record<string, number> = {
   zukhruf: 8,
@@ -117,7 +139,13 @@ export function ClassBackdrop({ className }: { className: string | null }) {
     <div className="backdrop" ref={root} aria-hidden>
       <div className="backdrop-layer" ref={layer}>
         {photo ? (
-          <div className="backdrop-photo" style={{ backgroundImage: `url(${photo})` }} />
+          <div
+            className="backdrop-photo"
+            style={{
+              backgroundImage: `url(${photo})`,
+              ...(PHONE_X[key] ? { ["--photo-x" as string]: PHONE_X[key] } : {}),
+            }}
+          />
         ) : (
           <Rosettes fold={fold} />
         )}
