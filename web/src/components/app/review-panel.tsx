@@ -201,12 +201,10 @@ export function ReviewPanel({
 
       {questions.map((q, i) => {
         const a = byQ.get(q.id);
-        // A task keeps its place on the paper whether or not an answers row
-        // exists for it: the recording is the work, and a student who has not
-        // recorded yet leaves nothing for a row to hold. Any other question
-        // with no row is one the student never reached, and a blank section
-        // for it would only lengthen the script the teacher has to read.
-        if (!a && !q.is_task) return null;
+        // Every question keeps its place, answered or not: a question the
+        // student skipped shows as "No answer given" and 0 marks, so the
+        // teacher sees the gap rather than a paper that starts at Q2.
+        const unanswered = !a && !q.is_task;
         const chosen = a ? selectedOf(a.response) : [];
         const text = a ? textOf(a.response) : "";
         // auto_rubric chips carry `why` from the LLM when it explained itself;
@@ -258,6 +256,16 @@ export function ReviewPanel({
                       </p>
                     )}
                   </>
+                ) : unanswered ? (
+                  <>
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                      Mark
+                    </div>
+                    <div className="mt-1 text-sm tabular-nums text-muted-foreground">
+                      0 / {fmtMarks(q.points)}
+                    </div>
+                    <p className="mt-1 text-[11px] text-muted-foreground">no answer</p>
+                  </>
                 ) : (
                   <>
                     <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -279,6 +287,10 @@ export function ReviewPanel({
                   slice they heard: a wrong answer reads differently once the
                   teacher has heard how short the clip is. */}
               {media.clip && <RecitationClip clip={media.clip} />}
+
+              {unanswered && q.options && (
+                <p className="text-sm italic text-muted-foreground">No answer given.</p>
+              )}
 
               {isTapWords(q.options) ? (
                 /* The passage as the student saw it, with the key drawn over

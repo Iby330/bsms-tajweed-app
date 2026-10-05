@@ -490,10 +490,18 @@ describe("ReviewPanel — recitation tasks", () => {
     expect(approve.mock.calls[0][2]).toEqual({ a3: "Lengthen the madd." });
   });
 
-  it("still skips an ordinary question the student never answered", () => {
+  it("shows an ordinary question the student never answered, at 0 marks", () => {
     const { container } = panel([WRITTEN, TASK], [], false, [note("q3")]);
-    expect(container.textContent).not.toContain("Q1");
+    expect(container.textContent).toContain("Q1");
+    expect(container.textContent).toContain("No answer given.");
+    expect(container.textContent).toContain("0 / ");
     expect(container.textContent).toContain("Q2");
+  });
+
+  it("shows a skipped multiple-choice question with its answer and no pick", () => {
+    const { container } = panel([MCQ], []);
+    expect(container.textContent).toContain("No answer given.");
+    expect(container.textContent).not.toContain("chose");
   });
 
   it("leaves a rowless task out of the running total, points and all", () => {
