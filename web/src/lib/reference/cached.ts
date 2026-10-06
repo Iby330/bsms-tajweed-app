@@ -34,6 +34,14 @@ export const getCachedTerms = unstable_cache(
   { tags: ["reference"], revalidate: 3600 },
 );
 
+/**
+ * The calendar is moved by hand (a week opened early, 0050, 0057), and every
+ * screen but the lesson and homework pages reads it from here: an hour's
+ * cache left teachers and students looking at "opens Wednesday" for up to an
+ * hour after a release. It is 26 rows; five minutes costs nothing.
+ */
+const CALENDAR_TTL = 300;
+
 export const getCachedWeeks = unstable_cache(
   async () => {
     const { data, error } = await supabaseAdmin()
@@ -46,7 +54,7 @@ export const getCachedWeeks = unstable_cache(
   },
   // key carries the row shape — bumped when the select gained due_at
   ["ref-weeks-v2"],
-  { tags: ["reference"], revalidate: 3600 },
+  { tags: ["reference"], revalidate: CALENDAR_TTL },
 );
 
 /**
@@ -63,7 +71,7 @@ export const getCachedSectionWeeks = unstable_cache(
     return data ?? [];
   },
   ["ref-section-weeks-v1"],
-  { tags: ["reference"], revalidate: 3600 },
+  { tags: ["reference"], revalidate: CALENDAR_TTL },
 );
 
 export const getCachedSurahs = unstable_cache(
