@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  answerText, homeworkLink, markedHtml, markedSubject, markedText, scoreOf, type MarkedHomework,
+  answerText, homeworkLink, teacherTitle, markedHtml, markedSubject, markedText, scoreOf, type MarkedHomework,
 } from "./marked-email";
 
 const mcq = {
@@ -19,7 +19,7 @@ const hw = (o: Partial<MarkedHomework> = {}): MarkedHomework => ({
   firstName: "Maryam",
   homeworkNumber: 3,
   homeworkTitle: "Ghunna",
-  teacherName: "Wala Mussa",
+  teacher: { fullName: "Wala Mussa", section: "sisters" },
   graded: true,
   pct: 60,
   redo: false,
@@ -47,7 +47,24 @@ describe("answerText", () => {
   });
 });
 
+describe("teacherTitle", () => {
+  it("is Ustadha for the sisters and Ustadh for the brothers, with the first name", () => {
+    expect(teacherTitle({ fullName: "Wala Mussa", section: "sisters" })).toBe("Ustadha Wala");
+    expect(teacherTitle({ fullName: "Daniyal Thakur", section: "brothers" })).toBe("Ustadh Daniyal");
+  });
+  it("falls back to no title rather than guess", () => {
+    expect(teacherTitle({ fullName: "Wala Mussa", section: null })).toBeNull();
+    expect(teacherTitle({ fullName: " ", section: "sisters" })).toBeNull();
+    expect(teacherTitle(null)).toBeNull();
+  });
+});
+
 describe("the marked email", () => {
+  it("names the teacher by title", () => {
+    expect(markedText(hw())).toContain("Ustadha Wala has marked Homework 3, Ghunna.");
+    expect(markedText(hw({ teacher: null }))).toContain("Your teacher has marked Homework 3");
+  });
+
   it("scores like the student's paper: every mark over the non-bonus points", () => {
     expect(scoreOf(hw())).toEqual({ marks: 3, outOf: 5 });
   });

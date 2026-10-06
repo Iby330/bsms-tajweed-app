@@ -17,7 +17,7 @@ import { markedHtml, markedSubject, markedText, type MarkedAnswer } from "@/lib/
 export async function emailMarkedHomework(o: {
   studentId: string;
   homeworkId: string;
-  teacherName: string | null;
+  teacher: { fullName: string | null; section: string | null };
   pct: number | null;
   redo: boolean;
   answers: MarkedAnswer[];
@@ -41,7 +41,7 @@ export async function emailMarkedHomework(o: {
       firstName: profile?.full_name?.trim().split(/\s+/)[0] || "there",
       homeworkNumber: homework.number,
       homeworkTitle: homework.title,
-      teacherName: o.teacherName,
+      teacher: o.teacher,
       graded: homework.is_graded,
       pct: o.pct,
       redo: o.redo,

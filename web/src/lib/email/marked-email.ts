@@ -38,7 +38,8 @@ export type MarkedHomework = {
   firstName: string;
   homeworkNumber: number;
   homeworkTitle: string;
-  teacherName: string | null;
+  /** Who marked it: their full name and section, which decides the title. */
+  teacher: { fullName: string | null; section: string | null } | null;
   /** Ungraded homework has no score line, only the answers and comments. */
   graded: boolean;
   /** The verdict `approveSubmission` acted on, or null when none was possible. */
@@ -142,8 +143,22 @@ function scoreLine(h: MarkedHomework): string {
   return `${fmtMarks(marks)} / ${fmtMarks(outOf)}${pct}`;
 }
 
+/**
+ * How a student names their teacher: Ustadha for the sisters' teachers,
+ * Ustadh for the brothers', and the first name. Null when either is missing,
+ * so the email falls back to "Your teacher" rather than guess.
+ */
+export function teacherTitle(t: MarkedHomework["teacher"]): string | null {
+  const first = t?.fullName?.trim().split(/\s+/)[0];
+  if (!first) return null;
+  if (t?.section === "sisters") return `Ustadha ${first}`;
+  if (t?.section === "brothers") return `Ustadh ${first}`;
+  return null;
+}
+
 function intro(h: MarkedHomework): string {
-  const by = h.teacherName ? `${h.teacherName} has` : "Your teacher has";
+  const title = teacherTitle(h.teacher);
+  const by = title ? `${title} has` : "Your teacher has";
   return `${by} marked Homework ${h.homeworkNumber}, ${h.homeworkTitle}.`;
 }
 

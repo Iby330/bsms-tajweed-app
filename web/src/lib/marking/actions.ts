@@ -232,7 +232,7 @@ export async function approveSubmission(
     await emailMarkedHomework({
       studentId: submission.student_id,
       homeworkId: submission.homework_id,
-      teacherName: teacher.full_name ?? null,
+      teacher: { fullName: teacher.full_name ?? null, section: teacher.section ?? null },
       pct: result.pct,
       redo: result.redo,
       answers: rows,
