@@ -57,7 +57,7 @@ export const studentNav: NavItem[] = [
   { href: "/hifdh", label: "Hifdh", icon: "book", tab: true },
   { href: "/calendar", label: "Calendar", icon: "calendar", tab: true },
   { href: "/coming-soon/resources", label: "Resources", icon: "library", comingSoon: true },
-  { href: "/coming-soon/seerah", label: "Seerah", icon: "landmark", comingSoon: true },
+  { href: "/coming-soon/seerah", label: "Sahabah Stories", icon: "landmark", comingSoon: true },
   { href: "/coming-soon/notifications", label: "Notifications", icon: "bell", comingSoon: true },
 ];
 export const studentMobileNav: MobileNav = mobileNavFor(studentNav);

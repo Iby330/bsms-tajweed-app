@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 /**
  * ComingSoon — full-page stub for features shown on the nav but not yet
- * built (Resources · Seerah · Notifications · Manage curriculum).
+ * built (Resources · Sahabah Stories · Notifications · Manage curriculum).
  * The demo's "full surface area" principle: show the whole vision,
  * stub the unbuilt parts honestly.
  */

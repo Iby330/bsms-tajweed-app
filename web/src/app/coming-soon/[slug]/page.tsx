@@ -7,10 +7,10 @@ const STUBS: Record<string, { title: string; description: string }> = {
     description:
       "Extra videos, notes and reference material for students and teachers, all in one place.",
   },
+  // The slug stays `seerah`, the series' key, so existing links keep working.
   seerah: {
-    title: "Seerah Series",
-    description:
-      "The biography of the Prophet ﷺ. Fortnightly Monday talks, with examinable content.",
+    title: "Sahabah Stories",
+    description: "Stories of the Companions of the Prophet ﷺ.",
   },
   notifications: {
     title: "Notifications",
