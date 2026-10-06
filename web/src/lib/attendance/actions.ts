@@ -88,6 +88,90 @@ export async function setPresence({
   const invalid = badSession(sessionDate, sessionType, timetable);
   if (invalid) return { ok: false, error: invalid };
 
+  const result = await writePresence(db, teacher.id, {
+    classId, studentId, sessionDate, sessionType, present, absenceReason, strike, termId,
+  });
+  if (!result.ok) return result;
+
+  revalidatePath("/teacher/attendance");
+  revalidatePath("/teacher/roster");
+  return { ok: true };
+}
+
+/**
+ * The register's Save button: every row the teacher changed since the last
+ * save, written in one call. The class and session are checked once, then
+ * each row goes through the same write as a single mark — so a strike is
+ * attached or taken back exactly as it would be one tap at a time.
+ *
+ * Rows are written one after another and the first failure stops the run,
+ * reporting which rows did land so the register can keep the rest dirty.
+ */
+export async function saveRegister({
+  classId,
+  sessionDate,
+  sessionType,
+  termId,
+  rows,
+}: {
+  classId: string;
+  sessionDate: string;
+  sessionType: SessionType;
+  termId: number;
+  rows: { studentId: string; present: boolean; absenceReason?: string; strike?: boolean }[];
+}): Promise<{ ok: true } | { ok: false; error: string; saved: string[] }> {
+  const teacher = await requireTeacher();
+  const db = await supabaseServer();
+
+  const timetable = await timetableOfClass(db, classId);
+  if (!timetable) return { ok: false, error: "That class no longer exists.", saved: [] };
+  const invalid = badSession(sessionDate, sessionType, timetable);
+  if (invalid) return { ok: false, error: invalid, saved: [] };
+
+  const saved: string[] = [];
+  for (const row of rows) {
+    const result = await writePresence(db, teacher.id, {
+      classId, sessionDate, sessionType, termId, ...row,
+    });
+    if (!result.ok) {
+      if (saved.length) {
+        revalidatePath("/teacher/attendance");
+        revalidatePath("/teacher/roster");
+      }
+      return { ok: false, error: result.error, saved };
+    }
+    saved.push(row.studentId);
+  }
+
+  revalidatePath("/teacher/attendance");
+  revalidatePath("/teacher/roster");
+  return { ok: true };
+}
+
+/** One row's write, once the caller has checked the teacher and the session. */
+async function writePresence(
+  db: Awaited<ReturnType<typeof supabaseServer>>,
+  teacherId: string,
+  {
+    classId,
+    studentId,
+    sessionDate,
+    sessionType,
+    present,
+    absenceReason,
+    strike,
+    termId,
+  }: {
+    classId: string;
+    studentId: string;
+    sessionDate: string;
+    sessionType: SessionType;
+    present: boolean;
+    absenceReason?: string;
+    strike?: boolean;
+    termId: number;
+  },
+): Promise<{ ok: true } | { ok: false; error: string }> {
   const { data: existing } = await db
     .from("attendance")
     .select("id, strike_id")
@@ -119,7 +203,7 @@ export async function setPresence({
         term_id: termId,
         reason: "absence",
         note: absenceReason?.trim() || `Absent: ${sessionLabel(sessionType)} session, ${sessionDate}`,
-        issued_by: teacher.id,
+        issued_by: teacherId,
       })
       .select("id")
       .single();
@@ -136,14 +220,11 @@ export async function setPresence({
       present,
       absence_reason: present ? null : absenceReason?.trim() || null,
       strike_id: strikeId,
-      recorded_by: teacher.id,
+      recorded_by: teacherId,
     },
     { onConflict: "student_id,session_date,session_type" },
   );
   if (error) return { ok: false, error: error.message };
-
-  revalidatePath("/teacher/attendance");
-  revalidatePath("/teacher/roster");
   return { ok: true };
 }
 

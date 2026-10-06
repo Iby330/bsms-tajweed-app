@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { setPresence, markAllPresent } from "@/lib/attendance/actions";
+import { useEffect, useState, useTransition } from "react";
+import { saveRegister } from "@/lib/attendance/actions";
 import type { SessionType } from "@/lib/attendance/session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,13 +19,23 @@ type RowState = {
   present: boolean | null;
   reason: string;
   strike: boolean;
-  saving: boolean;
 };
+
+/** Whether a row differs from what was last saved, as the server would see it. */
+function changed(a: RowState, b: RowState) {
+  if (a.present !== b.present) return true;
+  if (a.present !== false) return false;
+  return a.reason.trim() !== b.reason.trim() || a.strike !== b.strike;
+}
 
 /**
  * The register. Everyone starts unmarked; one button fills the room as present
  * and the teacher flips whoever didn't show. An absence can carry a strike, and
  * un-flipping the absence takes that strike back off again.
+ *
+ * Nothing is written until Save. The register keeps what was last saved beside
+ * the draft, so Save lights up only while the two differ and sends just the
+ * rows that do — saving again overwrites them.
  */
 export function AttendanceRegister({
   classId,
@@ -42,8 +52,9 @@ export function AttendanceRegister({
   students: RegisterStudent[];
   records: RegisterRecord[];
 }) {
-  const [pendingAll, startAll] = useTransition();
-  const [rows, setRows] = useState<Record<string, RowState>>(() => {
+  const [saving, startSave] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState<Record<string, RowState>>(() => {
     const byStudent = new Map(records.map((r) => [r.student_id, r]));
     return Object.fromEntries(
       students.map((s) => {
@@ -54,41 +65,64 @@ export function AttendanceRegister({
             present: r ? r.present : null,
             reason: r?.absence_reason ?? "",
             strike: Boolean(r?.strike_id),
-            saving: false,
           } satisfies RowState,
         ];
       }),
     );
   });
+  const [rows, setRows] = useState<Record<string, RowState>>(saved);
 
   const patch = (id: string, next: Partial<RowState>) =>
     setRows((s) => ({ ...s, [id]: { ...s[id], ...next } }));
 
-  async function save(id: string, next: RowState) {
-    patch(id, { saving: true });
-    await setPresence({
-      classId,
-      studentId: id,
-      sessionDate,
-      sessionType,
-      present: next.present === true,
-      absenceReason: next.reason,
-      strike: next.strike,
-      termId,
+  // An unmarked row has nothing to write, so it never counts as a change.
+  const dirty = students.filter(
+    (s) => rows[s.id].present !== null && changed(rows[s.id], saved[s.id]),
+  );
+  const isDirty = dirty.length > 0;
+  const everSaved = students.some((s) => saved[s.id].present !== null);
+
+  // Leaving with unsaved marks loses them, so the browser asks first.
+  useEffect(() => {
+    if (!isDirty) return;
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [isDirty]);
+
+  function save() {
+    const batch = dirty.map((s) => ({ id: s.id, row: rows[s.id] }));
+    setError(null);
+    startSave(async () => {
+      const result = await saveRegister({
+        classId,
+        sessionDate,
+        sessionType,
+        termId,
+        rows: batch.map(({ id, row }) => ({
+          studentId: id,
+          present: row.present === true,
+          absenceReason: row.reason,
+          strike: row.strike,
+        })),
+      });
+      const landed = result.ok ? batch.map((b) => b.id) : result.saved;
+      setSaved((s) => {
+        const next = { ...s };
+        for (const { id, row } of batch) if (landed.includes(id)) next[id] = row;
+        return next;
+      });
+      if (!result.ok) setError(result.error);
     });
-    patch(id, { saving: false });
   }
 
   function setPresent(id: string, present: boolean) {
-    const next: RowState = {
-      ...rows[id],
+    patch(id, {
       present,
       // Going back to present clears the reason and any strike that came with it.
       reason: present ? "" : rows[id].reason,
       strike: present ? false : rows[id].strike,
-    };
-    patch(id, next);
-    void save(id, next);
+    });
   }
 
   const counts = students.reduce(
@@ -118,30 +152,35 @@ export function AttendanceRegister({
             {counts.unmarked} not marked
           </span>
         </div>
-        {counts.unmarked > 0 && (
-          <Button
-            size="sm"
-            disabled={pendingAll}
-            onClick={() =>
-              startAll(async () => {
-                const unmarked = students.filter((s) => rows[s.id]?.present === null);
-                await markAllPresent({
-                  classId,
-                  studentIds: unmarked.map((s) => s.id),
-                  sessionDate,
-                  sessionType,
-                });
+        <div className="flex flex-wrap items-center gap-2">
+          {counts.unmarked > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={saving}
+              onClick={() =>
                 setRows((s) => {
                   const next = { ...s };
-                  for (const st of unmarked) next[st.id] = { ...next[st.id], present: true };
+                  for (const st of students)
+                    if (next[st.id].present === null) next[st.id] = { ...next[st.id], present: true };
                   return next;
-                });
-              })
-            }
-          >
-            {pendingAll ? "Marking…" : `Mark remaining ${counts.unmarked} present`}
+                })
+              }
+            >
+              Mark remaining {counts.unmarked} present
+            </Button>
+          )}
+          <Button size="sm" disabled={!isDirty || saving} onClick={save}>
+            {saving
+              ? "Saving…"
+              : isDirty
+                ? `Save${everSaved ? " changes" : ""} (${dirty.length})`
+                : everSaved
+                  ? "Saved"
+                  : "Save"}
           </Button>
-        )}
+        </div>
+        {error && <p className="basis-full text-sm text-danger">Not saved: {error}</p>}
       </div>
 
       <ul className="box c12 divide-y divide-line" style={{ padding: 0, gap: 0 }}>
@@ -152,8 +191,8 @@ export function AttendanceRegister({
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <span className="min-w-0 flex-1 text-sm font-medium">
                   {s.full_name}
-                  {row?.saving && (
-                    <span className="ml-2 text-xs font-normal text-muted-foreground">saving…</span>
+                  {row.present !== null && changed(row, saved[s.id]) && (
+                    <span className="ml-2 text-xs font-normal text-warn">unsaved</span>
                   )}
                 </span>
                 <div className="flex shrink-0 overflow-hidden rounded-md border border-line">
@@ -190,18 +229,13 @@ export function AttendanceRegister({
                     value={row.reason}
                     placeholder="Reason (illness, travel, no reason given…)"
                     onChange={(e) => patch(s.id, { reason: e.target.value })}
-                    onBlur={() => void save(s.id, { ...rows[s.id] })}
                     className="max-w-sm flex-1 md:h-8 md:text-xs"
                   />
                   <label className="flex min-h-11 cursor-pointer items-center gap-1.5 px-1 text-xs text-muted-foreground md:min-h-0">
                     <input
                       type="checkbox"
                       checked={row.strike}
-                      onChange={(e) => {
-                        const next = { ...rows[s.id], strike: e.target.checked };
-                        patch(s.id, next);
-                        void save(s.id, next);
-                      }}
+                      onChange={(e) => patch(s.id, { strike: e.target.checked })}
                       className="size-5 accent-[var(--danger)] md:size-3.5"
                     />
                     Issue a strike

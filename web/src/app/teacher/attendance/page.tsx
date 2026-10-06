@@ -135,7 +135,10 @@ export default async function Attendance({
         </Link>
       )}
 
+      {/* Keyed on the session: the calendar navigates without remounting,
+          and a draft from one date must not carry over onto another. */}
       <AttendanceRegister
+        key={`${sessionDate}:${sessionType}`}
         classId={mine.id}
         termId={termId}
         sessionDate={sessionDate}
@@ -145,8 +148,9 @@ export default async function Attendance({
       />
 
       <p className="text-xs text-muted-foreground">
-        A strike here is your call, never automatic. Marking someone present
-        again removes any strike that came with their absence.
+        Nothing is recorded until you press Save. A strike here is your call,
+        never automatic. Marking someone present again and saving removes any
+        strike that came with their absence.
       </p>
     </>
   );
