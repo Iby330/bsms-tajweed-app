@@ -74,7 +74,7 @@ export function TeacherModuleCard({
             </span>
           </Link>
         ) : (
-          <ModulePoster youtubeId={null} series={series} />
+          <ModulePoster youtubeId={null} series={series} homeworkOnly={Boolean(m.homework)} />
         )}
 
         {/* Released or not is still worth saying — it is the difference between

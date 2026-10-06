@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { ClipboardList } from "lucide-react";
 import { MixedText } from "@/components/app/mixed-text";
 import { CountdownChip } from "@/components/app/countdown-chip";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { thumbnailUrl } from "@/lib/lessons/youtube";
+import { coverSrc } from "@/lib/curriculum/covers";
 import { seriesShort } from "@/lib/lessons/series";
 import { statusChip } from "@/lib/homework/logic";
 import type { Module } from "@/lib/curriculum/tree";
@@ -11,8 +13,9 @@ import { cn } from "@/lib/utils";
 const dmy = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 
-/** The 16:9 slot at the middle of every card. Exactly one of three states:
- *  locked, no-video-yet, or a real poster frame (optionally ticked).
+/** The 16:9 slot at the middle of every card. Exactly one of four states:
+ *  locked, homework-only, no-video-yet, or a real poster frame (optionally
+ *  ticked).
  *
  *  Shared with the teacher's card, which draws the same three states from
  *  different facts — it has no student to have watched anything and nothing is
@@ -24,6 +27,7 @@ export function ModulePoster({
   locked = false,
   unlockAt,
   ticked = false,
+  homeworkOnly = false,
 }: {
   youtubeId: string | null;
   /** Course series key, for the placeholder label. */
@@ -41,8 +45,16 @@ export function ModulePoster({
   /** Read only when locked. */
   unlockAt?: string;
   ticked?: boolean;
+  /**
+   * A week that is a homework and nothing else: no lesson row at all, as in
+   * Qāʿidah, which is taught live. "Video coming soon" would promise a video
+   * nobody is making, so the slot shows the course's cover art, or says what
+   * the week is when there is none.
+   */
+  homeworkOnly?: boolean;
 }) {
   const src = thumbnailUrl(youtubeId);
+  const cover = homeworkOnly && !src ? coverSrc(series) : null;
 
   return (
     <div className="relative aspect-video w-full overflow-hidden bg-muted max-md:order-first">
@@ -63,6 +75,14 @@ export function ModulePoster({
              16:9 box crops exactly those bars and nothing else. */
           className="size-full object-cover"
         />
+      ) : cover ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={cover} alt="" loading="lazy" className="size-full object-cover" />
+      ) : homeworkOnly ? (
+        <div className="flex size-full flex-col items-center justify-center gap-1.5 text-muted-foreground">
+          <ClipboardList aria-hidden className="size-6" />
+          <span className="text-xs">{label ?? seriesShort(series)} · homework</span>
+        </div>
       ) : (
         <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground">
           <span aria-hidden className="text-lg">▸</span>
@@ -88,7 +108,9 @@ export function ModulePoster({
  *
  * The whole card is the link to the lesson (a stretched overlay, not a wrapping
  * <a>), so the homework link can sit inside it without nesting anchors — nested
- * anchors are invalid HTML and break both keyboard nav and hydration.
+ * anchors are invalid HTML and break both keyboard nav and hydration. A week
+ * with no lesson at all (Qāʿidah) stretches the homework link instead, so the
+ * card opens the homework the way every other card opens its video.
  *
  * A locked week still renders: the weekly-release mechanic is only credible if
  * you can see what is coming and when.
@@ -110,6 +132,7 @@ export function ModuleCard({
   const chip = m.homework ? statusChip(m.submission, m.redo) : null;
   const lesson = m.lessons.find((l) => l.youtube_id) ?? m.lessons[0];
   const watchable = Boolean(lesson?.youtube_id);
+  const homeworkOnly = !lesson && Boolean(m.homework);
 
   return (
     <li className={cn("tcard relative overflow-hidden", !m.unlocked && "locked")}
@@ -143,6 +166,7 @@ export function ModuleCard({
         locked={!m.unlocked}
         unlockAt={m.unlockAt}
         ticked={m.unlocked && m.watched}
+        homeworkOnly={homeworkOnly}
       />
 
       {/* ── actions ── */}
@@ -168,8 +192,13 @@ export function ModuleCard({
             {m.homework && (
               <Link
                 href={`/homework/${m.homework.number}?from=course`}
-                /* relative + z-10 lifts this above the stretched overlay above. */
-                className="relative z-10 inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-xs transition-colors hover:border-ink/30"
+                /* relative + z-10 lifts this above the lesson's stretched
+                   overlay. With no lesson it IS the overlay: its ::before
+                   covers the card, so a tap anywhere opens the homework. */
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-xs transition-colors hover:border-ink/30",
+                  homeworkOnly ? "before:absolute before:inset-0" : "relative z-10",
+                )}
               >
                 <span>
                   {m.homework.series === "tajweed"

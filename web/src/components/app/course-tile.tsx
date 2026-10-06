@@ -1,28 +1,11 @@
 import Link from "next/link";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
 import { ProgressBar } from "@/components/app/progress-bar";
 import { fmtDay } from "@/lib/format";
 import { thumbnailUrl } from "@/lib/lessons/youtube";
 import type { CourseBlock } from "@/lib/curriculum/catalogue";
+import { coverSrc } from "@/lib/curriculum/covers";
 import { cn } from "@/lib/utils";
 
-/**
- * Where a course's cover art lives: web/public/courses/<slug>.(jpg|png|webp).
- *
- * Checked on disk rather than rendered blind. A missing <img> is a broken icon
- * and a layout that jumps; the branded plate below is a deliberate state that
- * looks like part of the design, so the page is presentable before any art
- * exists and improves silently as each file lands. Server component, so this
- * costs a stat call per tile and never runs in the browser.
- */
-const COVERS = join(process.cwd(), "public", "courses");
-function coverSrc(slug: string): string | null {
-  for (const ext of ["jpg", "png", "webp"]) {
-    if (existsSync(join(COVERS, `${slug}.${ext}`))) return `/courses/${slug}.${ext}`;
-  }
-  return null;
-}
 
 /**
  * One topic block as a square: cover, name, what it is, and where you are in it.
