@@ -332,7 +332,7 @@ describe("termIndex", () => {
     // by COURSES' own label, not whatever topic name a shared block carries.
     expect(rest.map((t) => t.block.label)).toEqual([
       "Ṣifāt", "Mabādi'", "Umm al-Kitāb", "Ṣifāt series", "Makhārij series", "Qāʿidah Nūrāniyyah",
-      "Ten Fundamental Principles", "Seerah",
+      "Ten Fundamental Principles", "Sahabah Stories",
     ]);
     expect(rest.some((t) => t.block.series === "ghunna" || t.block.series === "mudood")).toBe(false);
     // Seerah and TFP have no course row at all (`courseKey: null`) — COURSES
@@ -341,6 +341,12 @@ describe("termIndex", () => {
     // instead of leading them.
     expect(rest.slice(-2).map((t) => t.block.series)).toEqual(["tfp", "seerah"]);
     expect(rest.every((t) => t.href === null)).toBe(true);
+    // Another class's plan names every course, empty or not, so none reads as
+    // off this year; Sahabah Stories (the `seerah` series) is not built yet.
+    const reasonOf = (label: string) => rest.find((t) => t.block.label === label)?.reason;
+    expect(reasonOf("Ṣifāt series")).toBe("elsewhere");
+    expect(reasonOf("Makhārij series")).toBe("elsewhere");
+    expect(reasonOf("Sahabah Stories")).toBe("coming-soon");
   });
 
   it("shows a series never tied to its course once, as that course, and not to a class taking it", () => {

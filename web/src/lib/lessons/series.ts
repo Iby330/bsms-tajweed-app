@@ -4,7 +4,7 @@ export const SERIES_LABELS: Record<string, string> = {
   tajweed: "Tajweed",
   umm_al_kitab: "Umm al-Kitāb",
   tfp: "Ten Fundamental Principles",
-  seerah: "Seerah",
+  seerah: "Sahabah Stories",
   qaidah: "Qāʿidah Nūrāniyyah",
 };
 
@@ -13,7 +13,7 @@ export const SERIES_SHORT: Record<string, string> = {
   tajweed: "Tajweed",
   umm_al_kitab: "Umm al-Kitāb",
   tfp: "TFP",
-  seerah: "Seerah",
+  seerah: "Sahabah",
   qaidah: "Qāʿidah",
 };
 
@@ -22,9 +22,13 @@ export const SERIES_BLURB: Record<string, string> = {
   tajweed: "The rules of recitation, week by week.",
   umm_al_kitab: "Surah Al-Fātiha, verse by verse.",
   tfp: "The ten principles every science rests on.",
-  seerah: "The life of the Prophet ﷺ.",
+  seerah: "Stories of the Companions.",
   qaidah: "The Arabic letters: how each one is said, and how to tell them apart.",
 };
+
+/** Series the programme plans to add but holds nothing for yet. The `seerah`
+ *  enum value is kept as the key; the series it names is Sahabah Stories. */
+export const SERIES_COMING_SOON = new Set(["seerah"]);
 
 /** Teaching order. Anything unlisted sorts last, alphabetically. */
 export const SERIES_ORDER = ["tajweed", "umm_al_kitab", "tfp", "seerah", "qaidah"];

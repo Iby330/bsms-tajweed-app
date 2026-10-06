@@ -28,7 +28,7 @@ export function CourseTile({
   /** Null renders the square as locked and unclickable. */
   href: string | null;
   /** Why it is shut. Only read when href is null. */
-  reason?: "later" | "not-running" | "no-content";
+  reason?: "later" | "not-running" | "no-content" | "elsewhere" | "coming-soon";
   /** Modules done / modules with something in them. Open blocks only. */
   progress?: { done: number; total: number };
   /** Replaces the progress line. The teacher's index counts content, not
@@ -48,7 +48,11 @@ export function CourseTile({
       (block.posterId
         ? block.hasHomework ? " · video + homework" : " · video only"
         : block.hasHomework ? " · homework" : "")
-    : "Not running this year";
+    : reason === "elsewhere"
+      ? "Modules still to come"
+      : reason === "coming-soon"
+        ? "Not running yet"
+        : "Not running this year";
 
   const body = (
     <>
@@ -96,7 +100,9 @@ export function CourseTile({
               <span aria-hidden>🔒</span>
               {reason === "later" && block.opensAt
                 ? `Opens ${fmtDay(block.opensAt)}`
-                : block.moduleCount > 0
+                : reason === "coming-soon"
+                  ? "Coming soon"
+                  : block.moduleCount > 0 || reason === "elsewhere"
                   ? "Another class is studying this"
                   : "Not taught this year"}
             </p>

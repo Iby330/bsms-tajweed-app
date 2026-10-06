@@ -30,8 +30,8 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getCachedTerms, getCachedWeeks, getCachedSectionWeeks } from "@/lib/reference/cached";
 import { weeksForSection } from "./section-weeks";
-import { seriesBlurb, seriesLabel, seriesRank, SERIES_ORDER } from "@/lib/lessons/series";
-import { COURSES } from "./syllabus";
+import { seriesBlurb, seriesLabel, seriesRank, SERIES_COMING_SOON, SERIES_ORDER } from "@/lib/lessons/series";
+import { COURSES, SYLLABUS } from "./syllabus";
 import type { Course, Term, TermRow, WeekRow } from "./tree";
 
 /** Structure only — the shape of the year, never its contents. The video id is
@@ -288,7 +288,7 @@ export type IndexTile = {
    * Filed as `not-running` it reads "Not taught this year" — to the four
    * students being taught it every week.
    */
-  reason?: "later" | "not-running" | "no-content";
+  reason?: "later" | "not-running" | "no-content" | "elsewhere" | "coming-soon";
   /** Modules done / modules with something in them. Open tiles only. */
   progress?: { done: number; total: number };
 };
@@ -556,6 +556,9 @@ export function termIndex(
       return src;
     };
     for (const [key, def] of Object.entries(COURSES)) if (planned.has(key)) blockOf(key, def);
+    const taughtSomewhere = new Set<string>(
+      Object.values(SYLLABUS).flatMap((byTerm) => Object.values(byTerm).flat()),
+    );
     const courseTiles: IndexTile[] = Object.entries(COURSES)
       .filter(([key]) => !planned.has(key))
       .map(([key, def]) => {
@@ -567,11 +570,14 @@ export function termIndex(
               slug: key, courseKey: key, moduleCount: 0, hasHomework: false, posterId: null,
               opensAt: null, started: false, fullyOpen: false,
             };
-        return { id: `rest ${key}`, block, href: null, reason: "not-running" as const };
+        // Another class's plan names it, so it is running this year even
+        // with nothing in the app yet (the new Ṣifāt, Makhārij).
+        const reason = taughtSomewhere.has(key) ? "elsewhere" as const : "not-running" as const;
+        return { id: `rest ${key}`, block, href: null, reason };
       });
-    const seriesTiles = locked.filter(
-      (t) => t.reason === "not-running" && t.block.courseKey === null && !used.has(t.block),
-    );
+    const seriesTiles = locked
+      .filter((t) => t.reason === "not-running" && t.block.courseKey === null && !used.has(t.block))
+      .map((t) => SERIES_COMING_SOON.has(t.block.series) ? { ...t, reason: "coming-soon" as const } : t);
     rest = [...courseTiles, ...seriesTiles];
   }
   return { terms: tiles, rest };
