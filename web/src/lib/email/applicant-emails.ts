@@ -34,12 +34,12 @@ const LINK_VALID_HOURS = 24;
 
 /** The brand's three colours (docs/brand-system.md) and their checked
  *  text/border steps. Light only: the shell declares color-scheme light. */
-const C = {
+export const C = {
   page: "#e5e5ff", card: "#ffffff", ink: "#00004d",
   border: "#c8c8dc", muted: "#3a3a85",
   sage: "#bece99", sageText: "#404d1f",
 } as const;
-const FONT = "'Helvetica Neue',Helvetica,Arial,sans-serif";
+export const FONT = "'Helvetica Neue',Helvetica,Arial,sans-serif";
 
 export const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -49,15 +49,15 @@ const sideLabel = (s: Side) => (s === "brothers" ? "Brothers" : "Sisters");
 
 /* ── Building blocks ──────────────────────────────────────────────────── */
 
-const para = (html: string, size = 16) =>
+export const para = (html: string, size = 16) =>
   `<p style="margin:0 0 16px 0;font-size:${size}px;line-height:1.65;color:${C.ink};">${html}</p>`;
 
-const row = (html: string, pad = "0 34px") =>
+export const row = (html: string, pad = "0 34px") =>
   `<tr><td style="padding:${pad};font-family:${FONT};">${html}</td></tr>`;
 
 /** A table, not a padded <a>: Outlook ignores padding on anchors and the
  *  button collapses to bare text. */
-function button(href: string, label: string, tone: "ink" | "sage" = "ink") {
+export function button(href: string, label: string, tone: "ink" | "sage" = "ink") {
   // Sage is the accent, and a sage fill always carries navy type (10.17:1).
   const bg = tone === "sage" ? C.sage : C.ink;
   const fg = tone === "sage" ? C.ink : C.page;
@@ -69,7 +69,7 @@ function button(href: string, label: string, tone: "ink" | "sage" = "ink") {
 }
 
 /** The tinted panel the class or the application summary sits in. */
-function panel(kicker: string, title: string, sub: string) {
+export function panel(kicker: string, title: string, sub: string) {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
        style="background:${C.page};border:1px solid ${C.border};border-radius:10px;margin:0 0 22px 0;">
   <tr><td style="padding:18px 20px;font-family:${FONT};">
@@ -95,10 +95,10 @@ ${items.map(([title, body], i) => `  <tr>
 </table>`;
 }
 
-const heading = (text: string) =>
+export const heading = (text: string) =>
   `<div style="font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:${C.sageText};font-weight:700;margin:6px 0 12px 0;">${text}</div>`;
 
-function shell(o: { title: string; preheader: string; body: string; footer: string }) {
+export function shell(o: { title: string; preheader: string; body: string; footer: string }) {
   return `<!doctype html>
 <html lang="en">
 <head>

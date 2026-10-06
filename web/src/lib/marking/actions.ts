@@ -10,6 +10,7 @@ import {
 } from "./plan";
 import { markFreeText } from "./llm";
 import { APPROVABLE_STATUSES, canApprove, redoVerdict } from "./redo";
+import { emailMarkedHomework } from "./notify";
 
 /**
  * The marking pipeline.
@@ -217,14 +218,40 @@ export async function approveSubmission(
   // The marks that were just written, not the ones that were read — an edit of
   // an already-released submission is the case where those differ, and it is
   // exactly the case that can push a pass down below the line.
-  if (!homework) return { pct: null, redo: false };
-  const verdict = redoVerdict(rows, homework.questions ?? [], homework, submission);
-  if (!verdict) return { pct: null, redo: false };
-  if (!verdict.redo) return { pct: verdict.pct, redo: false };
+  const verdict = homework
+    ? redoVerdict(rows, homework.questions ?? [], homework, submission)
+    : null;
+  const result = verdict?.redo
+    ? await sendBack(submissionId, verdict.pct, homework!.number)
+    : { pct: verdict?.pct ?? null, redo: false };
+
+  // The student hears once per attempt: on its first release, not on every
+  // "Edit marks" afterwards. A submission carried over from the spreadsheet
+  // has no answers to show, so it gets no email either.
+  if (submission.status !== "approved" && rows.length) {
+    await emailMarkedHomework({
+      studentId: submission.student_id,
+      homeworkId: submission.homework_id,
+      teacherName: teacher.full_name ?? null,
+      pct: result.pct,
+      redo: result.redo,
+      answers: rows,
+    });
+  }
+  return result;
+}
+
+/** Below the pass mark: reopen the paper as a blank redo. */
+async function sendBack(
+  submissionId: string,
+  pct: number,
+  homeworkNumber: number,
+): Promise<{ pct: number; redo: true }> {
+  const db = supabaseAdmin();
 
   const { error } = await db.rpc("open_homework_redo", {
     sub_id: submissionId,
-    failed_pct: verdict.pct,
+    failed_pct: pct,
   });
   // Loudly: the marks are already released, so a failure here leaves a student
   // holding a fail with no way to sit it again. Better the teacher sees it.
@@ -234,9 +261,9 @@ export async function approveSubmission(
   // their progress rows, and the paper itself, now blank again.
   revalidatePath("/home");
   revalidatePath("/progress");
-  revalidatePath(`/homework/${homework.number}`);
+  revalidatePath(`/homework/${homeworkNumber}`);
 
-  return { pct: verdict.pct, redo: true };
+  return { pct, redo: true };
 }
 
 /** Re-run the model on a single answer (teacher pressed "re-mark"). */
