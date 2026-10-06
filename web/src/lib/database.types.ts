@@ -1966,7 +1966,7 @@ export type Database = {
       qtype_t: "mcq" | "checkbox" | "text" | "paragraph" | "grid"
       scoring_t: "exact" | "per_option" | "manual"
       section_t: "brothers" | "sisters" | "demo"
-      series_t: "tajweed" | "umm_al_kitab" | "tfp" | "seerah"
+      series_t: "tajweed" | "umm_al_kitab" | "tfp" | "seerah" | "qaidah"
       session_t: "tajweed" | "hifdh"
       strike_reason: "absence" | "homework" | "conduct"
       sub_status: "draft" | "submitted" | "auto_marked" | "approved"
@@ -2108,7 +2108,7 @@ export const Constants = {
       qtype_t: ["mcq", "checkbox", "text", "paragraph", "grid"],
       scoring_t: ["exact", "per_option", "manual"],
       section_t: ["brothers", "sisters", "demo"],
-      series_t: ["tajweed", "umm_al_kitab", "tfp", "seerah"],
+      series_t: ["tajweed", "umm_al_kitab", "tfp", "seerah", "qaidah"],
       session_t: ["tajweed", "hifdh"],
       strike_reason: ["absence", "homework", "conduct"],
       sub_status: ["draft", "submitted", "auto_marked", "approved"],

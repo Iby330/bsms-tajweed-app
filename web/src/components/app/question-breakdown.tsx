@@ -5,6 +5,7 @@ import { parseOptions, parseRubric } from "@/lib/marking/objective";
 import { isTapWords } from "@/lib/homework/tap-words";
 import { questionStats, tallyOptions, type ScoreAnswer } from "@/lib/marking/responses";
 import { parseMedia } from "@/lib/homework/media";
+import { isLetterGrid, questionLabels } from "@/lib/homework/letters";
 import { fmtMarks, pctTone, responseIsEmpty, textOf } from "@/lib/homework/logic";
 import { cn } from "@/lib/utils";
 
@@ -72,10 +73,13 @@ export function QuestionBreakdown({
     byQuestion.set(a.question_id, list);
   }
 
+  const labels = questionLabels(questions);
+
   return (
     <div className="space-y-3">
       {questions.map((q, i) => {
         const options = parseOptions(q.options);
+        const label = labels[i];
         const rubric = parseRubric(q.rubric);
         const media = parseMedia(q.media);
         const points = Number(q.points);
@@ -97,7 +101,7 @@ export function QuestionBreakdown({
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  <span>Q{i + 1}</span>
+                  <span>Q{label}</span>
                   <span className="normal-case">{QTYPE[q.qtype] ?? q.qtype}</span>
                   {q.is_bonus && (
                     <span className="rounded bg-muted px-1.5 py-0.5 normal-case">
@@ -173,7 +177,11 @@ export function QuestionBreakdown({
                   const most = Math.max(1, ...tallies.map((t) => t.count));
                   return (
                     <>
-                      {tallies.map((t, idx) => (
+                      {/* A letter question shows the letters someone chose and
+                          the right one, not 29 rows of mostly zero. */}
+                      {tallies
+                        .filter((t) => !isLetterGrid(options) || t.correct || t.count > 0)
+                        .map((t, idx) => (
                         <li
                           key={t.position}
                           className="relative overflow-hidden rounded-md px-2.5 py-1.5 text-sm"

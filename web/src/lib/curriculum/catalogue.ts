@@ -90,6 +90,13 @@ const TOPICS: Record<string, Record<number, { label: string; blurb: string; slug
       slug: "tfp",
     },
   },
+  qaidah: {
+    1: {
+      label: "Qāʿidah Nūrāniyyah",
+      blurb: "The Arabic letters: how each one is said, and how to tell them apart.",
+      slug: "qaidah",
+    },
+  },
 };
 
 /** One topic block: a series within a term, or a course not running at all. */
@@ -540,7 +547,11 @@ export function termIndex(
         ?? (def.source
           ? catalogue.find((b) => b.courseKey === null
               && b.series === def.source!.series && b.termId === def.source!.termId)
-          : undefined);
+          : undefined)
+        // A course whose series shares its name (Qāʿidah) owns that series'
+        // empty block too, from before any of its rows exist; left unclaimed
+        // it would be a second "Qāʿidah" tile beside the course's own.
+        ?? catalogue.find((b) => b.courseKey === null && b.series === key && b.termId === null);
       if (src) used.add(src);
       return src;
     };

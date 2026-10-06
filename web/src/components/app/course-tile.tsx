@@ -60,7 +60,11 @@ export function CourseTile({
   const shape = block.moduleCount
     ? `${block.moduleCount} ${block.moduleCount === 1 ? "module" : "modules"}` +
       (block.termId ? ` · Term ${block.termId}` : "") +
-      (block.hasHomework ? " · video + homework" : " · video only")
+      // A course with no video at all (Qāʿidah: taught live, homework in
+      // the app) says so rather than promising a video.
+      (block.posterId
+        ? block.hasHomework ? " · video + homework" : " · video only"
+        : block.hasHomework ? " · homework" : "")
     : "Not running this year";
 
   const body = (

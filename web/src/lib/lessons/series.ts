@@ -5,6 +5,7 @@ export const SERIES_LABELS: Record<string, string> = {
   umm_al_kitab: "Umm al-Kitāb",
   tfp: "Ten Fundamental Principles",
   seerah: "Seerah",
+  qaidah: "Qāʿidah Nūrāniyyah",
 };
 
 /** Short forms for breadcrumbs and chips, where the full name is too long. */
@@ -13,6 +14,7 @@ export const SERIES_SHORT: Record<string, string> = {
   umm_al_kitab: "Umm al-Kitāb",
   tfp: "TFP",
   seerah: "Seerah",
+  qaidah: "Qāʿidah",
 };
 
 /** One line of "what is this course", shown on the course cards. */
@@ -21,10 +23,11 @@ export const SERIES_BLURB: Record<string, string> = {
   umm_al_kitab: "Surah Al-Fātiha, verse by verse.",
   tfp: "The ten principles every science rests on.",
   seerah: "The life of the Prophet ﷺ.",
+  qaidah: "The Arabic letters: how each one is said, and how to tell them apart.",
 };
 
 /** Teaching order. Anything unlisted sorts last, alphabetically. */
-export const SERIES_ORDER = ["tajweed", "umm_al_kitab", "tfp", "seerah"];
+export const SERIES_ORDER = ["tajweed", "umm_al_kitab", "tfp", "seerah", "qaidah"];
 
 export function seriesLabel(key: string): string {
   return SERIES_LABELS[key] ?? key;

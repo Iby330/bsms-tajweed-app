@@ -172,6 +172,12 @@ export const config = {
      * were answered with a redirect to /login for every signed-out visitor,
      * so the posters showed and the play button did nothing.
      *
+     * `audio/` is the homework's own recordings (the Qāʿidah letter clips,
+     * lib/homework/media.ts): an <audio> element fetches in byte ranges, and
+     * each range would otherwise cost an auth round trip, or a redirect to
+     * /login if the session lapsed mid-homework. The names (hw1-a.mp3) give
+     * no answer away.
+     *
      * `robots.txt` is for crawlers, who are always signed out — redirected to
      * /login they would read a page of HTML as the rules.
      *
@@ -179,6 +185,6 @@ export const config = {
      * no session, and checks that secret itself. Through the proxy it was
      * redirected to /login and could never be reached.
      */
-    "/((?!_next/static|_next/image|favicon.ico|robots\\.txt$|api/revalidate$|brand/|fonts/|testimonials/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf|webmanifest)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots\\.txt$|api/revalidate$|brand/|fonts/|testimonials/|audio/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf|webmanifest)$).*)",
   ],
 };

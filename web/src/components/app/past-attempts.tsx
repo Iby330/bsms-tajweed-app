@@ -5,6 +5,7 @@ import { RecitationClip } from "@/components/app/recitation-clip";
 import { isTapWords } from "@/lib/homework/tap-words";
 import { fmtMarks, selectedOf, textOf } from "@/lib/homework/logic";
 import { parseMedia } from "@/lib/homework/media";
+import { questionLabels } from "@/lib/homework/letters";
 import type { ReviewQuestion } from "@/components/app/review-panel";
 
 /**
@@ -127,6 +128,7 @@ export function PastAttempts({
 
   const ordered = [...attempts].sort((a, b) => b.attempt - a.attempt);
   const inOrder = [...questions].sort((a, b) => a.position - b.position);
+  const labels = questionLabels(inOrder);
 
   return (
     <section className="box c12 mb-4">
@@ -182,7 +184,7 @@ export function PastAttempts({
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">
                             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                              Q{i + 1}
+                              Q{labels[i]}
                             </div>
                             <MixedText
                               text={q.prompt}

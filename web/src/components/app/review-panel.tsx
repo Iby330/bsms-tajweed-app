@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { approveSubmission } from "@/lib/marking/actions";
 import { selectedOf, textOf, fmtMarks, parseMarkInput } from "@/lib/homework/logic";
 import { parseMedia } from "@/lib/homework/media";
+import { isLetterGrid, questionLabels } from "@/lib/homework/letters";
 import { cn } from "@/lib/utils";
 
 export type ReviewQuestion = {
@@ -127,8 +128,9 @@ export function ReviewPanel({
   // never in here: it carries no mark field, so a number out of range on one —
   // a row left over from before the task was made worth nothing — would block
   // approval with nothing on screen for the teacher to correct.
+  const labels = questionLabels(questions);
   const invalid = questions
-    .map((q, i) => ({ q, n: i + 1, a: byQ.get(q.id) }))
+    .map((q, i) => ({ q, n: labels[i], a: byQ.get(q.id) }))
     .filter(({ q, a }) => a && !q.is_task && !marks.get(a.id)!.valid);
 
   return (
@@ -217,7 +219,7 @@ export function ReviewPanel({
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  <span>Q{i + 1}</span>
+                  <span>Q{labels[i]}</span>
                   {q.is_bonus && <span className="rounded bg-muted px-1.5 py-0.5 normal-case">bonus</span>}
                   {q.is_task && <span className="rounded bg-muted px-1.5 py-0.5 normal-case">task</span>}
                 </div>
@@ -304,7 +306,11 @@ export function ReviewPanel({
                    that used to disappear — `bg-muted` read as a disabled row
                    rather than as the answer. */
                 <ul className="space-y-1">
-                  {q.options.map((o, idx) => {
+                  {/* A letter question's 29 tiles come down to the letter
+                      chosen and the letter that was right. */}
+                  {q.options
+                    .filter((o) => !isLetterGrid(q.options) || o.correct || chosen.includes(o.position))
+                    .map((o, idx) => {
                     const picked = chosen.includes(o.position);
                     const audio = media.optionAudio[o.position];
                     return (

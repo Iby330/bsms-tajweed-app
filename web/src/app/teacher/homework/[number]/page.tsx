@@ -18,6 +18,7 @@ import { StudentPicker } from "@/components/app/student-picker";
 import { ResultsTabs, type ResultsTab } from "@/components/app/results-tabs";
 import { ResultsSummary, type SummaryRow } from "@/components/app/results-summary";
 import { QuestionBreakdown } from "@/components/app/question-breakdown";
+import { questionLabels } from "@/lib/homework/letters";
 
 export const dynamic = "force-dynamic";
 
@@ -213,8 +214,10 @@ export default async function HomeworkResults({
   // Questions worth marking a class against: answered, marked, and carrying
   // marks of their own. A task is not a question and a zero-mark question
   // cannot cost anybody anything.
+  // "7c" for a part of a stepped question, as the student's paper calls it.
+  const labels = questionLabels(questions);
   const scoredQuestions = questionStats(questions, answers)
-    .map((stat, i) => ({ stat, q: questions[i], n: i + 1 }))
+    .map((stat, i) => ({ stat, q: questions[i], n: labels[i] }))
     .filter(({ stat, q }) => stat.marked > 0 && Number(q.points) > 0 && !q.is_task);
 
   // The one the most students actually got wrong — a headcount, not a mean.

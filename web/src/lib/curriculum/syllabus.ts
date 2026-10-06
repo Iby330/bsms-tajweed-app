@@ -61,7 +61,7 @@ export const COURSES: Readonly<Record<CourseKey, Course>> = {
   // being taught; they gain a source the moment the lessons are created.
   sifaat_new: { label: "Ṣifāt series", source: null },
   makharij: { label: "Makhārij series", source: null },
-  qaidah: { label: "Qāʿidah Nūrāniyyah", source: null },
+  qaidah: { label: "Qāʿidah Nūrāniyyah", source: { series: "qaidah", termId: 1 } },
 };
 
 /** Groups run 1 (highest) to 5, as the programme ranks them; 6 is the

@@ -9,5 +9,6 @@ describe("homeworkLabel", () => {
     expect(homeworkLabel(102, "tfp")).toBe("TFP 2");
     expect(homeworkLabel(201, "umm_al_kitab")).toBe("Umm al-Kitāb 1");
     expect(homeworkLabel(209, "umm_al_kitab")).toBe("Umm al-Kitāb 9");
+    expect(homeworkLabel(301, "qaidah")).toBe("Qāʿidah 1");
   });
 });

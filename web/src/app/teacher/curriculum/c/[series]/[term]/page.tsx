@@ -32,7 +32,7 @@ export default async function CurriculumBlock({
 
   // `series` is an enum column, so the URL segment has to be narrowed to one of
   // its labels before it can be a filter — an unknown one is a 404, not a query.
-  const SERIES_KEYS = ["tajweed", "umm_al_kitab", "tfp", "seerah"] as const;
+  const SERIES_KEYS = ["tajweed", "umm_al_kitab", "tfp", "seerah", "qaidah"] as const;
   const series = SERIES_KEYS.find((k) => k === seriesParam);
   if (!series) notFound();
 

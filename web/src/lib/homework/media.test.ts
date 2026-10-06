@@ -74,7 +74,12 @@ describe("parseMedia: junk is ignored, never thrown", () => {
     ["http", "http://mirrors.quranicaudio.com/everyayah/Husary_64kbps/090006.mp3"],
     ["javascript:", "javascript:alert(1)"],
     ["data:", "data:audio/mp3;base64,AAAA"],
-    ["relative", "/audio/090006.mp3"],
+    ["relative without a leading slash", "audio/qaidah/hw1-a.mp3"],
+    ["protocol-relative", "//evil.example/audio/x.mp3"],
+    ["a path out of /audio/", "/audio/../api/x.mp3"],
+    ["a path outside /audio/", "/api/x.mp3"],
+    ["our path with a query", "/audio/qaidah/hw1-a.mp3?x=1"],
+    ["our path, not an mp3", "/audio/qaidah/hw1-a.html"],
     ["not a url", "not a url"],
     ["empty", ""],
   ])("refuses a clip whose url is %s", (_name, url) => {
@@ -92,6 +97,14 @@ describe("parseMedia: junk is ignored, never thrown", () => {
   ])("plays audio from a Qur'an audio host: %s", (url) => {
     expect(parseMedia({ clip: { url, start_ms: 0, end_ms: 1000 } }).clip?.url).toBe(url);
     expect(parseMedia({ option_audio: { "1": { url } } }).optionAudio[1]?.url).toBe(url);
+  });
+
+  it.each([
+    "/audio/qaidah/hw1-a.mp3",
+    "/audio/x.mp3",
+  ])("plays the app's own audio from /audio/: %s", (url) => {
+    expect(parseMedia({ clip: { url, start_ms: 0, end_ms: 4800 } }).clip?.url).toBe(url);
+    expect(parseMedia({ option_audio: { "0": { url } } }).optionAudio[0]?.url).toBe(url);
   });
 
   it.each([

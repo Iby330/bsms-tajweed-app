@@ -1,0 +1,1427 @@
+{
+ "_source": "Moadh's Google Doc 108A4Gs3RNnCmSIt38EzgehJ8TYotL-u5MVyHfGVDJPE, reviewed by Ibrahim on the 'Qāʿidah Homework 1' artifact, 2026-10-06. Clips cut from youtu.be/8_60iWXl7dw; see the 'clips' note.",
+ "clips": {
+  "a ه": "8:09.2-8:14.0 (doc 8:01-8:14 opened on nūn)",
+  "b ظ": "3:47.7-3:52.6",
+  "c ذ": "2:05.4-2:09.9",
+  "d ح": "1:09.3-1:14.3 (doc 1:05-1:15 opened on jīm)",
+  "e ت": "0:35.2-0:39.7",
+  "f ط": "3:20.5-3:24.9",
+  "g ز": "2:24.3-2:29.0",
+  "h ق": "7:12.9-7:17.2 (not in the doc)",
+  "i ث": "0:41.5-0:46.9 (not in the doc)",
+  "j ص": "2:42.6-2:47.1 (not in the doc)"
+ },
+ "papers": [
+  {
+   "number": 301,
+   "series": "qaidah",
+   "course": "qaidah",
+   "ordinal": 1,
+   "term1_week": 1,
+   "title": "The Qur'an, Tajweed and the Letters",
+   "questions": [
+    {
+     "n": 1,
+     "format": "short",
+     "prompt": "What is the Qur'an?",
+     "points": 1,
+     "rubric": [
+      {
+       "desc": "It is the inimitable speech of Allah ﷻ, which was sent down to the Prophet ﷺ",
+       "marks": 1
+      }
+     ]
+    },
+    {
+     "n": 2,
+     "format": "short",
+     "prompt": "Via which medium was the Qur'an revealed to the Prophet ﷺ?",
+     "points": 1,
+     "rubric": [
+      {
+       "desc": "Via the Angel Jibrīl عليه السلام",
+       "marks": 1
+      }
+     ]
+    },
+    {
+     "n": 3,
+     "format": "short",
+     "prompt": "Which two modes were used to help convey the Qur'an to the Ummah today?",
+     "points": 2,
+     "rubric": [
+      {
+       "desc": "Phonetic conveyance, i.e. orally",
+       "marks": 1
+      },
+      {
+       "desc": "Written conveyance, i.e. scribed down and formed into a book, which we know now to be the Qur'an",
+       "marks": 1
+      }
+     ]
+    },
+    {
+     "n": 4,
+     "format": "mcq",
+     "prompt": "Which of these companions was most known for spending time with the Prophet ﷺ, recording the revelations, and later became the primary scribe appointed by Abu Bakr رضي الله عنه to compile the Qur'an into a single manuscript?",
+     "points": 1,
+     "options": [
+      {
+       "text": "Muʿādh ibn Jabal",
+       "correct": false
+      },
+      {
+       "text": "Zayd ibn Thābit",
+       "correct": true
+      },
+      {
+       "text": "ʿUmar ibn al-Khaṭṭāb",
+       "correct": false
+      },
+      {
+       "text": "ʿUthmān ibn ʿAffān",
+       "correct": false
+      },
+      {
+       "text": "Abū Lahab",
+       "correct": false
+      }
+     ]
+    },
+    {
+     "n": 5,
+     "format": "short",
+     "prompt": "What is the technical definition of tajweed?",
+     "points": 2,
+     "rubric": [
+      {
+       "desc": "To give every letter its due right, i.e. reciting each letter from its correct articulation point",
+       "marks": 1
+      },
+      {
+       "desc": "and observing its precise characteristics",
+       "marks": 1
+      }
+     ]
+    },
+    {
+     "n": 6,
+     "format": "short",
+     "prompt": "What does tarteel mean?",
+     "points": 2,
+     "rubric": [
+      {
+       "desc": "Reciting the letters with tajweed (تجويد الحروف)",
+       "marks": 1
+      },
+      {
+       "desc": "and having knowledge of where to stop and start (ومعرفة الوقوف)",
+       "marks": 1
+      }
+     ]
+    },
+    {
+     "n": 7,
+     "part": "7a",
+     "format": "mcq",
+     "prompt": "Which letter is being pronounced? Press play, listen, then tap the letter you hear.",
+     "points": 1,
+     "options": [
+      {
+       "text": "ا",
+       "correct": false
+      },
+      {
+       "text": "ب",
+       "correct": false
+      },
+      {
+       "text": "ت",
+       "correct": false
+      },
+      {
+       "text": "ث",
+       "correct": false
+      },
+      {
+       "text": "ج",
+       "correct": false
+      },
+      {
+       "text": "ح",
+       "correct": false
+      },
+      {
+       "text": "خ",
+       "correct": false
+      },
+      {
+       "text": "د",
+       "correct": false
+      },
+      {
+       "text": "ذ",
+       "correct": false
+      },
+      {
+       "text": "ر",
+       "correct": false
+      },
+      {
+       "text": "ز",
+       "correct": false
+      },
+      {
+       "text": "س",
+       "correct": false
+      },
+      {
+       "text": "ش",
+       "correct": false
+      },
+      {
+       "text": "ص",
+       "correct": false
+      },
+      {
+       "text": "ض",
+       "correct": false
+      },
+      {
+       "text": "ط",
+       "correct": false
+      },
+      {
+       "text": "ظ",
+       "correct": false
+      },
+      {
+       "text": "ع",
+       "correct": false
+      },
+      {
+       "text": "غ",
+       "correct": false
+      },
+      {
+       "text": "ف",
+       "correct": false
+      },
+      {
+       "text": "ق",
+       "correct": false
+      },
+      {
+       "text": "ك",
+       "correct": false
+      },
+      {
+       "text": "ل",
+       "correct": false
+      },
+      {
+       "text": "م",
+       "correct": false
+      },
+      {
+       "text": "ن",
+       "correct": false
+      },
+      {
+       "text": "ه",
+       "correct": true
+      },
+      {
+       "text": "و",
+       "correct": false
+      },
+      {
+       "text": "ي",
+       "correct": false
+      },
+      {
+       "text": "ء",
+       "correct": false
+      }
+     ],
+     "clip": {
+      "url": "/audio/qaidah/hw1-a.mp3",
+      "start_ms": 0,
+      "end_ms": 4800
+     }
+    },
+    {
+     "n": 8,
+     "part": "7b",
+     "format": "mcq",
+     "prompt": "Which letter is being pronounced? Press play, listen, then tap the letter you hear.",
+     "points": 1,
+     "options": [
+      {
+       "text": "ا",
+       "correct": false
+      },
+      {
+       "text": "ب",
+       "correct": false
+      },
+      {
+       "text": "ت",
+       "correct": false
+      },
+      {
+       "text": "ث",
+       "correct": false
+      },
+      {
+       "text": "ج",
+       "correct": false
+      },
+      {
+       "text": "ح",
+       "correct": false
+      },
+      {
+       "text": "خ",
+       "correct": false
+      },
+      {
+       "text": "د",
+       "correct": false
+      },
+      {
+       "text": "ذ",
+       "correct": false
+      },
+      {
+       "text": "ر",
+       "correct": false
+      },
+      {
+       "text": "ز",
+       "correct": false
+      },
+      {
+       "text": "س",
+       "correct": false
+      },
+      {
+       "text": "ش",
+       "correct": false
+      },
+      {
+       "text": "ص",
+       "correct": false
+      },
+      {
+       "text": "ض",
+       "correct": false
+      },
+      {
+       "text": "ط",
+       "correct": false
+      },
+      {
+       "text": "ظ",
+       "correct": true
+      },
+      {
+       "text": "ع",
+       "correct": false
+      },
+      {
+       "text": "غ",
+       "correct": false
+      },
+      {
+       "text": "ف",
+       "correct": false
+      },
+      {
+       "text": "ق",
+       "correct": false
+      },
+      {
+       "text": "ك",
+       "correct": false
+      },
+      {
+       "text": "ل",
+       "correct": false
+      },
+      {
+       "text": "م",
+       "correct": false
+      },
+      {
+       "text": "ن",
+       "correct": false
+      },
+      {
+       "text": "ه",
+       "correct": false
+      },
+      {
+       "text": "و",
+       "correct": false
+      },
+      {
+       "text": "ي",
+       "correct": false
+      },
+      {
+       "text": "ء",
+       "correct": false
+      }
+     ],
+     "clip": {
+      "url": "/audio/qaidah/hw1-b.mp3",
+      "start_ms": 0,
+      "end_ms": 4850
+     }
+    },
+    {
+     "n": 9,
+     "part": "7c",
+     "format": "mcq",
+     "prompt": "Which letter is being pronounced? Press play, listen, then tap the letter you hear.",
+     "points": 1,
+     "options": [
+      {
+       "text": "ا",
+       "correct": false
+      },
+      {
+       "text": "ب",
+       "correct": false
+      },
+      {
+       "text": "ت",
+       "correct": false
+      },
+      {
+       "text": "ث",
+       "correct": false
+      },
+      {
+       "text": "ج",
+       "correct": false
+      },
+      {
+       "text": "ح",
+       "correct": false
+      },
+      {
+       "text": "خ",
+       "correct": false
+      },
+      {
+       "text": "د",
+       "correct": false
+      },
+      {
+       "text": "ذ",
+       "correct": true
+      },
+      {
+       "text": "ر",
+       "correct": false
+      },
+      {
+       "text": "ز",
+       "correct": false
+      },
+      {
+       "text": "س",
+       "correct": false
+      },
+      {
+       "text": "ش",
+       "correct": false
+      },
+      {
+       "text": "ص",
+       "correct": false
+      },
+      {
+       "text": "ض",
+       "correct": false
+      },
+      {
+       "text": "ط",
+       "correct": false
+      },
+      {
+       "text": "ظ",
+       "correct": false
+      },
+      {
+       "text": "ع",
+       "correct": false
+      },
+      {
+       "text": "غ",
+       "correct": false
+      },
+      {
+       "text": "ف",
+       "correct": false
+      },
+      {
+       "text": "ق",
+       "correct": false
+      },
+      {
+       "text": "ك",
+       "correct": false
+      },
+      {
+       "text": "ل",
+       "correct": false
+      },
+      {
+       "text": "م",
+       "correct": false
+      },
+      {
+       "text": "ن",
+       "correct": false
+      },
+      {
+       "text": "ه",
+       "correct": false
+      },
+      {
+       "text": "و",
+       "correct": false
+      },
+      {
+       "text": "ي",
+       "correct": false
+      },
+      {
+       "text": "ء",
+       "correct": false
+      }
+     ],
+     "clip": {
+      "url": "/audio/qaidah/hw1-c.mp3",
+      "start_ms": 0,
+      "end_ms": 4520
+     }
+    },
+    {
+     "n": 10,
+     "part": "7d",
+     "format": "mcq",
+     "prompt": "Which letter is being pronounced? Press play, listen, then tap the letter you hear.",
+     "points": 1,
+     "options": [
+      {
+       "text": "ا",
+       "correct": false
+      },
+      {
+       "text": "ب",
+       "correct": false
+      },
+      {
+       "text": "ت",
+       "correct": false
+      },
+      {
+       "text": "ث",
+       "correct": false
+      },
+      {
+       "text": "ج",
+       "correct": false
+      },
+      {
+       "text": "ح",
+       "correct": true
+      },
+      {
+       "text": "خ",
+       "correct": false
+      },
+      {
+       "text": "د",
+       "correct": false
+      },
+      {
+       "text": "ذ",
+       "correct": false
+      },
+      {
+       "text": "ر",
+       "correct": false
+      },
+      {
+       "text": "ز",
+       "correct": false
+      },
+      {
+       "text": "س",
+       "correct": false
+      },
+      {
+       "text": "ش",
+       "correct": false
+      },
+      {
+       "text": "ص",
+       "correct": false
+      },
+      {
+       "text": "ض",
+       "correct": false
+      },
+      {
+       "text": "ط",
+       "correct": false
+      },
+      {
+       "text": "ظ",
+       "correct": false
+      },
+      {
+       "text": "ع",
+       "correct": false
+      },
+      {
+       "text": "غ",
+       "correct": false
+      },
+      {
+       "text": "ف",
+       "correct": false
+      },
+      {
+       "text": "ق",
+       "correct": false
+      },
+      {
+       "text": "ك",
+       "correct": false
+      },
+      {
+       "text": "ل",
+       "correct": false
+      },
+      {
+       "text": "م",
+       "correct": false
+      },
+      {
+       "text": "ن",
+       "correct": false
+      },
+      {
+       "text": "ه",
+       "correct": false
+      },
+      {
+       "text": "و",
+       "correct": false
+      },
+      {
+       "text": "ي",
+       "correct": false
+      },
+      {
+       "text": "ء",
+       "correct": false
+      }
+     ],
+     "clip": {
+      "url": "/audio/qaidah/hw1-d.mp3",
+      "start_ms": 0,
+      "end_ms": 5000
+     }
+    },
+    {
+     "n": 11,
+     "part": "7e",
+     "format": "mcq",
+     "prompt": "Which letter is being pronounced? Press play, listen, then tap the letter you hear.",
+     "points": 1,
+     "options": [
+      {
+       "text": "ا",
+       "correct": false
+      },
+      {
+       "text": "ب",
+       "correct": false
+      },
+      {
+       "text": "ت",
+       "correct": true
+      },
+      {
+       "text": "ث",
+       "correct": false
+      },
+      {
+       "text": "ج",
+       "correct": false
+      },
+      {
+       "text": "ح",
+       "correct": false
+      },
+      {
+       "text": "خ",
+       "correct": false
+      },
+      {
+       "text": "د",
+       "correct": false
+      },
+      {
+       "text": "ذ",
+       "correct": false
+      },
+      {
+       "text": "ر",
+       "correct": false
+      },
+      {
+       "text": "ز",
+       "correct": false
+      },
+      {
+       "text": "س",
+       "correct": false
+      },
+      {
+       "text": "ش",
+       "correct": false
+      },
+      {
+       "text": "ص",
+       "correct": false
+      },
+      {
+       "text": "ض",
+       "correct": false
+      },
+      {
+       "text": "ط",
+       "correct": false
+      },
+      {
+       "text": "ظ",
+       "correct": false
+      },
+      {
+       "text": "ع",
+       "correct": false
+      },
+      {
+       "text": "غ",
+       "correct": false
+      },
+      {
+       "text": "ف",
+       "correct": false
+      },
+      {
+       "text": "ق",
+       "correct": false
+      },
+      {
+       "text": "ك",
+       "correct": false
+      },
+      {
+       "text": "ل",
+       "correct": false
+      },
+      {
+       "text": "م",
+       "correct": false
+      },
+      {
+       "text": "ن",
+       "correct": false
+      },
+      {
+       "text": "ه",
+       "correct": false
+      },
+      {
+       "text": "و",
+       "correct": false
+      },
+      {
+       "text": "ي",
+       "correct": false
+      },
+      {
+       "text": "ء",
+       "correct": false
+      }
+     ],
+     "clip": {
+      "url": "/audio/qaidah/hw1-e.mp3",
+      "start_ms": 0,
+      "end_ms": 4460
+     }
+    },
+    {
+     "n": 12,
+     "part": "7f",
+     "format": "mcq",
+     "prompt": "Which letter is being pronounced? Press play, listen, then tap the letter you hear.",
+     "points": 1,
+     "options": [
+      {
+       "text": "ا",
+       "correct": false
+      },
+      {
+       "text": "ب",
+       "correct": false
+      },
+      {
+       "text": "ت",
+       "correct": false
+      },
+      {
+       "text": "ث",
+       "correct": false
+      },
+      {
+       "text": "ج",
+       "correct": false
+      },
+      {
+       "text": "ح",
+       "correct": false
+      },
+      {
+       "text": "خ",
+       "correct": false
+      },
+      {
+       "text": "د",
+       "correct": false
+      },
+      {
+       "text": "ذ",
+       "correct": false
+      },
+      {
+       "text": "ر",
+       "correct": false
+      },
+      {
+       "text": "ز",
+       "correct": false
+      },
+      {
+       "text": "س",
+       "correct": false
+      },
+      {
+       "text": "ش",
+       "correct": false
+      },
+      {
+       "text": "ص",
+       "correct": false
+      },
+      {
+       "text": "ض",
+       "correct": false
+      },
+      {
+       "text": "ط",
+       "correct": true
+      },
+      {
+       "text": "ظ",
+       "correct": false
+      },
+      {
+       "text": "ع",
+       "correct": false
+      },
+      {
+       "text": "غ",
+       "correct": false
+      },
+      {
+       "text": "ف",
+       "correct": false
+      },
+      {
+       "text": "ق",
+       "correct": false
+      },
+      {
+       "text": "ك",
+       "correct": false
+      },
+      {
+       "text": "ل",
+       "correct": false
+      },
+      {
+       "text": "م",
+       "correct": false
+      },
+      {
+       "text": "ن",
+       "correct": false
+      },
+      {
+       "text": "ه",
+       "correct": false
+      },
+      {
+       "text": "و",
+       "correct": false
+      },
+      {
+       "text": "ي",
+       "correct": false
+      },
+      {
+       "text": "ء",
+       "correct": false
+      }
+     ],
+     "clip": {
+      "url": "/audio/qaidah/hw1-f.mp3",
+      "start_ms": 0,
+      "end_ms": 4410
+     }
+    },
+    {
+     "n": 13,
+     "part": "7g",
+     "format": "mcq",
+     "prompt": "Which letter is being pronounced? Press play, listen, then tap the letter you hear.",
+     "points": 1,
+     "options": [
+      {
+       "text": "ا",
+       "correct": false
+      },
+      {
+       "text": "ب",
+       "correct": false
+      },
+      {
+       "text": "ت",
+       "correct": false
+      },
+      {
+       "text": "ث",
+       "correct": false
+      },
+      {
+       "text": "ج",
+       "correct": false
+      },
+      {
+       "text": "ح",
+       "correct": false
+      },
+      {
+       "text": "خ",
+       "correct": false
+      },
+      {
+       "text": "د",
+       "correct": false
+      },
+      {
+       "text": "ذ",
+       "correct": false
+      },
+      {
+       "text": "ر",
+       "correct": false
+      },
+      {
+       "text": "ز",
+       "correct": true
+      },
+      {
+       "text": "س",
+       "correct": false
+      },
+      {
+       "text": "ش",
+       "correct": false
+      },
+      {
+       "text": "ص",
+       "correct": false
+      },
+      {
+       "text": "ض",
+       "correct": false
+      },
+      {
+       "text": "ط",
+       "correct": false
+      },
+      {
+       "text": "ظ",
+       "correct": false
+      },
+      {
+       "text": "ع",
+       "correct": false
+      },
+      {
+       "text": "غ",
+       "correct": false
+      },
+      {
+       "text": "ف",
+       "correct": false
+      },
+      {
+       "text": "ق",
+       "correct": false
+      },
+      {
+       "text": "ك",
+       "correct": false
+      },
+      {
+       "text": "ل",
+       "correct": false
+      },
+      {
+       "text": "م",
+       "correct": false
+      },
+      {
+       "text": "ن",
+       "correct": false
+      },
+      {
+       "text": "ه",
+       "correct": false
+      },
+      {
+       "text": "و",
+       "correct": false
+      },
+      {
+       "text": "ي",
+       "correct": false
+      },
+      {
+       "text": "ء",
+       "correct": false
+      }
+     ],
+     "clip": {
+      "url": "/audio/qaidah/hw1-g.mp3",
+      "start_ms": 0,
+      "end_ms": 4700
+     }
+    },
+    {
+     "n": 14,
+     "part": "7h",
+     "format": "mcq",
+     "prompt": "Which letter is being pronounced? Press play, listen, then tap the letter you hear.",
+     "points": 1,
+     "options": [
+      {
+       "text": "ا",
+       "correct": false
+      },
+      {
+       "text": "ب",
+       "correct": false
+      },
+      {
+       "text": "ت",
+       "correct": false
+      },
+      {
+       "text": "ث",
+       "correct": false
+      },
+      {
+       "text": "ج",
+       "correct": false
+      },
+      {
+       "text": "ح",
+       "correct": false
+      },
+      {
+       "text": "خ",
+       "correct": false
+      },
+      {
+       "text": "د",
+       "correct": false
+      },
+      {
+       "text": "ذ",
+       "correct": false
+      },
+      {
+       "text": "ر",
+       "correct": false
+      },
+      {
+       "text": "ز",
+       "correct": false
+      },
+      {
+       "text": "س",
+       "correct": false
+      },
+      {
+       "text": "ش",
+       "correct": false
+      },
+      {
+       "text": "ص",
+       "correct": false
+      },
+      {
+       "text": "ض",
+       "correct": false
+      },
+      {
+       "text": "ط",
+       "correct": false
+      },
+      {
+       "text": "ظ",
+       "correct": false
+      },
+      {
+       "text": "ع",
+       "correct": false
+      },
+      {
+       "text": "غ",
+       "correct": false
+      },
+      {
+       "text": "ف",
+       "correct": false
+      },
+      {
+       "text": "ق",
+       "correct": true
+      },
+      {
+       "text": "ك",
+       "correct": false
+      },
+      {
+       "text": "ل",
+       "correct": false
+      },
+      {
+       "text": "م",
+       "correct": false
+      },
+      {
+       "text": "ن",
+       "correct": false
+      },
+      {
+       "text": "ه",
+       "correct": false
+      },
+      {
+       "text": "و",
+       "correct": false
+      },
+      {
+       "text": "ي",
+       "correct": false
+      },
+      {
+       "text": "ء",
+       "correct": false
+      }
+     ],
+     "clip": {
+      "url": "/audio/qaidah/hw1-h.mp3",
+      "start_ms": 0,
+      "end_ms": 4360
+     }
+    },
+    {
+     "n": 15,
+     "part": "7i",
+     "format": "mcq",
+     "prompt": "Which letter is being pronounced? Press play, listen, then tap the letter you hear.",
+     "points": 1,
+     "options": [
+      {
+       "text": "ا",
+       "correct": false
+      },
+      {
+       "text": "ب",
+       "correct": false
+      },
+      {
+       "text": "ت",
+       "correct": false
+      },
+      {
+       "text": "ث",
+       "correct": true
+      },
+      {
+       "text": "ج",
+       "correct": false
+      },
+      {
+       "text": "ح",
+       "correct": false
+      },
+      {
+       "text": "خ",
+       "correct": false
+      },
+      {
+       "text": "د",
+       "correct": false
+      },
+      {
+       "text": "ذ",
+       "correct": false
+      },
+      {
+       "text": "ر",
+       "correct": false
+      },
+      {
+       "text": "ز",
+       "correct": false
+      },
+      {
+       "text": "س",
+       "correct": false
+      },
+      {
+       "text": "ش",
+       "correct": false
+      },
+      {
+       "text": "ص",
+       "correct": false
+      },
+      {
+       "text": "ض",
+       "correct": false
+      },
+      {
+       "text": "ط",
+       "correct": false
+      },
+      {
+       "text": "ظ",
+       "correct": false
+      },
+      {
+       "text": "ع",
+       "correct": false
+      },
+      {
+       "text": "غ",
+       "correct": false
+      },
+      {
+       "text": "ف",
+       "correct": false
+      },
+      {
+       "text": "ق",
+       "correct": false
+      },
+      {
+       "text": "ك",
+       "correct": false
+      },
+      {
+       "text": "ل",
+       "correct": false
+      },
+      {
+       "text": "م",
+       "correct": false
+      },
+      {
+       "text": "ن",
+       "correct": false
+      },
+      {
+       "text": "ه",
+       "correct": false
+      },
+      {
+       "text": "و",
+       "correct": false
+      },
+      {
+       "text": "ي",
+       "correct": false
+      },
+      {
+       "text": "ء",
+       "correct": false
+      }
+     ],
+     "clip": {
+      "url": "/audio/qaidah/hw1-i.mp3",
+      "start_ms": 0,
+      "end_ms": 5350
+     }
+    },
+    {
+     "n": 16,
+     "part": "7j",
+     "format": "mcq",
+     "prompt": "Which letter is being pronounced? Press play, listen, then tap the letter you hear.",
+     "points": 1,
+     "options": [
+      {
+       "text": "ا",
+       "correct": false
+      },
+      {
+       "text": "ب",
+       "correct": false
+      },
+      {
+       "text": "ت",
+       "correct": false
+      },
+      {
+       "text": "ث",
+       "correct": false
+      },
+      {
+       "text": "ج",
+       "correct": false
+      },
+      {
+       "text": "ح",
+       "correct": false
+      },
+      {
+       "text": "خ",
+       "correct": false
+      },
+      {
+       "text": "د",
+       "correct": false
+      },
+      {
+       "text": "ذ",
+       "correct": false
+      },
+      {
+       "text": "ر",
+       "correct": false
+      },
+      {
+       "text": "ز",
+       "correct": false
+      },
+      {
+       "text": "س",
+       "correct": false
+      },
+      {
+       "text": "ش",
+       "correct": false
+      },
+      {
+       "text": "ص",
+       "correct": true
+      },
+      {
+       "text": "ض",
+       "correct": false
+      },
+      {
+       "text": "ط",
+       "correct": false
+      },
+      {
+       "text": "ظ",
+       "correct": false
+      },
+      {
+       "text": "ع",
+       "correct": false
+      },
+      {
+       "text": "غ",
+       "correct": false
+      },
+      {
+       "text": "ف",
+       "correct": false
+      },
+      {
+       "text": "ق",
+       "correct": false
+      },
+      {
+       "text": "ك",
+       "correct": false
+      },
+      {
+       "text": "ل",
+       "correct": false
+      },
+      {
+       "text": "م",
+       "correct": false
+      },
+      {
+       "text": "ن",
+       "correct": false
+      },
+      {
+       "text": "ه",
+       "correct": false
+      },
+      {
+       "text": "و",
+       "correct": false
+      },
+      {
+       "text": "ي",
+       "correct": false
+      },
+      {
+       "text": "ء",
+       "correct": false
+      }
+     ],
+     "clip": {
+      "url": "/audio/qaidah/hw1-j.mp3",
+      "start_ms": 0,
+      "end_ms": 4460
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -8,6 +8,7 @@ import { isTapWords } from "@/lib/homework/tap-words";
 import { MarkBadge } from "@/components/app/mark-badge";
 import { VoiceRecorder } from "@/components/app/voice-recorder";
 import { RecitationClip } from "@/components/app/recitation-clip";
+import { LetterGrid, LetterSteps } from "@/components/app/letter-grid";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { saveAnswer, submitHomework } from "@/lib/homework/actions";
@@ -19,6 +20,7 @@ import {
   type StudentQuestion,
 } from "@/lib/homework/logic";
 import { parseMedia } from "@/lib/homework/media";
+import { blocksOf, isLetterGrid } from "@/lib/homework/letters";
 import { cn } from "@/lib/utils";
 
 export type ExistingAnswer = {
@@ -125,6 +127,171 @@ export function HomeworkForm({
       .map(([question_id]) => ({ question_id })),
   );
 
+  function renderQuestion(q: StudentQuestion, label: string) {
+    const a = byQ.get(q.id);
+    const value = answers[q.id];
+    // Parsed per question, and forgivingly: audio that does not parse is
+    // simply absent, and the question reads as it would without it.
+    const media = parseMedia(q.media);
+    const rubric = Array.isArray(a?.auto_rubric)
+      ? (a!.auto_rubric as { id: string; present: boolean; why?: string }[])
+      : null;
+
+    return (
+      <section key={q.id} className="box c12 qn">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+              <span>Question {label}</span>
+              {q.is_bonus && <span className="rounded bg-muted px-1.5 py-0.5 normal-case">bonus</span>}
+              {q.is_task && <span className="rounded bg-muted px-1.5 py-0.5 normal-case">practical task</span>}
+              {!q.is_task && <span className="tabular-nums">{fmtMarks(q.points)} mark{q.points === 1 ? "" : "s"}</span>}
+            </div>
+            <MixedText text={q.prompt} variant="quran" className="mt-2 block text-[15px] leading-relaxed" />
+          </div>
+          {approved && !q.is_task && (
+            <MarkBadge marks={a?.final_marks ?? null} points={q.points} />
+          )}
+        </div>
+
+        {/* "Name the rule you heard": the listening sits between the
+            question and the answers, where it is read, so the student
+            hears it before choosing and can replay it while they do. */}
+        {media.clip && <RecitationClip clip={media.clip} className="mt-4" />}
+
+        <div className="mt-4">
+          {q.is_task ? (
+            submissionId ? (
+              <VoiceRecorder
+                submissionId={submissionId}
+                questionId={q.id}
+                attempt={attempt}
+                initialPath={voiceByQ.get(q.id)?.storage_path ?? null}
+                initialDuration={voiceByQ.get(q.id)?.duration_s ?? null}
+                readOnly={readOnly}
+                onRecorded={(has) => setRecorded((r) => ({ ...r, [q.id]: has }))}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Open this homework to start recording.
+              </p>
+            )
+          ) : isTapWords(q.options) ? (
+            /* A passage to tap rather than options to pick — the same
+               {selected:[…]} answer either way, so nothing downstream
+               knows the difference. */
+            <TapWords
+              options={q.options!}
+              selected={selectedOf(value)}
+              readOnly={readOnly}
+              onChange={(next) => update(q.id, checkboxResponse(next))}
+            />
+          ) : q.qtype === "mcq" && q.options && isLetterGrid(q.options) ? (
+            /* A letter on its own (a run of them is LetterSteps): the
+               alphabet as tiles, not 29 rows. */
+            <LetterGrid
+              options={q.options}
+              selected={selectedOf(value)[0] ?? null}
+              readOnly={readOnly}
+              onChange={(p) => update(q.id, mcqResponse(p))}
+              label={`Letters for question ${label}`}
+            />
+          ) : q.qtype === "mcq" && q.options ? (
+            <ul className="space-y-1.5">
+              {q.options.map((o, idx) => {
+                const checked = selectedOf(value).includes(o.position);
+                const audio = media.optionAudio[o.position];
+                return (
+                  <li key={o.position} className={cn(audio && "flex items-center gap-2")}>
+                    <label className={cn(
+                      "flex cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2 text-sm transition-colors",
+                      checked ? "border-ink bg-muted" : "border-line hover:bg-muted/60",
+                      readOnly && "cursor-default",
+                      audio && "min-w-0 flex-1",
+                    )}>
+                      <input type="radio" name={q.id} disabled={readOnly} checked={checked}
+                        onChange={() => update(q.id, mcqResponse(o.position))}
+                        className="mt-0.5 size-4 accent-[var(--ink)]" />
+                      <MixedText text={o.value ?? o.label} variant="quran" />
+                    </label>
+                    {/* Beside the label, never inside it: a click inside
+                        a label is a click on its radio, and hearing an
+                        option must not choose it. */}
+                    {audio && <RecitationClip clip={audio} compact name={`option ${idx + 1}`} />}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : q.qtype === "checkbox" && q.options ? (
+            <ul className="space-y-1.5">
+              {q.options.map((o, idx) => {
+                const sel = selectedOf(value);
+                const checked = sel.includes(o.position);
+                const audio = media.optionAudio[o.position];
+                return (
+                  <li key={o.position} className={cn(audio && "flex items-center gap-2")}>
+                    <label className={cn(
+                      "flex cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2 text-sm transition-colors",
+                      checked ? "border-ink bg-muted" : "border-line hover:bg-muted/60",
+                      readOnly && "cursor-default",
+                      audio && "min-w-0 flex-1",
+                    )}>
+                      <input type="checkbox" disabled={readOnly} checked={checked}
+                        onChange={(e) => update(q.id, checkboxResponse(
+                          e.target.checked ? [...sel, o.position] : sel.filter((p) => p !== o.position),
+                        ))}
+                        className="mt-0.5 size-4 accent-[var(--ink)]" />
+                      <MixedText text={o.value ?? o.label} variant="quran" />
+                    </label>
+                    {audio && <RecitationClip clip={audio} compact name={`option ${idx + 1}`} />}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <Textarea
+              disabled={readOnly}
+              value={textOf(value)}
+              onChange={(e) => update(q.id, textResponse(e.target.value))}
+              rows={q.qtype === "paragraph" || q.qtype === "grid" ? 4 : 2}
+              placeholder="Answer in Arabic, transliteration or English. All are accepted."
+              className="font-arabic"
+            />
+          )}
+        </div>
+
+        {approved && rubric && (
+          <ul className="mt-3 flex flex-wrap gap-1.5">
+            {rubric.map((c) => (
+              <li key={c.id} className={cn(
+                "rounded-md px-2 py-1 text-xs",
+                c.present ? "bg-ok/12 text-ok" : "bg-danger/12 text-danger",
+              )}>
+                {c.present ? "✓" : "✗"} {c.why ?? c.id}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* The teacher's own words, released with the mark. Set alongside
+            the rubric chips because those are the model's reading of the
+            answer and this is a person's — same place, different voice.
+            Through MixedText: comments carry Arabic. */}
+        {approved && a?.teacher_comment && (
+          <div className="mt-3">
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              From your teacher
+            </div>
+            <MixedText
+              text={a.teacher_comment}
+              className="mt-1 block break-words rounded-md bg-muted px-2.5 py-1.5 text-xs text-ink-2"
+            />
+          </div>
+        )}
+      </section>
+    );
+  }
+
   return (
     <div className="field">
       {approved && (
@@ -136,160 +303,22 @@ export function HomeworkForm({
         </div>
       )}
 
-      {questions.map((q, i) => {
-        const a = byQ.get(q.id);
-        const value = answers[q.id];
-        // Parsed per question, and forgivingly: audio that does not parse is
-        // simply absent, and the question reads as it would without it.
-        const media = parseMedia(q.media);
-        const rubric = Array.isArray(a?.auto_rubric)
-          ? (a!.auto_rubric as { id: string; present: boolean; why?: string }[])
-          : null;
-
-        return (
-          <section key={q.id} className="box c12 qn">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  <span>Question {i + 1}</span>
-                  {q.is_bonus && <span className="rounded bg-muted px-1.5 py-0.5 normal-case">bonus</span>}
-                  {q.is_task && <span className="rounded bg-muted px-1.5 py-0.5 normal-case">practical task</span>}
-                  {!q.is_task && <span className="tabular-nums">{fmtMarks(q.points)} mark{q.points === 1 ? "" : "s"}</span>}
-                </div>
-                <MixedText text={q.prompt} variant="quran" className="mt-2 block text-[15px] leading-relaxed" />
-              </div>
-              {approved && !q.is_task && (
-                <MarkBadge marks={a?.final_marks ?? null} points={q.points} />
-              )}
-            </div>
-
-            {/* "Name the rule you heard": the listening sits between the
-                question and the answers, where it is read, so the student
-                hears it before choosing and can replay it while they do. */}
-            {media.clip && <RecitationClip clip={media.clip} className="mt-4" />}
-
-            <div className="mt-4">
-              {q.is_task ? (
-                submissionId ? (
-                  <VoiceRecorder
-                    submissionId={submissionId}
-                    questionId={q.id}
-                    attempt={attempt}
-                    initialPath={voiceByQ.get(q.id)?.storage_path ?? null}
-                    initialDuration={voiceByQ.get(q.id)?.duration_s ?? null}
-                    readOnly={readOnly}
-                    onRecorded={(has) => setRecorded((r) => ({ ...r, [q.id]: has }))}
-                  />
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Open this homework to start recording.
-                  </p>
-                )
-              ) : isTapWords(q.options) ? (
-                /* A passage to tap rather than options to pick — the same
-                   {selected:[…]} answer either way, so nothing downstream
-                   knows the difference. */
-                <TapWords
-                  options={q.options!}
-                  selected={selectedOf(value)}
-                  readOnly={readOnly}
-                  onChange={(next) => update(q.id, checkboxResponse(next))}
-                />
-              ) : q.qtype === "mcq" && q.options ? (
-                <ul className="space-y-1.5">
-                  {q.options.map((o, idx) => {
-                    const checked = selectedOf(value).includes(o.position);
-                    const audio = media.optionAudio[o.position];
-                    return (
-                      <li key={o.position} className={cn(audio && "flex items-center gap-2")}>
-                        <label className={cn(
-                          "flex cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2 text-sm transition-colors",
-                          checked ? "border-ink bg-muted" : "border-line hover:bg-muted/60",
-                          readOnly && "cursor-default",
-                          audio && "min-w-0 flex-1",
-                        )}>
-                          <input type="radio" name={q.id} disabled={readOnly} checked={checked}
-                            onChange={() => update(q.id, mcqResponse(o.position))}
-                            className="mt-0.5 size-4 accent-[var(--ink)]" />
-                          <MixedText text={o.value ?? o.label} variant="quran" />
-                        </label>
-                        {/* Beside the label, never inside it: a click inside
-                            a label is a click on its radio, and hearing an
-                            option must not choose it. */}
-                        {audio && <RecitationClip clip={audio} compact name={`option ${idx + 1}`} />}
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : q.qtype === "checkbox" && q.options ? (
-                <ul className="space-y-1.5">
-                  {q.options.map((o, idx) => {
-                    const sel = selectedOf(value);
-                    const checked = sel.includes(o.position);
-                    const audio = media.optionAudio[o.position];
-                    return (
-                      <li key={o.position} className={cn(audio && "flex items-center gap-2")}>
-                        <label className={cn(
-                          "flex cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2 text-sm transition-colors",
-                          checked ? "border-ink bg-muted" : "border-line hover:bg-muted/60",
-                          readOnly && "cursor-default",
-                          audio && "min-w-0 flex-1",
-                        )}>
-                          <input type="checkbox" disabled={readOnly} checked={checked}
-                            onChange={(e) => update(q.id, checkboxResponse(
-                              e.target.checked ? [...sel, o.position] : sel.filter((p) => p !== o.position),
-                            ))}
-                            className="mt-0.5 size-4 accent-[var(--ink)]" />
-                          <MixedText text={o.value ?? o.label} variant="quran" />
-                        </label>
-                        {audio && <RecitationClip clip={audio} compact name={`option ${idx + 1}`} />}
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : (
-                <Textarea
-                  disabled={readOnly}
-                  value={textOf(value)}
-                  onChange={(e) => update(q.id, textResponse(e.target.value))}
-                  rows={q.qtype === "paragraph" || q.qtype === "grid" ? 4 : 2}
-                  placeholder="Answer in Arabic, transliteration or English. All are accepted."
-                  className="font-arabic"
-                />
-              )}
-            </div>
-
-            {approved && rubric && (
-              <ul className="mt-3 flex flex-wrap gap-1.5">
-                {rubric.map((c) => (
-                  <li key={c.id} className={cn(
-                    "rounded-md px-2 py-1 text-xs",
-                    c.present ? "bg-ok/12 text-ok" : "bg-danger/12 text-danger",
-                  )}>
-                    {c.present ? "✓" : "✗"} {c.why ?? c.id}
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {/* The teacher's own words, released with the mark. Set alongside
-                the rubric chips because those are the model's reading of the
-                answer and this is a person's — same place, different voice.
-                Through MixedText: comments carry Arabic. */}
-            {approved && a?.teacher_comment && (
-              <div className="mt-3">
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                  From your teacher
-                </div>
-                <MixedText
-                  text={a.teacher_comment}
-                  className="mt-1 block break-words rounded-md bg-muted px-2.5 py-1.5 text-xs text-ink-2"
-                />
-              </div>
-            )}
-          </section>
-        );
-      })}
+      {blocksOf(questions).map((b) =>
+        b.kind === "steps" ? (
+          <LetterSteps
+            key={b.qs[0].id}
+            parts={b.qs}
+            number={b.number}
+            selectedOf={(q) => selectedOf(answers[q.id])[0] ?? null}
+            onChoose={(q, p) => update(q.id, mcqResponse(p))}
+            readOnly={readOnly}
+            approved={approved}
+            answerOf={(q) => byQ.get(q.id)}
+          />
+        ) : (
+          renderQuestion(b.q, String(b.number))
+        ),
+      )}
 
       {!readOnly && submissionId && (
         // `submitbar`: on a phone this row rides above the tab bar while the

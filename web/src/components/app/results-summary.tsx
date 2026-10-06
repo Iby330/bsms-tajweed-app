@@ -19,8 +19,9 @@ export type SummaryRow = {
 };
 
 export type HardQuestion = {
-  /** Position on the paper, as the Question tab numbers it. */
-  n: number;
+  /** What the paper calls it, as the Question tab numbers it: 3, or "7c" for
+   *  a part of a stepped question (lib/homework/letters). */
+  n: number | string;
   prompt: string;
   pctOfMax: number;
   points: number;

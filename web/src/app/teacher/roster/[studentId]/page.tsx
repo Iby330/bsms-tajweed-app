@@ -18,6 +18,7 @@ import { ExamInput } from "@/components/app/exam-input";
 import { StrikeDots, REASON_LABELS } from "@/components/app/strike-dots";
 import { StrikeManager, type StudentStrike } from "@/components/app/strike-manager";
 import { MixedText } from "@/components/app/mixed-text";
+import { homeworkLabel } from "@/components/app/homework-row";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -98,7 +99,7 @@ export default async function StudentRecord({
   const rank = lb.find((r) => r.name === student.full_name);
 
   const title = new Map(
-    (homeworks ?? []).map((h) => [h.number, `${h.series === "tfp" ? "TFP" : "Homework"} ${h.number > 100 ? h.number - 100 : h.number} · ${h.title}`]),
+    (homeworks ?? []).map((h) => [h.number, `${homeworkLabel(h.number, h.series)} · ${h.title}`]),
   );
   const marks = (hwPct ?? [])
     .filter((r) => r.number !== null && r.pct !== null)

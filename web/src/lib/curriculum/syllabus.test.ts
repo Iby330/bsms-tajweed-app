@@ -52,12 +52,12 @@ describe("COURSES", () => {
     expect(new Set(sources).size).toBe(sources.length);
   });
 
-  it("marks the three courses the app holds no content for", () => {
+  it("marks the two courses the app holds no content for", () => {
     const empty = Object.entries(COURSES)
       .filter(([, c]) => c.source === null)
       .map(([k]) => k)
       .sort();
-    expect(empty).toEqual(["makharij", "qaidah", "sifaat_new"]);
+    expect(empty).toEqual(["makharij", "sifaat_new"]);
   });
 });
 

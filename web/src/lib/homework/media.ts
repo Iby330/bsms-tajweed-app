@@ -58,7 +58,16 @@ export const AUDIO_HOSTS: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * https, on an allowed host, and nothing else. The URL ends up as an <audio>
+ * Recordings the app serves itself, from web/public/audio: a root-relative
+ * path, so the student's browser asks this site and no other. Used where the
+ * audio is not a recitation from a Qur'an mirror, e.g. the Qāʿidah letter
+ * clips. Lower-case names, folders and `.mp3` only: no `//` (which a browser
+ * reads as another host), no `..`, no query string, nothing outside /audio/.
+ */
+const OWN_AUDIO = /^\/audio\/(?:[a-z0-9_-]+\/)*[a-z0-9_-]+\.mp3$/;
+
+/**
+ * Our own /audio/ path, or https on an allowed host, and nothing else. The URL ends up as an <audio>
  * src on a student's page, so `javascript:` and `data:` are out on principle,
  * and plain http is out because the site is served over https and a browser
  * blocks (or warns about) mixed-content audio: a clip that silently never
@@ -68,6 +77,7 @@ export const AUDIO_HOSTS: ReadonlySet<string> = new Set([
  */
 function audioUrl(v: unknown): string | null {
   if (typeof v !== "string" || v === "") return null;
+  if (OWN_AUDIO.test(v)) return v;
   try {
     const u = new URL(v);
     if (u.protocol !== "https:" || u.port || u.username || u.password) return null;

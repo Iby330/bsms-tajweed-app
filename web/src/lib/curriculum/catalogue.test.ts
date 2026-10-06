@@ -164,8 +164,8 @@ describe("courseIndex", () => {
     const { mine, locked } = courseIndex(cat(NOW), tree, false);
     expect(mine.map((t) => t.href).sort())
       .toEqual(["/courses/1/tajweed", "/courses/1/umm_al_kitab", "/courses/3/tajweed"]);
-    // All that is left is the two series the app holds no content for at all.
-    expect(locked.map((t) => t.block.series).sort()).toEqual(["seerah", "tfp"]);
+    // All that is left is the series these rows hold no content for at all.
+    expect(locked.map((t) => t.block.series).sort()).toEqual(["qaidah", "seerah", "tfp"]);
     expect(locked.every((t) => t.block.moduleCount === 0)).toBe(true);
   });
 

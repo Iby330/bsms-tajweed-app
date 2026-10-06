@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MixedText } from "@/components/app/mixed-text";
 import { CountdownChip } from "@/components/app/countdown-chip";
+import { homeworkLabel } from "@/components/app/homework-row";
 import { thumbnailUrl } from "@/lib/lessons/youtube";
 import { seriesShort } from "@/lib/lessons/series";
 import { statusChip } from "@/lib/homework/logic";
@@ -171,8 +172,9 @@ export function ModuleCard({
                 className="relative z-10 inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-xs transition-colors hover:border-ink/30"
               >
                 <span>
-                  {m.homework.series === "tfp" ? "TFP" : "HW"}{" "}
-                  {m.homework.number > 100 ? m.homework.number - 100 : m.homework.number}
+                  {m.homework.series === "tajweed"
+                    ? `HW ${m.homework.number}`
+                    : homeworkLabel(m.homework.number, m.homework.series)}
                 </span>
                 {chip && (
                   <span

@@ -29,8 +29,9 @@
  *                                            last year's shape; an in-app task
  *                                            would block hand-in until recorded
  *
- * Audio on options lands in questions.media, written only if that column
- * exists (migration 0048), so this file applies cleanly either side of it.
+ * Audio on options, and a question's own `clip`, land in questions.media,
+ * written only if that column exists (migration 0048), so this file applies
+ * cleanly either side of it.
  *
  * Safety: the SQL aborts if any submission on a homework it replaces belongs
  * to an account that is not @bsms-demo.test; demo submissions are deleted
@@ -47,11 +48,14 @@ const requireFromWeb = createRequire(join(repoRoot, "web/package.json"));
 const { createClient } = requireFromWeb("@supabase/supabase-js");
 
 type Audio = { url: string; start_ms?: number; end_ms?: number };
+/** The question's own recording, played above its options ("which letter
+ *  is this?"): always a slice, as lib/homework/media.ts requires of a clip. */
+type Clip = { url: string; start_ms: number; end_ms: number; label?: string };
 type Opt = { text: string; correct: boolean; audio?: string | Audio };
 type TapWord = { t: string; key: boolean };
 type Q = {
   n: number; format: string; prompt: string; points: number;
-  options?: Opt[] | null; rubric?: { desc: string; marks: number }[] | null;
+  options?: Opt[] | null; rubric?: { desc: string; marks: number }[] | null; clip?: Clip | null;
   tap?: { surah: number; from: number; to: number; ayahs: { ref: string; words: TapWord[] }[] } | null;
 };
 type Paper = { number: number; series: string; course: string; ordinal: number; term1_week: number | null; title: string; questions: Q[] };
@@ -105,7 +109,8 @@ async function tapOptions(q: Q) {
 
 async function row(q: Q, position: number) {
   const base = { position, prompt: q.prompt, points: q.points, is_task: false, scoring: "exact", options: null as unknown, rubric: null as unknown, media: null as unknown };
-  const opts = (o: Opt[]) => o.map((x, i) => ({ position: i, label: `Option ${LETTERS[i]}`, value: x.text, correct: x.correct }));
+  // Past Z (the 29-letter alphabet grid) an option is numbered instead.
+  const opts = (o: Opt[]) => o.map((x, i) => ({ position: i, label: `Option ${LETTERS[i] ?? i + 1}`, value: x.text, correct: x.correct }));
   const rubric = (r: Q["rubric"]) => (r && r.length ? r.map((c, i) => ({ id: `c${i + 1}`, desc: c.desc, marks: c.marks })) : null);
   switch (q.format) {
     case "mcq": case "true_false": case "odd_one_out": case "select_all": case "count": {
@@ -116,7 +121,11 @@ async function row(q: Q, position: number) {
       // QUL's surah files with the ayah's own span.
       const audio = Object.fromEntries((q.options ?? []).flatMap((o, i) =>
         o.audio ? [[String(i), typeof o.audio === "string" ? { url: o.audio } : o.audio]] : []));
-      return { ...base, qtype, prompt, options: opts(q.options ?? []), media: Object.keys(audio).length ? { option_audio: audio } : null };
+      const media = {
+        ...(q.clip ? { clip: q.clip } : {}),
+        ...(Object.keys(audio).length ? { option_audio: audio } : {}),
+      };
+      return { ...base, qtype, prompt, options: opts(q.options ?? []), media: Object.keys(media).length ? media : null };
     }
     case "tap": return { ...base, qtype: "checkbox", scoring: "per_option", options: await tapOptions(q) };
     case "short": return { ...base, qtype: "text", rubric: rubric(q.rubric) };
@@ -176,7 +185,7 @@ async function main() {
   if (mediaUpdates.length) {
     // PL/pgSQL plans a statement only when it runs, so these never touch a
     // missing column: before 0048 the branch is skipped, after it they apply.
-    out.push(`-- Option audio needs questions.media (migration 0048); skipped until it exists.`,
+    out.push(`-- Audio needs questions.media (migration 0048); skipped until it exists.`,
       `do $media$ begin`,
       `  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'questions' and column_name = 'media') then`,
       ...mediaUpdates,
