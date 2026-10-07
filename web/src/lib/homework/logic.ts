@@ -340,6 +340,11 @@ export function attentionHeading(
  * recorded; there is still a redo to explain, just no mark to quote.
  */
 export function redoNotice(previousPct: number | null): string {
+  // At or above the pass mark it was the teacher's call, not the threshold
+  // (sendBackForRedo), and "you need 60%" would read as a contradiction.
+  if (previousPct !== null && previousPct >= REDO_THRESHOLD_PCT) {
+    return `You scored ${Math.round(previousPct)}% last time, and your teacher has asked you to do it again.`;
+  }
   if (previousPct === null) {
     return `You need ${REDO_THRESHOLD_PCT}% to pass this homework.`;
   }

@@ -12,7 +12,7 @@ import { homeworkLabel } from "@/components/app/homework-row";
 import { moduleTitle } from "@/lib/curriculum/tree";
 import { reviewQueue } from "@/lib/marking/queue";
 import { ReviewQueueBar } from "@/components/app/review-queue-bar";
-import { ReopenSubmission } from "@/components/app/reopen-submission";
+import { LateTag, SubmissionAction } from "@/components/app/submission-action";
 
 export const dynamic = "force-dynamic";
 
@@ -147,7 +147,7 @@ export default async function SubmissionReview({
           <h1><b>{student?.full_name}</b></h1>
           <span className="text-sm text-muted-foreground">
             {cls?.name}{hw && <> · {homeworkLabel(hw.number, hw.series)}</>}
-            {sub.is_late && <span className="ml-2 rounded bg-warn/12 px-1.5 py-0.5 text-xs text-warn">late</span>}
+            {sub.is_late && <LateTag submissionId={sub.id} />}
             {/* Muted, not a warning: a second attempt is a fact about the
                 script, and the teacher who sent it back is usually the one
                 reading it. The previous attempts below say the rest. */}
@@ -167,11 +167,16 @@ export default async function SubmissionReview({
         doneHref={backHref}
       />
 
-      {/* Handed in by mistake, or before they had finished: back to them
-          as a draft, answers kept. Not once released; see reopenSubmission. */}
-      {(sub.status === "submitted" || sub.status === "auto_marked") && (
+      {/* Handed in by mistake or before they had finished: back to them as
+          a draft, answers kept. Once released, the only way back is a fresh
+          attempt, whatever it scored. */}
+      {(sub.status === "submitted" || sub.status === "auto_marked" || sub.status === "approved") && (
         <div className="mb-4 flex justify-end">
-          <ReopenSubmission submissionId={sub.id} studentName={student?.full_name ?? "the student"} />
+          <SubmissionAction
+            kind={sub.status === "approved" ? "redo" : "reopen"}
+            submissionId={sub.id}
+            studentName={student?.full_name ?? "the student"}
+          />
         </div>
       )}
 

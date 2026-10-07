@@ -174,6 +174,11 @@ describe("redoNotice", () => {
     expect(redoNotice(0)).toBe("You scored 0% last time and need 60%.");
   });
 
+  it("puts a pass sent back by the teacher down to the teacher, not the threshold", () => {
+    expect(redoNotice(75)).toBe("You scored 75% last time, and your teacher has asked you to do it again.");
+    expect(redoNotice(60)).toContain("your teacher has asked");
+  });
+
   it("says only what is needed when the old mark was never recorded", () => {
     expect(redoNotice(null)).toBe("You need 60% to pass this homework.");
   });

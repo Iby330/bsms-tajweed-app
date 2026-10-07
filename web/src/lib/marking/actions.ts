@@ -243,16 +243,18 @@ export async function approveSubmission(
 }
 
 /** Below the pass mark: reopen the paper as a blank redo. */
-async function sendBack(
+async function sendBack<P extends number | null>(
   submissionId: string,
-  pct: number,
+  pct: P,
   homeworkNumber: number,
-): Promise<{ pct: number; redo: true }> {
+): Promise<{ pct: P; redo: true }> {
   const db = supabaseAdmin();
 
   const { error } = await db.rpc("open_homework_redo", {
     sub_id: submissionId,
-    failed_pct: pct,
+    // Null for a paper with no score to quote (ungraded); the column and the
+    // student's notice both allow it, the generated type does not.
+    failed_pct: pct as number,
   });
   // Loudly: the marks are already released, so a failure here leaves a student
   // holding a fail with no way to sit it again. Better the teacher sees it.
@@ -287,20 +289,9 @@ async function sendBack(
 export async function reopenSubmission(submissionId: string): Promise<{ error: string | null }> {
   await requireTeacher();
   const db = supabaseAdmin();
-
-  const [allowed, { data: sub }] = await Promise.all([
-    teacherClasses(),
-    db
-      .from("submissions")
-      .select("status, student_id, profiles!submissions_student_id_fkey(class_id), homeworks(number)")
-      .eq("id", submissionId)
-      .maybeSingle(),
-  ]);
-  if (!sub) return { error: "This submission could not be found." };
-  // The same section boundary the marking page draws.
-  if (allowed.length && !allowed.some((c) => c.id === sub.profiles?.class_id)) {
-    return { error: "This student is not in a class you teach." };
-  }
+  const found = await scopedSubmission(submissionId);
+  if (!found.ok) return { error: found.error };
+  const { sub } = found;
 
   // Guarded, so a paper approved in another tab a moment ago stays released.
   const { data: reopened, error } = await db
@@ -324,6 +315,78 @@ export async function reopenSubmission(submissionId: string): Promise<{ error: s
   revalidatePath(`/teacher/roster/${sub.student_id}`);
   if (sub.homeworks) revalidatePath(`/homework/${sub.homeworks.number}`);
   revalidatePath("/home");
+  refresh();
+  return { error: null };
+}
+
+/** The submission, if it is in a class this teacher may act on. */
+async function scopedSubmission(submissionId: string) {
+  const db = supabaseAdmin();
+  const [allowed, { data: sub }] = await Promise.all([
+    teacherClasses(),
+    db
+      .from("submissions")
+      .select(`
+        status, student_id, homework_id, imported_marks,
+        profiles!submissions_student_id_fkey(class_id),
+        homeworks(number, total_marks, is_graded, questions(id, is_bonus))
+      `)
+      .eq("id", submissionId)
+      .maybeSingle(),
+  ]);
+  if (!sub) return { ok: false as const, error: "This submission could not be found." };
+  if (allowed.length && !allowed.some((c) => c.id === sub.profiles?.class_id)) {
+    return { ok: false as const, error: "This student is not in a class you teach." };
+  }
+  return { ok: true as const, sub };
+}
+
+/**
+ * Send a released paper back for a fresh attempt, whatever it scored.
+ *
+ * The automatic redo only fires below the pass mark. This is the teacher's
+ * own call above it: a paper that passed but plainly was not the student's
+ * best, or was copied. Same machinery as the automatic one
+ * (`open_homework_redo`): the attempt is kept for the teacher, and the
+ * student starts again from a blank paper.
+ */
+export async function sendBackForRedo(submissionId: string): Promise<{ error: string | null }> {
+  await requireTeacher();
+  const found = await scopedSubmission(submissionId);
+  if (!found.ok) return { error: found.error };
+  const { sub } = found;
+  if (sub.status !== "approved") return { error: "Only released work can be sent back to redo." };
+  if (!sub.homeworks) return { error: "This homework could not be found." };
+
+  // The score it is being sent back from, worked out as the release did.
+  const { data: marks } = await supabaseAdmin()
+    .from("answers").select("question_id, final_marks").eq("submission_id", submissionId);
+  const verdict = redoVerdict(marks ?? [], sub.homeworks.questions ?? [], sub.homeworks, sub);
+  try {
+    await sendBack(submissionId, verdict?.pct ?? null, sub.homeworks.number);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+  revalidatePath("/teacher/homework");
+  revalidatePath(`/teacher/roster/${sub.student_id}`);
+  refresh();
+  return { error: null };
+}
+
+/**
+ * Take the "late" mark off a hand-in: a good reason, or a paper reopened after
+ * the deadline that was on time the first go. Only ever cleared, never set:
+ * lateness is stamped by the database at hand-in.
+ */
+export async function clearLate(submissionId: string): Promise<{ error: string | null }> {
+  await requireTeacher();
+  const found = await scopedSubmission(submissionId);
+  if (!found.ok) return { error: found.error };
+  const { error } = await supabaseAdmin()
+    .from("submissions").update({ is_late: false }).eq("id", submissionId);
+  if (error) return { error: error.message };
+  revalidatePath("/teacher/homework");
+  revalidatePath(`/teacher/roster/${found.sub.student_id}`);
   refresh();
   return { error: null };
 }
