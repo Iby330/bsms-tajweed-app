@@ -65,6 +65,21 @@ export function withSectionDeadlines<H extends { week_id: string; due_at: string
 }
 
 /**
+ * A student's own extensions (0067) laid over their deadlines: a homework they
+ * were given more time on is due when the extension says, whatever the class
+ * or section would. The same precedence `homework_due_for` gives it in SQL,
+ * so the countdown and the late stamp agree.
+ */
+export function withExtensions<H extends { id: string; due_at: string | null }>(
+  homeworks: H[],
+  extensions: { homework_id: string; due_at: string }[],
+): H[] {
+  if (extensions.length === 0) return homeworks;
+  const due = new Map(extensions.map((e) => [e.homework_id, e.due_at]));
+  return homeworks.map((h) => (due.has(h.id) ? { ...h, due_at: due.get(h.id)! } : h));
+}
+
+/**
  * The flat curriculum rows as one reader sees the calendar: their section's
  * weeks, and each homework due when `homework_due_for` would stamp it — the
  * class's syllabus week where `schedule` covers it, else the section's week,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { rowsForSection, scheduleWeeks, weeksForSection, withSectionDeadlines, type SectionWeekRow } from "./section-weeks";
+import { withExtensions, rowsForSection, scheduleWeeks, weeksForSection, withSectionDeadlines, type SectionWeekRow } from "./section-weeks";
 import { scheduledDueAt, scheduledUnlockAt, type ClassSchedule, type HomeworkRow } from "./tree";
 import { currentWeek } from "@/lib/dashboard/queries";
 
@@ -128,5 +128,27 @@ describe("scheduleWeeks", () => {
   it("keeps a brothers' class on the shared weeks", () => {
     const { weeksByTerm } = scheduleWeeks(weeksForSection(weeks, sectionWeeks, "brothers"));
     expect(weeksByTerm[1][0]).toEqual({ number: 1, unlock_at: weeks[0].unlock_at, due_at: weeks[0].due_at });
+  });
+});
+
+describe("withExtensions", () => {
+  const hws = [
+    { id: "h1", due_at: "2026-10-14T18:00:00Z" },
+    { id: "h2", due_at: "2026-10-21T18:00:00Z" },
+    { id: "h3", due_at: null },
+  ];
+
+  it("moves only the homework the student was given more time on", () => {
+    const out = withExtensions(hws, [
+      { homework_id: "h1", due_at: "2026-10-18T19:15:00Z" },
+      { homework_id: "h3", due_at: "2026-11-01T12:00:00Z" },
+    ]);
+    expect(out.map((h) => h.due_at)).toEqual([
+      "2026-10-18T19:15:00Z", "2026-10-21T18:00:00Z", "2026-11-01T12:00:00Z",
+    ]);
+  });
+
+  it("hands back the same rows when there are no extensions", () => {
+    expect(withExtensions(hws, [])).toBe(hws);
   });
 });

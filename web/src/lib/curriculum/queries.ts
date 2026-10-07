@@ -6,7 +6,7 @@
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { getCachedTerms, getCachedWeeks, getCachedSectionWeeks } from "@/lib/reference/cached";
-import { rowsForSection, scheduleWeeks, weeksForSection } from "./section-weeks";
+import { rowsForSection, scheduleWeeks, weeksForSection, withExtensions } from "./section-weeks";
 import {
   buildTree, overlayProgress,
   type Term, type SubStatus, type CurriculumRows, type ClassSchedule,
@@ -184,7 +184,7 @@ export async function getStudentCurriculum(
   const { data: me } = await db
     .from("profiles").select("class_id, unlock_all, section").eq("id", studentId).single();
 
-  const [terms, weeks, sectionWeeks, lessons, homeworks, watches, subs, pcts, schedule] = await Promise.all([
+  const [terms, weeks, sectionWeeks, lessons, homeworks, watches, subs, pcts, schedule, extensions] = await Promise.all([
     getCachedTerms(),
     getCachedWeeks(),
     getCachedSectionWeeks(),
@@ -196,6 +196,7 @@ export async function getStudentCurriculum(
       .eq("student_id", studentId),
     db.from("v_hw_pct").select("homework_id, pct").eq("student_id", studentId),
     getClassSchedule(me?.class_id),
+    db.from("homework_extensions").select("homework_id, due_at").eq("student_id", studentId),
   ]);
 
   const unlockAll = me?.unlock_all ?? false;
@@ -215,6 +216,8 @@ export async function getStudentCurriculum(
     },
     sectionWeeks, me?.section, hasSyllabus ? schedule : null,
   );
+  // Last, so a teacher's extension beats the class and section deadlines.
+  rows.homeworks = withExtensions(rows.homeworks, extensions.data ?? []);
 
   const progress = {
     watchedLessonIds: new Set((watches.data ?? []).map((w) => w.lesson_id)),

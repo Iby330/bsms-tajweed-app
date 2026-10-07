@@ -19,6 +19,8 @@ import { ResultsTabs, type ResultsTab } from "@/components/app/results-tabs";
 import { ResultsSummary, type SummaryRow } from "@/components/app/results-summary";
 import { QuestionBreakdown } from "@/components/app/question-breakdown";
 import { questionLabels } from "@/lib/homework/letters";
+import { ExtensionControl } from "@/components/app/extension-control";
+import { LateTag, SubmissionAction } from "@/components/app/submission-action";
 
 export const dynamic = "force-dynamic";
 
@@ -270,6 +272,26 @@ export default async function HomeworkResults({
   const selectedLive = selected ? liveByStudent.get(selected.id) ?? null : null;
   const redoLive = selectedLive && selectedLive.attempt > 1 ? selectedLive : null;
 
+  // Their deadline, extension included, for "Give more time". Only asked while
+  // nothing is handed in: an extension is about work still to come.
+  const [{ data: selectedDue }, { data: selectedExt }] = selected && !selectedSub
+    ? await Promise.all([
+        db.rpc("homework_due_for", { p_hw: hw.id, p_student: selected.id }),
+        db.from("homework_extensions").select("due_at")
+          .eq("homework_id", hw.id).eq("student_id", selected.id).maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }];
+  const extension = selected && !selectedSub ? (
+    <ExtensionControl
+      key={selected.id}
+      homeworkId={hw.id}
+      studentId={selected.id}
+      studentName={selected.full_name}
+      dueAt={selectedDue ?? null}
+      extended={Boolean(selectedExt)}
+    />
+  ) : null;
+
   let review: {
     answers: {
       id: string;
@@ -516,9 +538,7 @@ export default async function HomeworkResults({
                         picker beside them names every student and how they
                         did, which is the same walk with the destination
                         visible. */}
-                    {selected && selectedSub?.is_late && (
-                      <span className="rounded bg-warn/12 px-1.5 py-0.5 text-xs text-warn">late</span>
-                    )}
+                    {selected && selectedSub?.is_late && <LateTag submissionId={selectedSub.id} />}
                   </div>
 
                   {!selected && (
@@ -542,14 +562,18 @@ export default async function HomeworkResults({
                         )}{" "}
                         and hasn&apos;t handed the redo in yet.
                       </p>
+                      {extension}
                       <PastAttempts attempts={pastAttempts} questions={reviewQuestions} />
                     </>
                   )}
 
                   {selected && !selectedSub && !redoLive && (
-                    <p className="empty">
-                      {selected.full_name} hasn&apos;t handed this in.
-                    </p>
+                    <>
+                      <p className="empty">
+                        {selected.full_name} hasn&apos;t handed this in.
+                      </p>
+                      {extension}
+                    </>
                   )}
 
                   {selected && selectedSub && review && (
@@ -579,6 +603,15 @@ export default async function HomeworkResults({
                            back to the marking queue — the next script is one
                            click away in the list above it. The measure lives on
                            the column now, so the panel needs no width of its own. */
+                        <>
+                        <div className="flex justify-end">
+                          <SubmissionAction
+                            key={selectedSub.id}
+                            kind={selectedSub.status === "approved" ? "redo" : "reopen"}
+                            submissionId={selectedSub.id}
+                            studentName={selected.full_name}
+                          />
+                        </div>
                         <ReviewPanel
                           key={selectedSub.id}
                           submissionId={selectedSub.id}
@@ -587,6 +620,7 @@ export default async function HomeworkResults({
                           voiceNotes={review.voiceNotes}
                           approved={review.approved}
                         />
+                        </>
                       )}
                       {/* Under the live script, as on the marking screen: the
                           redo is read against what it replaced. */}

@@ -837,6 +837,52 @@ export type Database = {
           },
         ]
       }
+      homework_extensions: {
+        Row: {
+          due_at: string
+          granted_at: string
+          granted_by: string | null
+          homework_id: string
+          student_id: string
+        }
+        Insert: {
+          due_at: string
+          granted_at?: string
+          granted_by?: string | null
+          homework_id: string
+          student_id: string
+        }
+        Update: {
+          due_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          homework_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_extensions_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_extensions_homework_id_fkey"
+            columns: ["homework_id"]
+            isOneToOne: false
+            referencedRelation: "homeworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_extensions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_watches: {
         Row: {
           lesson_id: string
