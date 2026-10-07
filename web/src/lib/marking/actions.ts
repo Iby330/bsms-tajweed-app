@@ -11,6 +11,7 @@ import {
 import { markFreeText } from "./llm";
 import { APPROVABLE_STATUSES, canApprove, redoVerdict } from "./redo";
 import { emailMarkedHomework } from "./notify";
+import { teacherClasses } from "@/lib/teacher/scope";
 
 /**
  * The marking pipeline.
@@ -264,6 +265,67 @@ async function sendBack(
   revalidatePath(`/homework/${homeworkNumber}`);
 
   return { pct, redo: true };
+}
+
+/**
+ * Give a handed-in paper back to the student, answers and all.
+ *
+ * For the student who pressed hand-in by mistake, or before they had
+ * finished. Unlike a redo it keeps what they wrote and recorded: the paper
+ * goes back to a draft exactly as they left it, the same attempt, and they
+ * carry on and hand it in again. Any marks the model gave it are cleared, so
+ * the next hand-in is marked afresh rather than shown with stale ones.
+ *
+ * Only before release. A released mark has been seen, and taking it back is a
+ * different act from undoing a hand-in.
+ *
+ * The student's own policies never allow submitted to draft (the
+ * guard_student_submission trigger), which is why this is a teacher action on
+ * the service role. Lateness is stamped again on the next hand-in, against
+ * the student's deadline as it then stands.
+ */
+export async function reopenSubmission(submissionId: string): Promise<{ error: string | null }> {
+  await requireTeacher();
+  const db = supabaseAdmin();
+
+  const [allowed, { data: sub }] = await Promise.all([
+    teacherClasses(),
+    db
+      .from("submissions")
+      .select("status, student_id, profiles!submissions_student_id_fkey(class_id), homeworks(number)")
+      .eq("id", submissionId)
+      .maybeSingle(),
+  ]);
+  if (!sub) return { error: "This submission could not be found." };
+  // The same section boundary the marking page draws.
+  if (allowed.length && !allowed.some((c) => c.id === sub.profiles?.class_id)) {
+    return { error: "This student is not in a class you teach." };
+  }
+
+  // Guarded, so a paper approved in another tab a moment ago stays released.
+  const { data: reopened, error } = await db
+    .from("submissions")
+    .update({ status: "draft", submitted_at: null, is_late: false })
+    .eq("id", submissionId)
+    .in("status", ["submitted", "auto_marked"])
+    .select("id");
+  if (error) return { error: error.message };
+  if (!reopened?.length) {
+    return { error: "Only handed-in work that has not been released can be reopened." };
+  }
+
+  const { error: clearError } = await db
+    .from("answers")
+    .update({ auto_marks: null, auto_rubric: null, final_marks: null, teacher_comment: null })
+    .eq("submission_id", submissionId);
+  if (clearError) console.error("reopenSubmission: marks not cleared", submissionId, clearError.message);
+
+  revalidatePath("/teacher/homework");
+  revalidatePath(`/teacher/roster/${sub.student_id}`);
+  if (sub.homeworks) revalidatePath(`/homework/${sub.homeworks.number}`);
+  revalidatePath("/home");
+  refresh();
+  return { error: null };
 }
 
 /** Re-run the model on a single answer (teacher pressed "re-mark"). */

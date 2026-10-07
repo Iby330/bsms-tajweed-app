@@ -12,6 +12,7 @@ import { homeworkLabel } from "@/components/app/homework-row";
 import { moduleTitle } from "@/lib/curriculum/tree";
 import { reviewQueue } from "@/lib/marking/queue";
 import { ReviewQueueBar } from "@/components/app/review-queue-bar";
+import { ReopenSubmission } from "@/components/app/reopen-submission";
 
 export const dynamic = "force-dynamic";
 
@@ -165,6 +166,14 @@ export default async function SubmissionReview({
         released={sub.status === "approved"}
         doneHref={backHref}
       />
+
+      {/* Handed in by mistake, or before they had finished: back to them
+          as a draft, answers kept. Not once released; see reopenSubmission. */}
+      {(sub.status === "submitted" || sub.status === "auto_marked") && (
+        <div className="mb-4 flex justify-end">
+          <ReopenSubmission submissionId={sub.id} studentName={student?.full_name ?? "the student"} />
+        </div>
+      )}
 
       <PastAttempts attempts={pastAttempts} questions={(questions ?? []) as never} />
 
