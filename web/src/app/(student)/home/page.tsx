@@ -5,7 +5,7 @@ import {
   getStudentProgress, getHomeLeaderboards,
 } from "@/lib/dashboard/queries";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
-import { listHomework, bucketHomework, moduleTitle, currentModules } from "@/lib/curriculum/tree";
+import { listHomework, bucketHomework, moduleTitle, currentModules, homeHomework } from "@/lib/curriculum/tree";
 import { expectedPassed } from "@/lib/hifz/pace";
 import { StrikeDots } from "@/components/app/strike-dots";
 import { LeaderboardPanel } from "@/components/app/leaderboard-panel";
@@ -90,6 +90,10 @@ export default async function StudentHome() {
   const hwByLessonId = new Map(
     openModules.flatMap((m) => (m.homework ? m.lessons.map((l) => [l.id, m.homework!]) : [])),
   );
+  // Homework with no lesson card to ride on: a homework-only week (Qāʿidah),
+  // and last week's homework while it is still due after the next week opens.
+  const hwCards = homeHomework(curriculum.terms, now);
+  const cardCount = lessons.length + hwCards.length;
   const watched = curriculum.watchedLessonIds;
   const statusByHw = curriculum.submissionByHomeworkId;
 
@@ -259,8 +263,9 @@ export default async function StudentHome() {
       </div>
 
       <div className="field">
-        {lessons.length ? (
-          lessons.map((l, i) => {
+        {cardCount ? (
+          <>
+          {lessons.map((l, i) => {
             // No standalone homework cards: the homework is reached from the
             // lesson, since watching is the first step to handing in.
             const hw = hwByLessonId.get(l.id);
@@ -269,7 +274,7 @@ export default async function StudentHome() {
               status === "submitted" || status === "auto_marked" || status === "approved";
             // Two to a row. An odd one out spans the full twelve rather than
             // leaving half a row of bare border colour beside it.
-            const odd = lessons.length % 2 === 1 && i === lessons.length - 1;
+            const odd = cardCount % 2 === 1 && i === cardCount - 1;
             return (
               <Link
                 key={l.id}
@@ -294,7 +299,32 @@ export default async function StudentHome() {
                 </span>
               </Link>
             );
-          })
+          })}
+          {hwCards.map((e, j) => {
+            const i = lessons.length + j;
+            const odd = cardCount % 2 === 1 && i === cardCount - 1;
+            const isIn =
+              e.submission === "submitted" || e.submission === "auto_marked" || e.submission === "approved";
+            return (
+              <Link
+                key={e.homework.id}
+                href={`/homework/${e.homework.number}?from=home`}
+                className={cn("box lesson", odd ? "c12" : "c6 max-md:col-span-6")}
+              >
+                <span className="label">{SERIES_LABELS[e.series] ?? e.series}</span>
+                <MixedText text={moduleTitle(e.homework.title) || e.title || e.homework.title} className="t" />
+                <span className="foot">
+                  <span className="s">{homeworkLabel(e.homework.number, e.series)}</span>
+                  {isIn ? (
+                    <span className="chip ok">Homework in ✓</span>
+                  ) : e.homework.due_at ? (
+                    <CountdownChip dueAt={e.homework.due_at} />
+                  ) : null}
+                </span>
+              </Link>
+            );
+          })}
+          </>
         ) : (
           <section className="box c12">
             <div className="note">No lessons released yet.</div>

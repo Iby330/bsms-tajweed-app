@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   buildTree, overlayProgress, findCourse, findCurrentModule, moduleTitle, scheduledUnlockAt, currentModules,
   scheduledDueAt, classItemWeek, withClassDeadlines,
-  listHomework, bucketHomework, weekContent,
+  listHomework, bucketHomework, weekContent, homeHomework,
   type TermRow, type WeekRow, type LessonRow, type HomeworkRow,
   type ClassSchedule,
 } from "./tree";
@@ -918,5 +918,49 @@ describe("currentModules", () => {
   it("is empty before anything has opened", () => {
     const tree = buildTree(rows, new Date("2026-09-01"), groupOne);
     expect(currentModules(tree, new Date("2026-09-01"))).toEqual([]);
+  });
+});
+
+describe("homeHomework", () => {
+  // Masjid Al-Aqsa's first fortnight, as it is live: Qāʿidah is taught in the
+  // room, so its week has a homework and no lesson; Umm al-Kitāb has both.
+  // Week 2 opens on the Thursday, hours before week 1's homework is due.
+  const terms: TermRow[] = [{ id: 1, starts_on: "2026-10-02", ends_on: "2026-11-26", exam_max: 89 }];
+  const weeks: WeekRow[] = [
+    { id: "w1", term_id: 1, number: 1, unlock_at: "2026-10-02T23:00:00Z", due_at: null },
+    { id: "w2", term_id: 1, number: 2, unlock_at: "2026-10-08T12:00:00Z", due_at: null },
+  ];
+  const lessons: LessonRow[] = [
+    { id: "uak1", week_id: "w1", series: "umm_al_kitab", title: "UAK 1", youtube_id: "x", position: 1 },
+    { id: "uak2", week_id: "w2", series: "umm_al_kitab", title: "UAK 2", youtube_id: "x", position: 1 },
+  ];
+  const due = "2026-10-08T19:15:00Z";
+  const homeworks: HomeworkRow[] = [
+    { ...hw("h201", "w1", 201, "umm_al_kitab", "UAK HW 1"), due_at: due },
+    { ...hw("h301", "w1", 301, "qaidah", "Qaidah HW 1"), due_at: due },
+  ];
+  const rows = { terms, weeks, lessons, homeworks };
+  const shown = (now: string) => {
+    const at = new Date(now);
+    return homeHomework(buildTree(rows, at), at).map((e) => e.homework.number).sort();
+  };
+
+  it("gives a homework-only week its own card, and leaves a lesson's homework on the lesson", () => {
+    expect(shown("2026-10-05T12:00:00Z")).toEqual([301]);
+  });
+
+  it("keeps last week's homework on Home until its deadline once the next week opens", () => {
+    expect(shown("2026-10-08T17:00:00Z")).toEqual([201, 301]);
+  });
+
+  it("lets it go once the deadline passes, to the overdue box", () => {
+    expect(shown("2026-10-08T20:00:00Z")).toEqual([]);
+  });
+
+  it("drops last week's homework once it is handed in", () => {
+    const at = new Date("2026-10-08T17:00:00Z");
+    const tree = buildTree(rows, at);
+    for (const c of tree[0].courses) for (const m of c.modules) if (m.homework?.number === 201) m.submission = "submitted";
+    expect(homeHomework(tree, at).map((e) => e.homework.number)).toEqual([301]);
   });
 });

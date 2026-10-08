@@ -761,6 +761,37 @@ export function currentModules(terms: Term[], now: Date = new Date()): Module[] 
   return out;
 }
 
+/**
+ * The homework Home shows as cards of its own, beside the lesson cards.
+ *
+ * Home reaches a homework through its lesson, which leaves two kinds with no
+ * way on: a homework-only week (Qāʿidah is taught live, so its weeks have a
+ * homework and no lesson), and last week's homework once the next week opens
+ * before it is due — content opens on a Thursday, and week 1's deadline fell
+ * that evening. The first is shown while its week is current; the second until
+ * it is handed in or its deadline passes, when the overdue box takes it.
+ */
+export function homeHomework(terms: Term[], now: Date = new Date()): HomeworkEntry[] {
+  const open = new Set(currentModules(terms, now));
+  const current = new Set<string>();
+  const onLesson = new Set<string>();
+  for (const m of open) {
+    if (!m.homework) continue;
+    current.add(m.homework.id);
+    if (m.lessons.length) onLesson.add(m.homework.id);
+  }
+  return listHomework(terms).filter((e) => {
+    if (onLesson.has(e.homework.id)) return false;
+    if (current.has(e.homework.id)) return true;
+    const handedIn =
+      e.submission === "submitted" || e.submission === "auto_marked" || e.submission === "approved";
+    return (
+      e.unlocked && !handedIn && !e.redo &&
+      e.homework.due_at !== null && Date.parse(e.homework.due_at) > now.getTime()
+    );
+  });
+}
+
 export function findTerm(terms: Term[], termId: number): Term | null {
   return terms.find((t) => t.id === termId) ?? null;
 }
