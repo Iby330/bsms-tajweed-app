@@ -3944,7 +3944,7 @@
     {
      "n": 5,
      "format": "mcq",
-     "prompt": "How many times does idhaar occur in this verse?\nٱلَّذِىٓ أَطْعَمَهُم مِّن جُوعٍ وَءَامَنَهُم مِّنْ خَوْفٍ",
+     "prompt": "How many times does Idhaar Halqi occur in this verse?\nٱلَّذِىٓ أَطْعَمَهُم مِّن جُوعٍ وَءَامَنَهُم مِّنْ خَوْفٍ",
      "points": 1,
      "status": "kept",
      "was": 6,
@@ -6152,7 +6152,7 @@
     {
      "n": 1,
      "format": "mcq",
-     "prompt": "What is the linguistic meaning of Ikhfaa?",
+     "prompt": "What is the linguistic meaning of Ikhfaa Haqiqi?",
      "points": 1,
      "status": "kept",
      "was": 2,
@@ -6186,7 +6186,7 @@
     {
      "n": 2,
      "format": "select_all",
-     "prompt": "Select the letters which, when following noon sakin or tanween, produce Ikhfaa:",
+     "prompt": "Select the letters which, when following noon sakin or tanween, produce Ikhfaa Haqiqi:",
      "points": 2,
      "status": "changed",
      "was": 3,
@@ -6228,7 +6228,7 @@
     {
      "n": 3,
      "format": "short",
-     "prompt": "How many letters does Ikhfaa apply to?",
+     "prompt": "How many letters does Ikhfaa Haqiqi apply to?",
      "points": 1,
      "status": "kept",
      "was": 4,
@@ -6250,7 +6250,7 @@
     {
      "n": 4,
      "format": "odd_one_out",
-     "prompt": "Which of these phrases does NOT contain Ikhfaa?",
+     "prompt": "Which of these phrases does NOT contain Ikhfaa Haqiqi?",
      "points": 1,
      "status": "changed",
      "was": 5,
@@ -6288,7 +6288,7 @@
     {
      "n": 5,
      "format": "tap",
-     "prompt": "Tap the word where Ikhfaa happens in this ayah.",
+     "prompt": "Tap the word where Ikhfaa Haqiqi happens in this ayah.",
      "points": 1,
      "status": "changed",
      "was": 6,
@@ -6459,7 +6459,7 @@
     {
      "n": 6,
      "format": "count",
-     "prompt": "How many instances of Ikhfaa are in this ayah (Al-Mumtaḥanah 60:3)?",
+     "prompt": "How many instances of Ikhfaa Haqiqi are in this ayah (Al-Mumtaḥanah 60:3)?",
      "points": 1,
      "status": "changed",
      "was": 7,
@@ -6837,7 +6837,7 @@
     {
      "n": 7,
      "format": "mcq",
-     "prompt": "When is the ghunna of Ikhfaa recited heavily?",
+     "prompt": "When is the ghunna of Ikhfaa Haqiqi recited heavily?",
      "points": 1,
      "status": "new",
      "was": null,
@@ -6852,7 +6852,7 @@
        "correct": false
       },
       {
-       "text": "Always — the ghunna of Ikhfaa is always heavy",
+       "text": "Always — the ghunna of Ikhfaa Haqiqi is always heavy",
        "correct": false
       },
       {
@@ -6871,7 +6871,7 @@
     {
      "n": 8,
      "format": "tap",
-     "prompt": "Tap every word where Ikhfaa happens in this passage (An-Naba' 12–18). Ikhfaa happens where a noon sakin or tanween meets one of its fifteen letters, so when the two are in different words, tap BOTH of them.",
+     "prompt": "Tap every word where Ikhfaa Haqiqi happens in this passage (An-Naba' 12–18). Ikhfaa Haqiqi happens where a noon sakin or tanween meets one of its fifteen letters, so when the two are in different words, tap BOTH of them.",
      "points": 4,
      "status": "changed",
      "was": 9,
@@ -7626,7 +7626,7 @@
     {
      "n": 9,
      "format": "whatsapp",
-     "prompt": "Final task: record yourself reciting Surah Al-Infitar, observing every Ikhfaa. Send the recording to your class WhatsApp group.",
+     "prompt": "Final task: record yourself reciting Surah Al-Infitar, observing every Ikhfaa Haqiqi. Send the recording to your class WhatsApp group.",
      "points": 0,
      "status": "changed",
      "was": 10,
@@ -8811,11 +8811,11 @@
        "correct": true
       },
       {
-       "text": "Ikhfaa",
+       "text": "Ikhfaa Haqiqi",
        "correct": false
       },
       {
-       "text": "Idhaar",
+       "text": "Idhaar Halqi",
        "correct": false
       },
       {
@@ -14570,7 +14570,7 @@
      "options": null,
      "rubric": [
       {
-       "desc": "When stopping at a word with Mad Ul Mutasil",
+       "desc": "When stopping on a word that has Mad Ul Mutasil at the end",
        "marks": 1
       }
      ],

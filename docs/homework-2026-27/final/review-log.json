@@ -423,6 +423,78 @@
    "n": 6,
    "kind": "suggest",
    "what": "Items named as the course teaches them."
+  },
+  {
+   "paper": 3,
+   "n": 5,
+   "kind": "teacher",
+   "what": "Daniyal: name Idhaar Halqi in the question. The key (1: مِّنْ خَوْفٍ) is the one Idhaar Halqi."
+  },
+  {
+   "paper": 6,
+   "n": 1,
+   "kind": "teacher",
+   "what": "Daniyal: say Ikhfaa Haqiqi in every question."
+  },
+  {
+   "paper": 6,
+   "n": 2,
+   "kind": "teacher",
+   "what": "Daniyal: say Ikhfaa Haqiqi in every question."
+  },
+  {
+   "paper": 6,
+   "n": 3,
+   "kind": "teacher",
+   "what": "Daniyal: say Ikhfaa Haqiqi in every question."
+  },
+  {
+   "paper": 6,
+   "n": 4,
+   "kind": "teacher",
+   "what": "Daniyal: say Ikhfaa Haqiqi in every question."
+  },
+  {
+   "paper": 6,
+   "n": 5,
+   "kind": "teacher",
+   "what": "Daniyal: say Ikhfaa Haqiqi in every question."
+  },
+  {
+   "paper": 6,
+   "n": 6,
+   "kind": "teacher",
+   "what": "Daniyal: say Ikhfaa Haqiqi in every question."
+  },
+  {
+   "paper": 6,
+   "n": 7,
+   "kind": "teacher",
+   "what": "Daniyal: say Ikhfaa Haqiqi in every question."
+  },
+  {
+   "paper": 6,
+   "n": 8,
+   "kind": "teacher",
+   "what": "Daniyal: say Ikhfaa Haqiqi in every question."
+  },
+  {
+   "paper": 6,
+   "n": 9,
+   "kind": "teacher",
+   "what": "Daniyal: say Ikhfaa Haqiqi in every question."
+  },
+  {
+   "paper": 7,
+   "n": 9,
+   "kind": "teacher",
+   "what": "Daniyal: the options say Idhaar Halqi and Ikhfaa Haqiqi."
+  },
+  {
+   "paper": 17,
+   "n": 6,
+   "kind": "teacher",
+   "what": "Daniyal: the mark scheme says when stopping on a word that has Madd Muttaṣil at the end."
   }
  ],
  "open": [
@@ -449,12 +521,6 @@
    "n": 3,
    "who": "teacher",
    "what": "The prompt asks only about stopping in the wrong place, but the rubric accepts letter and harakah examples too. One of them should change."
-  },
-  {
-   "paper": 17,
-   "n": 6,
-   "who": "teacher",
-   "what": "Model answer could say ṭūl applies only when the hamzah is the last letter of the word you stop on."
   },
   {
    "paper": 16,
