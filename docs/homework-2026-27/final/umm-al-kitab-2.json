@@ -1,0 +1,205 @@
+{
+ "papers": [
+  {
+   "number": 202,
+   "series": "umm_al_kitab",
+   "course": "ummul_kitab",
+   "ordinal": 2,
+   "term1_week": 2,
+   "title": "Al-Istiʿādhah",
+   "questions": [
+    {
+     "n": 1,
+     "format": "short",
+     "prompt": "The command to seek refuge before reciting comes from: \"فَإِذَا قَرَأْتَ ٱلْقُرْءَانَ فَٱسْتَعِذْ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ\". What two things should you intend when saying the istiʿādhah?",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": null,
+     "rubric": [
+      {
+       "desc": "Asking Allah to remove Shayṭān's whispers and doubts",
+       "marks": 1
+      },
+      {
+       "desc": "Asking Allah to keep you sincere and free of mistakes",
+       "marks": 1
+      }
+     ],
+     "tap": null
+    },
+    {
+     "n": 2,
+     "format": "select_all",
+     "prompt": "When should the istiʿādhah be said out loud?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Someone is listening to you",
+       "correct": true
+      },
+      {
+       "text": "You are the first to recite in a group",
+       "correct": true
+      },
+      {
+       "text": "You are praying",
+       "correct": false
+      },
+      {
+       "text": "You are reciting alone",
+       "correct": false
+      },
+      {
+       "text": "You are in a group but not the first to recite",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 3,
+     "format": "select_all",
+     "prompt": "You stop reciting partway through. In which cases must you say the istiʿādhah again before continuing?",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "To answer a phone call",
+       "correct": true
+      },
+      {
+       "text": "Someone distracts you with an unrelated conversation",
+       "correct": true
+      },
+      {
+       "text": "You cough or sneeze",
+       "correct": false
+      },
+      {
+       "text": "You pause to reflect on a verse",
+       "correct": false
+      },
+      {
+       "text": "Your teacher stops you to give feedback",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 4,
+     "format": "mcq",
+     "prompt": "The hamzah at the start of أَعُوذُ sounds like the \"a\" in…",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "anyway",
+       "correct": true
+      },
+      {
+       "text": "umbrella",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 5,
+     "format": "mcq",
+     "prompt": "The ذ in أَعُوذُ is pronounced as…",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "ذ (\"th\" as in \"this\")",
+       "correct": true
+      },
+      {
+       "text": "د",
+       "correct": false
+      },
+      {
+       "text": "ز",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 6,
+     "format": "mcq",
+     "prompt": "The ج in ٱلرَّجِيمِ sounds like…",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "the \"j\" in \"jug\"",
+       "correct": true
+      },
+      {
+       "text": "the French \"j\" in \"bonjour\"",
+       "correct": false
+      },
+      {
+       "text": "the \"g\" in \"go\"",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 7,
+     "format": "true_false",
+     "prompt": "True or false: the nūn of مِنَ becomes heavy because it is followed by ٱلشَّيْطَـٰنِ.",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": "Was an mcq whose two options were 'True' and 'False: the nūn stays light'; now a plain true/false.",
+     "options": [
+      {
+       "text": "True",
+       "correct": false
+      },
+      {
+       "text": "False",
+       "correct": true
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 8,
+     "format": "voice",
+     "prompt": "Practical task: record yourself here saying the istiʿādhah three times, slowly, then once more at your normal pace.",
+     "points": 0,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": null,
+     "rubric": null,
+     "tap": null
+    }
+   ]
+  }
+ ]
+}
