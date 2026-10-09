@@ -87,10 +87,11 @@ export const SYLLABUS: Readonly<Record<GroupId, Readonly<Record<TermId, CourseKe
   // Group 4 is the same as group 3, Mabādi' included: settled by the
   // programme lead, 2026-10-02 (0043).
   4: { 1: ["ghunna", "ummul_kitab"], 2: ["sifaat_old"], 3: ["mudood", "mabadi"] },
-  // Group 5 is the Arabic basics class: Qaidah first, Umm al-Kitab from
-  // Term 2 (confirmed by the programme lead, 2026-10-04, after 0055 moved it
-  // by mistake). Term 3 is TBC.
-  5: { 1: ["qaidah"], 2: ["ummul_kitab"], 3: [] },
+  // Group 5 is the Arabic basics class: Qaidah and Umm al-Kitab together in
+  // Term 1. Umm al-Kitab went to Term 2 on 2026-10-04 and came back for
+  // Al-Aqsa in 0061, and for Salsabeel in 0069 (programme lead, 2026-10-09).
+  // Terms 2 and 3 are TBC.
+  5: { 1: ["qaidah", "ummul_kitab"], 2: [], 3: [] },
   // Group 4 without Mabādi' (the matn): Rayyan, programme lead, 2026-10-03.
   6: { 1: ["ghunna", "ummul_kitab"], 2: ["sifaat_old"], 3: ["mudood"] },
 };
