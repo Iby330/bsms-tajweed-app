@@ -1,0 +1,1709 @@
+{
+ "papers": [
+  {
+   "number": 203,
+   "series": "umm_al_kitab",
+   "course": "ummul_kitab",
+   "ordinal": 3,
+   "term1_week": 3,
+   "title": "Al-Basmalah",
+   "questions": [
+    {
+     "n": 1,
+     "format": "mcq",
+     "prompt": "The basmalah is found at the start of every surah of the Qur'an except one. Which one?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "At-Tawbah",
+       "correct": true
+      },
+      {
+       "text": "Al-Fātiḥah",
+       "correct": false
+      },
+      {
+       "text": "Al-Ikhlāṣ",
+       "correct": false
+      },
+      {
+       "text": "An-Nās",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 2,
+     "format": "true_false",
+     "prompt": "True or false: if you start reciting from the middle of a surah, you must say the basmalah.",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": "Was an mcq with 'True' and 'False: from the middle of a surah it is your choice'; now a plain true/false.",
+     "options": [
+      {
+       "text": "True",
+       "correct": false
+      },
+      {
+       "text": "False",
+       "correct": true
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 3,
+     "format": "mcq",
+     "prompt": "The ب of بِسْمِ has a kasrah. How should it sound?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "A pure, clear \"i\", as in \"bit\"",
+       "correct": true
+      },
+      {
+       "text": "Like the \"e\" in \"bed\"",
+       "correct": false
+      },
+      {
+       "text": "Stretched into a long \"ee\"",
+       "correct": false
+      },
+      {
+       "text": "Heavy, because it is the first letter of the verse",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 4,
+     "format": "match",
+     "prompt": "Match each letter of the basmalah to what the listener must hear on it.",
+     "points": 3,
+     "status": "new",
+     "was": null,
+     "why": "Was two mcqs (the whistle of the س, the roll of the ر); now one matching question that also pairs the ح with 'from the throat, never like ه'.",
+     "options": null,
+     "rubric": null,
+     "tap": null,
+     "pairs": [
+      {
+       "left": "The س of بِسْمِ",
+       "right": "A whistle (ṣafīr)"
+      },
+      {
+       "left": "The ر of ٱلرَّحْمَـٰنِ (with a shaddah)",
+       "right": "A slight roll: repetition (takrīr)"
+      },
+      {
+       "left": "The ح of ٱلرَّحِيمِ",
+       "right": "A sound from the throat, never like ه"
+      }
+     ]
+    },
+    {
+     "n": 5,
+     "format": "select_all",
+     "prompt": "Select every word of the basmalah that contains the letter ح, the one from the throat that must not sound like ه.",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "بِسْمِ",
+       "correct": false
+      },
+      {
+       "text": "ٱللَّهِ",
+       "correct": false
+      },
+      {
+       "text": "ٱلرَّحْمَـٰنِ",
+       "correct": true
+      },
+      {
+       "text": "ٱلرَّحِيمِ",
+       "correct": true
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 6,
+     "format": "short",
+     "prompt": "Name two things the video says must be pronounced clearly in ٱللَّهِ.",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": null,
+     "rubric": [
+      {
+       "desc": "The shaddah on the lām",
+       "marks": 1
+      },
+      {
+       "desc": "The kasrah on the hā' (ه)",
+       "marks": 1
+      }
+     ],
+     "tap": null
+    },
+    {
+     "n": 7,
+     "format": "voice_reference",
+     "prompt": "Practical task: listen to this recitation of the basmalah, then record yourself here reciting it slowly and carefully, three times. Listen for the pure kasrah on the ب, the whistle of the س, the roll of the ر and the ح from the throat.",
+     "points": 0,
+     "status": "new",
+     "was": null,
+     "why": "Was a plain recording task; now Al-Ḥuṣarī's recitation of 1:1 plays first so the student has a model to copy.",
+     "options": null,
+     "rubric": null,
+     "tap": null,
+     "reference": {
+      "surah": 1,
+      "from": 1,
+      "to": 1
+     }
+    }
+   ]
+  },
+  {
+   "number": 204,
+   "series": "umm_al_kitab",
+   "course": "ummul_kitab",
+   "ordinal": 4,
+   "term1_week": 4,
+   "title": "Verse 2: Al-ḥamdu lillāhi Rabbil-ʿālamīn",
+   "questions": [
+    {
+     "n": 1,
+     "format": "mcq",
+     "prompt": "If the ح in ٱلْحَمْدُ is pronounced as a ه, what kind of mistake is it?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "A major mistake: changing one letter into another can change the meaning",
+       "correct": true
+      },
+      {
+       "text": "A minor mistake, because the two letters sound similar",
+       "correct": false
+      },
+      {
+       "text": "Not a mistake, as long as the ḥarakāt are right",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 2,
+     "format": "diagram",
+     "prompt": "The ح of ٱلْحَمْدُ must not turn into a ه. Tap the place on the diagram where the ح comes from.",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": "New: the paper asked what kind of mistake a ه-for-ح is but never where the ح is made; students now point to it on a diagram of the mouth and throat.",
+     "options": null,
+     "rubric": null,
+     "tap": null,
+     "diagram": {
+      "answer": "throat_middle"
+     }
+    },
+    {
+     "n": 3,
+     "format": "mcq",
+     "prompt": "Is the lām in لِلَّهِ heavy or light here?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Light, because the letter before it has a kasrah",
+       "correct": true
+      },
+      {
+       "text": "Heavy, because the lām in the name of Allah is always heavy",
+       "correct": false
+      },
+      {
+       "text": "Heavy, because it has a shaddah",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 4,
+     "format": "mcq",
+     "prompt": "The ب in رَبِّ has a shaddah. How should you show it?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Stop on it ever so slightly, for a brief moment, to emphasise it",
+       "correct": true
+      },
+      {
+       "text": "Give it a qalqala bounce",
+       "correct": false
+      },
+      {
+       "text": "Stretch the kasrah after it into a long \"ee\"",
+       "correct": false
+      },
+      {
+       "text": "You don't need to: the shaddah is not heard",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 5,
+     "format": "odd_one_out",
+     "prompt": "Odd one out: which of these letters in verse 2 is pronounced heavy?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": "Was an mcq already worded as an odd one out; now uses the odd-one-out format (the heavy ر of رَبِّ among light letters).",
+     "options": [
+      {
+       "text": "The ر of رَبِّ",
+       "correct": true
+      },
+      {
+       "text": "The ح of ٱلْحَمْدُ",
+       "correct": false
+      },
+      {
+       "text": "The ع of ٱلْعَـٰلَمِينَ",
+       "correct": false
+      },
+      {
+       "text": "The lām of لِلَّهِ",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 6,
+     "format": "short",
+     "prompt": "Why must the ع in ٱلْعَـٰلَمِينَ come clearly from the middle of the throat? What goes wrong if it doesn't?",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": null,
+     "rubric": [
+      {
+       "desc": "It turns into a different letter, usually a hamzah (أ)",
+       "marks": 1
+      },
+      {
+       "desc": "Which changes the word and its meaning (a major mistake)",
+       "marks": 1
+      }
+     ],
+     "tap": null
+    },
+    {
+     "n": 7,
+     "format": "voice_reference",
+     "prompt": "Practical task: listen to this recitation of verse 2, then record yourself here reciting it slowly and carefully, three times. Listen for the ح and the ع from the throat, the light lām in لِلَّهِ and the shaddah on the ب of رَبِّ.",
+     "points": 0,
+     "status": "new",
+     "was": null,
+     "why": "Was a plain recording task; now Al-Ḥuṣarī's recitation of 1:2 plays first so the student has a model to copy.",
+     "options": null,
+     "rubric": null,
+     "tap": null,
+     "reference": {
+      "surah": 1,
+      "from": 2,
+      "to": 2
+     }
+    }
+   ]
+  },
+  {
+   "number": 205,
+   "series": "umm_al_kitab",
+   "course": "ummul_kitab",
+   "ordinal": 5,
+   "term1_week": 5,
+   "title": "Verse 3: Ar-Raḥmānir-Raḥīm",
+   "questions": [
+    {
+     "n": 1,
+     "format": "mcq",
+     "prompt": "When you begin verse 3, the hamzah at the start is…",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Light, like the \"a\" in \"anyway\"",
+       "correct": true
+      },
+      {
+       "text": "Heavy, like the \"u\" in \"umbrella\"",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 2,
+     "format": "mcq",
+     "prompt": "Which letter carries a shaddah in both words of this verse?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "ر",
+       "correct": true
+      },
+      {
+       "text": "ح",
+       "correct": false
+      },
+      {
+       "text": "م",
+       "correct": false
+      },
+      {
+       "text": "ن",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 3,
+     "format": "short",
+     "prompt": "The ر with shaddah takes the characteristic of takrīr. What does takrīr mean, and how should it sound?",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": null,
+     "rubric": [
+      {
+       "desc": "Repetition",
+       "marks": 1
+      },
+      {
+       "desc": "The ر rolls slightly in the mouth (a slight roll, not an exaggerated trill)",
+       "marks": 1
+      }
+     ],
+     "tap": null
+    },
+    {
+     "n": 4,
+     "format": "mcq",
+     "prompt": "How many times does the letter ح appear in ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Twice",
+       "correct": true
+      },
+      {
+       "text": "Once",
+       "correct": false
+      },
+      {
+       "text": "Three times",
+       "correct": false
+      },
+      {
+       "text": "Not at all",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 5,
+     "format": "select_all",
+     "prompt": "Select everything you should hear when ٱلرَّحْمَـٰنِ is recited correctly.",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "A slight roll on the ر",
+       "correct": true
+      },
+      {
+       "text": "The ح coming from the throat",
+       "correct": true
+      },
+      {
+       "text": "A clear kasrah on the final ن",
+       "correct": true
+      },
+      {
+       "text": "A qalqala bounce on the ح",
+       "correct": false
+      },
+      {
+       "text": "The ح sounding like the English \"h\" (ه)",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 6,
+     "format": "voice_reference",
+     "prompt": "Practical task: listen to this recitation of verse 3, then record yourself here reciting it slowly and carefully, three times. Listen for the light hamzah, the slight roll on each ر, the ح from the throat and the clear kasrah on the ن.",
+     "points": 0,
+     "status": "new",
+     "was": null,
+     "why": "Was a plain recording task; now Al-Ḥuṣarī's recitation of 1:3 plays first so the student has a model to copy.",
+     "options": null,
+     "rubric": null,
+     "tap": null,
+     "reference": {
+      "surah": 1,
+      "from": 3,
+      "to": 3
+     }
+    }
+   ]
+  },
+  {
+   "number": 206,
+   "series": "umm_al_kitab",
+   "course": "ummul_kitab",
+   "ordinal": 6,
+   "term1_week": 6,
+   "title": "Verse 4: Māliki Yawmid-Dīn",
+   "questions": [
+    {
+     "n": 1,
+     "format": "mcq",
+     "prompt": "How should the م at the start of مَـٰلِكِ be pronounced?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Light, so the vowel after it stays thin",
+       "correct": true
+      },
+      {
+       "text": "Heavy, because it is followed by an alif",
+       "correct": false
+      },
+      {
+       "text": "With a ghunna, because it is a mīm",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 2,
+     "format": "select_all",
+     "prompt": "In مَـٰلِكِ, which letters carry a kasrah that you must pronounce clearly and purely?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "ل",
+       "correct": true
+      },
+      {
+       "text": "ك",
+       "correct": true
+      },
+      {
+       "text": "م",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 3,
+     "format": "mcq",
+     "prompt": "The و in يَوْمِ has a sukūn and the letter before it has a fatḥah. This makes it a letter of…",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Līn (softness)",
+       "correct": true
+      },
+      {
+       "text": "Qalqalah",
+       "correct": false
+      },
+      {
+       "text": "Ikhfaa",
+       "correct": false
+      },
+      {
+       "text": "Ghunna",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 4,
+     "format": "count",
+     "prompt": "How many heavy letters are there in this verse?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": "Was an mcq with the answers written out ('None: every letter is light', 'One: the م'…); now a count on the verse itself, checked by the script (0 heavy letters).",
+     "options": [
+      {
+       "text": "0",
+       "correct": true
+      },
+      {
+       "text": "1",
+       "correct": false
+      },
+      {
+       "text": "2",
+       "correct": false
+      },
+      {
+       "text": "3",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": {
+      "rule": "heavy_letters",
+      "surah": 1,
+      "from": 4,
+      "to": 4,
+      "instances": 0,
+      "words": 3,
+      "ayahs": [
+       {
+        "ref": "1:4",
+        "words": [
+         {
+          "t": "مَـٰلِكِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "مَـٰ",
+            "key": false
+           },
+           {
+            "t": "لِ",
+            "key": false
+           },
+           {
+            "t": "كِ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "يَوْمِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "يَ",
+            "key": false
+           },
+           {
+            "t": "وْ",
+            "key": false
+           },
+           {
+            "t": "مِ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلدِّينِ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           },
+           {
+            "t": "دِّ",
+            "key": false
+           },
+           {
+            "t": "ي",
+            "key": false
+           },
+           {
+            "t": "نِ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "n": 5,
+     "format": "mcq",
+     "prompt": "The د in ٱلدِّينِ has a shaddah. How do you emphasise it?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Stop on it ever so slightly, for a brief moment",
+       "correct": true
+      },
+      {
+       "text": "Give the د a strong qalqala bounce",
+       "correct": false
+      },
+      {
+       "text": "Make the د heavy",
+       "correct": false
+      },
+      {
+       "text": "Skip over it quickly",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 6,
+     "format": "short",
+     "prompt": "Name two mistakes the video warns you about in this verse.",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": null,
+     "rubric": [
+      {
+       "desc": "Any one of: making the م (or the ي) heavy; not giving the kasrah on the ل, ك or م its clear, pure sound; not stopping slightly on the shaddah of the د",
+       "marks": 1
+      },
+      {
+       "desc": "A second, different mistake from that list",
+       "marks": 1
+      }
+     ],
+     "tap": null
+    },
+    {
+     "n": 7,
+     "format": "voice_reference",
+     "prompt": "Practical task: listen to this recitation of verse 4, then record yourself here reciting it slowly and carefully, three times. Listen for the light م and ي, the clear kasrahs, and the brief stop on the shaddah of the د.",
+     "points": 0,
+     "status": "new",
+     "was": null,
+     "why": "Was a plain recording task; now Al-Ḥuṣarī's recitation of 1:4 plays first so the student has a model to copy.",
+     "options": null,
+     "rubric": null,
+     "tap": null,
+     "reference": {
+      "surah": 1,
+      "from": 4,
+      "to": 4
+     }
+    }
+   ]
+  },
+  {
+   "number": 207,
+   "series": "umm_al_kitab",
+   "course": "ummul_kitab",
+   "ordinal": 7,
+   "term1_week": 7,
+   "title": "Verse 5: Iyyāka naʿbudu wa iyyāka nastaʿīn",
+   "questions": [
+    {
+     "n": 1,
+     "format": "mcq",
+     "prompt": "Why must you stop briefly on the shaddah of the ي in إِيَّاكَ?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Without it the meaning of the word can change, and the scholars have warned about this",
+       "correct": true
+      },
+      {
+       "text": "To make the ي heavy",
+       "correct": false
+      },
+      {
+       "text": "Because the ي is a qalqala letter",
+       "correct": false
+      },
+      {
+       "text": "To take a breath",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 2,
+     "format": "diagram",
+     "prompt": "The ع in نَعْبُدُ is one of the letters people often get wrong. Tap the place on the diagram where the ع comes from.",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": "Was an mcq (throat / lips / nose / tip of the tongue); now the student taps the place on a diagram of the mouth and throat.",
+     "options": null,
+     "rubric": null,
+     "tap": null,
+     "diagram": {
+      "answer": "throat_middle"
+     }
+    },
+    {
+     "n": 3,
+     "format": "mcq",
+     "prompt": "Which of these is the correct way to recite نَعْبُدُ?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "With a clear ḍammah on both the ب and the د",
+       "correct": true
+      },
+      {
+       "text": "Dropping the ḍammah on the ب and bouncing it with qalqala instead",
+       "correct": false
+      },
+      {
+       "text": "Stretching the ḍammah on the د into a long \"oo\" that runs into the next word",
+       "correct": false
+      },
+      {
+       "text": "With the ع softened into a hamzah",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 4,
+     "format": "true_false",
+     "prompt": "True or false: the و at the start of وَإِيَّاكَ belongs to نَعْبُدُ, so the ḍammah before it should be extended.",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": "Was an mcq with 'True' and 'False: the و starts a new word'; now a plain true/false.",
+     "options": [
+      {
+       "text": "True",
+       "correct": false
+      },
+      {
+       "text": "False",
+       "correct": true
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 5,
+     "format": "select_all",
+     "prompt": "Select everything you need to do when reciting نَسْتَعِينُ.",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Keep the ن light",
+       "correct": true
+      },
+      {
+       "text": "Give the س its whistle (ṣafīr)",
+       "correct": true
+      },
+      {
+       "text": "Bounce the ت with qalqala",
+       "correct": false
+      },
+      {
+       "text": "Make the ن heavy",
+       "correct": false
+      },
+      {
+       "text": "Let the ع sound like a hamzah",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 6,
+     "format": "short",
+     "prompt": "The video says this verse has many mistakes a person can fall into. Name two of them.",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": null,
+     "rubric": [
+      {
+       "desc": "Any one of: not stopping on the shaddah of the ي in إِيَّاكَ (it can change the meaning); not bringing the ع from the throat; dropping the ḍammah on the ب of نَعْبُدُ or adding qalqala to it; stretching the د of نَعْبُدُ into the و; making the hamzah, و or ن heavy; no whistle on the س",
+       "marks": 1
+      },
+      {
+       "desc": "A second, different mistake from that list",
+       "marks": 1
+      }
+     ],
+     "tap": null
+    },
+    {
+     "n": 7,
+     "format": "voice_reference",
+     "prompt": "Practical task: listen to this recitation of verse 5, then record yourself here reciting it slowly and carefully, three times. Listen especially for the shaddah on both إِيَّاكَ, the ع from the throat and the clean break before the و.",
+     "points": 0,
+     "status": "new",
+     "was": null,
+     "why": "Was a plain recording task; now Al-Ḥuṣarī's recitation of 1:5 plays first so the student has a model to copy.",
+     "options": null,
+     "rubric": null,
+     "tap": null,
+     "reference": {
+      "surah": 1,
+      "from": 5,
+      "to": 5
+     }
+    }
+   ]
+  },
+  {
+   "number": 208,
+   "series": "umm_al_kitab",
+   "course": "ummul_kitab",
+   "ordinal": 8,
+   "term1_week": 8,
+   "title": "Verse 6: Ihdinaṣ-Ṣirāṭal-Mustaqīm",
+   "questions": [
+    {
+     "n": 1,
+     "format": "mcq",
+     "prompt": "When you start with ٱهْدِنَا, which ḥarakah is on the opening hamzah?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Kasrah: pronounced clearly and purely",
+       "correct": true
+      },
+      {
+       "text": "Fatḥah",
+       "correct": false
+      },
+      {
+       "text": "Ḍammah",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 2,
+     "format": "diagram",
+     "prompt": "The ه in ٱهْدِنَا is the light ه, not the ح. Tap the place on the diagram where the ه comes from.",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": "Was an mcq telling the ه apart from the ح; now the student taps where the ه is made (the deepest part of the throat) on a diagram.",
+     "options": null,
+     "rubric": null,
+     "tap": null,
+     "diagram": {
+      "answer": "throat_deep"
+     }
+    },
+    {
+     "n": 3,
+     "format": "mcq",
+     "prompt": "In ٱهْدِنَا ٱلصِّرَٰطَ, the ن is followed directly (in pronunciation) by the ص. What must you do?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Keep the ن light; don't let the heavy ص make it heavy",
+       "correct": true
+      },
+      {
+       "text": "Make the ن heavy to match the ص",
+       "correct": false
+      },
+      {
+       "text": "Hide the ن with a ghunna",
+       "correct": false
+      },
+      {
+       "text": "Pause on the ن before the ص",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 4,
+     "format": "mcq",
+     "prompt": "The ص in ٱلصِّرَٰطَ must not be confused with…",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "س",
+       "correct": true
+      },
+      {
+       "text": "ق",
+       "correct": false
+      },
+      {
+       "text": "ط",
+       "correct": false
+      },
+      {
+       "text": "ض",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 5,
+     "format": "tap_letters",
+     "prompt": "Tap every heavy letter in this verse. Leave out the ر: it can be heavy or light, so it is not counted here.",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": "Was a select-all list of eight loose letters; now the student taps the heavy letters in the verse itself (ص, ط, ق), checked by the script.",
+     "options": null,
+     "rubric": null,
+     "tap": {
+      "rule": "heavy_letters",
+      "surah": 1,
+      "from": 6,
+      "to": 6,
+      "instances": 3,
+      "words": 3,
+      "ayahs": [
+       {
+        "ref": "1:6",
+        "words": [
+         {
+          "t": "ٱهْدِنَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "هْ",
+            "key": false
+           },
+           {
+            "t": "دِ",
+            "key": false
+           },
+           {
+            "t": "نَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلصِّرَٰطَ",
+          "key": true,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           },
+           {
+            "t": "صِّ",
+            "key": true
+           },
+           {
+            "t": "رَٰ",
+            "key": false
+           },
+           {
+            "t": "طَ",
+            "key": true
+           }
+          ]
+         },
+         {
+          "t": "ٱلْمُسْتَقِيمَ",
+          "key": true,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "مُ",
+            "key": false
+           },
+           {
+            "t": "سْ",
+            "key": false
+           },
+           {
+            "t": "تَ",
+            "key": false
+           },
+           {
+            "t": "قِ",
+            "key": true
+           },
+           {
+            "t": "ي",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "n": 6,
+     "format": "mcq",
+     "prompt": "The lām in ٱلْمُسْتَقِيمَ has a sukūn. How should it be pronounced?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Clearly, with no bounce: lām is not a qalqala letter",
+       "correct": true
+      },
+      {
+       "text": "With a qalqala bounce, because it has a sukūn",
+       "correct": false
+      },
+      {
+       "text": "Merged into the م after it",
+       "correct": false
+      },
+      {
+       "text": "Heavy, because it comes after the ط",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 7,
+     "format": "mcq",
+     "prompt": "The ق in ٱلْمُسْتَقِيمَ is a heavy letter but carries a kasrah. Which is correct?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Keep the ق heavy and the kasrah pure: both at once",
+       "correct": true
+      },
+      {
+       "text": "Make the ق light, because of the kasrah",
+       "correct": false
+      },
+      {
+       "text": "Keep the ق heavy and let the kasrah become an \"e\" sound",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 8,
+     "format": "voice_reference",
+     "prompt": "Practical task: listen to this recitation of verse 6, then record yourself here reciting it slowly and carefully, three times. Listen for the light ه, the light ن before the heavy ص, the ص (not س), no bounce on the lām and the whistle of the س.",
+     "points": 0,
+     "status": "new",
+     "was": null,
+     "why": "Was a plain recording task; now Al-Ḥuṣarī's recitation of 1:6 plays first so the student has a model to copy.",
+     "options": null,
+     "rubric": null,
+     "tap": null,
+     "reference": {
+      "surah": 1,
+      "from": 6,
+      "to": 6
+     }
+    }
+   ]
+  },
+  {
+   "number": 209,
+   "series": "umm_al_kitab",
+   "course": "ummul_kitab",
+   "ordinal": 9,
+   "term1_week": 9,
+   "title": "Verse 7: Ṣirāṭal-ladhīna anʿamta ʿalayhim…",
+   "questions": [
+    {
+     "n": 1,
+     "format": "mcq",
+     "prompt": "How can you check that you are not using your lips to make the ط in صِرَٰطَ heavy?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Watch yourself in a mirror: your lips should not change shape",
+       "correct": true
+      },
+      {
+       "text": "Put your hand on your throat",
+       "correct": false
+      },
+      {
+       "text": "Hold your nose while reciting",
+       "correct": false
+      },
+      {
+       "text": "Recite it faster",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 2,
+     "format": "tap_letters",
+     "prompt": "Tap every one of the always-heavy letters in this verse. Leave out the ر (it is heavy in one word and light in another) and the alif, which only follows the letter before it.",
+     "points": 2,
+     "status": "new",
+     "was": null,
+     "why": "Was a select-all list of eight loose letters; now the student taps the heavy letters in the verse itself (ص ط غ غ ض ض), checked by the script.",
+     "options": null,
+     "rubric": null,
+     "tap": {
+      "rule": "heavy_letters",
+      "surah": 1,
+      "from": 7,
+      "to": 7,
+      "instances": 6,
+      "words": 9,
+      "ayahs": [
+       {
+        "ref": "1:7",
+        "words": [
+         {
+          "t": "صِرَٰطَ",
+          "key": true,
+          "letters": [
+           {
+            "t": "صِ",
+            "key": true
+           },
+           {
+            "t": "رَٰ",
+            "key": false
+           },
+           {
+            "t": "طَ",
+            "key": true
+           }
+          ]
+         },
+         {
+          "t": "ٱلَّذِينَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لَّ",
+            "key": false
+           },
+           {
+            "t": "ذِ",
+            "key": false
+           },
+           {
+            "t": "ي",
+            "key": false
+           },
+           {
+            "t": "نَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "أَنْعَمْتَ",
+          "key": false,
+          "letters": [
+           {
+            "t": "أَ",
+            "key": false
+           },
+           {
+            "t": "نْ",
+            "key": false
+           },
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "مْ",
+            "key": false
+           },
+           {
+            "t": "تَ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "عَلَيْهِمْ",
+          "key": false,
+          "letters": [
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "يْ",
+            "key": false
+           },
+           {
+            "t": "هِ",
+            "key": false
+           },
+           {
+            "t": "مْ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "غَيْرِ",
+          "key": true,
+          "letters": [
+           {
+            "t": "غَ",
+            "key": true
+           },
+           {
+            "t": "يْ",
+            "key": false
+           },
+           {
+            "t": "رِ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلْمَغْضُوبِ",
+          "key": true,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "لْ",
+            "key": false
+           },
+           {
+            "t": "مَ",
+            "key": false
+           },
+           {
+            "t": "غْ",
+            "key": true
+           },
+           {
+            "t": "ضُ",
+            "key": true
+           },
+           {
+            "t": "و",
+            "key": false
+           },
+           {
+            "t": "بِ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "عَلَيْهِمْ",
+          "key": false,
+          "letters": [
+           {
+            "t": "عَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "يْ",
+            "key": false
+           },
+           {
+            "t": "هِ",
+            "key": false
+           },
+           {
+            "t": "مْ",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "وَلَا",
+          "key": false,
+          "letters": [
+           {
+            "t": "وَ",
+            "key": false
+           },
+           {
+            "t": "لَ",
+            "key": false
+           },
+           {
+            "t": "ا",
+            "key": false
+           }
+          ]
+         },
+         {
+          "t": "ٱلضَّآلِّينَ",
+          "key": true,
+          "letters": [
+           {
+            "t": "ٱ",
+            "key": false
+           },
+           {
+            "t": "ل",
+            "key": false
+           },
+           {
+            "t": "ضَّ",
+            "key": true
+           },
+           {
+            "t": "آ",
+            "key": false
+           },
+           {
+            "t": "لِّ",
+            "key": false
+           },
+           {
+            "t": "ي",
+            "key": false
+           },
+           {
+            "t": "نَ",
+            "key": false
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "n": 3,
+     "format": "mcq",
+     "prompt": "The ن in أَنْعَمْتَ has a sukūn. Which is correct?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Pronounce it clearly with no bounce: ن is not a qalqala letter",
+       "correct": true
+      },
+      {
+       "text": "Bounce it, because it has a sukūn",
+       "correct": false
+      },
+      {
+       "text": "Merge it into the ع after it",
+       "correct": false
+      },
+      {
+       "text": "Make it heavy, because the ع follows",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 4,
+     "format": "mcq",
+     "prompt": "In ٱلْمَغْضُوبِ, the م comes right before two heavy letters. Which is correct?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "Keep the م light while keeping the غ and ض heavy",
+       "correct": true
+      },
+      {
+       "text": "Make the م heavy so it flows into the غ",
+       "correct": false
+      },
+      {
+       "text": "Make all three letters light",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 5,
+     "format": "mcq",
+     "prompt": "Many people make the lām of وَلَا heavy. Why is this a mistake?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "People let the heavy ض after it make the lām heavy, but the lām must stay light",
+       "correct": true
+      },
+      {
+       "text": "Because the lām should be bounced with qalqala instead",
+       "correct": false
+      },
+      {
+       "text": "Because the lām has a shaddah",
+       "correct": false
+      },
+      {
+       "text": "It isn't a mistake: lām before an alif is always heavy",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 6,
+     "format": "mcq",
+     "prompt": "One of the characteristics of the ض is istiṭālah. What does it involve?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": null,
+     "options": [
+      {
+       "text": "The sound stretches along the side of the tongue, from the back towards the front",
+       "correct": true
+      },
+      {
+       "text": "A whistle through the front teeth",
+       "correct": false
+      },
+      {
+       "text": "A slight roll of the tongue",
+       "correct": false
+      },
+      {
+       "text": "A bounce at the end of the letter",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null
+    },
+    {
+     "n": 7,
+     "format": "listen",
+     "prompt": "Listen to this recitation of ٱلضَّآلِّينَ (1:7). Which rule do you hear on the long ā after the ض?",
+     "points": 1,
+     "status": "new",
+     "was": null,
+     "why": "Was an mcq asking how many counts the madd after the ض is held; now the student hears Al-Ḥuṣarī hold it and names it (Madd Lāzim, six counts).",
+     "options": [
+      {
+       "text": "Madd Lāzim: held for six counts",
+       "correct": true
+      },
+      {
+       "text": "Madd Muttaṣil: held for four or five counts",
+       "correct": false
+      },
+      {
+       "text": "Ghunna: a nasal sound held for two counts",
+       "correct": false
+      },
+      {
+       "text": "Qalqalah: a bounce",
+       "correct": false
+      }
+     ],
+     "rubric": null,
+     "tap": null,
+     "clip": {
+      "surah": 1,
+      "ayah": 7,
+      "positions": [
+       9
+      ],
+      "text": "ٱلضَّآلِّينَ",
+      "start_ms": 40920,
+      "end_ms": 48222,
+      "audio_url": "https://audio-cdn.tarteel.ai/quran/surah/husary/murattal/mp3/001.mp3",
+      "reciter": "Mahmoud Khalil Al-Husary (murattal), QUL resource 316"
+     }
+    },
+    {
+     "n": 8,
+     "format": "voice_reference",
+     "prompt": "Final task: listen to this recitation of the whole of Surah Al-Fātiḥah, then record yourself here reciting it slowly and carefully, with everything from this series in mind.",
+     "points": 0,
+     "status": "new",
+     "was": null,
+     "why": "Was a plain recording of the whole surah; now Al-Ḥuṣarī's recitation of 1:1–7 plays first, and the compare-with-week-1 step stays.",
+     "options": null,
+     "rubric": null,
+     "tap": null,
+     "reference": {
+      "surah": 1,
+      "from": 1,
+      "to": 7
+     }
+    }
+   ]
+  }
+ ]
+}
