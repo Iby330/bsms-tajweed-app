@@ -363,18 +363,21 @@ export type Database = {
         Row: {
           class_id: string
           course_id: string
+          due_days_after_unlock: number | null
           position: number
           term_id: number
         }
         Insert: {
           class_id: string
           course_id: string
+          due_days_after_unlock?: number | null
           position?: number
           term_id: number
         }
         Update: {
           class_id?: string
           course_id?: string
+          due_days_after_unlock?: number | null
           position?: number
           term_id?: number
         }

@@ -41,7 +41,7 @@ export async function getClassSchedule(
   const db = await supabaseServer();
   const [{ data: rows }, { data: items }, section, weeks, sectionWeeks] = await Promise.all([
     db.from("class_courses")
-      .select(`course_id, term_id, position, courses(key, label)`)
+      .select(`course_id, term_id, position, due_days_after_unlock, courses(key, label)`)
       .eq("class_id", classId)
       .order("term_id")
       .order("position"),
@@ -70,6 +70,7 @@ export async function getClassSchedule(
         label: course.label,
         termId: r.term_id,
         position: r.position,
+        dueDaysAfterUnlock: r.due_days_after_unlock,
       }];
     }),
     firstUnlockByTerm,

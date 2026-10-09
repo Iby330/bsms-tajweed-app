@@ -964,3 +964,40 @@ describe("homeHomework", () => {
     expect(homeHomework(tree, at).map((e) => e.homework.number)).toEqual([301]);
   });
 });
+
+/**
+ * A class can have a course due a fixed number of days after each item opens
+ * rather than with its week (`class_courses.due_days_after_unlock`, 0080):
+ * Masjid Al-Aqsa's Umm al-Kitab is due the Thursday after it opens, at the
+ * same 13:00 it opened, however the clocks change in between.
+ */
+describe("scheduledDueAt for a course due days after it opens", () => {
+  const weeksByTerm = {
+    1: [
+      { number: 2, unlock_at: "2026-10-08T12:00:00Z", due_at: "2026-10-11T17:00:00Z" }, // Thu 13:00 BST
+      { number: 3, unlock_at: "2026-10-15T12:00:00Z", due_at: "2026-10-18T17:00:00Z" },
+      { number: 4, unlock_at: "2026-10-22T12:00:00Z", due_at: "2026-10-25T18:00:00Z" }, // last Thursday on BST
+      { number: 5, unlock_at: "2026-10-29T13:00:00Z", due_at: "2026-11-01T18:00:00Z" }, // 13:00 GMT
+    ],
+  };
+  const course = (courseId: string, dueDaysAfterUnlock: number | null) =>
+    ({ courseId, key: courseId, label: courseId, termId: 1, position: 1, dueDaysAfterUnlock });
+  const s: ClassSchedule = {
+    courses: [course("UK", 7), course("GH", null)],
+    firstUnlockByTerm: { 1: "2026-10-08T12:00:00Z" },
+    weeksByTerm,
+  };
+
+  it("is due that many days after the item opens, at the same time of day", () => {
+    expect(scheduledDueAt(s, 1, 2, "UK")).toBe("2026-10-15T12:00:00.000Z");
+  });
+
+  it("keeps the local time across the clock change", () => {
+    // opens Thu 22 Oct 13:00 BST, due Thu 29 Oct 13:00 GMT, not 12:00
+    expect(scheduledDueAt(s, 1, 4, "UK")).toBe("2026-10-29T13:00:00.000Z");
+  });
+
+  it("leaves every other course due with its week", () => {
+    expect(scheduledDueAt(s, 1, 2, "GH")).toBe("2026-10-11T17:00:00.000Z");
+  });
+});

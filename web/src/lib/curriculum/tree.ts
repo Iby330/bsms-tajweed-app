@@ -69,6 +69,12 @@ export type ScheduledCourse = {
   label: string;
   termId: number;
   position: number;
+  /**
+   * Due this many days after each item opens, in UK local time, instead of
+   * with its week (`class_courses.due_days_after_unlock`, 0080). Masjid
+   * Al-Aqsa's Umm al-Kitab: opens Thursday 13:00, due the next Thursday 13:00.
+   */
+  dueDaysAfterUnlock?: number | null;
 };
 
 /**
@@ -171,7 +177,38 @@ export function scheduledUnlockAt(
 export function scheduledDueAt(
   schedule: ClassSchedule, termId: number, ordinal: number, courseId?: string | null,
 ): string | null {
+  const days = courseId
+    ? schedule.courses.find((c) => c.courseId === courseId)?.dueDaysAfterUnlock
+    : null;
+  if (days) {
+    const opens = scheduledUnlockAt(schedule, termId, ordinal, courseId);
+    return opens ? addLondonDays(opens, days) : null;
+  }
   return itemWeekField(schedule, termId, ordinal, courseId, "due_at") ?? null;
+}
+
+/** London's offset from UTC at an instant, in ms (BST +1h, GMT 0). */
+function londonOffsetMs(ms: number): number {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/London", hourCycle: "h23",
+      year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit",
+    }).formatToParts(new Date(ms)).map((p) => [p.type, p.value]),
+  );
+  const asUtc = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+  return asUtc - Math.floor(ms / 1000) * 1000;
+}
+
+/**
+ * `days` calendar days later at the same UK wall-clock time, as SQL's
+ * `((t at time zone 'Europe/London') + n days) at time zone 'Europe/London'`:
+ * across the October change, Thursday 13:00 BST is followed by Thursday
+ * 13:00 GMT, an hour more than seven times twenty-four.
+ */
+export function addLondonDays(iso: string, days: number): string {
+  const ms = Date.parse(iso);
+  const naive = ms + days * 24 * 60 * 60 * 1000;
+  return new Date(naive + londonOffsetMs(ms) - londonOffsetMs(naive)).toISOString();
 }
 
 /**
