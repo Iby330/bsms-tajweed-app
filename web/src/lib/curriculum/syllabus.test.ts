@@ -78,9 +78,10 @@ describe("CLASS_GROUP", () => {
 
   it("puts every sisters' class on a plan", () => {
     expect(CLASS_GROUP.Zukhruf).toBe(1);
-    expect(CLASS_GROUP.Hareer).toBe(CLASS_GROUP["Masjid Al-Aqsa"]);
+    // Sajeda's Salsabeel is the basics class; Rezarta's Hareer takes the Matn (0068).
+    expect(CLASS_GROUP.Salsabeel).toBe(CLASS_GROUP["Masjid Al-Aqsa"]);
     expect(coursesForTerm("Rayyan", 3)).toEqual(["mudood"]);
-    expect(coursesForTerm("Salsabeel", 3)).toEqual(["mudood", "mabadi"]);
+    expect(coursesForTerm("Hareer", 3)).toEqual(["mudood", "mabadi"]);
     for (const name of ["Hareer", "Rayyan", "Salsabeel", "Zukhruf"])
       expect(hasSyllabus(name)).toBe(true);
   });

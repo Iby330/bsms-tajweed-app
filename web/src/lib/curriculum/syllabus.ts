@@ -99,9 +99,11 @@ export const SYLLABUS: Readonly<Record<GroupId, Readonly<Record<TermId, CourseKe
  * Which group each class follows, by `classes.name`.
  *
  * The sisters' classes follow the brothers' plans (programme lead,
- * 2026-10-03): Zukhruf the new curriculum with An-Nabawi, Salsabeel the normal
- * one, Rayyan the normal one without Mabādi', and Hareer, a basics class, the
- * same as Al-Aqsa. Their weeks run Wednesday to Wednesday (0052).
+ * 2026-10-03): Zukhruf the new curriculum with An-Nabawi, Rayyan the normal
+ * one without Mabādi', Hareer the normal one with it, and Salsabeel, a basics
+ * class, the same as Al-Aqsa. Their weeks run Wednesday to Wednesday (0052).
+ * Hareer and Salsabeel were the other way round until 0068: the plans had
+ * been set against the wrong teachers (programme lead, 2026-10-09).
  *
  * Groups 3 and 4 were keyed to "Demo — Abdallah" and "Demo — Ibrahim" while
  * Abdallah and Ibrahim had no brothers' class to hold them. They have one
@@ -123,8 +125,8 @@ export const CLASS_GROUP: Readonly<Record<string, GroupId>> = {
   "Masjid Quba": 4, // Ibrahim Ramadan
   "Masjid Al-Aqsa": 5, // Moadh Hwessa
   Zukhruf: 1, // Ola Alghabra
-  Salsabeel: 4, // Rezarta Beka
-  Hareer: 5, // Sajeda Sufizada
+  Hareer: 4, // Rezarta Beka
+  Salsabeel: 5, // Sajeda Sufizada
   Rayyan: 6, // Wala Mussa
 };
 
