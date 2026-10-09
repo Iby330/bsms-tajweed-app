@@ -52,6 +52,7 @@
   --color-brand: var(--brand);
   --color-warn: var(--warn);
   --color-danger: var(--danger);
+  --color-miss: var(--miss);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -124,6 +125,10 @@
   --ok: #6e6010;      /* accent ochre — the cream at readable contrast  */
   --warn: #8a6614;    /* on target / pending review                     */
   --danger: #a5321c;  /* below target / strike / overdue                */
+  /* yellow — a key the student missed, in a marked answer. A fill that keeps
+     navy type in every mode, as the sage chip does, so it never reads as the
+     orange of --warn or the red of a wrong tap beside it. Navy on it 11.9:1. */
+  --miss: #f2cf4a;
 
   /* shadcn slots ← brand */
   --background: #f4f1df;            /* page — pale brand cream */
@@ -170,6 +175,7 @@
   --ok: #f0ebb4;
   --warn: #dcae4a;
   --danger: #e8705a;
+  --miss: #f2cf4a;
 
   --background: #0a0a08;
   --foreground: #efede0;
@@ -263,6 +269,7 @@
   --ok: #2e5e4e;      /* green — pass, done, present, ≥ target   (6.4:1)  */
   --warn: #9a5314;    /* orange — on target, pending, late       (5.0:1)  */
   --danger: #8c3b2e;  /* red — below target, overdue, wrong, strikes (6.5:1) */
+  --miss: #f2cf4a;
   --brand: #2f4fd0;   /* indigo — highlights, links, current, focus  (5.75:1) */
 
   /* lavender-100, the brand's second colour and the posts' own ground
@@ -343,6 +350,7 @@
   --ok: #5fa98c;      /* green — pass, done, present, ≥ target       */
   --warn: #e0a35a;    /* orange — on target, pending, late           */
   --danger: #e5675f;  /* red — below target, overdue, wrong, strikes */
+  --miss: #f2cf4a;
   --brand: #7b93f0;   /* periwinkle — highlights, links, current, focus */
 
   --background: #00004d;

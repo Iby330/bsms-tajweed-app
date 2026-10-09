@@ -95,7 +95,7 @@ export function TapWords({
           !reveal && !picked && !readOnly && "hover:bg-muted",
           hit && "bg-ok/15 text-ok ring-1 ring-ok/50",
           wrong && "bg-danger/15 text-danger ring-1 ring-danger/50",
-          missed && "bg-warn/10 text-warn ring-1 ring-warn/40",
+          missed && "bg-miss text-[#00004d] ring-1 ring-[#00004d]/40",
           readOnly && "cursor-default",
         )}
       >
@@ -168,7 +168,7 @@ export function TapWords({
           <>
             <span className="text-ok">Found</span> ·{" "}
             <span className="text-danger">wrongly tapped</span> ·{" "}
-            <span className="text-warn">missed</span>
+            <span className="rounded-sm bg-miss px-1 text-[#00004d]">missed</span>
           </>
         ) : readOnly ? (
           `${selected.length} word${selected.length === 1 ? "" : "s"} tapped.`
