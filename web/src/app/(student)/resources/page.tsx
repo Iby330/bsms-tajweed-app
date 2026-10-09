@@ -31,7 +31,7 @@ export default async function Resources() {
             <CourseTile
               key={s.key}
               href={`/resources/${s.key}`}
-              note={`${s.videos.length} ${s.videos.length === 1 ? "video" : "videos"} · watch any time${s.videos.some((v) => v.homework) ? " · homework with no deadline" : ""}`}
+              note={s.videos.some((v) => v.homework) ? "Watch any time · homework has no deadline" : "Watch any time"}
               block={{
                 series: s.key, termId: null, label: s.label, parentLabel: null, blurb: "",
                 slug: s.key, courseKey: s.key, moduleCount: s.videos.length, hasHomework: s.videos.some((v) => v.homework),
