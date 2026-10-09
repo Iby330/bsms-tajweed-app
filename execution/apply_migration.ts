@@ -201,5 +201,18 @@ async function main() {
 
 main().catch((e) => {
   console.error(e.message ?? e);
+  // On an expired token, hand over the exact ledger rows for the MCP fallback.
+  // Telling people to "insert the matching row" wasn't enough: it recurred on
+  // 2026-09-22 and 2026-10-01 and each time the insert was hand-written.
+  const msg = String(e?.message ?? e);
+  const args = process.argv.slice(2);
+  const files = args.filter((a) => !a.startsWith("--"));
+  if (msg.startsWith("SQL failed (401)") && !msg.includes("MALFORMED") && !args.includes("--probe") && files.length) {
+    console.error("\nAfter applying via the supabase MCP `apply_migration` tool, run (MCP `execute_sql`):");
+    for (const f of files) {
+      const name = basename(resolve(ROOT, f)).replace(/'/g, "''");
+      console.error(`  insert into schema_migrations (filename) values ('${name}') on conflict do nothing;`);
+    }
+  }
   process.exit(1);
 });
