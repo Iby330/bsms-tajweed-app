@@ -184,7 +184,7 @@ export async function getStudentCurriculum(
   const { data: me } = await db
     .from("profiles").select("class_id, unlock_all, section").eq("id", studentId).single();
 
-  const [terms, weeks, sectionWeeks, lessons, homeworks, watches, subs, pcts, schedule, extensions] = await Promise.all([
+  const [terms, weeks, sectionWeeks, lessons, homeworks, watches, subs, pcts, schedule, extensions, resources] = await Promise.all([
     getCachedTerms(),
     getCachedWeeks(),
     getCachedSectionWeeks(),
@@ -197,7 +197,19 @@ export async function getStudentCurriculum(
     db.from("v_hw_pct").select("homework_id, pct").eq("student_id", studentId),
     getClassSchedule(me?.class_id),
     db.from("homework_extensions").select("homework_id, due_at").eq("student_id", studentId),
+    db.from("class_resources").select("course_id"),
   ]);
+
+  // A Resources course's homework (0077) is open to the class but is nobody's
+  // weekly work: no deadline, set in person. It lives on the Resources page,
+  // so it is kept out of the year here — off Home's due and overdue lists and
+  // out of every course page. A course the class also takes keeps its own.
+  const planned = new Set((schedule?.courses ?? []).map((c) => c.courseId));
+  const resourceOnly = new Set(
+    (resources.data ?? []).map((r) => r.course_id).filter((id) => !planned.has(id)),
+  );
+  const homeworkRows = ((homeworks.data ?? []) as HomeworkRow[])
+    .filter((h) => !h.course_id || !resourceOnly.has(h.course_id));
 
   const unlockAll = me?.unlock_all ?? false;
   // The same condition `buildTree` applies, so the two cannot disagree.
@@ -212,7 +224,7 @@ export async function getStudentCurriculum(
       terms: terms as TermRow[],
       weeks: weeks as WeekRow[],
       lessons: (lessons.data ?? []) as LessonRow[],
-      homeworks: (homeworks.data ?? []) as HomeworkRow[],
+      homeworks: homeworkRows,
     },
     sectionWeeks, me?.section, hasSyllabus ? schedule : null,
   );

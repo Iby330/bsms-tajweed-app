@@ -2,11 +2,6 @@ import { notFound } from "next/navigation";
 import { ComingSoon } from "@/components/app/coming-soon";
 
 const STUBS: Record<string, { title: string; description: string }> = {
-  resources: {
-    title: "Resource Library",
-    description:
-      "Extra videos, notes and reference material for students and teachers, all in one place.",
-  },
   // The slug stays `seerah`, the series' key, so existing links keep working.
   seerah: {
     title: "Sahabah Stories",

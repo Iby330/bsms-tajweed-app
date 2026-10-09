@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  MAX_TABS, mobileNavFor, studentMobileNav, teacherMobileNav, teacherNav,
+  MAX_TABS, mobileNavFor, studentMobileNav, studentNav, teacherMobileNav, teacherNav,
 } from "./nav";
 
 /**
@@ -30,9 +30,24 @@ describe("mobileNavFor", () => {
     expect(teacherMobileNav.tabs.length).toBeLessThanOrEqual(MAX_TABS - 1);
   });
 
-  it("gives students all five cells, because nothing is left over", () => {
-    expect(studentMobileNav.more).toEqual([]);
-    expect(studentMobileNav.tabs.length).toBe(5);
+  it("leaves no live student page unreachable on a phone", () => {
+    const reachable = new Set(
+      [...studentMobileNav.tabs, ...studentMobileNav.more].map((i) => i.href),
+    );
+    for (const item of studentNav.filter((i) => !i.comingSoon)) {
+      expect(reachable.has(item.href), item.href).toBe(true);
+    }
+  });
+
+  /**
+   * Resources going live gave students a More tab, which costs the fifth
+   * pinned cell. The old split took the bar off the top of the pinned items
+   * and the sheet from the unpinned ones, so Calendar, pinned fifth, fell
+   * through both and had no phone link at all.
+   */
+  it("moves a pinned item that no longer fits to the top of More", () => {
+    expect(studentMobileNav.tabs.map((i) => i.label)).toEqual(["Home", "Courses", "Progress", "Hifdh"]);
+    expect(studentMobileNav.more.map((i) => i.label).slice(0, 2)).toEqual(["Calendar", "Resources"]);
   });
 
   it("keeps coming-soon items out of the bar", () => {

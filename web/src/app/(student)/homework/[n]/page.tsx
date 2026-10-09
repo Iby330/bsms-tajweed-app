@@ -13,6 +13,7 @@ import { moduleTitle } from "@/lib/curriculum/tree";
 import { parseOrigin, homeworkNav } from "@/lib/homework/back-link";
 import { courseAddress } from "@/lib/curriculum/course-address";
 import { getClassSchedule } from "@/lib/curriculum/queries";
+import { getClassResources } from "@/lib/resources/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,7 @@ export default async function HomeworkPage({
   // the crumbs and the "watch the video" link cost no extra round trip.
   const { data: row } = await db
     .from("homeworks")
-    .select("id, number, title, is_graded, week_id, series, course_id, weeks(term_id, lessons(id, series, position))")
+    .select("id, number, title, is_graded, week_id, series, course_id, ordinal, weeks(term_id, lessons(id, series, position))")
     .eq("number", number)
     .maybeSingle();
   if (!row) notFound();
@@ -59,7 +60,16 @@ export default async function HomeworkPage({
     // the course page this homework sits under, as this class files it
     profile.unlock_all ? null : getClassSchedule(profile.class_id),
   ]);
-  const course = week
+  // A Resources homework (0077): another course's, open to this class with no
+  // deadline. It belongs under Resources, not under a course page the class
+  // cannot open, so it gets its own crumbs and a link back to its video.
+  const planned = (schedule?.courses ?? []).some((c) => c.courseId === row.course_id);
+  const resource = !planned && row.course_id
+    ? (await getClassResources()).find((r) => r.courseId === row.course_id) ?? null
+    : null;
+  const resourceVideo = resource?.videos.find((v) => v.ordinal === row.ordinal) ?? null;
+
+  const course = week && !resource
     ? courseAddress(schedule, { courseId: row.course_id, series: row.series, termId: week.term_id })
     : null;
   const courseLabel = course?.label ?? seriesShort(row.series);
@@ -104,7 +114,22 @@ export default async function HomeworkPage({
   return (
     <>
       <header className="masthead">
-        {((week && nav.crumbs) || nav.back || nav.video) && (
+        {resource ? (
+          <div className="flex flex-col items-start gap-1">
+            <Crumbs
+              items={[
+                { label: "Resources", href: "/resources" },
+                { label: resource.label, href: `/resources/${resource.key}` },
+                { label },
+              ]}
+            />
+            {resourceVideo && (
+              <Link href={`/resources/${resource.key}/${resourceVideo.id}`} className="label backlink" style={{ marginTop: 6 }}>
+                <span aria-hidden>▸</span> Watch the video
+              </Link>
+            )}
+          </div>
+        ) : ((week && nav.crumbs) || nav.back || nav.video) && (
           <div className="flex flex-col items-start gap-1">
             {week && nav.crumbs && (
               <Crumbs
@@ -143,7 +168,7 @@ export default async function HomeworkPage({
         <div className="meta">
           <span className="label">
             {label}
-            {week && ` · Term ${week.term_id}`} ·{" "}
+            {week && !resource && ` · Term ${week.term_id}`} ·{" "}
             {parsed.questions.length}{" "}
             {parsed.questions.length === 1 ? "question" : "questions"}
             {isRedo && " · redo"}
@@ -153,6 +178,9 @@ export default async function HomeworkPage({
               time a paper comes back, and a redo is never counted late. */}
           {parsed.homework.due_at && !readOnly && !isRedo && (
             <CountdownChip dueAt={parsed.homework.due_at} />
+          )}
+          {resource && !parsed.homework.due_at && !readOnly && (
+            <span className="label">No deadline</span>
           )}
         </div>
       </header>

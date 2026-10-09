@@ -41,22 +41,29 @@ export function mobileNavFor(nav: NavItem[]): MobileNav {
   if (!rest.some((n) => !n.comingSoon)) {
     return { tabs: pinned.slice(0, MAX_TABS), more: [] };
   }
+  // More costs a cell, so a pinned item past the fourth no longer fits on the
+  // bar. It leads the sheet rather than vanishing: it was pinned because it is
+  // reached for often.
   return {
     tabs: pinned.slice(0, MAX_TABS - 1),
-    more: [...rest.filter((n) => !n.comingSoon), ...rest.filter((n) => n.comingSoon)],
+    more: [
+      ...pinned.slice(MAX_TABS - 1),
+      ...rest.filter((n) => !n.comingSoon),
+      ...rest.filter((n) => n.comingSoon),
+    ],
   };
 }
 
-// The five live items are all pinned: they fit exactly, so students get no
-// More tab. The calendar earns its place because "when is my next class" is
-// asked on a phone more than anywhere else.
+// Five are pinned, but Resources (live, unpinned) costs a cell for More, so
+// the bar holds the first four and Calendar leads the More sheet, Resources
+// beside it.
 export const studentNav: NavItem[] = [
   { href: "/home", label: "Home", icon: "home", tab: true },
   { href: "/courses", label: "Courses", icon: "video", tab: true },
   { href: "/progress", label: "Progress", icon: "clipboard", tab: true },
   { href: "/hifdh", label: "Hifdh", icon: "book", tab: true },
   { href: "/calendar", label: "Calendar", icon: "calendar", tab: true },
-  { href: "/coming-soon/resources", label: "Resources", icon: "library", comingSoon: true },
+  { href: "/resources", label: "Resources", icon: "library" },
   { href: "/coming-soon/seerah", label: "Sahabah Stories", icon: "landmark", comingSoon: true },
   { href: "/coming-soon/notifications", label: "Notifications", icon: "bell", comingSoon: true },
 ];
