@@ -57,12 +57,14 @@ export default async function ResourceVideo({
               </Link>
             )}
             {next && <Link href={`/resources/${set.key}/${next.id}`} className="chip">Next video →</Link>}
+            {/* Inside the box, on its own line: as a sibling of the box it
+                became a cell of the field's grid, one word wide. */}
+            {video.homework && (
+              <p className="note" style={{ flexBasis: "100%", margin: 0 }}>
+                No deadline. Do it if your teacher asks you to.
+              </p>
+            )}
           </div>
-        )}
-        {video.homework && (
-          <p className="note" style={{ marginTop: 4 }}>
-            No deadline. Do it if your teacher asks you to.
-          </p>
         )}
       </div>
 
