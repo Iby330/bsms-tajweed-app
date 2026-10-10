@@ -79,8 +79,14 @@ type Q = {
   pairs?: { left: string; right: string }[] | null;
   items?: string[] | null;
   diagram?: { answer: string } | null;
+  /** Pictures under the prompt, served from web/public/images/homework (0081). */
+  images?: { src: string; alt?: string; width?: number; height?: number }[] | null;
 };
-type Paper = { number: number; series: string; course: string; ordinal: number; term1_week: number | null; title: string; questions: Q[] };
+type Paper = {
+  number: number; series: string; course: string; ordinal: number; term1_week: number | null; title: string; questions: Q[];
+  /** False for a paper with nothing to mark (all tasks): kept out of the percentages, which divide by its total. */
+  is_graded?: boolean;
+};
 
 const env: Record<string, string> = {};
 for (const line of readFileSync(join(repoRoot, "web/.env.local"), "utf8").split("\n")) {
@@ -296,18 +302,23 @@ async function main() {
   for (const p of papers) {
     const rows = [];
     paperNumber = p.number;
-    for (const [i, q] of p.questions.entries()) rows.push(await row(q, i + 1));
+    for (const [i, q] of p.questions.entries()) {
+      const r = await row(q, i + 1);
+      // Pictures ride beside whatever audio the format put in media.
+      if (q.images?.length) r.media = { ...((r.media as object | null) ?? {}), images: q.images };
+      rows.push(r);
+    }
     dumped[p.number] = rows;
     const total = rows.reduce((s, r) => s + Number(r.points), 0);
     out.push(`-- ── Homework ${p.number}: ${p.title} (${total} marks, ${rows.length} questions)`);
     if (p.term1_week != null && p.number > 100) {
       out.push(`insert into homeworks (number, title, series, total_marks, is_graded, week_id, due_at, course_id, ordinal)`,
-        `select ${p.number}, ${lit(p.title)}, '${p.series}', ${total}, true, w.id, w.due_at, c.id, ${p.ordinal}`,
+        `select ${p.number}, ${lit(p.title)}, '${p.series}', ${total}, ${p.is_graded === false ? "false" : "true"}, w.id, w.due_at, c.id, ${p.ordinal}`,
         `  from weeks w, courses c where w.term_id = 1 and w.number = ${p.term1_week} and c.key = '${p.course}'`,
         `on conflict (number) do update set title = excluded.title, series = excluded.series, total_marks = excluded.total_marks,`,
-        `  is_graded = true, course_id = excluded.course_id, ordinal = excluded.ordinal;`);
+        `  is_graded = ${p.is_graded === false ? "false" : "true"}, course_id = excluded.course_id, ordinal = excluded.ordinal;`);
     } else {
-      out.push(`update homeworks set title = ${lit(p.title)}, series = '${p.series}', total_marks = ${total}, is_graded = true,`,
+      out.push(`update homeworks set title = ${lit(p.title)}, series = '${p.series}', total_marks = ${total}, is_graded = ${p.is_graded === false ? "false" : "true"},`,
         `  course_id = (select id from courses where key = '${p.course}'), ordinal = ${p.ordinal}`,
         `  where number = ${p.number};`);
     }

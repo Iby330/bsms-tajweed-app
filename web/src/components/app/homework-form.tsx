@@ -3,6 +3,7 @@
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MixedText } from "@/components/app/mixed-text";
+import { QuestionImages } from "@/components/app/question-images";
 import { InteractiveAnswer, isInteractive } from "@/components/app/interactive-answer";
 import { MarkBadge } from "@/components/app/mark-badge";
 import { VoiceRecorder } from "@/components/app/voice-recorder";
@@ -79,6 +80,12 @@ export function HomeworkForm({
   // Set when an action threw on a working connection: the page has outlived
   // its deploy (lib/homework/stale-page.ts), and only a reload mends it.
   const [stale, setStale] = useState(false);
+  // A homework that is ONE recording (Qāʿidah 2: read out the boxes of three
+  // book pages) keeps its recorder in the bottom bar, so the student can start
+  // at the top and scroll down the pages with Stop always on screen.
+  const dockedTask = !readOnly && submissionId && questions.length === 1 && questions[0].is_task
+    ? questions[0] : null;
+  const [dockedRecording, setDockedRecording] = useState(false);
   // One queue for the page's life: the hand-in has to flush and wait on the
   // same timers and saves the typing started.
   const [queue] = useState(() =>
@@ -156,10 +163,22 @@ export function HomeworkForm({
         {/* "Name the rule you heard": the listening sits between the
             question and the answers, where it is read, so the student
             hears it before choosing and can replay it while they do. */}
+        {media.images && <QuestionImages images={media.images} className="mt-4" />}
         {media.clip && <RecitationClip clip={media.clip} className="mt-4" />}
 
         <div className="mt-4">
-          {q.is_task ? (
+          {q.is_task && dockedTask?.id === q.id ? (
+            <p className="flex items-start gap-2 rounded-md border border-dashed border-line px-3 py-2.5 text-sm text-ink-2">
+              <span aria-hidden className="text-danger">●</span>
+              <span>
+                {dockedRecording
+                  ? "Recording. Scroll down and read every box, then press Stop at the bottom of the screen."
+                  : recorded[q.id]
+                    ? "Recorded. Play it back at the bottom of the screen before you hand in."
+                    : "Use the Record button at the bottom of the screen. It stays there while you scroll, so you can start at the top and read down the pages."}
+              </span>
+            </p>
+          ) : q.is_task ? (
             submissionId ? (
               <VoiceRecorder
                 submissionId={submissionId}
@@ -324,6 +343,19 @@ export function HomeworkForm({
         // `submitbar`: on a phone this row rides above the tab bar while the
         // questions scroll, so handing in is never a scroll to the bottom away.
         <div className="box c12 submitbar" style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+          {dockedTask ? (
+            <VoiceRecorder
+              layout="bar"
+              submissionId={submissionId}
+              questionId={dockedTask.id}
+              attempt={attempt}
+              initialPath={voiceByQ.get(dockedTask.id)?.storage_path ?? null}
+              initialDuration={voiceByQ.get(dockedTask.id)?.duration_s ?? null}
+              readOnly={false}
+              onRecorded={(has) => setRecorded((r) => ({ ...r, [dockedTask.id]: has }))}
+              onRecordingChange={setDockedRecording}
+            />
+          ) : (
           <span className={cn("text-xs", saveStatus.error && !saving ? "text-danger" : "text-muted-foreground")}>
             {saving
               ? "Saving…"
@@ -335,6 +367,7 @@ export function HomeworkForm({
                     ? "Record every task before you hand in."
                     : "Your work saves as you type."}
           </span>
+          )}
           <div className="flex flex-col items-end gap-1">
             <Button
               // Held while a save is on its way; a click during the typing

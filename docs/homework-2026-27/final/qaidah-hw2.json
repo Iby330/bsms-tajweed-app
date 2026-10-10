@@ -1,0 +1,41 @@
+{
+ "papers": [
+  {
+   "number": 302,
+   "series": "qaidah",
+   "course": "qaidah",
+   "ordinal": 2,
+   "term1_week": 2,
+   "title": "Joined Letters (Lesson 2)",
+   "is_graded": false,
+   "questions": [
+    {
+     "n": 1,
+     "format": "voice",
+     "points": 0,
+     "prompt": "Read out each box on these pages by naming every letter in it. For example, قفل is ق ف ل (Qaaf, Faa, Laam).\nPractise it first so your recording is short and quick, then record yourself here.",
+     "images": [
+      {
+       "src": "/images/homework/qaidah/hw2-1.jpg",
+       "alt": "Qāʿidah Lesson 2, joined letters: page 7",
+       "width": 1219,
+       "height": 1400
+      },
+      {
+       "src": "/images/homework/qaidah/hw2-2.jpg",
+       "alt": "Qāʿidah Lesson 2, joined letters: page 8",
+       "width": 1207,
+       "height": 1400
+      },
+      {
+       "src": "/images/homework/qaidah/hw2-3.jpg",
+       "alt": "Qāʿidah Lesson 2, joined letters: the last boxes",
+       "width": 1400,
+       "height": 512
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

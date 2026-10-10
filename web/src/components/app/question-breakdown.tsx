@@ -1,3 +1,4 @@
+import { QuestionImages } from "@/components/app/question-images";
 import Link from "next/link";
 import { MixedText } from "@/components/app/mixed-text";
 import { RecitationClip } from "@/components/app/recitation-clip";
@@ -137,6 +138,7 @@ export function QuestionBreakdown({
 
             {/* The recitation the question plays, so the paper can be read
                 as the class met it: a listening question is half audio. */}
+            {media.images && <QuestionImages images={media.images} className="mt-3" />}
             {media.clip && <RecitationClip clip={media.clip} className="mt-3" />}
 
             {/* How the class did on this one question — the line that turns a

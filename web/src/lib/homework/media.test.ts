@@ -176,3 +176,38 @@ describe("parseMedia: junk is ignored, never thrown", () => {
     ).toEqual({ clip: { url: URL_6, startMs: 0, endMs: 9 }, optionAudio: {} });
   });
 });
+
+/**
+ * Pictures a question shows under its prompt: the Qāʿidah book's pages, for
+ * "name every letter in each box". Served by this site only (web/public/images
+ * /homework), for the same reason audio is held to known hosts.
+ */
+describe("parseMedia: images", () => {
+  it("reads the app's own images, in order, with their alt text", () => {
+    expect(parseMedia({
+      images: [
+        { src: "/images/homework/qaidah/hw2-1.jpg", alt: "Lesson 2, page 7", width: 1400, height: 1608 },
+        { src: "/images/homework/qaidah/hw2-2.jpg" },
+      ],
+    }).images).toEqual([
+      { src: "/images/homework/qaidah/hw2-1.jpg", alt: "Lesson 2, page 7", width: 1400, height: 1608 },
+      { src: "/images/homework/qaidah/hw2-2.jpg", alt: "" },
+    ]);
+  });
+
+  it("drops anything not served from /images/homework/", () => {
+    expect(parseMedia({
+      images: [
+        { src: "https://example.com/a.jpg" },
+        { src: "//evil.test/a.jpg" },
+        { src: "/images/homework/../secret.jpg" },
+        { src: "/images/homework/a.svg" },
+        { src: "javascript:alert(1)" },
+      ],
+    }).images).toBeUndefined();
+  });
+
+  it("leaves a question without pictures exactly as it was", () => {
+    expect(parseMedia({})).toEqual({ optionAudio: {} });
+  });
+});

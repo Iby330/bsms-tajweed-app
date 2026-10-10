@@ -1,5 +1,5 @@
 /**
- * The audio a question carries: `questions.media`, jsonb (migration 0048).
+ * The audio (and pictures) a question carries: `questions.media`, jsonb (migration 0048).
  *
  *   {"clip":         {"url": "https://…/090006.mp3", "start_ms": 3590, "end_ms": 6200,
  *                     "label": "Al-Balad 90:6"},
@@ -29,10 +29,15 @@ export type Clip = {
   label?: string;
 };
 
+/** A picture shown under a question's prompt, e.g. a page of the Qāʿidah book. */
+export type QuestionImage = { src: string; alt: string; width?: number; height?: number };
+
 export type QuestionMedia = {
   clip?: Clip;
   /** option position → its recording. Empty when the options carry none. */
   optionAudio: Record<number, Clip>;
+  /** Pictures under the prompt, in order. Absent when the question has none. */
+  images?: QuestionImage[];
 };
 
 function isObject(v: unknown): v is Record<string, unknown> {
@@ -87,6 +92,20 @@ function audioUrl(v: unknown): string | null {
   }
 }
 
+/**
+ * Pictures the app serves itself, from web/public/images/homework: the same
+ * rule as OWN_AUDIO, so a picture can only ever come from this site.
+ */
+const OWN_IMAGE = /^\/images\/homework\/(?:[a-z0-9_-]+\/)*[a-z0-9_-]+\.(?:jpg|jpeg|png|webp)$/;
+
+function parseImage(raw: unknown): QuestionImage | null {
+  if (!isObject(raw) || typeof raw.src !== "string" || !OWN_IMAGE.test(raw.src)) return null;
+  const img: QuestionImage = { src: raw.src, alt: typeof raw.alt === "string" ? raw.alt.trim() : "" };
+  const w = ms(raw.width), h = ms(raw.height);
+  if (w && h) { img.width = w; img.height = h; }
+  return img;
+}
+
 function ms(v: unknown): number | null {
   return typeof v === "number" && Number.isFinite(v) && v >= 0 ? Math.round(v) : null;
 }
@@ -137,6 +156,11 @@ export function parseMedia(raw: unknown): QuestionMedia {
       const audio = parseClip(value, false);
       if (audio) out.optionAudio[position] = audio;
     }
+  }
+
+  if (Array.isArray(raw.images)) {
+    const images = raw.images.map(parseImage).filter((i): i is QuestionImage => i !== null);
+    if (images.length) out.images = images;
   }
 
   return out;

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { MixedText } from "@/components/app/mixed-text";
+import { QuestionImages } from "@/components/app/question-images";
 import { InteractiveAnswer, isInteractive } from "@/components/app/interactive-answer";
 import { VoicePlayback } from "@/components/app/voice-playback";
 import { RecitationClip } from "@/components/app/recitation-clip";
@@ -287,6 +288,7 @@ export function ReviewPanel({
               {/* The clip the student was asked to name the rule in, the same
                   slice they heard: a wrong answer reads differently once the
                   teacher has heard how short the clip is. */}
+              {media.images && <QuestionImages images={media.images} />}
               {media.clip && <RecitationClip clip={media.clip} />}
 
               {unanswered && q.options && (

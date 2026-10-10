@@ -32,6 +32,8 @@ export function VoiceRecorder({
   initialDuration,
   readOnly,
   onRecorded,
+  onRecordingChange,
+  layout = "inline",
 }: {
   submissionId: string;
   questionId: string;
@@ -42,6 +44,12 @@ export function VoiceRecorder({
   /** Reported up so the form can hold the Submit button until every task
       has been recorded. */
   onRecorded?: (hasRecording: boolean) => void;
+  /** Reported up while the microphone is live, so a question whose
+      recorder rides in the bottom bar can say what to do next. */
+  onRecordingChange?: (recording: boolean) => void;
+  /** "bar": compact, for the bottom bar a homework that is one recording
+      keeps on screen while the student scrolls the pages they read from. */
+  layout?: "inline" | "bar";
 }) {
   const [path, setPath] = useState(initialPath);
   const [duration, setDuration] = useState(initialDuration ?? 0);
@@ -195,6 +203,38 @@ export function VoiceRecorder({
     } finally {
       setBusy(false);
     }
+  }
+
+  useEffect(() => {
+    onRecordingChange?.(recording);
+  }, [recording, onRecordingChange]);
+
+  if (layout === "bar" && !readOnly) {
+    return (
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+        {recording ? (
+          <>
+            <Button variant="destructive" size="sm" onClick={stop}>■ Stop</Button>
+            <span className="flex items-center gap-1.5 text-sm tabular-nums text-danger">
+              <span className="inline-block size-2 animate-pulse rounded-full bg-danger" />
+              {clock(elapsed)}
+            </span>
+          </>
+        ) : path ? (
+          <>
+            {url && <audio controls src={url} className="h-8 min-w-0 max-w-[16rem] flex-1" />}
+            <Button variant="outline" size="sm" disabled={busy} onClick={start} aria-label="Record again">
+              {busy ? "Saving…" : "Redo"}
+            </Button>
+          </>
+        ) : (
+          <Button size="sm" disabled={busy} onClick={start}>
+            {busy ? "Saving…" : "● Record"}
+          </Button>
+        )}
+        {error && <p className="w-full text-xs text-danger">{error}</p>}
+      </div>
+    );
   }
 
   if (readOnly) {
