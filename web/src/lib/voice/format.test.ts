@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickRecordingFormat } from "./format";
+import { isAppleWebKit, pickRecordingFormat } from "./format";
 
 describe("pickRecordingFormat", () => {
   it("prefers opus-in-webm when the browser offers it (Chrome, Firefox)", () => {
@@ -25,5 +25,23 @@ describe("pickRecordingFormat", () => {
 
   it("survives a browser with no isTypeSupported at all", () => {
     expect(pickRecordingFormat(undefined)).toEqual({ mimeType: "", extension: "webm" });
+  });
+
+  it("steers Apple's engine to mp4 even when it offers webm too", () => {
+    expect(pickRecordingFormat(() => true, { preferMp4: true })).toEqual({ mimeType: "audio/mp4", extension: "m4a" });
+  });
+
+  it("falls back to webm when mp4 is preferred but not offered", () => {
+    const webmOnly = (t: string) => t.startsWith("audio/webm");
+    expect(pickRecordingFormat(webmOnly, { preferMp4: true }).extension).toBe("webm");
+  });
+});
+
+describe("isAppleWebKit", () => {
+  it("knows Safari and iPhone browsers by their vendor", () => {
+    expect(isAppleWebKit({ vendor: "Apple Computer, Inc." })).toBe(true);
+    expect(isAppleWebKit({ vendor: "Google Inc." })).toBe(false);
+    expect(isAppleWebKit({ vendor: "" })).toBe(false);
+    expect(isAppleWebKit(undefined)).toBe(false);
   });
 });

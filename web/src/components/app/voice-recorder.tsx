@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { pickRecordingFormat } from "@/lib/voice/format";
+import { isAppleWebKit, pickRecordingFormat } from "@/lib/voice/format";
+import { captureProblem } from "@/lib/voice/capture";
 import { voiceObjectPath } from "@/lib/voice/path";
 import { uploadErrorMessage } from "@/lib/voice/upload-error";
 import { saveVoiceNote, deleteVoiceNote } from "@/lib/voice/actions";
@@ -10,6 +11,25 @@ import { VoicePlayback } from "@/components/app/voice-playback";
 import { Button } from "@/components/ui/button";
 
 const BUCKET = "voice-notes";
+
+/** The audio's own length, or null when this browser can't decode it. */
+async function decodedSeconds(blob: Blob): Promise<number | null> {
+  const Ctx =
+    typeof window === "undefined"
+      ? undefined
+      : window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!Ctx) return null;
+  const ctx = new Ctx();
+  try {
+    const audio = await ctx.decodeAudioData(await blob.arrayBuffer());
+    return audio.duration;
+  } catch {
+    return null;
+  } finally {
+    void ctx.close();
+  }
+}
 
 function clock(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -102,6 +122,7 @@ export function VoiceRecorder({
 
       const format = pickRecordingFormat(
         typeof MediaRecorder !== "undefined" ? MediaRecorder.isTypeSupported : undefined,
+        { preferMp4: isAppleWebKit(typeof navigator !== "undefined" ? navigator : undefined) },
       );
       const recorder = new MediaRecorder(
         stream,
@@ -120,7 +141,9 @@ export function VoiceRecorder({
         void upload(new Blob(chunks, { type: recorder.mimeType || format.mimeType }), format.extension, seconds);
       };
 
-      recorder.start();
+      // A chunk a second rather than one at the end: a recorder that only
+      // hands its audio over on stop is the one that loses it.
+      recorder.start(1000);
       setRecording(true);
       setElapsed(0);
       elapsedRef.current = 0;
@@ -146,6 +169,17 @@ export function VoiceRecorder({
     setBusy(true);
     setError(null);
     try {
+      // Checked before anything is saved: a recording the browser failed to
+      // capture is refused, not stored as if it were the student's recitation.
+      const problem = captureProblem(blob.size, seconds, blob.size ? await decodedSeconds(blob) : null);
+      if (problem) {
+        throw new Error(
+          problem === "empty"
+            ? "Nothing was recorded. Check your microphone, then record again."
+            : "Only part of your recording was captured. Please record again.",
+        );
+      }
+
       const supabase = supabaseBrowser();
       const {
         data: { user },

@@ -1,6 +1,9 @@
 export type RecordingFormat = { mimeType: string; extension: string };
 
-/** Best first. Safari records mp4 only; everything else does opus-in-webm. */
+/** Best first. Safari used to record mp4 only; everything else does
+ *  opus-in-webm. Safari now offers webm too, but its webm recordings come out
+ *  empty or cut to under a second (seen on Safari 26, Mac and iPhone), so
+ *  Apple's engine is still steered to mp4 — see `preferMp4`. */
 const CANDIDATES: RecordingFormat[] = [
   { mimeType: "audio/webm;codecs=opus", extension: "webm" },
   { mimeType: "audio/webm", extension: "webm" },
@@ -18,9 +21,16 @@ const CANDIDATES: RecordingFormat[] = [
  */
 export function pickRecordingFormat(
   isTypeSupported: ((type: string) => boolean) | undefined,
+  { preferMp4 = false }: { preferMp4?: boolean } = {},
 ): RecordingFormat {
   if (!isTypeSupported) return { mimeType: "", extension: "webm" };
-  return (
-    CANDIDATES.find((c) => isTypeSupported(c.mimeType)) ?? { mimeType: "", extension: "webm" }
-  );
+  const order = preferMp4
+    ? [...CANDIDATES.filter((c) => c.extension === "m4a"), ...CANDIDATES.filter((c) => c.extension !== "m4a")]
+    : CANDIDATES;
+  return order.find((c) => isTypeSupported(c.mimeType)) ?? { mimeType: "", extension: "webm" };
+}
+
+/** Apple's engine — Safari, and every browser on an iPhone or iPad. */
+export function isAppleWebKit(nav: { vendor?: string } | undefined): boolean {
+  return (nav?.vendor ?? "").startsWith("Apple");
 }
