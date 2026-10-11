@@ -10,6 +10,7 @@ import { MixedText } from "@/components/app/mixed-text";
 import { moduleTitle } from "@/lib/curriculum/tree";
 import { teacherClass, teacherRoster } from "@/lib/teacher/scope";
 import type { ClassRow } from "@/lib/teacher/class-progress";
+import { remarkItems, type RemarkRow } from "@/lib/teacher/remark";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -67,7 +68,7 @@ export default async function TeacherHome() {
     ? getClassProgress(myClass.id, termId, weeksFor(myClass.section), roster)
     : Promise.resolve([]);
 
-  const [leaderboards, submissions, classRows, hifz] = await Promise.all([
+  const [leaderboards, submissions, classRows, hifz, unmarked] = await Promise.all([
     // Same rankings the students see — the views already scope to the
     // viewer's section, and a teacher's profile carries one.
     getHomeLeaderboards(myClass?.name ?? null),
@@ -90,9 +91,33 @@ export default async function TeacherHome() {
     rosterIds.length
       ? db.from("v_hifz_progress").select("pct").in("student_id", rosterIds)
       : Promise.resolve({ data: null }),
+    // Released papers with a question worth marks and no mark on it: a
+    // question that changed after release (see lib/teacher/remark).
+    rosterIds.length
+      ? db
+          .from("answers")
+          .select(
+            "submission_id, questions!inner(position, points), submissions!inner(student_id, status, homeworks(number, series, title))",
+          )
+          .is("final_marks", null)
+          .eq("submissions.status", "approved")
+          .in("submissions.student_id", rosterIds)
+          .gt("questions.points", 0)
+      : Promise.resolve({ data: null }),
   ]);
 
   const pending = submissions.data ?? [];
+  const toRemark = remarkItems(
+    (unmarked.data ?? []).map(
+      (r): RemarkRow => ({
+        submission_id: r.submission_id,
+        student_id: r.submissions.student_id,
+        position: r.questions.position,
+        homework: r.submissions.homeworks,
+      }),
+    ),
+    (id) => nameOf.get(id) ?? "",
+  );
   const hifzRows = hifz.data ?? [];
   // A homework the reader cannot see comes back null — the row still renders,
   // exactly as it did when the follow-up query returned nothing for it.
@@ -130,6 +155,11 @@ export default async function TeacherHome() {
               {pending.length} waiting to be marked
             </span>
           )}
+          {toRemark.length > 0 && (
+            <span className="label hi">
+              {toRemark.length} to re-mark
+            </span>
+          )}
         </div>
         <ClassVerse className={myClass?.name ?? null} />
       </header>
@@ -141,6 +171,43 @@ export default async function TeacherHome() {
       </div>
 
       <div className="field">
+        {toRemark.length > 0 && (
+          <div className="box c12 needs">
+            <div className="flex items-baseline gap-2">
+              <span className="font-heading text-3xl tabular-nums">{toRemark.length}</span>
+              <span className="text-sm text-muted-foreground">
+                marked paper{toRemark.length === 1 ? "" : "s"} need{toRemark.length === 1 ? "s" : ""} re-marking
+              </span>
+            </div>
+            <p className="text-sm">
+              The marks for these questions changed after the papers were released, so they
+              have no mark yet. Open each paper, press Edit marks, mark the questions listed
+              and save.
+            </p>
+            <ul className="mt-3 space-y-1 border-t border-line pt-3 max-md:space-y-2">
+              {toRemark.map((r) => (
+                <li key={r.submissionId} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="flex min-w-0 items-baseline gap-2 max-md:flex-col max-md:gap-0">
+                    <span className="truncate max-md:max-w-full">{nameOf.get(r.studentId) ?? "Student"}</span>
+                    {r.homework && (
+                      <span className="min-w-0 truncate text-xs text-muted-foreground max-md:max-w-full">
+                        {homeworkLabel(r.homework.number, r.homework.series)}
+                        {" · "}
+                        {r.positions.map((p) => `Q${p}`).join(", ")}
+                      </span>
+                    )}
+                  </span>
+                  <Link
+                    href={`/teacher/homework/submission/${r.submissionId}`}
+                    className={cn(buttonVariants({ size: "sm", variant: "outline" }), "shrink-0")}
+                  >
+                    Re-mark
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div className="box c12">
           {pending.length ? (
             <>
@@ -188,7 +255,9 @@ export default async function TeacherHome() {
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Nothing waiting. Every submission is marked and approved.
+              {toRemark.length
+                ? "No new submissions waiting."
+                : "Nothing waiting. Every submission is marked and approved."}
             </p>
           )}
         </div>
