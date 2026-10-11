@@ -1,3 +1,5 @@
+import { seatDaggerAlif } from "@/lib/quran/text";
+
 /** One word of the seeded Uthmani text, positioned in the Madani mushaf. */
 export type QuranWord = {
   surah: number;
@@ -46,7 +48,7 @@ export const markKey = (
 // the page fonts AND the seeded line data; never mix editions per word.
 export const fromRow = (r: QuranWordRow): QuranWord => ({
   surah: r.surah_number, ayah: r.ayah_number, position: r.word_position,
-  text: r.text_uthmani, glyph: r.code_v1, isEnd: r.is_end,
+  text: seatDaggerAlif(r.text_uthmani), glyph: r.code_v1, isEnd: r.is_end,
   page: r.page_number, line: r.line_number,
 });
 

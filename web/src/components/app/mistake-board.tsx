@@ -19,6 +19,7 @@ import {
 } from "./mistake-board-parts";
 import { CAT_BG, CAT_FILL } from "./mistake-colors";
 import { cn } from "@/lib/utils";
+import { seatDaggerAlif } from "@/lib/quran/text";
 
 /** The seeded mushaf runs An-Nas back to Al-Mulk — pages 562–604. */
 const LAST_PAGE = 604;
@@ -144,7 +145,7 @@ export async function MistakeBoard({
       surah: a.surah,
       ayah: a.ayah,
       words: ayahWords(a.surah, a.ayah).map((w) => ({
-        position: w.word_position, text: w.text_uthmani, category: a.words[w.word_position] ?? null,
+        position: w.word_position, text: seatDaggerAlif(w.text_uthmani), category: a.words[w.word_position] ?? null,
       })),
       wholeAyah: a.wholeAyah,
       chips: a.chips.map((c) => ({
@@ -165,7 +166,7 @@ export async function MistakeBoard({
     const w = ayahWords(m.surah_number, m.ayah_number).find((x) => x.word_position === m.word_position);
     (letterWords[m.detail] ??= []).push({
       label: `${nameOf.get(m.surah_number) ?? m.surah_number} ${m.surah_number}:${m.ayah_number}`,
-      text: w?.text_uthmani ?? "",
+      text: seatDaggerAlif(w?.text_uthmani ?? ""),
       source: m.source,
       href: surahHref(m.surah_number, pageOf(m.surah_number, m.ayah_number)),
     });

@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export type WordMark = { category: string };
 export type SurahNames = Record<number, { ar: string; en: string }>;
 
-const BASMALA = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ";
+const BASMALA = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
 
 // the 1405H print's per-page fonts (QCF v1)
 const pageFont = (page: number) => `QCF_P${String(page).padStart(3, "0")}`;

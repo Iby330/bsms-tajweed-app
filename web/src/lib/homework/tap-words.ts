@@ -1,3 +1,5 @@
+import { seatDaggerAlif } from "@/lib/quran/text";
+
 /**
  * "Tap the rule" questions — pure, no IO.
  *
@@ -72,8 +74,8 @@ export function packWord(glyph: string | null, text: string, end?: string | null
  */
 export function unpackWord(value: string): { glyph: string | null; text: string; end: string | null } {
   const parts = value.split("\t");
-  if (parts.length < 2) return { glyph: null, text: value, end: null };
-  return { glyph: parts[0], text: parts[1], end: parts[2] || null };
+  if (parts.length < 2) return { glyph: null, text: seatDaggerAlif(value), end: null };
+  return { glyph: parts[0], text: seatDaggerAlif(parts[1]), end: parts[2] || null };
 }
 
 /** Below this, a run of locator-shaped labels is more likely a coincidence

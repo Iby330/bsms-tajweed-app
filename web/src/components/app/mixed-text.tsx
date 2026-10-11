@@ -1,4 +1,5 @@
 import React from "react";
+import { seatDaggerAlif } from "@/lib/quran/text";
 
 /**
  * MixedText — renders strings that interleave Arabic and Latin text.
@@ -96,7 +97,7 @@ export function MixedText({
                   lang="ar"
                   className={inlineMix ? `${arClass} ar-inline` : arClass}
                 >
-                  {run.text}
+                  {seatDaggerAlif(run.text)}
                 </span>
               ) : (
                 <span key={i} dir="ltr">
