@@ -1,5 +1,5 @@
 import { C, FONT, SITE, button, esc, heading, panel, para, row, shell } from "./applicant-emails";
-import { fmtMarks, markTone, selectedOf, textOf } from "@/lib/homework/logic";
+import { carriesNoMark, fmtMarks, markTone, selectedOf, textOf } from "@/lib/homework/logic";
 import { questionLabels } from "@/lib/homework/letters";
 import { isTapWords, unpackWord, type TapOption } from "@/lib/homework/tap-words";
 import { REDO_THRESHOLD_PCT } from "@/lib/marking/redo";
@@ -108,7 +108,7 @@ export function answerText(q: MarkedQuestion, response: unknown): string | null 
 type Verdict = "right" | "partly" | "wrong" | "task";
 
 function verdictOf(q: MarkedQuestion, marks: number | null): Verdict {
-  if (q.is_task) return "task";
+  if (carriesNoMark(q)) return "task";
   const tone = markTone(marks ?? 0, q.points);
   return tone === "ok" ? "right" : tone === "danger" ? "wrong" : "partly";
 }
@@ -208,7 +208,7 @@ export function markedText(h: MarkedHomework): string {
     ``,
   ];
   for (const it of items(h)) {
-    const mark = it.q.is_task ? "" : ` (${fmtMarks(it.marks ?? 0)}/${fmtMarks(it.q.points)})`;
+    const mark = it.verdict === "task" ? "" : ` (${fmtMarks(it.marks ?? 0)}/${fmtMarks(it.q.points)})`;
     lines.push(`Question ${it.label}${it.q.is_bonus ? " (bonus)" : ""}: ${VERDICT_LABEL[it.verdict]}${mark}`);
     lines.push(it.q.prompt.trim());
     lines.push(`Your answer: ${it.answer ?? "No answer given"}`);
@@ -238,7 +238,7 @@ const multiline = (s: string) => esc(s).replace(/\n/g, "<br>");
 
 function questionHtml(it: Item): string {
   const t = TONE[it.verdict];
-  const badge = it.q.is_task
+  const badge = it.verdict === "task"
     ? VERDICT_LABEL.task
     : `${t.mark} ${VERDICT_LABEL[it.verdict]} &middot; ${fmtMarks(it.marks ?? 0)}/${fmtMarks(it.q.points)}`;
   const answer = it.answer

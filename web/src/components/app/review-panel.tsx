@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { approveSubmission } from "@/lib/marking/actions";
-import { selectedOf, textOf, fmtMarks, parseMarkInput } from "@/lib/homework/logic";
+import { selectedOf, textOf, fmtMarks, parseMarkInput, carriesNoMark } from "@/lib/homework/logic";
 import { parseMedia } from "@/lib/homework/media";
 import { isLetterGrid, questionLabels } from "@/lib/homework/letters";
 import { cn } from "@/lib/utils";
@@ -127,11 +127,12 @@ export function ReviewPanel({
   // kept with their position so the warning can name the question. A task is
   // never in here: it carries no mark field, so a number out of range on one —
   // a row left over from before the task was made worth nothing — would block
-  // approval with nothing on screen for the teacher to correct.
+  // approval with nothing on screen for the teacher to correct. A task worth
+  // marks has a field, so it is checked like any other question.
   const labels = questionLabels(questions);
   const invalid = questions
     .map((q, i) => ({ q, n: labels[i], a: byQ.get(q.id) }))
-    .filter(({ q, a }) => a && !q.is_task && !marks.get(a.id)!.valid);
+    .filter(({ q, a }) => a && !carriesNoMark(q) && !marks.get(a.id)!.valid);
 
   return (
     <div className="space-y-4">
@@ -206,7 +207,7 @@ export function ReviewPanel({
         // Every question keeps its place, answered or not: a question the
         // student skipped shows as "No answer given" and 0 marks, so the
         // teacher sees the gap rather than a paper that starts at Q2.
-        const unanswered = !a && !q.is_task;
+        const unanswered = !a && !carriesNoMark(q);
         const chosen = a ? selectedOf(a.response) : [];
         const text = a ? textOf(a.response) : "";
         // auto_rubric chips carry `why` from the LLM when it explained itself;
@@ -226,7 +227,7 @@ export function ReviewPanel({
                 <MixedText text={q.prompt} variant="quran" className="mt-2 block text-[15px] leading-relaxed" />
               </div>
               <div className="shrink-0">
-                {a && !q.is_task ? (
+                {a && !carriesNoMark(q) ? (
                   <>
                     <label
                       htmlFor={`mark-${a.id}`}
@@ -395,9 +396,11 @@ export function ReviewPanel({
                 </ul>
               )}
 
-              {a && a.auto_marks === null && !q.is_task && (
+              {a && a.auto_marks === null && !carriesNoMark(q) && (
                 <p className="text-xs text-warn">
-                  Needs your judgement. No answer key or rubric for this one.
+                  {q.is_task
+                    ? "Listen to the recitation and enter a mark."
+                    : "Needs your judgement. No answer key or rubric for this one."}
                 </p>
               )}
 

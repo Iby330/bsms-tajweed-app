@@ -214,13 +214,13 @@ export default async function HomeworkResults({
   });
 
   // Questions worth marking a class against: answered, marked, and carrying
-  // marks of their own. A task is not a question and a zero-mark question
-  // cannot cost anybody anything.
+  // marks of their own. A zero-mark question (a task only listened to among
+  // them) cannot cost anybody anything.
   // "7c" for a part of a stepped question, as the student's paper calls it.
   const labels = questionLabels(questions);
   const scoredQuestions = questionStats(questions, answers)
     .map((stat, i) => ({ stat, q: questions[i], n: labels[i] }))
-    .filter(({ stat, q }) => stat.marked > 0 && Number(q.points) > 0 && !q.is_task);
+    .filter(({ stat, q }) => stat.marked > 0 && Number(q.points) > 0);
 
   // The one the most students actually got wrong — a headcount, not a mean.
   // The two disagree often enough to be worth asking separately: a 4-mark

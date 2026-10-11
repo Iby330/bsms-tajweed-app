@@ -13,7 +13,7 @@ import { choiceGrid, gridScore } from "@/lib/homework/choice-grid";
 
 /* ── types ───────────────────────────────────────────────────────────── */
 
-export type Scoring = "exact" | "per_option" | "manual";
+export type Scoring = "exact" | "per_option" | "pairs" | "manual";
 export type QType = "mcq" | "checkbox" | "text" | "paragraph" | "grid";
 
 export type AnswerResponse = {
@@ -119,13 +119,15 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
  *
  * Practical tasks ("send a voice note") score 0 rather than null: they carry
  * no marks, so sending 22 of them to the manual queue would be noise. The
- * teacher still hears the recording on the review screen.
+ * teacher still hears the recording on the review screen. A task that IS worth
+ * marks (a recitation the teacher grades) goes to the manual queue like any
+ * other question code cannot judge.
  */
 export function scoreObjective(
   question: MarkableQuestion,
   response: unknown,
 ): number | null {
-  if (question.is_task) return 0;
+  if (question.is_task) return question.points > 0 ? null : 0;
 
   if (question.scoring === "manual") return null;
   if (question.qtype === "text" || question.qtype === "paragraph") return null;
@@ -153,6 +155,15 @@ export function scoreObjective(
     // Forms behaved on the multi-mark checkbox questions ("1 mark each")
     const net = Math.max(0, hits - misses);
     return round2((question.points * net) / correct.length);
+  }
+
+  if (question.scoring === "pairs") {
+    // a mark for every two right picks, wrong picks cancel as above, and the
+    // last mark only for the full set: on a 5-mark paper with 11 words, all
+    // 11 is 5, 10 is 4, 7 is 3. Missing even one word costs the last mark.
+    const net = Math.max(0, hits - misses);
+    if (net === correct.length) return question.points;
+    return Math.max(0, Math.min(question.points - 1, Math.floor(net / 2)));
   }
 
   const exact = hits === correct.length && misses === 0;

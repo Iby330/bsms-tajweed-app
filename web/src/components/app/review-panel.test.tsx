@@ -69,7 +69,9 @@ const MCQ = question({
     { position: 1, label: "Option 1", value: "wrong", correct: false },
   ],
 });
-const TASK = question({ id: "q3", position: 3, is_task: true, points: 3 });
+const TASK = question({ id: "q3", position: 3, is_task: true, points: 0 });
+// a recitation the teacher grades, like HW2's "recite these words" (3 marks)
+const MARKED_TASK = question({ id: "q4", position: 4, is_task: true, points: 3 });
 
 function panel(
   questions: ReviewQuestion[],
@@ -474,6 +476,36 @@ describe("ReviewPanel — recitation tasks", () => {
     expect(markFields(container)).toHaveLength(0);
   });
 
+  it("offers a mark field out of its points on a task worth marks", () => {
+    const { container } = panel(
+      [MARKED_TASK],
+      [answer({ id: "a4", question_id: "q4", auto_marks: null, response: { voice: "p" } })],
+      false,
+      [note("q4")],
+    );
+    expect(markFields(container)).toHaveLength(1);
+    expect(container.textContent).toContain("/ 3");
+    expect(container.textContent).toContain("Listen to the recitation and enter a mark.");
+  });
+
+  it("sends the typed mark on a task worth marks through approval", async () => {
+    const { container } = panel(
+      [MARKED_TASK],
+      [answer({ id: "a4", question_id: "q4", auto_marks: null, response: { voice: "p" } })],
+      false,
+      [note("q4")],
+    );
+    fireEvent.change(container.querySelector("#mark-a4")!, { target: { value: "2" } });
+    fireEvent.click(approveButton(container));
+    await vi.waitFor(() => expect(approve).toHaveBeenCalled());
+    expect(approve.mock.calls[0][1]).toEqual({ a4: 2 });
+  });
+
+  it("scores an unrecorded task worth marks at 0 of its points", () => {
+    const { container } = panel([MARKED_TASK], []);
+    expect(container.textContent).toContain("0 / 3");
+  });
+
   it("keeps the comment box on a task with a row, keyed by the answer", async () => {
     const { container } = panel(
       [TASK],
@@ -511,9 +543,8 @@ describe("ReviewPanel — recitation tasks", () => {
       false,
       [note("q3")],
     );
-    // 3 of the written answer's 5, out of the paper's 8 — the task contributes
-    // nothing but its own points, which is what a task worth 0 will do anyway
-    expect(runningTotal(container)).toBe("3 / 8");
+    // 3 of the written answer's 5 — a task worth nothing adds nothing
+    expect(runningTotal(container)).toBe("3 / 5");
   });
 
   it("approves a paper with a rowless task on it", async () => {

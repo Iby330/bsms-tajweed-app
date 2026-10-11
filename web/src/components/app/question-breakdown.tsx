@@ -23,6 +23,7 @@ const QTYPE: Record<string, string> = {
 const SCORING: Record<string, string> = {
   exact: "all-or-nothing",
   per_option: "one mark per correct option, wrong picks cancel",
+  pairs: "a mark per two correct, last mark only for all of them, wrong picks cancel",
   manual: "marked by hand",
 };
 

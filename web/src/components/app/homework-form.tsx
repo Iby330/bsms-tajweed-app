@@ -16,7 +16,7 @@ import { STALE_PAGE, whyActionFailed } from "@/lib/homework/stale-page";
 import { createSaveQueue, type SaveStatus } from "@/lib/homework/save-queue";
 import {
   mcqResponse, checkboxResponse, textResponse,
-  selectedOf, textOf, fmtMarks, missingTaskRecordings,
+  selectedOf, textOf, fmtMarks, missingTaskRecordings, carriesNoMark,
   type StudentQuestion,
 } from "@/lib/homework/logic";
 import { parseMedia } from "@/lib/homework/media";
@@ -151,11 +151,11 @@ export function HomeworkForm({
               <span>Question {label}</span>
               {q.is_bonus && <span className="rounded bg-muted px-1.5 py-0.5 normal-case">bonus</span>}
               {q.is_task && <span className="rounded bg-muted px-1.5 py-0.5 normal-case">practical task</span>}
-              {!q.is_task && <span className="tabular-nums">{fmtMarks(q.points)} mark{q.points === 1 ? "" : "s"}</span>}
+              {!carriesNoMark(q) && <span className="tabular-nums">{fmtMarks(q.points)} mark{q.points === 1 ? "" : "s"}</span>}
             </div>
             <MixedText text={q.prompt} variant="quran" className="mt-2 block text-[15px] leading-relaxed" />
           </div>
-          {approved && !q.is_task && (
+          {approved && !carriesNoMark(q) && (
             <MarkBadge marks={a?.final_marks ?? null} points={q.points} />
           )}
         </div>

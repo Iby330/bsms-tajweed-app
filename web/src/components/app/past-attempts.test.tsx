@@ -29,7 +29,7 @@ const question = (
 });
 
 const WRITTEN = question({ id: "q1", position: 1 });
-const TASK = question({ id: "q2", position: 2, is_task: true, points: 3 });
+const TASK = question({ id: "q2", position: 2, is_task: true, points: 0 });
 
 /** One superseded attempt, with whatever the two jsonb snapshots held. */
 const attempt = (over: Partial<PastAttempt> = {}): PastAttempt => ({
@@ -117,7 +117,16 @@ describe("PastAttempts — recitation tasks", () => {
   it("shows a dash and no denominator against a task, which was never marked", () => {
     const { container } = past(attempt({ voice_notes: [snapshotVoice("q2")] }));
     expect(container.textContent).toContain("–");
-    expect(container.textContent).not.toContain("/ 3");
+    expect(container.textContent).not.toContain("/ 0");
+  });
+
+  it("shows the mark out of its points on a task worth marks", () => {
+    const marked = question({ id: "q2", position: 2, is_task: true, points: 3 });
+    const { container } = past(
+      attempt({ answers: [snapshotAnswer("q2", { final_marks: 2 })], voice_notes: [snapshotVoice("q2")] }),
+      [WRITTEN, marked],
+    );
+    expect(container.textContent).toContain("2 / 3");
   });
 
   it("still skips an ordinary question the snapshot has no row for", () => {

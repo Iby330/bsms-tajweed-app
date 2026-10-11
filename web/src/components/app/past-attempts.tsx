@@ -2,7 +2,7 @@ import { MixedText } from "@/components/app/mixed-text";
 import { InteractiveAnswer, isInteractive } from "@/components/app/interactive-answer";
 import { VoicePlayback } from "@/components/app/voice-playback";
 import { RecitationClip } from "@/components/app/recitation-clip";
-import { fmtMarks, selectedOf, textOf } from "@/lib/homework/logic";
+import { carriesNoMark, fmtMarks, selectedOf, textOf } from "@/lib/homework/logic";
 import { parseMedia } from "@/lib/homework/media";
 import { questionLabels } from "@/lib/homework/letters";
 import type { ReviewQuestion } from "@/components/app/review-panel";
@@ -192,9 +192,9 @@ export function PastAttempts({
                             />
                           </div>
                           <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
-                            {/* A task was never marked, so it shows a dash and
-                                no denominator, exactly as the live panel does. */}
-                            {q.is_task ? (
+                            {/* A task with no marks shows a dash and no
+                                denominator, exactly as the live panel does. */}
+                            {carriesNoMark(q) ? (
                               "–"
                             ) : (
                               <>

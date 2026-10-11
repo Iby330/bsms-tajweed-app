@@ -32,6 +32,12 @@ function checkboxPerOption(correct: number[], points: number, total = 6): Markab
   return { qtype: "checkbox", scoring: "per_option", points, options: opts(correct, total) };
 }
 
+function checkboxPairs(correct: number[], points: number, total = 20): MarkableQuestion {
+  return { qtype: "checkbox", scoring: "pairs", points, options: opts(correct, total) };
+}
+
+const ELEVEN = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
 const sel = (positions: number[]): AnswerResponse => ({ selected: positions });
 
 // ─── table-driven cases ─────────────────────────────────────────────────────
@@ -116,6 +122,23 @@ const cases: Case[] = [
     response: { text: "" },
     expected: 0,
   },
+
+  {
+    name: "task worth marks → null, the teacher marks the recitation",
+    question: { qtype: "text", scoring: "manual", points: 3, options: null, is_task: true },
+    response: {},
+    expected: null,
+  },
+
+  // checkbox / pairs — a mark per two right, last mark only for the full set
+  { name: "pairs: all 11 → full 5", question: checkboxPairs(ELEVEN, 5), response: sel(ELEVEN), expected: 5 },
+  { name: "pairs: 10 of 11 → 4", question: checkboxPairs(ELEVEN, 5), response: sel(ELEVEN.slice(0, 10)), expected: 4 },
+  { name: "pairs: 8 of 11 → 4", question: checkboxPairs(ELEVEN, 5), response: sel(ELEVEN.slice(0, 8)), expected: 4 },
+  { name: "pairs: 7 of 11 → 3", question: checkboxPairs(ELEVEN, 5), response: sel(ELEVEN.slice(0, 7)), expected: 3 },
+  { name: "pairs: 1 of 11 → 0", question: checkboxPairs(ELEVEN, 5), response: sel([0]), expected: 0 },
+  { name: "pairs: all 11 + 1 wrong → 4 (cancellation)", question: checkboxPairs(ELEVEN, 5), response: sel([...ELEVEN, 15]), expected: 4 },
+  { name: "pairs: 9 right + 30 wrong → 0", question: checkboxPairs(ELEVEN, 5, 60), response: sel([...ELEVEN.slice(0, 9), ...Array.from({ length: 30 }, (_, i) => 20 + i)]), expected: 0 },
+  { name: "pairs: no answer key → null", question: checkboxPairs([], 5), response: sel([0]), expected: null },
 
   // grid → manual queue
   {

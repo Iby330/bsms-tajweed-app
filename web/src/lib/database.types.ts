@@ -2046,7 +2046,7 @@ export type Database = {
         | "placed"
         | "declined"
       qtype_t: "mcq" | "checkbox" | "text" | "paragraph" | "grid"
-      scoring_t: "exact" | "per_option" | "manual"
+      scoring_t: "exact" | "per_option" | "pairs" | "manual"
       section_t: "brothers" | "sisters" | "demo"
       series_t: "tajweed" | "umm_al_kitab" | "tfp" | "seerah" | "qaidah"
       session_t: "tajweed" | "hifdh"
@@ -2188,7 +2188,7 @@ export const Constants = {
         "declined",
       ],
       qtype_t: ["mcq", "checkbox", "text", "paragraph", "grid"],
-      scoring_t: ["exact", "per_option", "manual"],
+      scoring_t: ["exact", "per_option", "pairs", "manual"],
       section_t: ["brothers", "sisters", "demo"],
       series_t: ["tajweed", "umm_al_kitab", "tfp", "seerah", "qaidah"],
       session_t: ["tajweed", "hifdh"],

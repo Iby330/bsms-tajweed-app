@@ -147,6 +147,15 @@ export function missingTaskRecordings<Q extends { id: string; is_task: boolean }
   return questions.filter((q) => q.is_task && !recorded.has(q.id));
 }
 
+/**
+ * A practical task the teacher only listens to: no mark field, no
+ * denominator, no place in the total. A task given points (a recitation the
+ * teacher grades) is marked like any other question.
+ */
+export function carriesNoMark(q: { is_task: boolean; points: number | string }): boolean {
+  return q.is_task && !(Number(q.points) > 0);
+}
+
 /* ── Lateness ─────────────────────────────────────────────────────────── */
 
 /** Strictly past the deadline. No deadline → never late. */
