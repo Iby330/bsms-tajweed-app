@@ -220,6 +220,19 @@ describe("planLlmJobs", () => {
     });
   });
 
+  // A task worth marks carries the teacher's mark scheme as its rubric. Code
+  // cannot mark it and neither can the model, so it waits for the teacher.
+  it("leaves a recitation worth marks for the teacher, even with a mark scheme", () => {
+    const task = [question({ id: "q-task", qtype: "text", scoring: "manual", points: 4, is_task: true, rubric })];
+    const recited = [answer("a-voice", "q-task", { voice: "uid/s1/a1/q-task.webm" })];
+
+    expect(planLlmJobs(recited, task)).toEqual([]);
+    expect(planAnswerUpdates(recited, task, new Map())[0]).toMatchObject({
+      auto_marks: null,
+      auto_rubric: null,
+    });
+  });
+
   it("agrees with planAnswerUpdates about which answers the model marks", () => {
     const jobs = planLlmJobs(answers, questions);
     const marked = planAnswerUpdates(

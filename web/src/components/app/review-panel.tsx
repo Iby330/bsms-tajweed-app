@@ -363,10 +363,10 @@ export function ReviewPanel({
                     )}
                   </div>
 
-                  {!q.is_task && q.rubric && q.rubric.length > 0 && (
+                  {q.rubric && q.rubric.length > 0 && (
                     <div className="rounded-md border border-line bg-page p-3">
                       <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                        Model answer
+                        {q.is_task ? "Mark scheme" : "Model answer"}
                       </div>
                       <ul className="mt-1.5 space-y-1">
                         {q.rubric.map((c) => (

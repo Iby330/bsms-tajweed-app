@@ -120,9 +120,11 @@ function prepare(
 
     const objective = scoreObjective(question, answer.response);
     const rubric = question.rubric;
-    // free-text with a rubric → the model; without one → manual queue
+    // free-text with a rubric → the model; without one → manual queue. A
+    // recording task's rubric is the teacher's mark scheme: there is no text
+    // for the model to read, so it always goes to the teacher.
     const job =
-      objective === null && rubric?.length
+      objective === null && rubric?.length && !q.is_task
         ? {
             answerId: answer.id,
             prompt: q.prompt,
