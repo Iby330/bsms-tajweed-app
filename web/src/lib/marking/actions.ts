@@ -211,10 +211,6 @@ export async function approveSubmission(
 
   revalidatePath("/teacher/homework");
   revalidatePath("/teacher/roster");
-  // The marking page stays on the script after a release, so the response
-  // carries its re-render. Done here rather than with router.refresh() in the
-  // client's transition, which in Next 16 left the button on "Saving…".
-  refresh();
 
   // The marks that were just written, not the ones that were read — an edit of
   // an already-released submission is the case where those differ, and it is
@@ -225,6 +221,15 @@ export async function approveSubmission(
   const result = verdict?.redo
     ? await sendBack(submissionId, verdict.pct, homework!.number)
     : { pct: verdict?.pct ?? null, redo: false };
+
+  // The marking page stays on a released script, so the response carries its
+  // re-render (done here rather than with router.refresh() in the client's
+  // transition, which in Next 16 left the button on "Saving…"). Not after a
+  // redo: the script has just been blanked under the panel that is still
+  // waiting on this call, and re-rendering it in place took the teacher to the
+  // error page, where Try again could not recover it. The panel reloads the
+  // page instead (see review-panel).
+  if (!result.redo) refresh();
 
   // The student hears once per attempt: on its first release, not on every
   // "Edit marks" afterwards. A submission carried over from the spreadsheet

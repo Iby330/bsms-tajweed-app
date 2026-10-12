@@ -234,15 +234,22 @@ describe("ReviewPanel — where approving lands", () => {
     expect(router.push).not.toHaveBeenCalled();
   });
 
-  it("stays on the page when an edit drops the mark below the pass line", async () => {
+  // The action leaves the page alone after a redo (re-rendering a script that
+  // has just been blanked, under this panel, took teachers to the error page).
+  it("reloads the page when an edit drops the mark below the pass line", async () => {
     approve.mockResolvedValue({ pct: 45, redo: true });
-    const container = editReleased();
-    fireEvent.change(markField(container, "a1"), { target: { value: "1" } });
-
-    fireEvent.click(approveButton(container));
-    await vi.waitFor(() => expect(approve).toHaveBeenCalled());
-    // the action refreshes the page, which then shows the redo in progress
-    expect(router.push).not.toHaveBeenCalled();
+    const reload = vi.fn();
+    const real = window.location;
+    Object.defineProperty(window, "location", { configurable: true, value: { ...real, reload } });
+    try {
+      const container = editReleased();
+      fireEvent.change(markField(container, "a1"), { target: { value: "1" } });
+      fireEvent.click(approveButton(container));
+      await vi.waitFor(() => expect(reload).toHaveBeenCalled());
+      expect(router.push).not.toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(window, "location", { configurable: true, value: real });
+    }
   });
 
   it("stays on the page on a first release, so the queue can offer the next", async () => {

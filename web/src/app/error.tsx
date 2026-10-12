@@ -7,16 +7,16 @@ import { cn } from "@/lib/utils";
 
 /**
  * The catch-all for a failed page outside the student area, which has its own
- * inside the app shell. Try again re-fetches the segment, which is what a
- * dropped connection needs; production hides the error's message, so none is
- * shown.
+ * inside the app shell. Try again reloads the page. It used to retry the
+ * segment in place (unstable_retry), which could not recover a page broken by
+ * a server action's response: the teacher pressed it and nothing happened. A
+ * full reload fetches everything again, which a dropped connection needs too.
+ * Production hides the error's message, so none is shown.
  */
 export default function AppError({
   error,
-  unstable_retry,
 }: {
   error: Error & { digest?: string };
-  unstable_retry: () => void;
 }) {
   useEffect(() => {
     console.error(error);
@@ -32,7 +32,7 @@ export default function AppError({
         </p>
       </div>
       <div className="flex gap-3">
-        <Button onClick={() => unstable_retry()}>Try again</Button>
+        <Button onClick={() => window.location.reload()}>Try again</Button>
         <Link href="/home" className={cn(buttonVariants({ variant: "outline" }))}>
           Go home
         </Link>

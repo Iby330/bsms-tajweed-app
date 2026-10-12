@@ -11,10 +11,8 @@ import { Button } from "@/components/ui/button";
  */
 export default function HifdhError({
   error,
-  unstable_retry,
 }: {
   error: Error & { digest?: string };
-  unstable_retry: () => void;
 }) {
   useEffect(() => {
     console.error(error);
@@ -23,7 +21,7 @@ export default function HifdhError({
   return (
     <div className="mx-auto max-w-md space-y-3 py-16 text-center">
       <p className="text-sm">Something went wrong on this page.</p>
-      <Button onClick={() => unstable_retry()}>Try again</Button>
+      <Button onClick={() => window.location.reload()}>Try again</Button>
     </div>
   );
 }

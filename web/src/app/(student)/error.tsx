@@ -12,10 +12,8 @@ import { cn } from "@/lib/utils";
  */
 export default function StudentError({
   error,
-  unstable_retry,
 }: {
   error: Error & { digest?: string };
-  unstable_retry: () => void;
 }) {
   useEffect(() => {
     console.error(error);
@@ -29,7 +27,7 @@ export default function StudentError({
         and come back to it.
       </p>
       <div className="flex justify-center gap-3">
-        <Button onClick={() => unstable_retry()}>Try again</Button>
+        <Button onClick={() => window.location.reload()}>Try again</Button>
         <Link href="/home" className={cn(buttonVariants({ variant: "outline" }))}>
           Go home
         </Link>

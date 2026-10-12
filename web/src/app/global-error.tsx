@@ -12,10 +12,8 @@ import "./globals.css";
  */
 export default function GlobalError({
   error,
-  unstable_retry,
 }: {
   error: Error & { digest?: string };
-  unstable_retry: () => void;
 }) {
   useEffect(() => {
     console.error(error);
@@ -36,7 +34,7 @@ export default function GlobalError({
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => unstable_retry()}
+              onClick={() => window.location.reload()}
               className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
             >
               Try again

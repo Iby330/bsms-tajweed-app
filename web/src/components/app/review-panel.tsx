@@ -165,8 +165,9 @@ export function ReviewPanel({
                 // Production strips a server action's error message, so the
                 // line is ours: the usual cause is a script that stopped
                 // waiting (a redo reopened it, or a second click got there).
+                let result: Awaited<ReturnType<typeof approveSubmission>>;
                 try {
-                  await approveSubmission(
+                  result = await approveSubmission(
                     submissionId,
                     Object.fromEntries(finalMarks),
                     comments,
@@ -175,9 +176,16 @@ export function ReviewPanel({
                   setRefused(true);
                   return;
                 }
-                // Stay on the script either way: the action refreshes this
-                // page, so the queue bar says it was released and offers the
-                // next one. A mark under the pass line shows the redo instead.
+                // Under the pass line the paper is now a blank redo, and the
+                // action leaves this page alone: a fresh load of it shows
+                // "Redo in progress" with the queue bar, rather than this panel
+                // being re-rendered away in the middle of its own save.
+                if (result.redo) {
+                  window.location.reload();
+                  return;
+                }
+                // Released: the action refreshed this page, so the queue bar
+                // says so and offers the next one.
                 setEditing(false);
               })
             }
