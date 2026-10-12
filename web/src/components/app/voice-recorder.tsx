@@ -7,10 +7,14 @@ import { captureProblem } from "@/lib/voice/capture";
 import { voiceObjectPath } from "@/lib/voice/path";
 import { uploadErrorMessage } from "@/lib/voice/upload-error";
 import { saveVoiceNote, deleteVoiceNote } from "@/lib/voice/actions";
+import { whyActionFailed } from "@/lib/homework/stale-page";
 import { VoicePlayback } from "@/components/app/voice-playback";
 import { Button } from "@/components/ui/button";
 
 const BUCKET = "voice-notes";
+
+const STALE_RECORDER =
+  "The app was updated while this page was open. Reload the page, then record again.";
 
 /** The audio's own length, or null when this browser can't decode it. */
 async function decodedSeconds(blob: Blob): Promise<number | null> {
@@ -78,6 +82,11 @@ export function VoiceRecorder({
   const [elapsed, setElapsed] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Set when an action threw on a working connection: the page has outlived
+  // its deploy (lib/homework/stale-page.ts). On 12 Oct a release landed while
+  // a student recorded; the audio uploaded, the save threw, and every retry
+  // from that tab threw again. Only a reload mends it.
+  const [stale, setStale] = useState(false);
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -102,6 +111,16 @@ export function VoiceRecorder({
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, []);
+
+  /** An action threw rather than answered: a page older than the deploy, or the network. */
+  async function explainThrow(offline: string) {
+    if ((await whyActionFailed()) === "updated") {
+      setStale(true);
+      setError(STALE_RECORDER);
+    } else {
+      setError(offline);
+    }
+  }
 
   /**
    * "Record again" replaces: the old recording is dropped before the new one
@@ -196,7 +215,11 @@ export function VoiceRecorder({
       });
       if (upErr) throw new Error(uploadErrorMessage(upErr.message) ?? upErr.message);
 
-      const saved = await saveVoiceNote(submissionId, questionId, objectPath, seconds);
+      const saved = await saveVoiceNote(submissionId, questionId, objectPath, seconds).catch(() => null);
+      if (!saved) {
+        await explainThrow("Could not save your recording. Check your connection and record again.");
+        return;
+      }
       if (!saved.ok) throw new Error(saved.error);
 
       setDuration(seconds);
@@ -220,7 +243,11 @@ export function VoiceRecorder({
   async function discard(): Promise<boolean> {
     setBusy(true);
     try {
-      const dropped = await deleteVoiceNote(submissionId, questionId);
+      const dropped = await deleteVoiceNote(submissionId, questionId).catch(() => null);
+      if (!dropped) {
+        await explainThrow("Could not replace your recording. Check your connection and try again.");
+        return false;
+      }
       if (!dropped.ok) {
         setError("Could not replace your recording. Try again.");
         return false;
@@ -267,6 +294,11 @@ export function VoiceRecorder({
           </Button>
         )}
         {error && <p className="w-full text-xs text-danger">{error}</p>}
+        {stale && (
+          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+            Reload page
+          </Button>
+        )}
       </div>
     );
   }
@@ -302,6 +334,11 @@ export function VoiceRecorder({
       </div>
 
       {error && <p className="text-xs text-danger">{error}</p>}
+      {stale && (
+        <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+          Reload page
+        </Button>
+      )}
       {!path && !recording && !error && (
         <p className="text-xs text-muted-foreground">
           Your teacher listens to this. Find somewhere quiet and take your time.

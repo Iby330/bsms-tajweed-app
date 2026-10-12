@@ -225,6 +225,13 @@ env var added locally will build fine here and fail in production.
 secrets scanner, which would otherwise fail every build on values Next.js
 inlines into the client bundle deliberately.
 
+`NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` is Netlify-only (local dev does not need
+it) and must never change: it salts the server-action ids, and without a fixed
+one every deploy gave the actions new ids, so any page left open across a
+release could no longer save, hand in, or keep a recording. It is on
+`SECRETS_SCAN_OMIT_KEYS` too, because Next.js writes it into the server
+build output.
+
 Deploy gotchas that cost real time are recorded in `LEARNINGS.md` under
 "APIs & external services", and in the `netlify-deploy` skill's directive.
 

@@ -6,9 +6,13 @@ import { VoiceRecorder } from "./voice-recorder";
 const storage = vi.hoisted(() => ({
   remove: vi.fn(async () => ({ data: [], error: null })),
   createSignedUrl: vi.fn(async () => ({ data: { signedUrl: "blob:x" }, error: null })),
+  upload: vi.fn(async () => ({ data: {}, error: null })),
 }));
 vi.mock("@/lib/supabase/client", () => ({
-  supabaseBrowser: () => ({ storage: { from: () => storage } }),
+  supabaseBrowser: () => ({
+    storage: { from: () => storage },
+    auth: { getUser: async () => ({ data: { user: { id: "uid" } } }) },
+  }),
 }));
 const actions = vi.hoisted(() => ({
   saveVoiceNote: vi.fn(),
@@ -30,6 +34,8 @@ afterEach(cleanup);
 
 /** Just enough of a microphone for start() to reach `recorder.start()`. */
 const stopTrack = vi.fn();
+type FakeRecorder = { ondataavailable: (e: { data: Blob }) => void; onstop: () => void };
+let lastRecorder: FakeRecorder | null = null;
 function fakeMicrophone() {
   Object.defineProperty(navigator, "mediaDevices", {
     configurable: true,
@@ -44,6 +50,9 @@ function fakeMicrophone() {
       onstop: unknown = null;
       start = vi.fn();
       stop = vi.fn();
+      constructor() {
+        lastRecorder = this as unknown as FakeRecorder;
+      }
     },
   );
 }
@@ -99,5 +108,53 @@ describe("VoiceRecorder — Record again", () => {
     expect(await screen.findByText(/No microphone access/)).toBeTruthy();
     expect(actions.deleteVoiceNote).not.toHaveBeenCalled();
     expect(storage.remove).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * A page keeps the server-action ids of the deploy it was loaded from. A
+ * release while a student was recording (12 Oct, Qāʿidah 2) let the audio
+ * upload and then threw on the save that points the homework at it; every
+ * retry from that tab threw the same way. The recorder now says what the
+ * form says: the app was updated, reload.
+ */
+describe("VoiceRecorder — a page older than the deploy", () => {
+  beforeEach(() => {
+    fakeMicrophone();
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true })));
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("says the app was updated and offers a reload when the save throws", async () => {
+    actions.saveVoiceNote.mockRejectedValueOnce(new Error("An unexpected response was received from the server."));
+    render(
+      <VoiceRecorder submissionId="s1" questionId="q1" attempt={1}
+        initialPath={null} initialDuration={null} readOnly={false} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Record my recitation" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Stop recording" }));
+    lastRecorder!.ondataavailable({ data: new Blob(["x"], { type: "audio/webm" }) });
+    lastRecorder!.onstop();
+    expect(await screen.findByText(/The app was updated/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Reload page" })).toBeTruthy();
+    expect(storage.upload).toHaveBeenCalled();
+  });
+
+  it("says the same when Record again cannot drop the old recording", async () => {
+    actions.deleteVoiceNote.mockRejectedValueOnce(new Error("An unexpected response was received from the server."));
+    recorder();
+    fireEvent.click(screen.getByRole("button", { name: "Record again" }));
+    expect(await screen.findByText(/The app was updated/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Reload page" })).toBeTruthy();
+    expect(storage.remove).not.toHaveBeenCalled();
+  });
+
+  it("still blames the connection when the site cannot be reached", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("Failed to fetch"); }));
+    actions.deleteVoiceNote.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    recorder();
+    fireEvent.click(screen.getByRole("button", { name: "Record again" }));
+    expect(await screen.findByText(/connection/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Reload page" })).toBeNull();
   });
 });
