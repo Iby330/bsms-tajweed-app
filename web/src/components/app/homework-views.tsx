@@ -34,8 +34,8 @@ export function HomeworkViewToggle({ view }: { view: HwView }) {
       className={cn(
         "inline-flex min-h-10 items-center gap-2 px-4 text-sm font-medium transition-colors",
         view === value
-          ? "bg-primary text-primary-foreground"
-          : "bg-card text-foreground hover:bg-muted",
+          ? "bg-accent text-accent-foreground"
+          : "bg-card text-muted-foreground hover:bg-muted",
       )}
     >
       {icon}
@@ -44,7 +44,7 @@ export function HomeworkViewToggle({ view }: { view: HwView }) {
   );
 
   return (
-    <div role="group" aria-label="View as" className="inline-flex shrink-0 overflow-hidden border border-primary">
+    <div role="group" aria-label="View as" className="inline-flex shrink-0 overflow-hidden border border-line">
       {option(
         "list",
         "List",
@@ -102,18 +102,15 @@ export function HomeworkWeekTabs({ tabs, panels }: { tabs: WeekTab[]; panels: Re
               className={cn(
                 "inline-flex min-h-11 items-center gap-2 border px-4 text-sm font-medium transition-colors",
                 on
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-line bg-card text-foreground hover:bg-muted",
+                  ? "border-primary/25 bg-accent text-accent-foreground"
+                  : "border-line bg-card text-muted-foreground hover:bg-muted",
               )}
             >
               {t.label}
-              <span className={cn("font-normal", on ? "opacity-80" : "text-muted-foreground")}>{t.sub}</span>
+              <span className="font-normal text-muted-foreground">{t.sub}</span>
               {t.waiting > 0 && (
                 <span
-                  className={cn(
-                    "rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums",
-                    on ? "bg-card text-warn" : "bg-warn text-primary-foreground",
-                  )}
+                  className="rounded-full bg-warn/10 px-2 py-0.5 text-[11px] font-medium tabular-nums text-warn"
                 >
                   {t.waiting} waiting
                 </span>
@@ -127,7 +124,7 @@ export function HomeworkWeekTabs({ tabs, panels }: { tabs: WeekTab[]; panels: Re
         <button
           type="button"
           onClick={() => setActive(firstWaiting)}
-          className="mb-4 flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 border border-warn/30 bg-warn/10 px-4 py-2.5 text-left text-sm font-medium text-warn"
+          className="mb-4 flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 border border-warn/20 bg-warn/5 px-4 py-2.5 text-left text-sm text-warn"
         >
           <span>
             {earlierWaiting} script{earlierWaiting === 1 ? "" : "s"} still waiting from{" "}
