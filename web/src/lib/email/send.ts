@@ -54,6 +54,9 @@ export async function sendEmail(mail: Email): Promise<SendResult> {
         method: "POST",
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
         body: JSON.stringify({ from: FROM, reply_to: REPLY_TO, ...mail }),
+        // A hung connection otherwise waits as long as the function lives,
+        // and whoever is waiting on the send waits with it.
+        signal: AbortSignal.timeout(8000),
       });
       const body = await res.text();
       if (res.ok) return { ok: true, id: (JSON.parse(body) as { id: string }).id };

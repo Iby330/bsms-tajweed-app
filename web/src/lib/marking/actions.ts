@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh, revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { currentProfile } from "@/lib/supabase/server";
 import { parseRubric } from "./objective";
@@ -233,16 +234,19 @@ export async function approveSubmission(
 
   // The student hears once per attempt: on its first release, not on every
   // "Edit marks" afterwards. A submission carried over from the spreadsheet
-  // has no answers to show, so it gets no email either.
+  // has no answers to show, so it gets no email either. Sent after the
+  // response: the teacher's button used to wait on Resend, and a slow send
+  // left it on "Saving…" over marks that had already been released.
   if (submission.status !== "approved" && rows.length) {
-    await emailMarkedHomework({
+    const mail = {
       studentId: submission.student_id,
       homeworkId: submission.homework_id,
       teacher: { fullName: teacher.full_name ?? null, section: teacher.section ?? null },
       pct: result.pct,
       redo: result.redo,
       answers: rows,
-    });
+    };
+    after(() => emailMarkedHomework(mail));
   }
   return result;
 }
