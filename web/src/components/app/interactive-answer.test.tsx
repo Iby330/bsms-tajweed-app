@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, cleanup, fireEvent, screen } from "@testing-library/react";
-import { InteractiveAnswer, isInteractive } from "./interactive-answer";
+import { InteractiveAnswer } from "./interactive-answer";
+import { isInteractive } from "@/lib/homework/interactive";
 import { REGIONS } from "@/lib/homework/diagram";
 
 afterEach(cleanup);

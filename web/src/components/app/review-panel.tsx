@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { MixedText } from "@/components/app/mixed-text";
 import { QuestionImages } from "@/components/app/question-images";
-import { InteractiveAnswer, isInteractive } from "@/components/app/interactive-answer";
+import { InteractiveAnswer } from "@/components/app/interactive-answer";
+import { isInteractive } from "@/lib/homework/interactive";
 import { VoicePlayback } from "@/components/app/voice-playback";
 import { RecitationClip } from "@/components/app/recitation-clip";
 import { Button } from "@/components/ui/button";

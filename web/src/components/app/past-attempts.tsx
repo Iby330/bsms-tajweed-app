@@ -1,5 +1,6 @@
 import { MixedText } from "@/components/app/mixed-text";
-import { InteractiveAnswer, isInteractive } from "@/components/app/interactive-answer";
+import { InteractiveAnswer } from "@/components/app/interactive-answer";
+import { isInteractive } from "@/lib/homework/interactive";
 import { VoicePlayback } from "@/components/app/voice-playback";
 import { RecitationClip } from "@/components/app/recitation-clip";
 import { carriesNoMark, fmtMarks, selectedOf, textOf } from "@/lib/homework/logic";
