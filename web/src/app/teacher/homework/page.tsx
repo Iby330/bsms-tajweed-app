@@ -336,6 +336,11 @@ export default async function TeacherHomework({
   const initials = (name: string) =>
     name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
 
+  // The homework headings: the app's indigo, mixed well down into the card, so
+  // a heading is plainly coloured without the weight of solid navy. Opaque, as
+  // the table's sticky column sits on it.
+  const heading = "bg-[color-mix(in_oklab,var(--brand)_28%,var(--card))]";
+
   const check = (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M5 12.5l4.5 4.5L19 7.5" />
@@ -365,11 +370,11 @@ export default async function TeacherHomework({
               <span className="flex shrink-0 items-center gap-2">
                 {s.is_late && lateTag}
                 {s.status === "auto_marked" ? (
-                  <span className="rounded-full bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand">
+                  <span className="rounded-full bg-brand/15 px-2.5 py-1 text-xs font-semibold text-brand">
                     Awaiting approval
                   </span>
                 ) : (
-                  <span className="rounded-full bg-warn/10 px-2.5 py-1 text-xs font-medium text-warn">
+                  <span className="rounded-full bg-warn/15 px-2.5 py-1 text-xs font-semibold text-warn">
                     Not yet marked
                   </span>
                 )}
@@ -397,7 +402,7 @@ export default async function TeacherHomework({
       <div key={h.id} className="border border-line bg-card">
         <Link
           href={href(`/teacher/homework/${h.number}`)}
-          className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line bg-accent/70 px-4 py-3 text-accent-foreground transition-colors hover:bg-accent sm:px-5"
+          className={cn("flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 text-foreground transition-[filter] hover:brightness-[0.97] sm:px-5", heading)}
         >
           {title ? (
             <span className="flex min-w-0 flex-col gap-1">
@@ -411,28 +416,28 @@ export default async function TeacherHomework({
             {queue.length > 0 ? (
               <>
                 <span className="text-muted-foreground">{done} of {handedIn} marked</span>
-                <span className="rounded-full bg-warn/10 px-2.5 py-1 font-medium text-warn">{queue.length} waiting</span>
+                <span className="rounded-full bg-card px-2.5 py-1 font-semibold text-warn">{queue.length} waiting</span>
               </>
             ) : handedIn > 0 ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-ok/10 px-2.5 py-1 font-medium text-ok">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-card px-2.5 py-1 font-semibold text-ok">
                 {check}All caught up · {done} marked
               </span>
             ) : (
-              <span className="rounded-full bg-card/70 px-2.5 py-1 font-medium text-muted-foreground">Nothing handed in yet</span>
+              <span className="rounded-full bg-card px-2.5 py-1 font-medium text-muted-foreground">Nothing handed in yet</span>
             )}
           </span>
         </Link>
         {queue.length > 0 && (
           <>
-            <div aria-hidden className="h-[3px] bg-line/60">
-              <div className="h-full bg-ok/55" style={{ width: `${Math.round((done / handedIn) * 100)}%` }} />
+            <div aria-hidden className="h-1 bg-warn/15">
+              <div className="h-full bg-ok/80" style={{ width: `${Math.round((done / handedIn) * 100)}%` }} />
             </div>
             {queueRows(queue)}
           </>
         )}
         {missed.length > 0 && (
           <p className="flex flex-wrap items-center gap-2 border-t border-line px-4 py-2.5 text-sm sm:px-5">
-            <span className="rounded-full bg-danger/10 px-2.5 py-0.5 text-xs font-medium text-danger">Missed</span>
+            <span className="rounded-full bg-danger/15 px-2.5 py-0.5 text-xs font-semibold text-danger">Missed</span>
             <span className="text-muted-foreground">{missed.join(", ")}</span>
           </p>
         )}
@@ -447,24 +452,24 @@ export default async function TeacherHomework({
   const individualHref = (h: Hw, studentId: string) =>
     href(`/teacher/homework/${h.number}?tab=individual&student=${studentId}`);
 
-  const pill = "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium";
+  const pill = "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold";
 
   const cellChip = (h: Hw, studentId: string) => {
     const { state, sub } = cellOf(h, studentId);
     const script = sub ? href(`/teacher/homework/submission/${sub.id}`) : individualHref(h, studentId);
     const chip =
       state === "marked" ? (
-        <Link href={script} className={cn(pill, "bg-ok/10 text-ok hover:bg-ok/15")}>{check}Marked</Link>
+        <Link href={script} className={cn(pill, "bg-ok/15 text-ok hover:bg-ok/25")}>{check}Marked</Link>
       ) : state === "to_mark" ? (
-        <Link href={script} className={cn(pill, "bg-warn/10 text-warn hover:bg-warn/15")}>
-          <span aria-hidden className="size-1.5 rounded-full bg-warn/70" />To mark
+        <Link href={script} className={cn(pill, "bg-warn/15 text-warn hover:bg-warn/25")}>
+          <span aria-hidden className="size-1.5 rounded-full bg-warn" />To mark
         </Link>
       ) : state === "to_approve" ? (
-        <Link href={script} className={cn(pill, "bg-brand/10 text-brand hover:bg-brand/15")}>To approve</Link>
+        <Link href={script} className={cn(pill, "bg-brand/15 text-brand hover:bg-brand/25")}>To approve</Link>
       ) : state === "sent_back" ? (
         <Link href={script} className={cn(pill, "bg-muted text-muted-foreground hover:bg-accent")}>Sent back</Link>
       ) : state === "missed" ? (
-        <Link href={script} className={cn(pill, "bg-danger/10 text-danger hover:bg-danger/15")}>Missed</Link>
+        <Link href={script} className={cn(pill, "bg-danger/15 text-danger hover:bg-danger/25")}>Missed</Link>
       ) : (
         <span className="text-xs text-muted-foreground">Not handed in yet</span>
       );
@@ -478,7 +483,7 @@ export default async function TeacherHomework({
 
   // Opaque, so the sticky name column hides what scrolls beneath it.
   const zebra = "bg-[color-mix(in_oklab,var(--muted)_30%,var(--card))]";
-  const band = "bg-[color-mix(in_oklab,var(--accent)_35%,var(--card))]";
+  const band = "bg-[color-mix(in_oklab,var(--accent)_45%,var(--card))]";
 
   const weekGrid = (list: Hw[]) =>
     list.length === 0 ? (
@@ -491,12 +496,16 @@ export default async function TeacherHomework({
       </p>
     ) : (
       <div className="overflow-x-auto border border-line bg-card">
-        <table className="w-full border-collapse text-sm" style={{ minWidth: `${11 + list.length * 9}rem` }}>
+        <table className="w-full table-fixed border-collapse text-sm" style={{ minWidth: `${11 + list.length * 9}rem` }}>
+          <colgroup>
+            <col className="w-44" />
+            {list.map((h) => <col key={h.id} />)}
+          </colgroup>
           <thead>
-            <tr className="bg-accent text-accent-foreground">
+            <tr className={cn("text-foreground", heading)}>
               <th
                 scope="col"
-                className="sticky left-0 z-10 bg-accent px-4 py-3 text-left align-bottom font-mono text-[11px] font-normal uppercase tracking-[0.15em] text-muted-foreground"
+                className={cn("sticky left-0 z-10 px-4 py-3 text-left align-bottom font-mono text-[11px] font-normal uppercase tracking-[0.15em] text-muted-foreground", heading)}
               >
                 Student
               </th>
@@ -504,7 +513,7 @@ export default async function TeacherHomework({
                 const title = moduleTitle(h.title);
                 const due = classDueOf(h);
                 return (
-                  <th key={h.id} scope="col" className="border-l border-line p-0 text-left align-top font-normal">
+                  <th key={h.id} scope="col" className="border-l border-card/60 p-0 text-left align-top font-normal">
                     <Link href={href(`/teacher/homework/${h.number}`)} className="flex flex-col gap-1 px-3 py-3 hover:underline">
                       <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
                         {homeworkLabel(h.number, h.series)}
@@ -530,9 +539,9 @@ export default async function TeacherHomework({
                 return (
                   <td key={h.id} className="border-l border-line px-3 py-2">
                     {waiting > 0 ? (
-                      <span className={cn(pill, "bg-warn/10 py-0.5 text-warn")}>{waiting} waiting</span>
+                      <span className={cn(pill, "bg-warn/15 py-0.5 text-warn")}>{waiting} waiting</span>
                     ) : done > 0 ? (
-                      <span className={cn(pill, "bg-ok/10 py-0.5 text-ok")}>{check}All marked</span>
+                      <span className={cn(pill, "bg-ok/15 py-0.5 text-ok")}>{check}All marked</span>
                     ) : (
                       <span className="text-xs text-muted-foreground">Nothing in yet</span>
                     )}

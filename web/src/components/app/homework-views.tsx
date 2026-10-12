@@ -34,7 +34,7 @@ export function HomeworkViewToggle({ view }: { view: HwView }) {
       className={cn(
         "inline-flex min-h-10 items-center gap-2 px-4 text-sm font-medium transition-colors",
         view === value
-          ? "bg-accent text-accent-foreground"
+          ? "bg-[color-mix(in_oklab,var(--brand)_28%,var(--card))] text-foreground"
           : "bg-card text-muted-foreground hover:bg-muted",
       )}
     >
@@ -102,7 +102,7 @@ export function HomeworkWeekTabs({ tabs, panels }: { tabs: WeekTab[]; panels: Re
               className={cn(
                 "inline-flex min-h-11 items-center gap-2 border px-4 text-sm font-medium transition-colors",
                 on
-                  ? "border-primary/25 bg-accent text-accent-foreground"
+                  ? "border-brand/40 bg-[color-mix(in_oklab,var(--brand)_28%,var(--card))] text-foreground"
                   : "border-line bg-card text-muted-foreground hover:bg-muted",
               )}
             >
@@ -110,7 +110,7 @@ export function HomeworkWeekTabs({ tabs, panels }: { tabs: WeekTab[]; panels: Re
               <span className="font-normal text-muted-foreground">{t.sub}</span>
               {t.waiting > 0 && (
                 <span
-                  className="rounded-full bg-warn/10 px-2 py-0.5 text-[11px] font-medium tabular-nums text-warn"
+                  className="rounded-full bg-warn/15 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-warn"
                 >
                   {t.waiting} waiting
                 </span>
@@ -124,7 +124,7 @@ export function HomeworkWeekTabs({ tabs, panels }: { tabs: WeekTab[]; panels: Re
         <button
           type="button"
           onClick={() => setActive(firstWaiting)}
-          className="mb-4 flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 border border-warn/20 bg-warn/5 px-4 py-2.5 text-left text-sm text-warn"
+          className="mb-4 flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 border border-warn/30 bg-warn/10 px-4 py-2.5 text-left text-sm font-medium text-warn"
         >
           <span>
             {earlierWaiting} script{earlierWaiting === 1 ? "" : "s"} still waiting from{" "}
