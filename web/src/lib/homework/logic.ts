@@ -28,7 +28,13 @@ export type AnswerResponse =
 
 /* ── RPC payload (get_homework_for_student — answer keys stripped) ────── */
 
-export type StudentOption = { position: number; label: string; value?: string };
+export type StudentOption = {
+  position: number;
+  label: string;
+  value?: string;
+  /** Only once the student's own paper is approved (0094); absent before. */
+  correct?: boolean;
+};
 
 export type StudentQuestion = {
   id: string;
@@ -69,8 +75,12 @@ export function parseStudentHomework(json: unknown): StudentHomework | null {
     .sort((a, b) => a.position - b.position)
     .map((q) => ({
       ...q,
+      // The database sends `correct: null` until the paper is released;
+      // absent and null mean the same, so null is dropped here.
       options: q.options
-        ? [...q.options].sort((a, b) => a.position - b.position)
+        ? [...q.options]
+            .sort((a, b) => a.position - b.position)
+            .map(({ correct, ...o }) => (typeof correct === "boolean" ? { ...o, correct } : o))
         : null,
     }));
   return { homework: hw, questions: sorted };

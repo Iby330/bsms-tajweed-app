@@ -260,3 +260,22 @@ describe("missingTaskRecordings", () => {
     ).toEqual(["t1"]);
   });
 });
+
+describe("parseStudentHomework: the answer key", () => {
+  const payload = (correct: unknown[]) => ({
+    homework: { id: "h1" },
+    questions: [{ id: "q1", position: 1, options: correct.map((c, i) => ({ position: i, label: `${i}`, correct: c })) }],
+  });
+
+  it("keeps the key once the database sends it (a released paper)", async () => {
+    const { parseStudentHomework } = await import("./logic");
+    const hw = parseStudentHomework(payload([true, false]))!;
+    expect(hw.questions[0].options!.map((o) => o.correct)).toEqual([true, false]);
+  });
+
+  it("drops the null the database sends before release", async () => {
+    const { parseStudentHomework } = await import("./logic");
+    const hw = parseStudentHomework(payload([null, null]))!;
+    expect(hw.questions[0].options!.every((o) => !("correct" in o))).toBe(true);
+  });
+});

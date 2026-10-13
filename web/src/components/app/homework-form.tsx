@@ -205,6 +205,9 @@ export function HomeworkForm({
               selected={selectedOf(value)}
               readOnly={readOnly}
               onChange={(next) => update(q.id, checkboxResponse(next))}
+              /* Marked and released: the key arrives with the paper (0094),
+                 so the student sees what they missed, as the teacher does. */
+              reveal={approved && q.options!.some((o) => typeof o.correct === "boolean")}
             />
           ) : q.qtype === "mcq" && q.options && isLetterGrid(q.options) ? (
             /* A letter on its own (a run of them is LetterSteps): the
