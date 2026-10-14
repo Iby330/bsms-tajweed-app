@@ -25,6 +25,7 @@
  *                                            value glyph\ttext) — the TapWords shape
  *   short / extended                       → text / paragraph, exact, rubric
  *   voice (recorded in the app)            → text, manual, is_task, 0 marks
+ *                                            (its points with `marked: true`)
  *   whatsapp (sent to the class group)     → mcq, 0 marks, one "sent" option —
  *                                            last year's shape; an in-app task
  *                                            would block hand-in until recorded
@@ -81,6 +82,8 @@ type Q = {
   diagram?: { answer: string } | null;
   /** Pictures under the prompt, served from web/public/images/homework (0081). */
   images?: { src: string; alt?: string; width?: number; height?: number }[] | null;
+  /** A voice task the teacher gives a mark for: it keeps `points`. */
+  marked?: boolean;
 };
 type Paper = {
   number: number; series: string; course: string; ordinal: number; term1_week: number | null; title: string; questions: Q[];
@@ -240,7 +243,9 @@ async function row(q: Q, position: number) {
     case "tap": return { ...base, qtype: "checkbox", scoring: "per_option", options: await tapOptions(q) };
     case "short": return { ...base, qtype: "text", rubric: rubric(q.rubric) };
     case "extended": return { ...base, qtype: "paragraph", rubric: rubric(q.rubric) };
-    case "voice": return { ...base, qtype: "text", scoring: "manual", points: 0, is_task: true };
+    // 0 marks unless the bundle says the teacher marks it (`marked`, as
+    // Qāʿidah 303's readings are), so older bundles load as they always have.
+    case "voice": return { ...base, qtype: "text", scoring: "manual", points: q.marked ? q.points : 0, is_task: true };
     case "voice_reference":
       if (!q.reference) throw new Error(`Q${q.n}: voice_reference without a reference`);
       return { ...base, qtype: "text", scoring: "manual", points: 0, is_task: true, media: { clip: await referenceClip(q.reference) } };

@@ -1,0 +1,100 @@
+{
+ "_source": "Moadh's Google Doc 108A4Gs3RNnCmSIt38EzgehJ8TYotL-u5MVyHfGVDJPE (Homework 3), reviewed by Ibrahim on the 'Qāʿidah Homework 3' artifact, 2026-10-14. The doc's Q5 A/B/C are questions 5-7 here and its Q6 is question 8; the doc gave no marks for Q4-6, so Ibrahim set 1 each.",
+ "papers": [
+  {
+   "number": 303,
+   "series": "qaidah",
+   "course": "qaidah",
+   "ordinal": 3,
+   "term1_week": 3,
+   "title": "The Short Vowels and Tanwīn",
+   "questions": [
+    {
+     "n": 1,
+     "format": "short",
+     "prompt": "What are the 3 short vowels?",
+     "points": 3,
+     "rubric": [
+      { "desc": "Fatḥah (accept the Arabic name فتحة or the mark itself, ـَ)", "marks": 1 },
+      { "desc": "Kasrah (accept the Arabic name كسرة or the mark itself, ـِ)", "marks": 1 },
+      { "desc": "Ḍammah, also spelt Dhammah or Dhumma (accept the Arabic name ضمة or the mark itself, ـُ)", "marks": 1 }
+     ]
+    },
+    {
+     "n": 2,
+     "format": "short",
+     "prompt": "What does tanwīn denote?",
+     "points": 1,
+     "rubric": [
+      { "desc": "A double short vowel", "marks": 1 }
+     ]
+    },
+    {
+     "n": 3,
+     "format": "mcq",
+     "prompt": "Which letter is said at the end of the word to pronounce tanwīn?",
+     "points": 1,
+     "options": [
+      { "text": "ب", "correct": false },
+      { "text": "ن", "correct": true },
+      { "text": "ت", "correct": false },
+      { "text": "ء", "correct": false },
+      { "text": "ث", "correct": false }
+     ]
+    },
+    {
+     "n": 4,
+     "format": "short",
+     "prompt": "Why is it important that we pronounce the ḥarakāt (short vowels) purely and correctly?",
+     "points": 1,
+     "rubric": [
+      { "desc": "To make sure the meaning is preserved, as changing a ḥarakah can change the meaning", "marks": 1 }
+     ]
+    },
+    {
+     "n": 5,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "Fatḥah. Read the following words and record yourself. Take your time and don't rush. Say each letter correctly, and give every letter the same length as the others.\nThe first picture shows each word as 3 separate letters in different colours. The second shows whole words. This builds your confidence to pick out each letter, then to say the word together.",
+     "images": [
+      { "src": "/images/homework/qaidah/hw3-5-1.png", "alt": "Qāʿidah exercise with fatḥah: each word as 3 separate letters", "width": 507, "height": 291 },
+      { "src": "/images/homework/qaidah/hw3-5-2.png", "alt": "Qāʿidah exercise with fatḥah: the whole words", "width": 515, "height": 222 }
+     ]
+    },
+    {
+     "n": 6,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "Kasrah. Read the following words and record yourself. Take your time and don't rush. Say each letter correctly, and give every letter the same length as the others.",
+     "images": [
+      { "src": "/images/homework/qaidah/hw3-6-1.png", "alt": "Qāʿidah exercise with kasrah: each word as 3 separate letters", "width": 511, "height": 295 },
+      { "src": "/images/homework/qaidah/hw3-6-2.png", "alt": "Qāʿidah exercise with kasrah: the whole words", "width": 506, "height": 145 }
+     ]
+    },
+    {
+     "n": 7,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "Ḍammah. Read the following words and record yourself. Take your time and don't rush. Say each letter correctly, and give every letter the same length as the others.",
+     "images": [
+      { "src": "/images/homework/qaidah/hw3-7-1.png", "alt": "Qāʿidah exercise with ḍammah: each word as 3 separate letters", "width": 519, "height": 224 },
+      { "src": "/images/homework/qaidah/hw3-7-2.png", "alt": "Qāʿidah exercise with ḍammah: the whole words", "width": 513, "height": 220 }
+     ]
+    },
+    {
+     "n": 8,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "Read the following and record yourself. This checks everything you have covered so far.\nEach colour is a different word. This builds the habit of seeing where a word begins and ends.",
+     "images": [
+      { "src": "/images/homework/qaidah/hw3-8.png", "alt": "Four short sentences, each word in its own colour", "width": 517, "height": 139 }
+     ]
+    }
+   ]
+  }
+ ]
+}
