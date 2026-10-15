@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { FilterSelect } from "./filter-select";
 import { ReviewLogger } from "./review-logger";
@@ -24,7 +25,7 @@ export type DeskStudent = {
  * count never carry over from one student to the next.
  */
 export function HearDesk({
-  roster, studentId, studentName, initialMistakes, pages, heat, history, surahNames, pager,
+  roster, studentId, studentName, initialMistakes, pages, heat, history, surahNames, pager, result,
 }: {
   roster: DeskStudent[];
   studentId: string;
@@ -36,6 +37,8 @@ export function HearDesk({
   history: Record<string, WordHistoryEntry[]>;
   surahNames: SurahNames;
   pager?: { page: number; min: number; max: number; basePath: string; param?: string; step?: number };
+  /** The surah being heard and its Pass / Not passed, under the picker. */
+  result?: ReactNode;
 }) {
   const router = useRouter();
   const hasTarget = roster.find((s) => s.id === studentId)?.hasTarget ?? false;
@@ -51,6 +54,7 @@ export function HearDesk({
           disabled: !s.hasTarget,
         }))}
       />
+      {hasTarget && result}
       {!hasTarget ? (
         <p className="note">No target set for this student yet.</p>
       ) : (

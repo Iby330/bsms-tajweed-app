@@ -8,6 +8,7 @@ import { aggregatePatterns } from "@/lib/hifz/mistakes";
 import { spreadHeat } from "@/lib/hifz/heat-spread";
 import { rosterWithNext, type RosterStudent } from "@/lib/hifz/roster";
 import { HearDesk, type DeskStudent } from "./hear-desk";
+import { ResultButton } from "./result-button";
 import { PatternTracker } from "./pattern-tracker";
 import { ReviewFeedback } from "./review-feedback";
 import { Rule } from "./rule";
@@ -120,11 +121,35 @@ export async function HearTab({
   const { heat: heatValues, history } = spreadHeat(words, earlier, new Date());
   const surahNames: SurahNames = Object.fromEntries(surahs.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]));
 
+  // The surah being heard, and the result for it, beside the mushaf: once a
+  // student has recited it there is nothing to go back to the register for.
+  // The same popup as the register's, From already on this surah.
+  const hearing = chosen.next ?? run[run.length - 1];
+
   return (
     <>
       <div className="field">
         <section className="box c12" aria-label="The hearing">
           <HearDesk
+            result={
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm">
+                  {chosen.next ? (
+                    <>Reciting <b>{surahNames[hearing.number]?.en ?? `Surah ${hearing.number}`}</b></>
+                  ) : (
+                    "Run complete"
+                  )}
+                </p>
+                <ResultButton
+                  studentId={studentId}
+                  studentName={chosen.name}
+                  run={run.map((s) => s.number)}
+                  from={hearing.number}
+                  names={surahNames}
+                  passedBefore={chosen.passedAt}
+                />
+              </div>
+            }
             roster={deskRoster}
             studentId={studentId}
             studentName={chosen.name}
