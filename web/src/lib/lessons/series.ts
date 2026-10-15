@@ -26,9 +26,10 @@ export const SERIES_BLURB: Record<string, string> = {
   qaidah: "The Arabic letters: how each one is said, and how to tell them apart.",
 };
 
-/** Series the programme plans to add but holds nothing for yet. The `seerah`
- *  enum value is kept as the key; the series it names is Sahabah Stories. */
-export const SERIES_COMING_SOON = new Set(["seerah"]);
+/** Series the programme plans to add but holds nothing for yet. Empty since
+ *  Sahabah Stories (the `seerah` key) became a course in every class's year,
+ *  2026-10-15; kept so the next planned series has somewhere to go. */
+export const SERIES_COMING_SOON = new Set<string>();
 
 /** Teaching order. Anything unlisted sorts last, alphabetically. */
 export const SERIES_ORDER = ["tajweed", "umm_al_kitab", "tfp", "seerah", "qaidah"];

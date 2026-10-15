@@ -48,7 +48,9 @@ export function CourseTile({
       (block.posterId
         ? block.hasHomework ? " · video + homework" : " · video only"
         : block.hasHomework ? " · homework" : "")
-    : reason === "elsewhere"
+    : reason === "no-content"
+      ? "Videos coming soon"
+      : reason === "elsewhere"
       ? "Modules still to come"
       : reason === "coming-soon"
         ? "Not running yet"

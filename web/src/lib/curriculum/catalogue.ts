@@ -366,14 +366,19 @@ export function courseIndex(
 
   // Whatever the tree never mentioned. For a class with a syllabus that is
   // another class's course; for one without, it is the rest of their own year.
+  // A series some course draws on but with nothing in it yet (Sahabah Stories
+  // before its first video) is being taught, just not uploaded: never "not
+  // running this year".
+  const coursed = new Set(Object.values(COURSES).flatMap((c) => (c.source ? [c.source.series] : [])));
   for (const block of catalogue) {
     if (claimed.has(block)) continue;
     const later = !hasSyllabus && block.moduleCount > 0 && !block.started;
+    const coming = block.moduleCount === 0 && coursed.has(block.series);
     locked.push({
       id: `${block.series} ${block.termId}`,
       block,
       href: null,
-      reason: later ? "later" : "not-running",
+      reason: later ? "later" : coming ? "no-content" : "not-running",
     });
   }
 
@@ -551,7 +556,15 @@ export function termIndex(
         // A course whose series shares its name (Qāʿidah) owns that series'
         // empty block too, from before any of its rows exist; left unclaimed
         // it would be a second "Qāʿidah" tile beside the course's own.
-        ?? catalogue.find((b) => b.courseKey === null && b.series === key && b.termId === null);
+        ?? catalogue.find((b) => b.courseKey === null && b.series === key && b.termId === null)
+        // Likewise a course whose lessons will live under another series name
+        // owns that series' empty block: Sahabah Stories' three terms and the
+        // `seerah` block, which otherwise read "Not running this year" beside
+        // the halaqah every class has each week.
+        ?? (def.source
+          ? catalogue.find((b) => b.courseKey === null && b.series === def.source!.series
+              && b.termId === null && b.moduleCount === 0)
+          : undefined);
       if (src) used.add(src);
       return src;
     };

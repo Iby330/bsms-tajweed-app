@@ -39,7 +39,10 @@ export type CourseKey =
   | "makharij"
   | "mabadi"
   | "ummul_kitab"
-  | "qaidah";
+  | "qaidah"
+  | "sahabah_t1"
+  | "sahabah_t2"
+  | "sahabah_t3";
 
 export type Course = {
   label: string;
@@ -62,6 +65,13 @@ export const COURSES: Readonly<Record<CourseKey, Course>> = {
   sifaat_new: { label: "Ṣifāt series", source: null },
   makharij: { label: "Makhārij series", source: null },
   qaidah: { label: "Qāʿidah Nūrāniyyah", source: { series: "qaidah", termId: 1 } },
+  // The weekly Sahabah halaqah: in person for the brothers, recorded for the
+  // sisters, and on YouTube for both to look back on. Every class, every
+  // term (programme lead, 2026-10-15), so one course per term: a class takes
+  // a course in exactly one term (class_courses' key).
+  sahabah_t1: { label: "Sahabah Stories", source: { series: "seerah", termId: 1 } },
+  sahabah_t2: { label: "Sahabah Stories", source: { series: "seerah", termId: 2 } },
+  sahabah_t3: { label: "Sahabah Stories", source: { series: "seerah", termId: 3 } },
 };
 
 /** Groups run 1 (highest) to 5, as the programme ranks them; 6 is the
@@ -81,19 +91,19 @@ export type GroupId = 1 | 2 | 3 | 4 | 5 | 6;
 export const SYLLABUS: Readonly<Record<GroupId, Readonly<Record<TermId, CourseKey[]>>>> = {
   // Group 1 takes Ghunna, Mudūd and the existing Ṣifāt together in Term 1,
   // several items a week (`class_course_items`); the new Ṣifāt stays in Term 2.
-  1: { 1: ["ghunna", "mudood", "sifaat_old"], 2: ["sifaat_new"], 3: ["makharij", "mabadi"] },
-  2: { 1: ["ghunna", "ummul_kitab"], 2: ["sifaat_old"], 3: ["mudood", "mabadi"] },
-  3: { 1: ["ghunna", "ummul_kitab"], 2: ["sifaat_old"], 3: ["mudood", "mabadi"] },
+  1: { 1: ["ghunna", "mudood", "sifaat_old", "sahabah_t1"], 2: ["sifaat_new", "sahabah_t2"], 3: ["makharij", "mabadi", "sahabah_t3"] },
+  2: { 1: ["ghunna", "ummul_kitab", "sahabah_t1"], 2: ["sifaat_old", "sahabah_t2"], 3: ["mudood", "mabadi", "sahabah_t3"] },
+  3: { 1: ["ghunna", "ummul_kitab", "sahabah_t1"], 2: ["sifaat_old", "sahabah_t2"], 3: ["mudood", "mabadi", "sahabah_t3"] },
   // Group 4 is the same as group 3, Mabādi' included: settled by the
   // programme lead, 2026-10-02 (0043).
-  4: { 1: ["ghunna", "ummul_kitab"], 2: ["sifaat_old"], 3: ["mudood", "mabadi"] },
+  4: { 1: ["ghunna", "ummul_kitab", "sahabah_t1"], 2: ["sifaat_old", "sahabah_t2"], 3: ["mudood", "mabadi", "sahabah_t3"] },
   // Group 5 is the Arabic basics class: Qaidah and Umm al-Kitab together in
   // Term 1. Umm al-Kitab went to Term 2 on 2026-10-04 and came back for
   // Al-Aqsa in 0061, and for Salsabeel in 0069 (programme lead, 2026-10-09).
   // Terms 2 and 3 are TBC.
-  5: { 1: ["qaidah", "ummul_kitab"], 2: [], 3: [] },
+  5: { 1: ["qaidah", "ummul_kitab", "sahabah_t1"], 2: ["sahabah_t2"], 3: ["sahabah_t3"] },
   // Group 4 without Mabādi' (the matn): Rayyan, programme lead, 2026-10-03.
-  6: { 1: ["ghunna", "ummul_kitab"], 2: ["sifaat_old"], 3: ["mudood"] },
+  6: { 1: ["ghunna", "ummul_kitab", "sahabah_t1"], 2: ["sifaat_old", "sahabah_t2"], 3: ["mudood", "sahabah_t3"] },
 };
 
 /**

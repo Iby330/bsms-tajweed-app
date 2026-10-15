@@ -332,21 +332,19 @@ describe("termIndex", () => {
     // by COURSES' own label, not whatever topic name a shared block carries.
     expect(rest.map((t) => t.block.label)).toEqual([
       "Ṣifāt", "Mabādi'", "Umm al-Kitāb", "Ṣifāt series", "Makhārij series", "Qāʿidah Nūrāniyyah",
-      "Ten Fundamental Principles", "Sahabah Stories",
+      "Sahabah Stories", "Sahabah Stories", "Sahabah Stories",
     ]);
     expect(rest.some((t) => t.block.series === "ghunna" || t.block.series === "mudood")).toBe(false);
-    // Seerah and TFP have no course row at all (`courseKey: null`) — COURSES
-    // cannot name them, so they are appended from the catalogue directly,
-    // which is why they trail the course-based tiles (last two above)
-    // instead of leading them.
-    expect(rest.slice(-2).map((t) => t.block.series)).toEqual(["tfp", "seerah"]);
+    // A course owns the empty block of the series its lessons will live
+    // under, so neither TFP (Mabādi's rows) nor Seerah (Sahabah Stories') is
+    // left over as a second tile of its own: the list above has none.
     expect(rest.every((t) => t.href === null)).toBe(true);
     // Another class's plan names every course, empty or not, so none reads as
-    // off this year; Sahabah Stories (the `seerah` series) is not built yet.
+    // off this year: Sahabah Stories is every class's, every term (2026-10-15).
     const reasonOf = (label: string) => rest.find((t) => t.block.label === label)?.reason;
     expect(reasonOf("Ṣifāt series")).toBe("elsewhere");
     expect(reasonOf("Makhārij series")).toBe("elsewhere");
-    expect(reasonOf("Sahabah Stories")).toBe("coming-soon");
+    expect(rest.filter((t) => t.block.label === "Sahabah Stories").every((t) => t.reason === "elsewhere")).toBe(true);
   });
 
   it("shows a series never tied to its course once, as that course, and not to a class taking it", () => {
