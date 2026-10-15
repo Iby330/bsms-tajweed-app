@@ -245,9 +245,31 @@ export function buildCatalogue(
     } satisfies CourseBlock;
   });
 
-  // Courses the programme teaches but is not running at all this year.
+  // Courses the programme teaches with nothing in the app yet. A series a
+  // course is planned on gets a block per term of that course, empty, so the
+  // grid shows "Sahabah Stories · Term 1/2/3" the moment the halaqah is on the
+  // plan rather than one termless "Not running this year" until the first
+  // video. A series no course draws on is the one that really is off.
   for (const series of SERIES_ORDER) {
     if (seriesSeen.has(series)) continue;
+    const planned = Object.entries(COURSES).flatMap(([key, def]) =>
+      def.source?.series === series ? [{ key, termId: def.source.termId }] : [],
+    );
+    for (const { key, termId } of planned) {
+      blocks.push({
+        series,
+        termId,
+        ...topicFor(series, termId),
+        courseKey: key,
+        moduleCount: 0,
+        hasHomework: false,
+        posterId: null,
+        opensAt: null,
+        started: false,
+        fullyOpen: false,
+      });
+    }
+    if (planned.length) continue;
     blocks.push({
       series,
       termId: null,

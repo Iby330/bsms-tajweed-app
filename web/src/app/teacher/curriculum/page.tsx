@@ -55,9 +55,12 @@ export default async function Curriculum() {
             <CourseTile
               key={`${block.series} ${block.termId}`}
               block={block}
-              href={block.termId ? `/teacher/curriculum/c/${block.series}/${block.termId}` : null}
+              // A planned term with nothing uploaded yet (Sahabah Stories before
+              // its first video) has no weeks to open: shut, and saying so.
+              href={block.termId && block.moduleCount > 0 ? `/teacher/curriculum/c/${block.series}/${block.termId}` : null}
+              reason={block.termId && block.moduleCount === 0 ? "no-content" : undefined}
               note={
-                block.termId
+                block.termId && block.moduleCount > 0
                   ? `${videos} of ${block.moduleCount} with video` +
                     (hw ? ` · ${hw} homework` : "")
                   : undefined

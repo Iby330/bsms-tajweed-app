@@ -165,8 +165,13 @@ describe("courseIndex", () => {
     expect(mine.map((t) => t.href).sort())
       .toEqual(["/courses/1/tajweed", "/courses/1/umm_al_kitab", "/courses/3/tajweed"]);
     // All that is left is the series these rows hold no content for at all.
-    expect(locked.map((t) => t.block.series).sort()).toEqual(["qaidah", "seerah", "tfp"]);
+    // Sahabah Stories is planned in all three terms (2026-10-15), so it is a
+    // block a term, each on its way rather than off this year.
+    expect(locked.map((t) => t.block.series).sort()).toEqual(["qaidah", "seerah", "seerah", "seerah", "tfp"]);
     expect(locked.every((t) => t.block.moduleCount === 0)).toBe(true);
+    const sahabah = locked.filter((t) => t.block.series === "seerah");
+    expect(sahabah.map((t) => t.block.termId)).toEqual([1, 2, 3]);
+    expect(sahabah.every((t) => t.reason === "no-content")).toBe(true);
   });
 
   it("carries the catalogue's cover art and topic name onto the tile", () => {
@@ -369,5 +374,16 @@ describe("termIndex", () => {
   it("leaves the rest empty for a reader on the whole programme", () => {
     const tree = buildTree(asSeenBy(null, NOW), NOW, null);
     expect(termIndex(cat(NOW), tree, false).rest).toEqual([]);
+  });
+});
+
+describe("a course planned before its first video", () => {
+  it("is a block a term in the catalogue, never one termless 'not running' block", () => {
+    const sahabah = cat(NOW).filter((b) => b.series === "seerah");
+    expect(sahabah.map((b) => [b.termId, b.courseKey, b.moduleCount])).toEqual([
+      [1, "sahabah_t1", 0],
+      [2, "sahabah_t2", 0],
+      [3, "sahabah_t3", 0],
+    ]);
   });
 });
