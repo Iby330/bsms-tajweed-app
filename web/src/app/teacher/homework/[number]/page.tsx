@@ -14,13 +14,14 @@ import { Crumbs } from "@/components/app/crumbs";
 import { MixedText } from "@/components/app/mixed-text";
 import { ReviewPanel } from "@/components/app/review-panel";
 import { PastAttempts } from "@/components/app/past-attempts";
+import { redoCapped } from "@/lib/marking/redo";
 import { StudentPicker } from "@/components/app/student-picker";
 import { ResultsTabs, type ResultsTab } from "@/components/app/results-tabs";
 import { ResultsSummary, type SummaryRow } from "@/components/app/results-summary";
 import { QuestionBreakdown } from "@/components/app/question-breakdown";
 import { questionLabels } from "@/lib/homework/letters";
 import { ExtensionControl } from "@/components/app/extension-control";
-import { LateTag, SubmissionAction } from "@/components/app/submission-action";
+import { CapTag, LateTag, SubmissionAction } from "@/components/app/submission-action";
 
 export const dynamic = "force-dynamic";
 
@@ -352,12 +353,20 @@ export default async function HomeworkResults({
     ? await db
         .from("submission_attempts")
         .select(`
-          attempt, pct, approved_at, is_late, answers, voice_notes,
+          attempt, pct, approved_at, is_late, answers, voice_notes, capped, cap_lifted,
           profiles!submission_attempts_approved_by_fkey(full_name)
         `)
         .eq("submission_id", redoLive.id)
         .order("attempt", { ascending: false })
     : { data: null };
+  // A redo after a fail counts as 60% at most until a teacher lifts it.
+  const capped = redoCapped(
+    (attemptRows ?? []).map((a) => ({
+      pct: a.pct === null ? null : Number(a.pct),
+      capped: a.capped,
+      cap_lifted: a.cap_lifted,
+    })),
+  );
   const pastAttempts = (attemptRows ?? []).map((a) => ({
     attempt: a.attempt,
     pct: a.pct === null ? null : Number(a.pct),
@@ -539,6 +548,7 @@ export default async function HomeworkResults({
                         did, which is the same walk with the destination
                         visible. */}
                     {selected && selectedSub?.is_late && <LateTag submissionId={selectedSub.id} />}
+                    {selected && redoLive && capped && <CapTag submissionId={redoLive.id} />}
                   </div>
 
                   {!selected && (
@@ -607,7 +617,6 @@ export default async function HomeworkResults({
                         <div className="flex justify-end">
                           <SubmissionAction
                             key={selectedSub.id}
-                            kind={selectedSub.status === "approved" ? "redo" : "reopen"}
                             submissionId={selectedSub.id}
                             studentName={selected.full_name}
                           />

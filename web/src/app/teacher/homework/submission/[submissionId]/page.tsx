@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { supabaseServer } from "@/lib/supabase/server";
 import { teacherClasses } from "@/lib/teacher/scope";
 import { markSubmission } from "@/lib/marking/actions";
-import { canApprove } from "@/lib/marking/redo";
+import { canApprove, redoCapped } from "@/lib/marking/redo";
 import { ReviewPanel } from "@/components/app/review-panel";
 import { PastAttempts } from "@/components/app/past-attempts";
 import { MixedText } from "@/components/app/mixed-text";
@@ -12,7 +12,7 @@ import { homeworkLabel } from "@/components/app/homework-row";
 import { moduleTitle } from "@/lib/curriculum/tree";
 import { reviewQueue } from "@/lib/marking/queue";
 import { ReviewQueueBar } from "@/components/app/review-queue-bar";
-import { LateTag, SubmissionAction } from "@/components/app/submission-action";
+import { CapTag, LateTag, SubmissionAction } from "@/components/app/submission-action";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +64,7 @@ export default async function SubmissionReview({
     db
       .from("submission_attempts")
       .select(`
-        attempt, pct, approved_at, is_late, answers, voice_notes,
+        attempt, pct, approved_at, is_late, answers, voice_notes, capped, cap_lifted,
         profiles!submission_attempts_approved_by_fkey(full_name)
       `)
       .eq("submission_id", submissionId)
@@ -87,6 +87,14 @@ export default async function SubmissionReview({
     notFound();
   }
 
+  // A redo after a fail counts as 60% at most until a teacher lifts it.
+  const capped = redoCapped(
+    (attemptRows ?? []).map((a) => ({
+      pct: a.pct === null ? null : Number(a.pct),
+      capped: a.capped,
+      cap_lifted: a.cap_lifted,
+    })),
+  );
   const pastAttempts = (attemptRows ?? []).map((a) => ({
     attempt: a.attempt,
     pct: a.pct === null ? null : Number(a.pct),
@@ -156,6 +164,7 @@ export default async function SubmissionReview({
                 attempt {sub.attempt}
               </span>
             )}
+            {capped && <CapTag submissionId={sub.id} />}
           </span>
         </div>
         <MixedText text={hw ? moduleTitle(hw.title) : ""} className="block text-sm text-muted-foreground" />
@@ -167,13 +176,12 @@ export default async function SubmissionReview({
         doneHref={backHref}
       />
 
-      {/* Handed in by mistake or before they had finished: back to them as
-          a draft, answers kept. Once released, the only way back is a fresh
-          attempt, whatever it scored. */}
+      {/* Handed in by mistake, too early or with a question blank: back to
+          them as a draft, answers kept, before release or after. A fail that
+          was really a slip has the "capped at 60%" tag up top instead. */}
       {(sub.status === "submitted" || sub.status === "auto_marked" || sub.status === "approved") && (
         <div className="mb-4 flex justify-end">
           <SubmissionAction
-            kind={sub.status === "approved" ? "redo" : "reopen"}
             submissionId={sub.id}
             studentName={student?.full_name ?? "the student"}
           />

@@ -281,14 +281,18 @@ async function sendBack<P extends number | null>(
 /**
  * Give a handed-in paper back to the student, answers and all.
  *
- * For the student who pressed hand-in by mistake, or before they had
- * finished. Unlike a redo it keeps what they wrote and recorded: the paper
- * goes back to a draft exactly as they left it, the same attempt, and they
- * carry on and hand it in again. Any marks the model gave it are cleared, so
- * the next hand-in is marked afresh rather than shown with stale ones.
+ * For the student who pressed hand-in by mistake, before they had finished,
+ * or with a question left blank. Unlike a redo it keeps what they wrote and
+ * recorded: the paper goes back to a draft exactly as they left it, the same
+ * attempt, and they carry on and hand it in again. Any marks on it, the
+ * model's or a released teacher's, are cleared, so the next hand-in is
+ * marked afresh rather than shown with stale ones.
  *
- * Only before release. A released mark has been seen, and taking it back is a
- * different act from undoing a hand-in.
+ * Before or after release. A released paper taken back this way drops off
+ * the leaderboards until it is approved again, and then counts at its real
+ * mark: the same attempt, so no redo cap (for a fail that was a slip, see
+ * `liftRedoCap`). The answer key a student sees on released work (0094) is
+ * hidden again with it.
  *
  * The student's own policies never allow submitted to draft (the
  * guard_student_submission trigger), which is why this is a teacher action on
@@ -305,13 +309,19 @@ export async function reopenSubmission(submissionId: string): Promise<{ error: s
   // Guarded, so a paper approved in another tab a moment ago stays released.
   const { data: reopened, error } = await db
     .from("submissions")
-    .update({ status: "draft", submitted_at: null, is_late: false })
+    .update({
+      status: "draft",
+      submitted_at: null,
+      is_late: false,
+      approved_by: null,
+      approved_at: null,
+    })
     .eq("id", submissionId)
-    .in("status", ["submitted", "auto_marked"])
+    .in("status", ["submitted", "auto_marked", "approved"])
     .select("id");
   if (error) return { error: error.message };
   if (!reopened?.length) {
-    return { error: "Only handed-in work that has not been released can be reopened." };
+    return { error: "Only handed-in work can be reopened." };
   }
 
   const { error: clearError } = await db
@@ -324,6 +334,7 @@ export async function reopenSubmission(submissionId: string): Promise<{ error: s
   revalidatePath(`/teacher/roster/${sub.student_id}`);
   if (sub.homeworks) revalidatePath(`/homework/${sub.homeworks.number}`);
   revalidatePath("/home");
+  revalidatePath("/progress");
   refresh();
   return { error: null };
 }
@@ -351,33 +362,25 @@ async function scopedSubmission(submissionId: string) {
 }
 
 /**
- * Send a released paper back for a fresh attempt, whatever it scored.
+ * Lift the 60% cap off a redo: the fail that sent it back was a slip (handed
+ * in too early, questions left blank) that the teacher only saw after the
+ * release. The redo then counts at its real mark on the leaderboards and
+ * averages (`v_hw_pct_all`, migration 0101).
  *
- * The automatic redo only fires below the pass mark. This is the teacher's
- * own call above it: a paper that passed but plainly was not the student's
- * best, or was copied. Same machinery as the automatic one
- * (`open_homework_redo`): the attempt is kept for the teacher, and the
- * student starts again from a blank paper.
+ * Marked on the attempts sent back so far, not the submission, so a fail of
+ * the redo itself still sends the next one back capped. Only ever lifted,
+ * never put back, the same as the late mark.
  */
-export async function sendBackForRedo(submissionId: string): Promise<{ error: string | null }> {
+export async function liftRedoCap(submissionId: string): Promise<{ error: string | null }> {
   await requireTeacher();
   const found = await scopedSubmission(submissionId);
   if (!found.ok) return { error: found.error };
-  const { sub } = found;
-  if (sub.status !== "approved") return { error: "Only released work can be sent back to redo." };
-  if (!sub.homeworks) return { error: "This homework could not be found." };
-
-  // The score it is being sent back from, worked out as the release did.
-  const { data: marks } = await supabaseAdmin()
-    .from("answers").select("question_id, final_marks").eq("submission_id", submissionId);
-  const verdict = redoVerdict(marks ?? [], sub.homeworks.questions ?? [], sub.homeworks, sub);
-  try {
-    await sendBack(submissionId, verdict?.pct ?? null, sub.homeworks.number);
-  } catch (e) {
-    return { error: e instanceof Error ? e.message : String(e) };
-  }
+  const { error } = await supabaseAdmin()
+    .from("submission_attempts").update({ cap_lifted: true }).eq("submission_id", submissionId);
+  if (error) return { error: error.message };
   revalidatePath("/teacher/homework");
-  revalidatePath(`/teacher/roster/${sub.student_id}`);
+  revalidatePath(`/teacher/roster/${found.sub.student_id}`);
+  revalidatePath("/progress");
   refresh();
   return { error: null };
 }

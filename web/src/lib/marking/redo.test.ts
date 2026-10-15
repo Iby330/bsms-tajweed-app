@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { APPROVABLE_STATUSES, REDO_THRESHOLD_PCT, canApprove, redoVerdict } from "./redo";
+import { APPROVABLE_STATUSES, REDO_THRESHOLD_PCT, canApprove, redoCapped, redoVerdict } from "./redo";
 
 /* ── fixtures ───────────────────────────────────────────────────────────── */
 
@@ -126,5 +126,36 @@ describe("canApprove", () => {
   it("never approves a draft, a redo in progress included", () => {
     expect(canApprove("draft")).toBe(false);
     expect(APPROVABLE_STATUSES).not.toContain("draft");
+  });
+});
+
+/* ── the cap on a redo ──────────────────────────────────────────────────── */
+
+describe("redoCapped", () => {
+  const sentBack = (pct: number | null, capLifted = false) => ({ pct, cap_lifted: capLifted });
+
+  it("a first attempt, with nothing sent back, is not capped", () => {
+    expect(redoCapped([])).toBe(false);
+  });
+
+  it("a redo after a fail is capped", () => {
+    expect(redoCapped([sentBack(45)])).toBe(true);
+  });
+
+  it("a redo of a paper that passed (an old teacher send-back) is not", () => {
+    expect(redoCapped([sentBack(90)])).toBe(false);
+    expect(redoCapped([sentBack(REDO_THRESHOLD_PCT)])).toBe(false);
+  });
+
+  it("an attempt sent back with no mark to quote is no fail", () => {
+    expect(redoCapped([sentBack(null)])).toBe(false);
+  });
+
+  it("a lifted cap is lifted", () => {
+    expect(redoCapped([sentBack(45, true)])).toBe(false);
+  });
+
+  it("failing again after a lift caps the next redo", () => {
+    expect(redoCapped([sentBack(30), sentBack(45, true)])).toBe(true);
   });
 });

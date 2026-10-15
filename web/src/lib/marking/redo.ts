@@ -53,6 +53,26 @@ export function redoVerdict(
 }
 
 /**
+ * Does the student's current attempt count as 60% at most?
+ *
+ * Yes when an attempt before it was sent back from a fail and the teacher has
+ * not lifted the cap off it. Mirrors `v_hw_pct_all` (migrations 0099-0101),
+ * which applies the cap to the leaderboards and averages; this only decides
+ * whether the teacher's pages show the "capped at 60%" tag, so the two must
+ * agree or the tag would claim a cap the boards do not apply.
+ *
+ * `capped` is 0100's teacher send-back flag, false on every row since that
+ * button was dropped, and kept here only because the view still reads it.
+ */
+export function redoCapped(
+  sentBack: readonly { pct: number | null; cap_lifted: boolean; capped?: boolean }[],
+): boolean {
+  return sentBack.some(
+    (a) => !a.cap_lifted && ((a.pct !== null && a.pct < REDO_THRESHOLD_PCT) || !!a.capped),
+  );
+}
+
+/**
  * The submission states a teacher may approve: handed in (marked by the
  * model or not), and already released, since "Edit marks" re-approves.
  * Never `draft`. A redo reopens the SAME row as a blank draft at the same

@@ -360,7 +360,8 @@ export function attentionHeading(
  */
 export function redoNotice(previousPct: number | null): string {
   // At or above the pass mark it was the teacher's call, not the threshold
-  // (sendBackForRedo), and "you need 60%" would read as a contradiction.
+  // (the send-back button, since removed; its redos are still about), and
+  // "you need 60%" would read as a contradiction.
   if (previousPct !== null && previousPct >= REDO_THRESHOLD_PCT) {
     return `You scored ${Math.round(previousPct)}% last time, and your teacher has asked you to do it again.`;
   }

@@ -1455,6 +1455,8 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           attempt: number
+          cap_lifted: boolean
+          capped: boolean
           homework_id: string
           id: string
           is_late: boolean
@@ -1470,6 +1472,8 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           attempt: number
+          cap_lifted?: boolean
+          capped?: boolean
           homework_id: string
           id?: string
           is_late?: boolean
@@ -1485,6 +1489,8 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           attempt?: number
+          cap_lifted?: boolean
+          capped?: boolean
           homework_id?: string
           id?: string
           is_late?: boolean
@@ -2022,7 +2028,7 @@ export type Database = {
       is_student_write: { Args: never; Returns: boolean }
       is_teacher: { Args: never; Returns: boolean }
       open_homework_redo: {
-        Args: { failed_pct: number; sub_id: string }
+        Args: { capped?: boolean; failed_pct: number; sub_id: string }
         Returns: number
       }
       record_fee_deposit: {
