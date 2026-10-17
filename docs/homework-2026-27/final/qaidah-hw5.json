@@ -1,0 +1,56 @@
+{
+ "_source": "Moadh's Google Doc 108A4Gs3RNnCmSIt38EzgehJ8TYotL-u5MVyHfGVDJPE (Homework 5: Tenween practice), 2026-10-17. The doc gives one opening instruction and pictures for Q1-4; each question is named from its pictures and is 1 mark (Moadh: 1 mark per question).",
+ "papers": [
+  {
+   "number": 305,
+   "series": "qaidah",
+   "course": "qaidah",
+   "ordinal": 5,
+   "term1_week": 5,
+   "title": "Tanwīn Practice",
+   "questions": [
+    {
+     "n": 1,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "Tanwīn with fatḥah. Read the following words and record yourself. Every word ends with a tanwīn, so each should end in an \"n\" sound: here, \"an\".",
+     "images": [
+      { "src": "/images/homework/qaidah/hw5-1-1.jpg", "alt": "Five words ending in tanwīn with fatḥah", "width": 640, "height": 90 },
+      { "src": "/images/homework/qaidah/hw5-1-2.jpg", "alt": "Four more words ending in tanwīn with fatḥah", "width": 640, "height": 108 }
+     ]
+    },
+    {
+     "n": 2,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "Tanwīn with kasrah. Read the following words and record yourself. Most end in \"in\"; the last word of each row has a fatḥah tanwīn, so it ends in \"an\".",
+     "images": [
+      { "src": "/images/homework/qaidah/hw5-2.jpg", "alt": "Eight words ending in tanwīn, mostly with kasrah", "width": 640, "height": 225 }
+     ]
+    },
+    {
+     "n": 3,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "Tanwīn with ḍammah. Read the following words and record yourself. Each ends in \"un\".",
+     "images": [
+      { "src": "/images/homework/qaidah/hw5-3.jpg", "alt": "Five words ending in tanwīn with ḍammah", "width": 640, "height": 84 }
+     ]
+    },
+    {
+     "n": 4,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "These short phrases from the Qur'an bring the tanwīn together with everything covered so far. Read them and record yourself.",
+     "images": [
+      { "src": "/images/homework/qaidah/hw5-4.jpg", "alt": "Three short phrases from the Qur'an with tanwīn", "width": 640, "height": 92 }
+     ]
+    }
+   ]
+  }
+ ]
+}
