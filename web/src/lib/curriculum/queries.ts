@@ -6,10 +6,11 @@
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { getCachedTerms, getCachedWeeks, getCachedSectionWeeks } from "@/lib/reference/cached";
-import { rowsForSection, scheduleWeeks, weeksForSection, withExtensions } from "./section-weeks";
+import { rowsForSection, withExtensions } from "./section-weeks";
+import { ruleFromRow, scheduleFromRows, type ScheduleInput } from "./schedule-rows";
 import {
   buildTree, overlayProgress,
-  type Term, type SubStatus, type CurriculumRows, type ClassSchedule,
+  type Term, type SubStatus, type CurriculumRows, type ClassSchedule, type ClassRule,
   type TermRow, type WeekRow, type LessonRow, type HomeworkRow, type RedoInfo,
 } from "./tree";
 
@@ -39,7 +40,7 @@ export async function getClassSchedule(
 ): Promise<ClassSchedule | null> {
   if (!classId) return null;
   const db = await supabaseServer();
-  const [{ data: rows }, { data: items }, section, weeks, sectionWeeks] = await Promise.all([
+  const [{ data: rows }, { data: items }, info, weeks, sectionWeeks, { data: dates }, { data: holds }, { data: added }] = await Promise.all([
     db.from("class_courses")
       .select(`course_id, term_id, position, due_days_after_unlock, courses(key, label)`)
       .eq("class_id", classId)
@@ -48,43 +49,35 @@ export async function getClassSchedule(
     db.from("class_course_items")
       .select("course_id, ordinal, week_number")
       .eq("class_id", classId),
-    classSection(classId),
+    classInfo(classId),
     getCachedWeeks(),
     getCachedSectionWeeks(),
+    db.from("class_item_dates")
+      .select("course_id, ordinal, opens_at, due_at, held, set_by, set_at")
+      .eq("class_id", classId),
+    // teacher-RLS: a student reads none, and never receives a held row anyway
+    db.from("class_homework_holds").select("course_id, from_ordinal").eq("class_id", classId),
+    db.from("class_added_items")
+      .select("course_id, ordinal, term_id, week_number, courses(key, label)")
+      .eq("class_id", classId),
   ]);
-  if (!rows?.length) return null;
-
-  const { firstUnlockByTerm, weeksByTerm } =
-    scheduleWeeks(weeksForSection(weeks as WeekRow[], sectionWeeks, section));
-
-  const itemWeeks: Record<string, Record<number, number>> = {};
-  for (const i of items ?? []) (itemWeeks[i.course_id] ??= {})[i.ordinal] = i.week_number;
-
-  return {
-    courses: rows.flatMap((r) => {
-      const course = r.courses as unknown as { key: string; label: string } | null;
-      if (!course || !r.course_id) return [];
-      return [{
-        courseId: r.course_id,
-        key: course.key,
-        label: course.label,
-        termId: r.term_id,
-        position: r.position,
-        dueDaysAfterUnlock: r.due_days_after_unlock,
-      }];
-    }),
-    firstUnlockByTerm,
-    weeksByTerm,
-    itemWeeks,
-  };
+  return scheduleFromRows({
+    rows: (rows ?? []) as ScheduleInput["rows"], items: items ?? [], section: info?.section ?? null, rule: info?.rule ?? null,
+    weeks: weeks as WeekRow[], sectionWeeks, dates: dates ?? [], holds: holds ?? [],
+    added: (added ?? []) as ScheduleInput["added"],
+  });
 }
 
-/** A class's section, whose week calendar its syllabus runs on. Null when the
- *  class is unreadable, which leaves it on the shared weeks. */
-async function classSection(classId: string): Promise<string | null> {
+/** A class's section, whose week calendar its syllabus runs on, and its
+ *  default for opening and deadlines (0106). Null when the class is
+ *  unreadable, which leaves it on the shared weeks. */
+async function classInfo(classId: string): Promise<{ section: string; rule: ClassRule | null } | null> {
   const db = await supabaseServer();
-  const { data } = await db.from("classes").select("section").eq("id", classId).maybeSingle();
-  return data?.section ?? null;
+  const { data } = await db.from("classes")
+    .select("section, open_weekday, open_time, due_weekday, due_time, due_weeks_after")
+    .eq("id", classId).maybeSingle();
+  if (!data) return null;
+  return { section: data.section, rule: ruleFromRow(data) };
 }
 
 export type StudentCurriculum = {
@@ -153,7 +146,7 @@ export async function getCurriculumTree(
     db.from("lessons").select(LESSON_COLS).order("position"),
     db.from("homeworks").select(HOMEWORK_COLS).order("number"),
     getClassSchedule(classId),
-    classId ? classSection(classId) : null,
+    classId ? classInfo(classId).then((i) => i?.section ?? null) : null,
   ]);
 
   // Scoped to a class, its section's calendar and each homework due when that

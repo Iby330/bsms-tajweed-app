@@ -12,7 +12,7 @@ import { HomeworkViewToggle, HomeworkWeekTabs, type WeekTab } from "@/components
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { Rule } from "@/components/app/rule";
-import { moduleTitle, scheduledDueAt, scheduledUnlockAt } from "@/lib/curriculum/tree";
+import { itemHeld, moduleTitle, scheduledDueAt, scheduledUnlockAt } from "@/lib/curriculum/tree";
 import { getClassSchedule } from "@/lib/curriculum/queries";
 import { SERIES_LABELS, seriesRank } from "@/lib/lessons/series";
 import { fmtStamp } from "@/lib/format";
@@ -181,9 +181,19 @@ export default async function TeacherHomework({
     return weekById.get(h.week_id)?.unlock_at ?? null;
   };
 
-  const visible = ((homeworks ?? []) as Hw[]).filter(
-    (h) => !useSyllabus || groupKeyOf(h) !== null,
-  );
+  /** Held for this class (0106): not released, and nobody has missed it. */
+  const heldOf = (h: Hw) => {
+    const sc = useSyllabus && h.course_id ? scheduledByCourse.get(h.course_id) : undefined;
+    return !!(schedule && sc) && itemHeld(schedule, h.ordinal ?? 1, sc.courseId);
+  };
+
+  const visible = ((homeworks ?? []) as Hw[]).filter((h) => {
+    if (!useSyllabus) return true;
+    if (groupKeyOf(h) === null) return false;
+    // a course the class does not take brings only the items added to its weeks
+    const only = h.course_id ? scheduledByCourse.get(h.course_id)?.ordinals : undefined;
+    return !only || only.includes(Math.max(h.ordinal ?? 1, 1));
+  });
 
   const labelOf = (key: string) =>
     (useSyllabus
@@ -202,10 +212,13 @@ export default async function TeacherHomework({
   // allowed to make.
   const nowRef = week ? Date.parse(week.unlock_at) : Number.NEGATIVE_INFINITY;
   const weekEnd = week ? weekEndsAt(weeks, week) : Number.NEGATIVE_INFINITY;
+  // Released by the clock, not by the week: a paper opened early for one
+  // class (its own date, 0106) is out the moment it opens.
+  const asOf = requestTime();
   const releasedHwIds = new Set(
     visible.filter((h) => {
       const at = unlockOf(h);
-      return at !== null && Date.parse(at) <= nowRef;
+      return at !== null && Date.parse(at) <= Math.max(nowRef, asOf) && !heldOf(h);
     }).map((h) => h.id),
   );
   /** Opening in the current teaching week — the reference point, up to the
@@ -283,7 +296,6 @@ export default async function TeacherHomework({
     const fromSchedule = schedule && sc ? scheduledDueAt(schedule, sc.termId, h.ordinal ?? 1, sc.courseId) : null;
     return fromSchedule ?? sectionDue.get(h.week_id)?.due_at ?? h.due_at;
   };
-  const asOf = requestTime();
   const isPast = (iso: string | null) => iso !== null && Date.parse(iso) <= asOf;
 
   const cellOf = (h: Hw, studentId: string): { state: CellState; sub?: Sub } => {
@@ -296,6 +308,7 @@ export default async function TeacherHomework({
       };
     }
     if (redoKeys.has(key)) return { state: "sent_back" };
+    if (heldOf(h)) return { state: "not_yet" };
     return { state: isPast(extensionDue.get(key) ?? classDueOf(h)) ? "missed" : "not_yet" };
   };
 

@@ -323,6 +323,83 @@ export type Database = {
           },
         ]
       }
+      class_homework_holds: {
+        Row: { class_id: string; course_id: string; from_ordinal: number }
+        Insert: { class_id: string; course_id: string; from_ordinal?: number }
+        Update: { class_id?: string; course_id?: string; from_ordinal?: number }
+        Relationships: []
+      }
+      class_item_dates: {
+        Row: {
+          class_id: string
+          course_id: string
+          ordinal: number
+          opens_at: string | null
+          due_at: string | null
+          held: boolean | null
+          set_by: string | null
+          set_at: string
+        }
+        Insert: {
+          class_id: string
+          course_id: string
+          ordinal: number
+          opens_at?: string | null
+          due_at?: string | null
+          held?: boolean | null
+          set_by?: string | null
+          set_at?: string
+        }
+        Update: {
+          class_id?: string
+          course_id?: string
+          ordinal?: number
+          opens_at?: string | null
+          due_at?: string | null
+          held?: boolean | null
+          set_by?: string | null
+          set_at?: string
+        }
+        Relationships: []
+      }
+      class_added_items: {
+        Row: {
+          class_id: string
+          course_id: string
+          ordinal: number
+          term_id: number
+          week_number: number
+          added_by: string | null
+          added_at: string
+        }
+        Insert: {
+          class_id: string
+          course_id: string
+          ordinal: number
+          term_id: number
+          week_number: number
+          added_by?: string | null
+          added_at?: string
+        }
+        Update: {
+          class_id?: string
+          course_id?: string
+          ordinal?: number
+          term_id?: number
+          week_number?: number
+          added_by?: string | null
+          added_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_added_items_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_course_items: {
         Row: {
           class_id: string
@@ -411,18 +488,33 @@ export type Database = {
           name: string
           section: Database["public"]["Enums"]["section_t"]
           teacher_id: string | null
+          open_weekday: number | null
+          open_time: string | null
+          due_weekday: number | null
+          due_time: string | null
+          due_weeks_after: number
         }
         Insert: {
           id?: string
           name: string
           section: Database["public"]["Enums"]["section_t"]
           teacher_id?: string | null
+          open_weekday?: number | null
+          open_time?: string | null
+          due_weekday?: number | null
+          due_time?: string | null
+          due_weeks_after?: number
         }
         Update: {
           id?: string
           name?: string
           section?: Database["public"]["Enums"]["section_t"]
           teacher_id?: string | null
+          open_weekday?: number | null
+          open_time?: string | null
+          due_weekday?: number | null
+          due_time?: string | null
+          due_weeks_after?: number
         }
         Relationships: [
           {
@@ -2013,6 +2105,11 @@ export type Database = {
         Args: { p_class: string; p_course: string; p_ordinal: number }
         Returns: string
       }
+      class_item_held: {
+        Args: { p_class: string; p_course: string; p_ordinal: number }
+        Returns: boolean
+      }
+      clear_late_for_class: { Args: { p_class: string }; Returns: number }
       class_item_week: {
         Args: { p_class: string; p_course: string; p_ordinal: number }
         Returns: {

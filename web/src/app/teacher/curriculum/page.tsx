@@ -1,6 +1,11 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import { getCatalogue } from "@/lib/curriculum/catalogue";
 import { CourseTile } from "@/components/app/course-tile";
+import { ClassFilter } from "@/components/app/class-filter";
+import { ClassScheduleEditor } from "@/components/app/schedule/class-schedule-editor";
+import { getScheduleEditorData } from "@/lib/curriculum/schedule-editor-data";
+import { currentProfile } from "@/lib/supabase/server";
+import { homeworkScope, teacherClass } from "@/lib/teacher/scope";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +25,13 @@ export const dynamic = "force-dynamic";
  * so no tile is ever locked for want of an unlock date. Clicking one opens its
  * weeks, where the videos are attached and the homework lives.
  */
-export default async function Curriculum() {
+export default async function Curriculum({ searchParams }: { searchParams: Promise<{ class?: string }> }) {
   const db = await supabaseServer();
+  const { class: classParam } = await searchParams;
+  const [scope, me, own] = await Promise.all([homeworkScope(classParam), currentProfile(), teacherClass()]);
+  // A teacher changes their own class's schedule; the programme lead any class.
+  const editor = scope.selected ? await getScheduleEditorData(scope.selected.id) : null;
+  const canEdit = !!scope.selected && (!!me?.is_admin || own?.id === scope.selected.id);
 
   const [{ blocks }, { data: weeks }, { data: lessons }, { data: homeworks }] = await Promise.all([
     getCatalogue(),
@@ -37,14 +47,28 @@ export default async function Curriculum() {
   return (
     <>
       <header className="masthead">
-        <h1><span>Curriculum</span></h1>
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h1><span>Curriculum</span></h1>
+          <ClassFilter classes={scope.classes} selected={scope.selected?.id ?? null} own={scope.own} />
+        </div>
         <p>
-          Every course in the programme, open to you whether or not it has
-          reached the students yet. Open one to attach a video or look at a
-          homework.
+          {scope.selected
+            ? `When each video and homework opens and is due for ${scope.selected.name}, and every course in the programme below.`
+            : "Every course in the programme. Pick a class to see and change its schedule."}
         </p>
       </header>
 
+      {editor ? (
+        <ClassScheduleEditor
+          data={editor}
+          canEdit={canEdit}
+          classParam={scope.selected && scope.selected.id !== scope.own ? scope.selected.id : null}
+        />
+      ) : scope.selected ? (
+        <p className="text-sm text-muted-foreground">{scope.selected.name} has no courses set up yet, so there is no schedule to change.</p>
+      ) : null}
+
+      <div className="divider"><span className="label">Curriculum</span><span className="r" /><span className="m" /></div>
       <div className="cards">
         {blocks.map((block) => {
           const videos = (lessons ?? []).filter(

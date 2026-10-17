@@ -75,6 +75,37 @@ export type ScheduledCourse = {
    * Al-Aqsa's Umm al-Kitab: opens Thursday 13:00, due the next Thursday 13:00.
    */
   dueDaysAfterUnlock?: number | null;
+  /**
+   * A course the class does not take, of which the teacher added single items
+   * to its weeks (`class_added_items`, 0106). Only `ordinals` belong to the
+   * class; the rest of the course stays out of its tree.
+   */
+  added?: boolean;
+  ordinals?: number[];
+};
+
+/** One item's own dates for one class (`class_item_dates`, 0106). Null: the
+ *  class default, then the week calendar. `held` null: the course hold decides. */
+export type ItemDates = {
+  opensAt: string | null;
+  dueAt: string | null;
+  held: boolean | null;
+  setBy?: string | null;
+  setAt?: string | null;
+};
+
+/** A weekday (0 Sunday … 6 Saturday) and a UK wall-clock time, "HH:MM". */
+export type WeekdayTime = { weekday: number; time: string };
+
+/**
+ * The class default (`classes.open_* / due_*`, 0106). `open`: things open on
+ * that weekday and time in the seven days before the week calendar's deadline.
+ * `due`: homework is due on that weekday and time after it opens, `weeksAfter`
+ * weeks later. Null parts are the week calendar's.
+ */
+export type ClassRule = {
+  open: WeekdayTime | null;
+  due: (WeekdayTime & { weeksAfter: number }) | null;
 };
 
 /**
@@ -108,6 +139,13 @@ export type ClassSchedule = {
    * takes several Ghunna, Mudūd and Ṣifāt items a week.
    */
   itemWeeks?: Record<string, Record<number, number>>;
+  /** Course id → item ordinal → that item's own dates (0106). */
+  itemDates?: Record<string, Record<number, ItemDates>>;
+  /** Course id → first held ordinal (`class_homework_holds`, 0090). Teachers
+   *  only: the table is teacher-RLS, and a student never receives held rows. */
+  courseHolds?: Record<string, number>;
+  /** The class default for opening and deadlines (0106). */
+  rule?: ClassRule | null;
 };
 
 export type ScheduleWeek = { number: number; unlock_at: string; due_at: string | null };
@@ -147,17 +185,29 @@ function itemWeekField(
   return new Date(Math.max(...values) + (w - lastNumber) * WEEK_MS).toISOString();
 }
 
+/** An item's own dates for the class, if the teacher set any. */
+export function itemDates(
+  schedule: ClassSchedule, ordinal: number, courseId?: string | null,
+): ItemDates | undefined {
+  return courseId ? schedule.itemDates?.[courseId]?.[Math.max(ordinal, 1)] : undefined;
+}
+
 /**
- * When item `ordinal` of a course opens for a class.
- *
- * The same rule as `class_item_unlock_at` in the database (0044): item k opens
- * with the week the class meets it in (its `class_course_items` week, else
- * week k), and past the term's last week a week at a time. The two MUST
- * agree: this one decides what the screen draws, that one decides what RLS
- * will hand over, and a disagreement shows up as a module that renders with
- * nothing in it. Kept in step by `tree.test.ts`.
+ * Held: hidden from the class, video and homework both. Its own hold, else
+ * the course hold. `class_item_held` in the database (0106).
  */
-export function scheduledUnlockAt(
+export function itemHeld(
+  schedule: ClassSchedule | null | undefined, ordinal: number, courseId?: string | null,
+): boolean {
+  if (!schedule || !courseId) return false;
+  const own = itemDates(schedule, ordinal, courseId)?.held;
+  if (own !== null && own !== undefined) return own;
+  const from = schedule.courseHolds?.[courseId];
+  return from !== undefined && Math.max(ordinal, 1) >= from;
+}
+
+/** The week calendar's opening for an item, ignoring every class setting. */
+function calendarUnlockAt(
   schedule: ClassSchedule, termId: number, ordinal: number, courseId?: string | null,
 ): string | null {
   const at = itemWeekField(schedule, termId, ordinal, courseId, "unlock_at");
@@ -170,21 +220,105 @@ export function scheduledUnlockAt(
 }
 
 /**
- * When item `ordinal` of a course is due for a class: the `due_at` of the week
- * it opens in, by the same rule. `class_item_due_at` (0044). Null without the
- * term's weeks, which the caller reads as "keep the row's own deadline".
+ * The first `weekday` at `time` on the UK clock strictly after `afterIso`,
+ * then `weeks` weeks later on the same UK wall clock. `next_weekday_at` (0106).
+ */
+export function nextWeekdayAt(afterIso: string, weekday: number, time: string, weeks = 0): string {
+  const after = Date.parse(afterIso);
+  const p = londonParts(after);
+  const [h, mi] = time.split(":").map(Number);
+  const dow = new Date(Date.UTC(p.y, p.mo - 1, p.d)).getUTCDay();
+  const diff = (weekday - dow + 7) % 7;
+  let at = londonInstant(p.y, p.mo, p.d + diff, h, mi);
+  if (at <= after) at = londonInstant(p.y, p.mo, p.d + diff + 7, h, mi);
+  const q = londonParts(at);
+  return new Date(londonInstant(q.y, q.mo, q.d + 7 * weeks, q.h, q.mi)).toISOString();
+}
+
+/** What the class default and the week calendar give an item, before any
+ *  date of its own: the "default dates" a teacher can put it back on. */
+export function defaultUnlockAt(
+  schedule: ClassSchedule, termId: number, ordinal: number, courseId?: string | null,
+): string | null {
+  const open = schedule.rule?.open;
+  if (open) {
+    const due = itemWeekField(schedule, termId, ordinal, courseId, "due_at");
+    if (due) return nextWeekdayAt(new Date(Date.parse(due) - WEEK_MS).toISOString(), open.weekday, open.time);
+  }
+  return calendarUnlockAt(schedule, termId, ordinal, courseId);
+}
+
+/** The default deadline for an item that opens at `opensAt`. */
+export function defaultDueAt(
+  schedule: ClassSchedule, termId: number, ordinal: number, courseId: string | null | undefined,
+  opensAt: string | null,
+): string | null {
+  const due = schedule.rule?.due;
+  if (due && opensAt) return nextWeekdayAt(opensAt, due.weekday, due.time, due.weeksAfter);
+  const days = courseId
+    ? schedule.courses.find((c) => c.courseId === courseId)?.dueDaysAfterUnlock
+    : null;
+  if (days) return opensAt ? addLondonDays(opensAt, days) : null;
+  return itemWeekField(schedule, termId, ordinal, courseId, "due_at") ?? null;
+}
+
+/**
+ * When item `ordinal` of a course opens for a class: its own date, else the
+ * class default, else the week it is met in (its `class_course_items` week,
+ * else week k), past the term's last week a week at a time.
+ *
+ * The same rule as `class_item_unlock_at` in the database (0106). The two
+ * MUST agree: this one decides what the screen draws, that one decides what
+ * RLS will hand over, and a disagreement shows up as a module that renders
+ * with nothing in it. Kept in step by `tree.test.ts` and the live parity check.
+ */
+export function scheduledUnlockAt(
+  schedule: ClassSchedule, termId: number, ordinal: number, courseId?: string | null,
+): string | null {
+  const own = itemDates(schedule, ordinal, courseId)?.opensAt;
+  if (own) return new Date(Date.parse(own)).toISOString();
+  return defaultUnlockAt(schedule, termId, ordinal, courseId);
+}
+
+/**
+ * When item `ordinal` of a course is due for a class: its own date, else the
+ * class default after it opens, else so many days after it opens (0080), else
+ * its week's deadline. `class_item_due_at` (0106). Null without the term's
+ * weeks, which the caller reads as "keep the row's own deadline".
  */
 export function scheduledDueAt(
   schedule: ClassSchedule, termId: number, ordinal: number, courseId?: string | null,
 ): string | null {
-  const days = courseId
-    ? schedule.courses.find((c) => c.courseId === courseId)?.dueDaysAfterUnlock
-    : null;
-  if (days) {
-    const opens = scheduledUnlockAt(schedule, termId, ordinal, courseId);
-    return opens ? addLondonDays(opens, days) : null;
-  }
-  return itemWeekField(schedule, termId, ordinal, courseId, "due_at") ?? null;
+  const own = itemDates(schedule, ordinal, courseId)?.dueAt;
+  if (own) return new Date(Date.parse(own)).toISOString();
+  return defaultDueAt(schedule, termId, ordinal, courseId, scheduledUnlockAt(schedule, termId, ordinal, courseId));
+}
+
+/** Where an item's date comes from, for the teacher's schedule. */
+export function dateSource(
+  schedule: ClassSchedule, ordinal: number, courseId: string | null | undefined, field: "opens" | "due",
+): "own" | "class" | "calendar" {
+  const own = itemDates(schedule, ordinal, courseId);
+  if (field === "opens" ? own?.opensAt : own?.dueAt) return "own";
+  return (field === "opens" ? schedule.rule?.open : schedule.rule?.due) ? "class" : "calendar";
+}
+
+/** A UK wall-clock time as an instant. */
+function londonInstant(y: number, mo: number, d: number, h: number, mi: number): number {
+  const guess = Date.UTC(y, mo - 1, d, h, mi);
+  const first = guess - londonOffsetMs(guess);
+  return guess - londonOffsetMs(first);
+}
+
+/** An instant on the UK clock. */
+function londonParts(ms: number): { y: number; mo: number; d: number; h: number; mi: number } {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/London", hourCycle: "h23",
+      year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
+    }).formatToParts(new Date(ms)).map((x) => [x.type, x.value]),
+  );
+  return { y: +p.year, mo: +p.month, d: +p.day, h: +p.hour, mi: +p.minute };
 }
 
 /** London's offset from UTC at an instant, in ms (BST +1h, GMT 0). */
@@ -269,6 +403,8 @@ export type Module = {
    */
   actionable: boolean;
   done: boolean;
+  /** Hidden from the class until the teacher releases it (0106). */
+  held?: boolean;
 };
 
 export type Course = {
@@ -413,13 +549,16 @@ export function buildTree(
    * class and Term 3 for another.
    */
   const bucketFor = (
-    weekId: string, series: string, courseId: string | null | undefined,
+    weekId: string, series: string, courseId: string | null | undefined, ordinal?: number | null,
   ): Bucket | null => {
     const week = weekById.get(weekId);
     if (!week) return null; // orphan row — a week that no longer exists
     let k: string;
     if (useSyllabus) {
       if (!courseId || !scheduled.has(courseId)) return null;
+      // an added course brings only the items the teacher added
+      const only = scheduled.get(courseId)!.ordinals;
+      if (only && !only.includes(Math.max(ordinal ?? 1, 1))) return null;
       k = courseId;
     } else {
       k = key(week.term_id, series);
@@ -431,9 +570,9 @@ export function buildTree(
     return bucket;
   };
 
-  for (const l of rows.lessons) bucketFor(l.week_id, l.series, l.course_id)?.lessons.push(l);
+  for (const l of rows.lessons) bucketFor(l.week_id, l.series, l.course_id, l.ordinal)?.lessons.push(l);
   for (const h of rows.homeworks) {
-    const bucket = bucketFor(h.week_id, h.series, h.course_id);
+    const bucket = bucketFor(h.week_id, h.series, h.course_id, h.ordinal);
     if (bucket) bucket.homework = h;
   }
 
@@ -479,6 +618,7 @@ export function buildTree(
               ? scheduledUnlockAt(schedule, sched.termId, ordinal, sched.courseId)
               : null)
             ?? week.unlock_at;
+          const held = !!(schedule && sched) && itemHeld(schedule, ordinal, sched.courseId);
           return {
             ordinal,
             module: {
@@ -490,8 +630,10 @@ export function buildTree(
                 : week.number,
               unlockAt,
               // The date is left as it is and only the verdict changes, so a
-              // screen that wants to say WHEN something opened still can.
-              unlocked: unlockAll || Date.parse(unlockAt) <= nowMs,
+              // screen that wants to say WHEN something opened still can. A
+              // held item is shut whatever its date says.
+              unlocked: unlockAll || (!held && Date.parse(unlockAt) <= nowMs),
+              held,
               title: moduleTitle(source),
               lessons,
               homework: bucket.homework,
