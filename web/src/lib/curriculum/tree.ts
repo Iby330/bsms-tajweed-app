@@ -77,14 +77,14 @@ export type ScheduledCourse = {
   dueDaysAfterUnlock?: number | null;
   /**
    * A course the class does not take, of which the teacher added single items
-   * to its weeks (`class_added_items`, 0106). Only `ordinals` belong to the
+   * to its weeks (`class_added_items`, 0108). Only `ordinals` belong to the
    * class; the rest of the course stays out of its tree.
    */
   added?: boolean;
   ordinals?: number[];
 };
 
-/** One item's own dates for one class (`class_item_dates`, 0106). Null: the
+/** One item's own dates for one class (`class_item_dates`, 0108). Null: the
  *  class default, then the week calendar. `held` null: the course hold decides. */
 export type ItemDates = {
   opensAt: string | null;
@@ -98,7 +98,7 @@ export type ItemDates = {
 export type WeekdayTime = { weekday: number; time: string };
 
 /**
- * The class default (`classes.open_* / due_*`, 0106). `open`: things open on
+ * The class default (`classes.open_* / due_*`, 0108). `open`: things open on
  * that weekday and time in the seven days before the week calendar's deadline.
  * `due`: homework is due on that weekday and time after it opens, `weeksAfter`
  * weeks later. Null parts are the week calendar's.
@@ -139,12 +139,12 @@ export type ClassSchedule = {
    * takes several Ghunna, Mudūd and Ṣifāt items a week.
    */
   itemWeeks?: Record<string, Record<number, number>>;
-  /** Course id → item ordinal → that item's own dates (0106). */
+  /** Course id → item ordinal → that item's own dates (0108). */
   itemDates?: Record<string, Record<number, ItemDates>>;
   /** Course id → first held ordinal (`class_homework_holds`, 0090). Teachers
    *  only: the table is teacher-RLS, and a student never receives held rows. */
   courseHolds?: Record<string, number>;
-  /** The class default for opening and deadlines (0106). */
+  /** The class default for opening and deadlines (0108). */
   rule?: ClassRule | null;
 };
 
@@ -194,7 +194,7 @@ export function itemDates(
 
 /**
  * Held: hidden from the class, video and homework both. Its own hold, else
- * the course hold. `class_item_held` in the database (0106).
+ * the course hold. `class_item_held` in the database (0108).
  */
 export function itemHeld(
   schedule: ClassSchedule | null | undefined, ordinal: number, courseId?: string | null,
@@ -221,7 +221,7 @@ function calendarUnlockAt(
 
 /**
  * The first `weekday` at `time` on the UK clock strictly after `afterIso`,
- * then `weeks` weeks later on the same UK wall clock. `next_weekday_at` (0106).
+ * then `weeks` weeks later on the same UK wall clock. `next_weekday_at` (0108).
  */
 export function nextWeekdayAt(afterIso: string, weekday: number, time: string, weeks = 0): string {
   const after = Date.parse(afterIso);
@@ -267,7 +267,7 @@ export function defaultDueAt(
  * class default, else the week it is met in (its `class_course_items` week,
  * else week k), past the term's last week a week at a time.
  *
- * The same rule as `class_item_unlock_at` in the database (0106). The two
+ * The same rule as `class_item_unlock_at` in the database (0108). The two
  * MUST agree: this one decides what the screen draws, that one decides what
  * RLS will hand over, and a disagreement shows up as a module that renders
  * with nothing in it. Kept in step by `tree.test.ts` and the live parity check.
@@ -283,7 +283,7 @@ export function scheduledUnlockAt(
 /**
  * When item `ordinal` of a course is due for a class: its own date, else the
  * class default after it opens, else so many days after it opens (0080), else
- * its week's deadline. `class_item_due_at` (0106). Null without the term's
+ * its week's deadline. `class_item_due_at` (0108). Null without the term's
  * weeks, which the caller reads as "keep the row's own deadline".
  */
 export function scheduledDueAt(
@@ -403,7 +403,7 @@ export type Module = {
    */
   actionable: boolean;
   done: boolean;
-  /** Hidden from the class until the teacher releases it (0106). */
+  /** Hidden from the class until the teacher releases it (0108). */
   held?: boolean;
 };
 

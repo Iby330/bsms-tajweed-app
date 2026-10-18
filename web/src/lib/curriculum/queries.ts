@@ -69,7 +69,7 @@ export async function getClassSchedule(
 }
 
 /** A class's section, whose week calendar its syllabus runs on, and its
- *  default for opening and deadlines (0106). Null when the class is
+ *  default for opening and deadlines (0108). Null when the class is
  *  unreadable, which leaves it on the shared weeks. */
 async function classInfo(classId: string): Promise<{ section: string; rule: ClassRule | null } | null> {
   const db = await supabaseServer();

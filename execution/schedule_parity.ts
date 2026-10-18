@@ -6,7 +6,7 @@
  *
  * The app works these dates out in TypeScript (web/src/lib/curriculum/tree.ts)
  * to draw the screens; the database works them out in SQL
- * (class_item_unlock_at / class_item_due_at / class_item_held, 0106) to decide
+ * (class_item_unlock_at / class_item_due_at / class_item_held, 0108) to decide
  * what a student may open and when their work is late. If the two disagree, a
  * student sees a card that will not open, or is marked late against a date
  * the screen never showed. Run this before and after any schedule migration,
@@ -43,7 +43,7 @@ async function sql<T>(query: string): Promise<T> {
 const json = async <T>(query: string) => ((await sql<{ j: T }[]>(`select coalesce(json_agg(x), '[]') j from (${query}) x`))[0].j);
 
 async function main() {
-  // Whether 0106 is in: before it, the new tables and columns do not exist.
+  // Whether 0108 is in: before it, the new tables and columns do not exist.
   const [{ applied }] = await sql<{ applied: boolean }[]>(
     `select exists (select 1 from information_schema.tables where table_name = 'class_item_dates') applied`);
 
@@ -111,7 +111,7 @@ async function main() {
     }
   }
 
-  console.log(`${applied ? "0106 applied" : "before 0106"}: ${checked} items checked across ${classes.length} classes, ${diffs.length} difference${diffs.length === 1 ? "" : "s"}.`);
+  console.log(`${applied ? "0108 applied" : "before 0108"}: ${checked} items checked across ${classes.length} classes, ${diffs.length} difference${diffs.length === 1 ? "" : "s"}.`);
   for (const d of diffs) console.log("  " + d);
   process.exit(diffs.length ? 1 : 0);
 }

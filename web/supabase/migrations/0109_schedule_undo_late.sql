@@ -1,5 +1,5 @@
 -- Undo for a schedule change has to put back the late marks the change
--- cleared (0106's clear_late_for_class only counted them). These two return
+-- cleared (0108's clear_late_for_class only counted them). These two return
 -- and restore exactly the hand-ins concerned, nothing else.
 --
 -- Every statement idempotent.

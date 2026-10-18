@@ -9,13 +9,13 @@ import { getClassSchedule } from "./queries";
 import { defaultDueAt, defaultUnlockAt, itemDates, type ClassRule, type ItemDates } from "./tree";
 
 /**
- * A class's own schedule, from the teacher curriculum page (0106).
+ * A class's own schedule, from the teacher curriculum page (0108).
  *
  * Every write goes through the service role, so the check below is the only
  * guard: a teacher changes their own class, the programme lead any class.
  * After any write that can move a deadline, hand-ins that are now on time
  * lose their late mark (never the other way round), and which ones comes
- * back, so the screen can say so and its Undo can put the marks back (0107).
+ * back, so the screen can say so and its Undo can put the marks back (0109).
  *
  * Each action returns what it replaced, so the screen's Undo can put it back.
  */

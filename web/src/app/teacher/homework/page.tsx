@@ -181,7 +181,7 @@ export default async function TeacherHomework({
     return weekById.get(h.week_id)?.unlock_at ?? null;
   };
 
-  /** Held for this class (0106): not released, and nobody has missed it. */
+  /** Held for this class (0108): not released, and nobody has missed it. */
   const heldOf = (h: Hw) => {
     const sc = useSyllabus && h.course_id ? scheduledByCourse.get(h.course_id) : undefined;
     return !!(schedule && sc) && itemHeld(schedule, h.ordinal ?? 1, sc.courseId);
@@ -213,7 +213,7 @@ export default async function TeacherHomework({
   const nowRef = week ? Date.parse(week.unlock_at) : Number.NEGATIVE_INFINITY;
   const weekEnd = week ? weekEndsAt(weeks, week) : Number.NEGATIVE_INFINITY;
   // Released by the clock, not by the week: a paper opened early for one
-  // class (its own date, 0106) is out the moment it opens.
+  // class (its own date, 0108) is out the moment it opens.
   const asOf = requestTime();
   const releasedHwIds = new Set(
     visible.filter((h) => {
