@@ -21,7 +21,7 @@
 --
 -- With no rows in the new tables and the new columns null, every function
 -- below returns exactly what it did before; the parity check
--- (schedule-parity.live.test.ts) compares the two.
+-- (execution/schedule_parity.ts) compares the app with the database.
 --
 -- Every statement idempotent.
 

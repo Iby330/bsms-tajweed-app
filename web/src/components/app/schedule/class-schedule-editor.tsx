@@ -72,7 +72,7 @@ export function ClassScheduleEditor({ data, canEdit, classParam }: { data: Edito
       if (r.error) { say({ msg: r.error }); return; }
       say({ msg: msg + late(r.cleared), undo: undo?.(r) });
     });
-  const restore = (r: ScheduleResult) => (r.undo ? () => restoreItemDates(classId, r.undo!) : undefined);
+  const restore = (r: ScheduleResult) => (r.undo ? () => restoreItemDates(classId, r.undo!, r.clearedIds ?? []) : undefined);
   const patch = (keys: string[], p: DatesPatch, msg: string) => act(() => setItemDates(classId, keys.map(fromKey), p), msg, restore);
 
   /* ── what is listed ── */
@@ -110,7 +110,7 @@ export function ClassScheduleEditor({ data, canEdit, classParam }: { data: Edito
       }
       say({
         msg: (field === "opens" ? `Things now open ${WEEKDAYS[open.weekday]} ${open.time}.` : `Homework is now due ${WEEKDAYS[due.weekday]} ${due.time}.`) + late(r.cleared),
-        undo: () => setClassRule(classId, before),
+        undo: () => setClassRule(classId, before, r.clearedIds ?? []),
       });
     });
   };
@@ -180,7 +180,7 @@ export function ClassScheduleEditor({ data, canEdit, classParam }: { data: Edito
           {schedule.rule ? "Changed from the weekly calendar. Everything without its own date follows this." : "This is the weekly calendar. Change it and everything without its own date follows."}
           {canEdit && schedule.rule && (
             <> <button type="button" className="underline underline-offset-2" disabled={pending}
-              onClick={() => { const before = schedule.rule ?? null; act(() => setClassRule(classId, null), `${data.className} follows the weekly calendar again.`, () => () => setClassRule(classId, before)); }}>Back to the weekly calendar</button></>
+              onClick={() => { const before = schedule.rule ?? null; act(() => setClassRule(classId, null), `${data.className} follows the weekly calendar again.`, (r) => () => setClassRule(classId, before, r.clearedIds ?? [])); }}>Back to the weekly calendar</button></>
           )}
           {!canEdit && " Only this class's teacher or the programme lead can change it."}
         </p>
@@ -195,11 +195,11 @@ export function ClassScheduleEditor({ data, canEdit, classParam }: { data: Edito
               onChange={(v) => { setTermId(v); setWeek(null); setSelected(new Set()); setPick(null); setMore(null); }} />
           )}
           <Seg value={mode} options={[["course", "By course"], ["week", "By week"], ["homework", "All homework"]]}
-            onChange={(v) => { setMode(v as Mode); setPick(null); setMore(null); }} />
+            onChange={(v) => { setMode(v as Mode); setSelected(new Set()); setPick(null); setMore(null); }} />
         </div>
         <div className="flex flex-wrap gap-1" role="group" aria-label="Filter">
           {mode === "course" && courses.map((c) => (
-            <Chip key={c.courseId} on={c.courseId === courseId} onClick={() => setCourse(c.courseId)}>{c.label}{c.added ? " (added)" : ""}</Chip>
+            <Chip key={c.courseId} on={c.courseId === courseId} onClick={() => { setCourse(c.courseId); setSelected(new Set()); setPick(null); setMore(null); }}>{c.label}{c.added ? " (added)" : ""}</Chip>
           ))}
           {mode === "week" && term.weeks.map((w) => (
             <Chip key={w.number} on={w.number === shownWeek} onClick={() => setWeek(w.number)}>{weekLabel(w.number)}{w.number === currentWeek ? " · now" : ""}</Chip>
@@ -304,7 +304,11 @@ export function ClassScheduleEditor({ data, canEdit, classParam }: { data: Edito
                 <div className="mx-[var(--pad)] flex flex-col gap-3 border-t border-dashed border-hair py-4">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="label mr-1">Quick</span>
-                    <Button size="sm" variant="outline" disabled={pending} onClick={() => { setMore(null); patch([k], { opensAt: nowIso, held: false }, `${it.title} is open to students now.`); }}>Open now</Button>
+                    <Button size="sm" variant="outline" disabled={pending} onClick={() => {
+                      setMore(null);
+                      const stale = !!it.homework && !!s.due && s.due <= nowIso, nc = nextClassAt(schedule, section, nowIso);
+                      patch([k], { opensAt: nowIso, held: false, ...(stale ? { dueAt: nc } : {}) }, `${it.title} is open to students now${stale ? `, due ${when(nc)}` : ""}.`);
+                    }}>Open now</Button>
                     {it.homework && (() => { const nc = nextClassAt(schedule, section, s.opens && s.opens > nowIso ? s.opens : nowIso); return (
                       <Button size="sm" variant="outline" disabled={pending} onClick={() => { setMore(null); patch([k], { dueAt: nc }, `${it.title} is due ${when(nc)}.`); }}>Due at next class ({when(nc)})</Button>); })()}
                     <Button size="sm" variant="outline" disabled={pending} onClick={() => { setMore(null); patch([k], { held: !s.held }, s.held ? `${it.title} is released.` : `${it.title} is held. Students can't see it.`); }}>{s.held ? "Release" : "Hold"}</Button>
@@ -375,7 +379,10 @@ export function ClassScheduleEditor({ data, canEdit, classParam }: { data: Edito
       {toast && (
         <div role="status" className={cn("fixed left-1/2 z-40 flex max-w-[calc(100%-32px)] -translate-x-1/2 items-center gap-3.5 rounded-md bg-foreground px-3.5 py-2.5 text-sm text-background shadow-lg", sel.length ? "bottom-[calc(76px+env(safe-area-inset-bottom,0px))]" : "bottom-[calc(20px+env(safe-area-inset-bottom,0px))]")}>
           <span>{toast.msg}</span>
-          {toast.undo && <button type="button" className="underline underline-offset-2" onClick={() => { const u = toast.undo!; setToast(null); start(async () => { await u(); }); }}>Undo</button>}
+          {toast.undo && <button type="button" className="underline underline-offset-2 disabled:opacity-50" disabled={pending} onClick={() => {
+            const u = toast.undo!; setToast(null);
+            start(async () => { const r = await u() as { error?: string | null } | undefined; say({ msg: r?.error ? `Couldn't undo: ${r.error}` : "Undone." }); });
+          }}>Undo</button>}
           <button type="button" aria-label="Dismiss" className="-ml-1 px-0.5 text-lg leading-none opacity-75 hover:opacity-100" onClick={() => setToast(null)}>×</button>
         </div>
       )}

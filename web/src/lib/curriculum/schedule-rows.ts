@@ -41,7 +41,8 @@ export function scheduleFromRows(
   // course joins the schedule carrying only those items.
   const taken = new Set(rows.map((r) => r.course_id));
   const addedCourses = new Map<string, { key: string; label: string; termId: number; ordinals: number[] }>();
-  for (const a of added) {
+  // one term per added course: the earliest term any of its items was added to
+  for (const a of [...added].sort((x, y) => x.term_id - y.term_id || x.ordinal - y.ordinal)) {
     if (taken.has(a.course_id)) continue;
     const course = a.courses as unknown as { key: string; label: string } | null;
     if (!course) continue;

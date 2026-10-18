@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { londonIso, londonParts, pad, rel, when } from "./dates";
@@ -28,6 +28,7 @@ export function DatePicker({
   onReset?: () => void;
 }) {
   const [value, setValue] = useState(initial);
+  const timeId = useId();
   const p = londonParts(Date.parse(value));
   const [month, setMonth] = useState({ y: p.y, m: p.mo });
   const t = londonParts(Date.parse(nowIso));
@@ -89,9 +90,9 @@ export function DatePicker({
         </div>
         <div className="flex flex-col items-start gap-2 text-sm">
           <Button size="sm" variant="outline" onClick={() => setValue(nowIso)}>Now</Button>
-          <label htmlFor="schedule-time" className="font-medium">Time</label>
+          <label htmlFor={timeId} className="font-medium">Time</label>
           <input
-            id="schedule-time"
+            id={timeId}
             type="time"
             value={`${pad(p.h)}:${pad(p.mi)}`}
             onChange={(e) => {

@@ -1,5 +1,6 @@
 import "server-only";
 import { supabaseServer } from "@/lib/supabase/server";
+import { readAll } from "@/lib/supabase/read-all";
 import { TERMS, sessionDates, termIdFor, termSessions, timetableFor, type Section } from "@/lib/attendance/calendar";
 import { londonDate } from "@/lib/attendance/session";
 import { getClassSchedule } from "./queries";
@@ -63,11 +64,12 @@ export async function getScheduleEditorData(classId: string): Promise<EditorData
   ]);
   if (!schedule || !cls) return null;
 
-  const [{ data: lessons }, { data: homeworks }, { data: courses }, { data: roster }] = await Promise.all([
+  const [{ data: lessons }, { data: homeworks }, { data: courses }, { data: roster }, { data: resources }] = await Promise.all([
     db.from("lessons").select("id, course_id, ordinal, title, youtube_id, position"),
     db.from("homeworks").select("id, course_id, ordinal, number, title"),
     db.from("courses").select("id, key, label, position"),
-    db.from("profiles").select("id").eq("class_id", classId).eq("role", "student"),
+    db.from("profiles").select("id").eq("class_id", classId).eq("role", "student").eq("is_active", true),
+    db.from("class_resources").select("course_id").eq("class_id", classId),
   ]);
 
   const scheduled = new Map(schedule.courses.map((c) => [c.courseId, c]));
@@ -96,12 +98,15 @@ export async function getScheduleEditorData(classId: string): Promise<EditorData
   });
   const hwIds = mine.flatMap((s) => (s.hw ? [s.hw.id] : []));
   const studentIds = (roster ?? []).map((r) => r.id);
-  const { data: subs } = hwIds.length && studentIds.length
-    ? await db.from("submissions").select("homework_id, status, is_late")
-        .in("homework_id", hwIds).in("student_id", studentIds).in("status", ["submitted", "auto_marked", "approved"])
-    : { data: [] as { homework_id: string; status: string; is_late: boolean }[] };
+  // past PostgREST's 1000-row page: a class's year of hand-ins runs over it
+  const subs = hwIds.length && studentIds.length
+    ? await readAll<{ homework_id: string; status: string; is_late: boolean }>((from, to) =>
+        db.from("submissions").select("id, homework_id, status, is_late")
+          .in("homework_id", hwIds).in("student_id", studentIds).in("status", ["submitted", "auto_marked", "approved"])
+          .order("id").range(from, to))
+    : [];
   const stat = new Map<string, { in: number; marked: number; late: number }>();
-  for (const s of subs ?? []) {
+  for (const s of subs) {
     const x = stat.get(s.homework_id) ?? { in: 0, marked: 0, late: 0 };
     x.in++; if (s.status === "approved") x.marked++; if (s.is_late) x.late++;
     stat.set(s.homework_id, x);
@@ -119,7 +124,8 @@ export async function getScheduleEditorData(classId: string): Promise<EditorData
   }).sort((a, b) => a.ordinal - b.ordinal);
 
   // Everything else in the programme: items of courses this class does not take.
-  const taken = new Set(schedule.courses.filter((c) => !c.added).map((c) => c.courseId));
+  // a course the class takes, or has as a no-deadline Resource, is not offered
+  const taken = new Set([...schedule.courses.filter((c) => !c.added).map((c) => c.courseId), ...(resources ?? []).map((r) => r.course_id)]);
   const added = new Set(mine.map((s) => keyOf(s.courseId, s.ordinal)));
   const courseById = new Map((courses ?? []).map((c) => [c.id, c]));
   const library: LibraryItem[] = [...byKey.values()]

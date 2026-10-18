@@ -2110,6 +2110,8 @@ export type Database = {
         Returns: boolean
       }
       clear_late_for_class: { Args: { p_class: string }; Returns: number }
+      clear_late_for_class_ids: { Args: { p_class: string }; Returns: string[] }
+      restore_late: { Args: { p_class: string; p_ids: string[] }; Returns: number }
       class_item_week: {
         Args: { p_class: string; p_course: string; p_ordinal: number }
         Returns: {

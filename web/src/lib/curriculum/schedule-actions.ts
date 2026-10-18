@@ -14,8 +14,8 @@ import { defaultDueAt, defaultUnlockAt, itemDates, type ClassRule, type ItemDate
  * Every write goes through the service role, so the check below is the only
  * guard: a teacher changes their own class, the programme lead any class.
  * After any write that can move a deadline, hand-ins that are now on time
- * lose their late mark (never the other way round), and the count comes back
- * so the screen can say so.
+ * lose their late mark (never the other way round), and which ones comes
+ * back, so the screen can say so and its Undo can put the marks back (0107).
  *
  * Each action returns what it replaced, so the screen's Undo can put it back.
  */
@@ -24,7 +24,7 @@ export type ItemKey = { courseId: string; ordinal: number };
 /** A field left out is left alone; null clears it. */
 export type DatesPatch = { opensAt?: string | null; dueAt?: string | null; held?: boolean | null };
 export type ItemRowSnapshot = ItemKey & { row: Omit<ItemDates, "setBy" | "setAt"> | null };
-export type ScheduleResult = { error: string | null; cleared?: number; undo?: ItemRowSnapshot[] };
+export type ScheduleResult = { error: string | null; cleared?: number; clearedIds?: string[]; undo?: ItemRowSnapshot[] };
 
 async function guard(classId: string): Promise<{ error: string } | { teacherId: string }> {
   const me = await currentProfile();
@@ -42,9 +42,15 @@ function settle(): void {
   refresh();
 }
 
-async function clearLate(classId: string): Promise<number> {
-  const { data } = await supabaseAdmin().rpc("clear_late_for_class", { p_class: classId });
-  return typeof data === "number" ? data : 0;
+/** Clears late marks now on time; then, for an Undo, puts back the ones the
+ *  change being undone had cleared. */
+async function lateMarks(classId: string, restore: string[] = []): Promise<{ cleared: number; clearedIds: string[] }> {
+  const db = supabaseAdmin();
+  const { data } = await db.rpc("clear_late_for_class_ids", { p_class: classId });
+  const ids = (Array.isArray(data) ? data : []) as string[];
+  if (restore.length) await db.rpc("restore_late", { p_class: classId, p_ids: restore });
+  const cleared = ids.filter((id) => !restore.includes(id));
+  return { cleared: cleared.length, clearedIds: cleared };
 }
 
 const iso = (v: string | null | undefined) =>
@@ -62,6 +68,10 @@ export async function setItemDates(classId: string, items: ItemKey[], patch: Dat
   if (!schedule) return { error: "This class has no schedule yet." };
 
   const db = supabaseAdmin();
+  // which items have homework: a video on its own has no deadline to clash with
+  const { data: hws } = await db.from("homeworks").select("course_id, ordinal")
+    .in("course_id", [...new Set(items.map((i) => i.courseId))]);
+  const hasHw = new Set((hws ?? []).map((h) => `${h.course_id}|${h.ordinal}`));
   const undo: ItemRowSnapshot[] = [];
   const upserts: Database["public"]["Tables"]["class_item_dates"]["Insert"][] = [];
   const deletes: ItemKey[] = [];
@@ -78,7 +88,7 @@ export async function setItemDates(classId: string, items: ItemKey[], patch: Dat
     // the deadline has to fall after the opening, whichever of them is the item's own
     const opens = next.opensAt ?? defaultUnlockAt(schedule, sc.termId, it.ordinal, it.courseId);
     const due = next.dueAt ?? defaultDueAt(schedule, sc.termId, it.ordinal, it.courseId, opens);
-    if (opens && due && Date.parse(due) <= Date.parse(opens)) {
+    if (hasHw.has(`${it.courseId}|${it.ordinal}`) && opens && due && Date.parse(due) <= Date.parse(opens)) {
       return { error: "The deadline would be before it opens. Pick a later deadline or an earlier opening." };
     }
     if (next.opensAt === null && next.dueAt === null && next.held === null) deletes.push(it);
@@ -97,13 +107,14 @@ export async function setItemDates(classId: string, items: ItemKey[], patch: Dat
       .eq("class_id", classId).eq("course_id", d.courseId).eq("ordinal", d.ordinal);
     if (error) return { error: error.message };
   }
-  const cleared = await clearLate(classId);
+  const late = await lateMarks(classId);
   settle();
-  return { error: null, cleared, undo };
+  return { error: null, ...late, undo };
 }
 
-/** Put items' rows back exactly as they were (the screen's Undo). */
-export async function restoreItemDates(classId: string, rows: ItemRowSnapshot[]): Promise<ScheduleResult> {
+/** Put items' rows back exactly as they were, and the late marks the change
+ *  cleared (the screen's Undo). */
+export async function restoreItemDates(classId: string, rows: ItemRowSnapshot[], lateIds: string[] = []): Promise<ScheduleResult> {
   const g = await guard(classId);
   if ("error" in g) return g;
   const db = supabaseAdmin();
@@ -121,13 +132,13 @@ export async function restoreItemDates(classId: string, rows: ItemRowSnapshot[])
       if (error) return { error: error.message };
     }
   }
-  const cleared = await clearLate(classId);
+  const late = await lateMarks(classId, lateIds);
   settle();
-  return { error: null, cleared };
+  return { error: null, ...late };
 }
 
 /** The class default for opening and deadlines; null parts are the calendar's. */
-export async function setClassRule(classId: string, rule: ClassRule | null): Promise<ScheduleResult & { before?: ClassRule | null }> {
+export async function setClassRule(classId: string, rule: ClassRule | null, lateIds: string[] = []): Promise<ScheduleResult & { before?: ClassRule | null }> {
   const g = await guard(classId);
   if ("error" in g) return g;
   const ok = (w: { weekday: number; time: string } | null | undefined) =>
@@ -137,15 +148,31 @@ export async function setClassRule(classId: string, rule: ClassRule | null): Pro
   }
   const schedule = await getClassSchedule(classId);
   const before = schedule?.rule ?? null;
+  // with the new default, every homework that follows it must still open before it is due
+  if (schedule) {
+    const next = { ...schedule, rule };
+    const { data: hws } = await supabaseAdmin().from("homeworks").select("course_id, ordinal, title")
+      .in("course_id", schedule.courses.map((c) => c.courseId));
+    for (const h of hws ?? []) {
+      const sc = schedule.courses.find((c) => c.courseId === h.course_id);
+      if (!sc || h.ordinal == null || (sc.ordinals && !sc.ordinals.includes(h.ordinal))) continue;
+      const own = itemDates(next, h.ordinal, h.course_id);
+      const opens = own?.opensAt ?? defaultUnlockAt(next, sc.termId, h.ordinal, h.course_id);
+      const due = own?.dueAt ?? defaultDueAt(next, sc.termId, h.ordinal, h.course_id, opens);
+      if (opens && due && Date.parse(due) <= Date.parse(opens)) {
+        return { error: `With that default, ${sc.label} ${h.ordinal} would open after its deadline. Pick an earlier opening or a later deadline.` };
+      }
+    }
+  }
   const { error } = await supabaseAdmin().from("classes").update({
     open_weekday: rule?.open?.weekday ?? null, open_time: rule?.open?.time ?? null,
     due_weekday: rule?.due?.weekday ?? null, due_time: rule?.due?.time ?? null,
     due_weeks_after: rule?.due?.weeksAfter ?? 0,
   }).eq("id", classId);
   if (error) return { error: error.message };
-  const cleared = await clearLate(classId);
+  const late = await lateMarks(classId, lateIds);
   settle();
-  return { error: null, cleared, before };
+  return { error: null, ...late, before };
 }
 
 /** Add a video or homework from a course the class does not take to one of its weeks. */
@@ -153,10 +180,20 @@ export async function addItem(classId: string, item: ItemKey, termId: number, we
   const g = await guard(classId);
   if ("error" in g) return g;
   if (!Number.isInteger(week) || week < 1 || week > 20) return { error: "Pick a week." };
+  if (![1, 2, 3].includes(termId)) return { error: "Pick a term." };
   const db = supabaseAdmin();
-  const { data: takes } = await db.from("class_courses").select("course_id")
-    .eq("class_id", classId).eq("course_id", item.courseId).maybeSingle();
+  const [{ data: takes }, { data: lesson }, { data: hw }, { data: others }] = await Promise.all([
+    db.from("class_courses").select("course_id").eq("class_id", classId).eq("course_id", item.courseId).maybeSingle(),
+    db.from("lessons").select("id").eq("course_id", item.courseId).eq("ordinal", item.ordinal).limit(1),
+    db.from("homeworks").select("id").eq("course_id", item.courseId).eq("ordinal", item.ordinal).limit(1),
+    db.from("class_added_items").select("term_id").eq("class_id", classId).eq("course_id", item.courseId),
+  ]);
   if (takes) return { error: "That course is already on this class's schedule." };
+  if (!lesson?.length && !hw?.length) return { error: "That video or homework could not be found." };
+  // one course sits in one term for a class: the rest of it is already in another
+  if ((others ?? []).some((o) => o.term_id !== termId)) {
+    return { error: "Other items from this course are on a different term's schedule. Add it to that term." };
+  }
   const { error } = await db.from("class_added_items").upsert({
     class_id: classId, course_id: item.courseId, ordinal: item.ordinal,
     term_id: termId, week_number: week, added_by: g.teacherId, added_at: new Date().toISOString(),
@@ -173,9 +210,12 @@ export async function removeAddedItem(classId: string, item: ItemKey): Promise<S
   const db = supabaseAdmin();
   const { data: was } = await db.from("class_added_items").select("term_id, week_number")
     .eq("class_id", classId).eq("course_id", item.courseId).eq("ordinal", item.ordinal).maybeSingle();
+  if (!was) return { error: "That item was not added to this class's schedule." };
   const { data: dates } = await db.from("class_item_dates").select("opens_at, due_at, held")
     .eq("class_id", classId).eq("course_id", item.courseId).eq("ordinal", item.ordinal).maybeSingle();
-  await db.from("class_item_dates").delete().eq("class_id", classId).eq("course_id", item.courseId).eq("ordinal", item.ordinal);
+  const { error: datesErr } = await db.from("class_item_dates").delete()
+    .eq("class_id", classId).eq("course_id", item.courseId).eq("ordinal", item.ordinal);
+  if (datesErr) return { error: datesErr.message };
   const { error } = await db.from("class_added_items").delete()
     .eq("class_id", classId).eq("course_id", item.courseId).eq("ordinal", item.ordinal);
   if (error) return { error: error.message };

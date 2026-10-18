@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { TERMS, termSessions, type TermId, type Timetable } from "@/lib/attendance/calendar";
 import { ruleName } from "@/lib/lessons/rule-name";
 import { COURSES, coursesForTerm, hasSyllabus } from "./syllabus";
-import { classItemWeek, scheduledUnlockAt, type ClassSchedule } from "./tree";
+import { itemHeld, scheduledUnlockAt, type ClassSchedule } from "./tree";
 import { getClassSchedule } from "./queries";
 import { sectionWeekRows, type SectionWeekRow } from "./section-weeks";
 import { getCachedSectionWeeks } from "@/lib/reference/cached";
@@ -182,7 +182,8 @@ export function planFromLessons(
             ? (sc ? scheduledUnlockAt(schedule!, sc.termId, k, sc.courseId) : null)
               ?? lesson.weeks!.unlock_at
             : null;
-          const open = opensAt !== null && Date.parse(opensAt) <= nowMs;
+          const open = opensAt !== null && Date.parse(opensAt) <= nowMs
+            && !(sc && itemHeld(schedule!, k, sc.courseId));
           const reachable = audience === "teacher" ? !!lesson : open;
           const rule = lesson ? ruleName(lesson.title) : null;
           return {

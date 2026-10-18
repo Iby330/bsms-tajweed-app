@@ -231,7 +231,7 @@ export default async function TeacherHomework({
   };
 
   const byNumber = (a: Hw, b: Hw) => a.number - b.number;
-  const thisWeekHws = visible.filter(isThisWeek).sort(byNumber);
+  const thisWeekHws = visible.filter((h) => isThisWeek(h) && !heldOf(h)).sort(byNumber);
 
   /* ── Earlier weeks ─────────────────────────────────────────────────────
    *
