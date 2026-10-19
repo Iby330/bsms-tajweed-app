@@ -4,11 +4,13 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { readAll } from "@/lib/supabase/read-all";
 import { currentWeek, getTermsAndWeeks, weekEndsAt } from "@/lib/dashboard/queries";
 import { homeworkScope, scopedHref } from "@/lib/teacher/scope";
-import { HW_VIEW_COOKIE, RESOURCES_TAB, pickHwView, requestTime } from "@/lib/teacher/homework-view";
+import {
+  HW_VIEW_COOKIE, RESOURCES_TAB, pickHwView, pickedWeek, requestTime, withPickedTab, type WeekChoice,
+} from "@/lib/teacher/homework-view";
 import { getCachedSectionWeeks } from "@/lib/reference/cached";
 import { sectionWeekRows } from "@/lib/curriculum/section-weeks";
 import { ClassFilter } from "@/components/app/class-filter";
-import { HomeworkViewToggle, HomeworkWeekTabs, type WeekTab } from "@/components/app/homework-views";
+import { HomeworkViewToggle, HomeworkWeekTabs, WeekPicker, type WeekTab } from "@/components/app/homework-views";
 import { MixedText } from "@/components/app/mixed-text";
 import { homeworkLabel } from "@/components/app/homework-row";
 import { Rule } from "@/components/app/rule";
@@ -62,9 +64,9 @@ const PENDING = ["submitted", "auto_marked"];
 export default async function TeacherHomework({
   searchParams,
 }: {
-  searchParams: Promise<{ class?: string; view?: string }>;
+  searchParams: Promise<{ class?: string; view?: string; week?: string }>;
 }) {
-  const { class: classParam, view: viewParam } = await searchParams;
+  const { class: classParam, view: viewParam, week: weekParam } = await searchParams;
   const db = await supabaseServer();
   const view = pickHwView(viewParam, (await cookies()).get(HW_VIEW_COOKIE)?.value);
 
@@ -646,6 +648,28 @@ export default async function TeacherHomework({
       : []),
   ];
 
+  /* ── Going back to an earlier week (`?week=`) ─────────────────────────
+   *
+   * Every week that has opened and set homework, newest first, with this
+   * week on top. A picked week is a tab of its own in the table, and takes
+   * the place of this week and last week in the list.
+   */
+  const weekChoices: WeekChoice[] = [
+    ...(week ? [{ id: week.id, label: `This week · ${weekName(week)}` }] : []),
+    ...earlierWeeks.map((w) => ({ id: w.id, label: `${weekName(w)} · ${rangeOf(earlierByWeek.get(w.id) ?? [])}` })),
+  ];
+  const pickedId = pickedWeek(weekParam, weekChoices, week?.id ?? null);
+  const picked = pickedId ? weeks.find((w) => w.id === pickedId) ?? null : null;
+  const pickedHws = picked ? earlierByWeek.get(picked.id) ?? [] : [];
+  const pickedIds = new Set(pickedHws.map((h) => h.id));
+  const table = withPickedTab(
+    weekTabs,
+    picked
+      ? { tab: { id: picked.id, label: weekName(picked), sub: rangeOf(pickedHws), waiting: waitingIn(pickedHws) }, list: pickedHws }
+      : null,
+  );
+  const otherWeeks = weekChoices.filter((c) => c.id !== week?.id);
+
   const hwHeading = (h: Hw) => {
     const title = moduleTitle(h.title);
     return (
@@ -733,15 +757,45 @@ export default async function TeacherHomework({
         <section>
           <Rule label="By week" />
           <HomeworkWeekTabs
-            tabs={weekTabs.map((t) => t.tab)}
-            panels={weekTabs.map((t) => weekGrid(t.list))}
+            // a new week picked is a new starting tab
+            key={pickedId ?? "this"}
+            tabs={table.entries.map((t) => t.tab)}
+            panels={table.entries.map((t) => weekGrid(t.list))}
+            initial={table.initial}
+            picker={otherWeeks.length > 0 && (
+              <WeekPicker
+                label="Other weeks"
+                placeholder="Other weeks"
+                value={pickedId ?? ""}
+                options={otherWeeks}
+                current={week?.id ?? null}
+              />
+            )}
           />
         </section>
       ) : (
         <>
           <section>
-            <Rule label={`This week${week ? ` · ${weekName(week)}` : ""}`} />
-            {thisWeekHws.length === 0 ? (
+            <Rule label={picked ? weekName(picked) : `This week${week ? ` · ${weekName(week)}` : ""}`}>
+              {weekChoices.length > 1 ? (
+                <WeekPicker
+                  label="Week"
+                  value={pickedId ?? week?.id ?? ""}
+                  options={weekChoices}
+                  current={week?.id ?? null}
+                />
+              ) : undefined}
+            </Rule>
+            {picked ? (
+              <>
+                <p className="mb-3 text-sm">
+                  <Link href={href("/teacher/homework")} className="text-brand underline underline-offset-2">
+                    Back to this week
+                  </Link>
+                </p>
+                {cards(pickedHws)}
+              </>
+            ) : thisWeekHws.length === 0 ? (
               <p className="border border-line bg-card px-4 py-3 text-sm text-muted-foreground">
                 No homework is set for this week.
               </p>
@@ -750,17 +804,17 @@ export default async function TeacherHomework({
             )}
           </section>
 
-          {lastWeek && (
+          {!picked && lastWeek && (
             <section>
               <Rule label={`Last week · ${weekName(lastWeek)}`} />
               {cards(lastWeekHws)}
             </section>
           )}
 
-          {backlogHws.length > 0 && (
+          {backlogHws.some((h) => !pickedIds.has(h.id)) && (
             <section>
               <Rule label="Still waiting from earlier weeks" />
-              {cards(backlogHws)}
+              {cards(backlogHws.filter((h) => !pickedIds.has(h.id)))}
             </section>
           )}
 

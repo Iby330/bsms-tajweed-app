@@ -43,6 +43,37 @@ export function waitingNote(
   };
 }
 
+/** A week the teacher can go back to: one that has opened and set homework. */
+export type WeekChoice = { id: string; label: string };
+
+/**
+ * The earlier week `?week=` asks for, or null. This week is the screen's
+ * default, so asking for it is asking for nothing; an id the picker does not
+ * offer (a week not yet open, a stale link) falls back to it too.
+ */
+export function pickedWeek(
+  param: string | undefined, choices: WeekChoice[], currentId: string | null,
+): string | null {
+  if (!param || param === currentId) return null;
+  return choices.some((c) => c.id === param) ? param : null;
+}
+
+/**
+ * The table's tabs with a picked week among them, and the tab to open on. A
+ * week that has a tab already opens there; otherwise it joins the weeks,
+ * before Resources.
+ */
+export function withPickedTab<T extends { tab: { id: string } }>(
+  entries: T[], picked: T | null,
+): { entries: T[]; initial: number } {
+  if (!picked) return { entries, initial: 0 };
+  const at = entries.findIndex((e) => e.tab.id === picked.tab.id);
+  if (at >= 0) return { entries, initial: at };
+  const resources = entries.findIndex((e) => e.tab.id === RESOURCES_TAB);
+  const insert = resources >= 0 ? resources : entries.length;
+  return { entries: [...entries.slice(0, insert), picked, ...entries.slice(insert)], initial: insert };
+}
+
 /**
  * The time of this request, for "has this deadline passed?".
  *

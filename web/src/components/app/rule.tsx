@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 /**
  * The rule between sections, carrying its name.
  *
@@ -7,11 +9,14 @@
  * the utility writes `margin-block-end` on every child but the last, and
  * utilities outrank components), which is how the homework page ended up with
  * its section headings jammed against the panel above them.
+ *
+ * `children`, when given, stands in for the label: a heading that is also a
+ * control (the homework screen's week picker) keeps the rule's spacing.
  */
-export function Rule({ label }: { label: string }) {
+export function Rule({ label, children }: { label: string; children?: ReactNode }) {
   return (
     <div className="divider">
-      <span className="label">{label}</span>
+      {children ?? <span className="label">{label}</span>}
       <span className="r" />
       <span className="m" />
     </div>

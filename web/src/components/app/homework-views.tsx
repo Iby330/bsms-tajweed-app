@@ -2,8 +2,9 @@
 
 import { useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { waitingNote, type HwView } from "@/lib/teacher/homework-view";
+import { waitingNote, type HwView, type WeekChoice } from "@/lib/teacher/homework-view";
 import { rememberHwView } from "@/lib/teacher/homework-view-actions";
+import { FilterSelect } from "@/components/app/filter-select";
 import { cn } from "@/lib/utils";
 
 /**
@@ -81,8 +82,17 @@ export type WeekTab = {
  * On this week's tab, work still waiting on another tab is called out above
  * the grid, so moving to the table never hides the backlog the list shows.
  */
-export function HomeworkWeekTabs({ tabs, panels }: { tabs: WeekTab[]; panels: ReactNode[] }) {
-  const [active, setActive] = useState(0);
+export function HomeworkWeekTabs({
+  tabs, panels, initial = 0, picker,
+}: {
+  tabs: WeekTab[];
+  panels: ReactNode[];
+  /** The tab to open on: a week picked with `?week=`. */
+  initial?: number;
+  /** The "Other weeks" picker, after the tabs. */
+  picker?: ReactNode;
+}) {
+  const [active, setActive] = useState(initial);
 
   const note = waitingNote(tabs);
 
@@ -117,6 +127,7 @@ export function HomeworkWeekTabs({ tabs, panels }: { tabs: WeekTab[]; panels: Re
             </button>
           );
         })}
+        {picker}
       </div>
 
       {active === 0 && note && (
@@ -132,5 +143,47 @@ export function HomeworkWeekTabs({ tabs, panels }: { tabs: WeekTab[]; panels: Re
 
       <div role="tabpanel">{panels[active]}</div>
     </>
+  );
+}
+
+/**
+ * Go back to an earlier week, in either view.
+ *
+ * The week lives in `?week=` so the server renders that week's homework and
+ * the back button returns to this week. `push`, unlike the class filter's
+ * `replace`: going back a week is a place, not a setting. This week, the
+ * default, stays out of the URL.
+ */
+export function WeekPicker({
+  label, value, options, current, placeholder,
+}: {
+  label: string;
+  value: string;
+  options: WeekChoice[];
+  /** This week's id: picking it clears `?week=`. */
+  current: string | null;
+  /** A first option standing for "no week picked", e.g. "Other weeks". */
+  placeholder?: string;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  return (
+    <FilterSelect
+      label={label}
+      hideLabel
+      value={value}
+      options={[
+        ...(placeholder ? [{ value: "", label: placeholder, disabled: true }] : []),
+        ...options.map((o) => ({ value: o.id, label: o.label })),
+      ]}
+      onChange={(id) => {
+        const next = new URLSearchParams(params.toString());
+        if (!id || id === current) next.delete("week");
+        else next.set("week", id);
+        const query = next.toString();
+        router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
+      }}
+    />
   );
 }
