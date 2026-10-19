@@ -230,6 +230,7 @@ export type Database = {
           absence_reason: string | null
           class_id: string
           id: string
+          late: boolean
           present: boolean
           recorded_by: string | null
           session_date: string
@@ -241,6 +242,7 @@ export type Database = {
           absence_reason?: string | null
           class_id: string
           id?: string
+          late?: boolean
           present: boolean
           recorded_by?: string | null
           session_date: string
@@ -252,6 +254,7 @@ export type Database = {
           absence_reason?: string | null
           class_id?: string
           id?: string
+          late?: boolean
           present?: boolean
           recorded_by?: string | null
           session_date?: string

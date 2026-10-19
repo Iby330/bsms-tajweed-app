@@ -81,7 +81,7 @@ export default async function Attendance({
     teacherRoster(),
     db
       .from("attendance")
-      .select("student_id, present, absence_reason, strike_id")
+      .select("student_id, present, late, absence_reason, strike_id")
       .eq("class_id", mine.id)
       .eq("session_date", sessionDate)
       .eq("session_type", sessionType),

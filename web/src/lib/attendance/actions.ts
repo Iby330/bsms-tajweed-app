@@ -69,6 +69,7 @@ export async function setPresence({
   sessionDate,
   sessionType,
   present,
+  late,
   absenceReason,
   strike,
   termId,
@@ -78,6 +79,8 @@ export async function setPresence({
   sessionDate: string;
   sessionType: SessionType;
   present: boolean;
+  /** Present, but came in late. Ignored on an absence. */
+  late?: boolean;
   absenceReason?: string;
   strike?: boolean;
   termId: number;
@@ -91,7 +94,7 @@ export async function setPresence({
   if (invalid) return { ok: false, error: invalid };
 
   const result = await writePresence(db, teacher.id, {
-    classId, studentId, sessionDate, sessionType, present, absenceReason, strike, termId,
+    classId, studentId, sessionDate, sessionType, present, late, absenceReason, strike, termId,
   });
   if (!result.ok) return result;
 
@@ -120,7 +123,7 @@ export async function saveRegister({
   sessionDate: string;
   sessionType: SessionType;
   termId: number;
-  rows: { studentId: string; present: boolean; absenceReason?: string; strike?: boolean }[];
+  rows: { studentId: string; present: boolean; late?: boolean; absenceReason?: string; strike?: boolean }[];
 }): Promise<{ ok: true } | { ok: false; error: string; saved: string[] }> {
   const teacher = await requireTeacher();
   const db = await supabaseServer();
@@ -160,6 +163,7 @@ async function writePresence(
     sessionDate,
     sessionType,
     present,
+    late,
     absenceReason,
     strike,
     termId,
@@ -169,6 +173,7 @@ async function writePresence(
     sessionDate: string;
     sessionType: SessionType;
     present: boolean;
+    late?: boolean;
     absenceReason?: string;
     strike?: boolean;
     termId: number;
@@ -229,6 +234,8 @@ async function writePresence(
       session_date: sessionDate,
       session_type: sessionType,
       present,
+      // Late is a way of being present (the column's check says so too).
+      late: present && late === true,
       absence_reason: present ? null : absenceReason?.trim() || null,
       strike_id: strikeId,
       recorded_by: teacherId,
