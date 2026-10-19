@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { supabaseServer, currentProfile } from "@/lib/supabase/server";
+import { emailStrikeIssued, emailStrikeRemoved } from "./notify";
 
 export type StrikeReason = "absence" | "homework" | "conduct";
 
@@ -38,6 +40,7 @@ export async function issueStrike(
     .single();
   if (error) return { ok: false, error: error.message };
 
+  after(() => emailStrikeIssued(data.id));
   revalidatePath("/teacher/roster");
   revalidatePath("/teacher/attendance");
   revalidatePath("/home");
@@ -48,8 +51,15 @@ export async function issueStrike(
 export async function removeStrike(
   strikeId: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  await requireTeacher();
+  const teacher = await requireTeacher();
   const db = await supabaseServer();
+
+  // Read before the delete: the "removed" email needs to know what it was.
+  const { data: removed } = await db
+    .from("strikes")
+    .select("student_id, term_id, reason, issued_at, emailed_at")
+    .eq("id", strikeId)
+    .maybeSingle();
 
   // Detach from any attendance row first — the FK would block the delete.
   const { error: detachError } = await db
@@ -59,6 +69,7 @@ export async function removeStrike(
   const { error } = await db.from("strikes").delete().eq("id", strikeId);
   if (error) return { ok: false, error: error.message };
 
+  if (removed) after(() => emailStrikeRemoved(removed, teacher.id));
   revalidatePath("/teacher/roster");
   revalidatePath("/teacher/attendance");
   revalidatePath("/home");

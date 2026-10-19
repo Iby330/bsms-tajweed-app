@@ -1491,6 +1491,7 @@ export type Database = {
       }
       strikes: {
         Row: {
+          emailed_at: string | null
           id: string
           issued_at: string | null
           issued_by: string
@@ -1500,6 +1501,7 @@ export type Database = {
           term_id: number
         }
         Insert: {
+          emailed_at?: string | null
           id?: string
           issued_at?: string | null
           issued_by: string
@@ -1509,6 +1511,7 @@ export type Database = {
           term_id: number
         }
         Update: {
+          emailed_at?: string | null
           id?: string
           issued_at?: string | null
           issued_by?: string

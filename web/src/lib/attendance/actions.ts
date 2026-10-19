@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { supabaseServer, currentProfile } from "@/lib/supabase/server";
+import { emailStrikeIssued, emailStrikeRemoved } from "@/lib/strikes/notify";
 import { sessionLabel, type SessionType } from "./session";
 import { isSessionDate, sessionTypeFor, timetableFor, type Timetable } from "./calendar";
 
@@ -187,11 +189,18 @@ async function writePresence(
   if (strikeId && (present || !wantStrike)) {
     // Checked, or a failed delete leaves the student marked present and still
     // holding the absence strike the teacher just took back.
+    // Read before the delete: the "removed" email needs to know what it was.
+    const { data: removed } = await db
+      .from("strikes")
+      .select("student_id, term_id, reason, issued_at, emailed_at")
+      .eq("id", strikeId)
+      .maybeSingle();
     const { error: detachErr } = await db
       .from("attendance").update({ strike_id: null }).eq("id", existing!.id);
     if (detachErr) return { ok: false, error: detachErr.message };
     const { error: deleteErr } = await db.from("strikes").delete().eq("id", strikeId);
     if (deleteErr) return { ok: false, error: deleteErr.message };
+    if (removed) after(() => emailStrikeRemoved(removed, teacherId));
     strikeId = null;
   }
 
@@ -209,6 +218,8 @@ async function writePresence(
       .single();
     if (strikeErr) return { ok: false, error: strikeErr.message };
     strikeId = s.id;
+    const issued = s.id;
+    after(() => emailStrikeIssued(issued));
   }
 
   const { error } = await db.from("attendance").upsert(
