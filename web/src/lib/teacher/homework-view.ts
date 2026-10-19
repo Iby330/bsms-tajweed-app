@@ -16,6 +16,33 @@ export function pickHwView(param: string | undefined, cookie: string | undefined
   return "list";
 }
 
+/** The table's Resources tab, after the weeks: homework with no week (0075). */
+export const RESOURCES_TAB = "resources";
+
+/**
+ * The note above this week's grid when scripts wait on another tab: the first
+ * tab is this week, the rest earlier weeks and Resources. Null when nothing
+ * waits beyond this week.
+ */
+export function waitingNote(
+  tabs: { id: string; waiting: number }[],
+): { text: string; show: string; target: number } | null {
+  const target = tabs.findIndex((t, i) => i > 0 && t.waiting > 0);
+  if (target < 0) return null;
+  const weeks = tabs.slice(1).filter((t) => t.id !== RESOURCES_TAB && t.waiting > 0);
+  const resources = tabs.find((t) => t.id === RESOURCES_TAB)?.waiting ?? 0;
+  const n = weeks.reduce((sum, t) => sum + t.waiting, 0) + resources;
+  const where = [
+    ...(weeks.length ? [weeks.length === 1 ? "from an earlier week" : "from earlier weeks"] : []),
+    ...(resources > 0 ? ["in Resources"] : []),
+  ].join(" and ");
+  return {
+    text: `${n} script${n === 1 ? "" : "s"} still waiting ${where}`,
+    show: tabs[target].id === RESOURCES_TAB ? "Show Resources" : "Show that week",
+    target,
+  };
+}
+
 /**
  * The time of this request, for "has this deadline passed?".
  *

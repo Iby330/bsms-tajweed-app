@@ -4,7 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { readAll } from "@/lib/supabase/read-all";
 import { currentWeek, getTermsAndWeeks, weekEndsAt } from "@/lib/dashboard/queries";
 import { homeworkScope, scopedHref } from "@/lib/teacher/scope";
-import { HW_VIEW_COOKIE, pickHwView, requestTime } from "@/lib/teacher/homework-view";
+import { HW_VIEW_COOKIE, RESOURCES_TAB, pickHwView, requestTime } from "@/lib/teacher/homework-view";
 import { getCachedSectionWeeks } from "@/lib/reference/cached";
 import { sectionWeekRows } from "@/lib/curriculum/section-weeks";
 import { ClassFilter } from "@/components/app/class-filter";
@@ -15,6 +15,7 @@ import { Rule } from "@/components/app/rule";
 import { itemHeld, moduleTitle, scheduledDueAt, scheduledUnlockAt } from "@/lib/curriculum/tree";
 import { getClassSchedule } from "@/lib/curriculum/queries";
 import { SERIES_LABELS, seriesRank } from "@/lib/lessons/series";
+import { resourceHomework } from "@/lib/teacher/resource-homework";
 import { fmtStamp } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,8 @@ type Hw = {
   series: string;
   is_graded: boolean;
   due_at: string | null;
+  /** On the Resources tab: open to the class with no week and no deadline. */
+  resource?: boolean;
 };
 
 const PENDING = ["submitted", "auto_marked"];
@@ -83,7 +86,16 @@ export default async function TeacherHomework({
   // section-wide view) or when the class has none — the sisters and the demo
   // cohorts — and in both cases the screen behaves exactly as it always has,
   // showing the whole programme.
-  const schedule = await getClassSchedule(scope.selected?.id);
+  //
+  // Beside it, the class's Resources courses (0075), whose homework has a tab
+  // of its own after the weeks.
+  const [schedule, resourceCourses] = await Promise.all([
+    getClassSchedule(scope.selected?.id),
+    scope.selected
+      ? db.from("class_resources").select("course_id").eq("class_id", scope.selected.id)
+          .then(({ data }) => data ?? [])
+      : [],
+  ]);
 
   // The section's own calendar (0052): the selected class's, else the one
   // section every class in the filter shares. A sisters' week opens Wednesday.
@@ -194,6 +206,19 @@ export default async function TeacherHomework({
     const only = h.course_id ? scheduledByCourse.get(h.course_id)?.ordinals : undefined;
     return !only || only.includes(Math.max(h.ordinal ?? 1, 1));
   });
+
+  // Resources homework, less anything the teacher put into one of the class's
+  // weeks: that is the week's work and is already in `visible`.
+  const resourceHws: Hw[] = useSyllabus
+    ? resourceHomework(
+        (homeworks ?? []) as Hw[],
+        resourceCourses.map((r) => r.course_id),
+        new Set(visible.map((h) => h.id)),
+      ).map((h) => ({ ...h, resource: true }))
+    : [];
+  const handedInResources = resourceHws.filter(
+    (h) => pendingByHw.has(h.id) || approvedByHw.has(h.id),
+  );
 
   const labelOf = (key: string) =>
     (useSyllabus
@@ -308,7 +333,8 @@ export default async function TeacherHomework({
       };
     }
     if (redoKeys.has(key)) return { state: "sent_back" };
-    if (heldOf(h)) return { state: "not_yet" };
+    // no deadline, so a Resources homework is never missed
+    if (heldOf(h) || h.resource) return { state: "not_yet" };
     return { state: isPast(extensionDue.get(key) ?? classDueOf(h)) ? "missed" : "not_yet" };
   };
 
@@ -524,7 +550,7 @@ export default async function TeacherHomework({
               </th>
               {list.map((h) => {
                 const title = moduleTitle(h.title);
-                const due = classDueOf(h);
+                const due = h.resource ? null : classDueOf(h);
                 return (
                   <th key={h.id} scope="col" className="border-l border-card/60 p-0 text-left align-top font-normal">
                     <Link href={href(`/teacher/homework/${h.number}`)} className="flex flex-col gap-1 px-3 py-3 hover:underline">
@@ -532,7 +558,9 @@ export default async function TeacherHomework({
                         {homeworkLabel(h.number, h.series)}
                       </span>
                       {title && <MixedText text={title} className="text-[13px] font-semibold leading-snug" />}
-                      {due && (
+                      {h.resource ? (
+                        <span className="text-[11px] text-muted-foreground">No deadline</span>
+                      ) : due && (
                         <span className="text-[11px] text-muted-foreground">
                           {isPast(due) ? "Deadline passed" : `Due ${fmtStamp(due)}`}
                         </span>
@@ -609,6 +637,12 @@ export default async function TeacherHomework({
           const list = unfiled.filter((h) => pendingByHw.has(h.id)).sort(byNumber);
           return { tab: { id: "other", label: "Earlier", sub: rangeOf(list), waiting: waitingIn(list) }, list };
         })()]
+      : []),
+    ...(resourceHws.length
+      ? [{
+          tab: { id: RESOURCES_TAB, label: "Resources", sub: rangeOf(resourceHws), waiting: waitingIn(resourceHws) },
+          list: resourceHws,
+        }]
       : []),
   ];
 
@@ -727,6 +761,15 @@ export default async function TeacherHomework({
             <section>
               <Rule label="Still waiting from earlier weeks" />
               {cards(backlogHws)}
+            </section>
+          )}
+
+          {/* Only what has been handed in: Resources has no deadline, so the
+              rest is not owed. The table's Resources tab shows the lot. */}
+          {handedInResources.length > 0 && (
+            <section>
+              <Rule label="Resources · no deadline" />
+              {cards(handedInResources)}
             </section>
           )}
         </>

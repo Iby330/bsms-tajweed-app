@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { HwView } from "@/lib/teacher/homework-view";
+import { waitingNote, type HwView } from "@/lib/teacher/homework-view";
 import { rememberHwView } from "@/lib/teacher/homework-view-actions";
 import { cn } from "@/lib/utils";
 
@@ -74,18 +74,17 @@ export type WeekTab = {
 
 /**
  * The table view's weeks: this week first, last week, then any older week
- * that still has scripts to mark. Every panel is rendered on the server and
- * handed over whole, so switching is instant and nothing is fetched.
+ * that still has scripts to mark, then Resources. Every panel is rendered on
+ * the server and handed over whole, so switching is instant and nothing is
+ * fetched.
  *
- * On this week's tab, work still waiting in an earlier week is called out above
+ * On this week's tab, work still waiting on another tab is called out above
  * the grid, so moving to the table never hides the backlog the list shows.
  */
 export function HomeworkWeekTabs({ tabs, panels }: { tabs: WeekTab[]; panels: ReactNode[] }) {
   const [active, setActive] = useState(0);
 
-  const earlier = tabs.slice(1);
-  const earlierWaiting = earlier.reduce((n, t) => n + t.waiting, 0);
-  const firstWaiting = tabs.findIndex((t, i) => i > 0 && t.waiting > 0);
+  const note = waitingNote(tabs);
 
   return (
     <>
@@ -120,17 +119,14 @@ export function HomeworkWeekTabs({ tabs, panels }: { tabs: WeekTab[]; panels: Re
         })}
       </div>
 
-      {active === 0 && earlierWaiting > 0 && firstWaiting > 0 && (
+      {active === 0 && note && (
         <button
           type="button"
-          onClick={() => setActive(firstWaiting)}
+          onClick={() => setActive(note.target)}
           className="mb-4 flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 border border-warn/30 bg-warn/10 px-4 py-2.5 text-left text-sm font-medium text-warn"
         >
-          <span>
-            {earlierWaiting} script{earlierWaiting === 1 ? "" : "s"} still waiting from{" "}
-            {earlier.filter((t) => t.waiting > 0).length === 1 ? "an earlier week" : "earlier weeks"}
-          </span>
-          <span className="underline underline-offset-2">Show that week</span>
+          <span>{note.text}</span>
+          <span className="underline underline-offset-2">{note.show}</span>
         </button>
       )}
 
