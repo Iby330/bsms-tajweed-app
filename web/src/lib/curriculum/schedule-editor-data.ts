@@ -124,14 +124,16 @@ export async function getScheduleEditorData(classId: string): Promise<EditorData
   }).sort((a, b) => a.ordinal - b.ordinal);
 
   // Everything else in the programme: items of courses this class does not take.
-  // a course the class takes, or has as a no-deadline Resource, is not offered
-  const taken = new Set([...schedule.courses.filter((c) => !c.added).map((c) => c.courseId), ...(resources ?? []).map((r) => r.course_id)]);
+  // a course the class takes is not offered; a Resources course is, and an
+  // item added from it becomes that week's work, with its deadline (0113)
+  const taken = new Set(schedule.courses.filter((c) => !c.added).map((c) => c.courseId));
+  const resourceIds = new Set((resources ?? []).map((r) => r.course_id));
   const added = new Set(mine.map((s) => keyOf(s.courseId, s.ordinal)));
   const courseById = new Map((courses ?? []).map((c) => [c.id, c]));
   const library: LibraryItem[] = [...byKey.values()]
     .filter((s) => !taken.has(s.courseId) && !added.has(keyOf(s.courseId, s.ordinal)) && courseById.has(s.courseId))
     .map((s) => ({
-      courseId: s.courseId, courseLabel: courseById.get(s.courseId)!.label, ordinal: s.ordinal,
+      courseId: s.courseId, courseLabel: courseById.get(s.courseId)!.label + (resourceIds.has(s.courseId) ? " (Resources)" : ""), ordinal: s.ordinal,
       title: moduleTitle(s.hw?.title ?? s.lesson?.title ?? "") || `${courseById.get(s.courseId)!.label} ${s.ordinal}`,
       hasVideo: !!s.lesson?.youtube_id, hwNumber: s.hw?.number ?? null,
     }))

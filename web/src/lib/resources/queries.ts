@@ -1,5 +1,5 @@
 import "server-only";
-import { supabaseServer } from "@/lib/supabase/server";
+import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export type ResourceHomework = {
@@ -34,6 +34,13 @@ export async function getClassResources(): Promise<ResourceSet[]> {
   if (!rows?.length) return [];
 
   const courseIds = rows.map((r) => r.course_id);
+  // items the teacher put into one of the class's weeks are that week's work
+  // now, so they show there, not here (0108)
+  const me = await currentProfile();
+  const { data: added } = me?.class_id
+    ? await db.from("class_added_items").select("course_id, ordinal").eq("class_id", me.class_id)
+    : { data: [] as { course_id: string; ordinal: number }[] };
+  const inAWeek = new Set((added ?? []).map((a) => `${a.course_id}|${a.ordinal}`));
   const [{ data: lessons }, { data: homeworks }, { data: subs }] = await Promise.all([
     supabaseAdmin()
       .from("lessons")
@@ -56,7 +63,7 @@ export async function getClassResources(): Promise<ResourceSet[]> {
     const course = r.courses as { key: string; label: string } | null;
     if (!course) return [];
     const videos = (lessons ?? [])
-      .filter((l) => l.course_id === r.course_id && l.youtube_id)
+      .filter((l) => l.course_id === r.course_id && l.youtube_id && !inAWeek.has(`${l.course_id}|${l.ordinal ?? 0}`))
       .map((l) => ({
         id: l.id, title: l.title, youtubeId: l.youtube_id!, ordinal: l.ordinal ?? 0,
         homework: homeworkAt(r.course_id, l.ordinal ?? 0),

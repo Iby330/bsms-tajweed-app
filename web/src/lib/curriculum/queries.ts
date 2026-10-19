@@ -198,12 +198,17 @@ export async function getStudentCurriculum(
   // weekly work: no deadline, set in person. It lives on the Resources page,
   // so it is kept out of the year here — off Home's due and overdue lists and
   // out of every course page. A course the class also takes keeps its own.
-  const planned = new Set((schedule?.courses ?? []).map((c) => c.courseId));
-  const resourceOnly = new Set(
-    (resources.data ?? []).map((r) => r.course_id).filter((id) => !planned.has(id)),
-  );
-  const homeworkRows = ((homeworks.data ?? []) as HomeworkRow[])
-    .filter((h) => !h.course_id || !resourceOnly.has(h.course_id));
+  // An item the teacher added to a week from a Resources course (0108) is
+  // that week's work, deadline and all (0113); the rest of the course stays
+  // on the Resources page.
+  const planned = new Map((schedule?.courses ?? []).map((c) => [c.courseId, c]));
+  const resourceIds = new Set((resources.data ?? []).map((r) => r.course_id));
+  const homeworkRows = ((homeworks.data ?? []) as HomeworkRow[]).filter((h) => {
+    if (!h.course_id || !resourceIds.has(h.course_id)) return true;
+    const sc = planned.get(h.course_id);
+    if (!sc) return false;
+    return !sc.ordinals || sc.ordinals.includes(Math.max(h.ordinal ?? 1, 1));
+  });
 
   const unlockAll = me?.unlock_all ?? false;
   // The same condition `buildTree` applies, so the two cannot disagree.
