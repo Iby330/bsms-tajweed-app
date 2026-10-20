@@ -169,3 +169,21 @@ describe("nextToHear", () => {
     expect(nextToHear([], [])).toBeNull();
   });
 });
+
+describe("memorisationList across the five-juz run", () => {
+  // The seeded run since 0119: An-Nas (order 1) back to Al-Ahqaf (order 69).
+  const run = Array.from({ length: 69 }, (_, i) => ({
+    number: 114 - i, order_index: i + 1, name_ar: "", name_en: `S${114 - i}`,
+  }));
+
+  it("lets a target run the whole way to Al-Ahqaf", () => {
+    const list = memorisationList(114, 69, run);
+    expect(list).toHaveLength(69);
+    expect(list.at(-1)!.number).toBe(46);
+  });
+
+  it("carries a student who started at Al-Mulk on into juz 28", () => {
+    const list = memorisationList(67, 10, run);
+    expect(list.map((s) => s.number)).toEqual([67, 66, 65, 64, 63, 62, 61, 60, 59, 58]);
+  });
+});

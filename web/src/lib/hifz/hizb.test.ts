@@ -1,16 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  hizbOf,
-  juzOf,
-  assumedPassed,
-  hizbBlocks,
-  blocksInScope,
-  checkStatus,
-  juzProgress,
-  rowPlan,
-  HIZB_BOUNDS,
-  JUZ_BOUNDS,
-} from "./hizb";
+import { hizbOf, juzOf, assumedPassed, hizbBlocks, blocksInScope, checkStatus, juzProgress, rowPlan, HIZB_BOUNDS, JUZ_BOUNDS } from "./hizb";
 import type { Surah } from "./pace";
 
 /** The real run: order_index 1..43 = surah 114 down to 72. */
@@ -38,17 +27,39 @@ describe("hizbOf — standard mushaf bounds", () => {
     expect(hizbOf(71)).toBe(57); // Nuh — outside the programme
   });
   it("returns null outside the mapped ranges", () => {
-    expect(hizbOf(66)).toBeNull();
+    expect(hizbOf(45)).toBeNull();
+  });
+
+  it("files a surah split between hizbs under the one it starts in", () => {
+    expect(hizbOf(46)).toBe(51); // Al-Ahqaf opens hizb 51 and juz 26
+    expect(hizbOf(48)).toBe(51); // Al-Fath: hizb 52 starts at 48:18
+    expect(hizbOf(51)).toBe(52); // Adh-Dhariyat: hizb 53 starts at 51:31
+    expect(hizbOf(55)).toBe(54); // Ar-Rahman opens hizb 54
+    expect(hizbOf(58)).toBe(55); // Al-Mujadila opens hizb 55 and juz 28
+    expect(hizbOf(62)).toBe(56); // Al-Jumu'ah opens hizb 56
+  });
+
+  it("gives every surah of the run, 46 to 114, exactly one hizb and one juz", () => {
+    for (let n = 46; n <= 114; n++) {
+      expect(HIZB_BOUNDS.filter((h) => n >= h.from && n <= h.to)).toHaveLength(1);
+      expect(JUZ_BOUNDS.filter((j) => n >= j.from && n <= j.to)).toHaveLength(1);
+    }
   });
 });
 
 describe("juzOf", () => {
-  it("Juz 'Amma is 78–114, Tabarak is 67–77", () => {
+  it("Juz 'Amma is 78–114, Tabarak is 67–77, and on down to Al-Ahqaf", () => {
     expect(juzOf(114)).toBe(30);
     expect(juzOf(78)).toBe(30);
     expect(juzOf(77)).toBe(29);
     expect(juzOf(67)).toBe(29);
-    expect(juzOf(66)).toBeNull();
+    expect(juzOf(66)).toBe(28);
+    expect(juzOf(58)).toBe(28);
+    expect(juzOf(57)).toBe(27);
+    expect(juzOf(52)).toBe(27);
+    expect(juzOf(51)).toBe(26); // juz 27 starts at 51:31
+    expect(juzOf(46)).toBe(26);
+    expect(juzOf(45)).toBeNull();
   });
 });
 

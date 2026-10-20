@@ -1,5 +1,11 @@
 /**
- * Hizb + juz structure for the BSMS memorisation run (An-Nas 114 → Al-Jinn 72).
+ * Hizb + juz structure for the BSMS memorisation run, the last five ajza
+ * (An-Nas 114 → Al-Ahqaf 46) since 2026-10-20.
+ *
+ * Some hizb and juz boundaries fall inside a surah (hizb 52 starts at Al-Fath
+ * 48:18, juz 27 and hizb 53 at Adh-Dhariyat 51:31). The run is memorised a
+ * whole surah at a time, so a split surah belongs to the division it STARTS
+ * in: Al-Fath to hizb 51, Adh-Dhariyat to hizb 52 and juz 26.
  *
  * Boundaries follow the standard mushaf division: hizb 60 starts at Al-A'la
  * (87), 59 at An-Naba (78), 58 at Al-Jinn (72) — so the run is exactly hizbs
@@ -17,14 +23,21 @@ export const HIZB_BOUNDS: HizbRange[] = [
   { hizb: 60, from: 87, to: 114 },
   { hizb: 59, from: 78, to: 86 },
   { hizb: 58, from: 72, to: 77 },
-  // 57 is mapped so hizbOf/juzOf answer honestly for Tabarak surahs outside the
-  // programme. It must never yield a block: `surahs` is seeded 72–114 only.
   { hizb: 57, from: 67, to: 71 },
+  { hizb: 56, from: 62, to: 66 },
+  { hizb: 55, from: 58, to: 61 },
+  { hizb: 54, from: 55, to: 57 },
+  { hizb: 53, from: 52, to: 54 },
+  { hizb: 52, from: 49, to: 51 },
+  { hizb: 51, from: 46, to: 48 },
 ];
 
 export const JUZ_BOUNDS = [
   { juz: 30, from: 78, to: 114, name_en: "Juz 'Amma", name_ar: "عمّ" },
   { juz: 29, from: 67, to: 77, name_en: "Juz Tabarak", name_ar: "تبارك" },
+  { juz: 28, from: 58, to: 66, name_en: "Juz Qad Sami'a", name_ar: "قد سمع" },
+  { juz: 27, from: 52, to: 57, name_en: "Juz Qala Fama Khatbukum", name_ar: "قال فما خطبكم" },
+  { juz: 26, from: 46, to: 51, name_en: "Juz Ha Mim", name_ar: "حم" },
 ] as const;
 
 export const hizbOf = (n: number): number | null =>

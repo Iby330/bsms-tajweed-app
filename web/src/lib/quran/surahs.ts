@@ -10,7 +10,7 @@
  * network and cannot be left waiting on somebody else's service. The ayah
  * counts total 6,236, the standard Hafs count, which is the check that the
  * table came down whole; a test asserts it. The `surahs` table in the
- * database holds only 67 to 114 (the memorisation run) and no ayah counts,
+ * database holds only 46 to 114 (the memorisation run) and no ayah counts,
  * so it cannot answer this.
  */
 

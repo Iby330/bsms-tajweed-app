@@ -1,6 +1,28 @@
-/** Static mushaf facts for the surahs in the memorisation run (67–114).
+/** Static mushaf facts for the surahs in the memorisation run (46–114: the
+ *  last five ajza, Al-Ahqaf to An-Nas, since 2026-10-20; it was 67–114).
  *  Not in the DB on purpose — this never changes. */
 export const SURAH_META: Record<number, { ayahs: number; meaning: string }> = {
+  46: { ayahs: 35, meaning: "The Wind-Curved Sandhills" },
+  47: { ayahs: 38, meaning: "Muhammad" },
+  48: { ayahs: 29, meaning: "The Victory" },
+  49: { ayahs: 18, meaning: "The Rooms" },
+  50: { ayahs: 45, meaning: "The Letter Qaf" },
+  51: { ayahs: 60, meaning: "The Winnowing Winds" },
+  52: { ayahs: 49, meaning: "The Mount" },
+  53: { ayahs: 62, meaning: "The Star" },
+  54: { ayahs: 55, meaning: "The Moon" },
+  55: { ayahs: 78, meaning: "The Most Merciful" },
+  56: { ayahs: 96, meaning: "The Inevitable Event" },
+  57: { ayahs: 29, meaning: "The Iron" },
+  58: { ayahs: 22, meaning: "The Pleading Woman" },
+  59: { ayahs: 24, meaning: "The Exile" },
+  60: { ayahs: 13, meaning: "The Woman to Be Examined" },
+  61: { ayahs: 14, meaning: "The Ranks" },
+  62: { ayahs: 11, meaning: "Friday" },
+  63: { ayahs: 11, meaning: "The Hypocrites" },
+  64: { ayahs: 18, meaning: "The Mutual Loss and Gain" },
+  65: { ayahs: 12, meaning: "The Divorce" },
+  66: { ayahs: 12, meaning: "The Prohibition" },
   67: { ayahs: 30, meaning: "The Sovereignty" },
   68: { ayahs: 52, meaning: "The Pen" },
   69: { ayahs: 52, meaning: "The Reality" },

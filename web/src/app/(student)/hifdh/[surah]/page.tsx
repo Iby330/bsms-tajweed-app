@@ -39,10 +39,8 @@ export default async function SurahPage({
   const [{ surah: raw }, { p }] = await Promise.all([params, searchParams]);
   const number = Number(raw);
   // Checked against static data before touching the database, so a nonsense
-  // number costs no query. SURAH_META covers 67–114, which is WIDER than the
-  // seeded 72–114: 67–71 pass this check and then fail the lookup below.
-  // That is correct either way — both paths end in notFound() — and it means
-  // the pages are already written for the day those rows are seeded.
+  // number costs no query. SURAH_META and the seeded `surahs` both cover the
+  // run, 46–114; a number outside it ends in notFound() either way.
   //
   // This still answers 200, not 404, and that is expected rather than broken:
   // the student layout awaits the profile before this page runs, so the stream
