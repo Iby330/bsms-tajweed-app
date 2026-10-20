@@ -34,6 +34,14 @@ export type RegisterRow = {
 
 const PACE_LABEL: Record<PaceStatus, string> = { ok: "ahead", warn: "on pace", danger: "behind" };
 
+/** The end surah the selected students' targets already share, or null when
+ *  they have none, or differ. A target's end is the last surah of its run. */
+export function currentEnd(selected: Pick<RegisterRow, "run">[]): number | null {
+  const ends = selected.map((r) => r.run.at(-1) ?? null);
+  if (ends.length === 0 || ends.some((e) => e === null)) return null;
+  return ends.every((e) => e === ends[0]) ? ends[0] : null;
+}
+
 /**
  * The register with targets built in. Goals are student-specific, so the
  * teacher picks WHO first — a checkbox per row, or select all — and one
@@ -65,6 +73,10 @@ export function HifzRegister({ rows, surahs }: { rows: RegisterRow[]; surahs: Su
     setSel(next);
     setStartOverride(null);
     setMessage(null);
+    // Up to opens on the target they already have, so the panel shows it
+    // rather than an empty picker that reads as no target at all. Several
+    // students share it only when every one has the same end surah.
+    setEnd(currentEnd(rows.filter((r) => next.has(r.studentId))));
   };
   const toggle = (id: string) => {
     const next = new Set(sel);

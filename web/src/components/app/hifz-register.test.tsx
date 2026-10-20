@@ -138,3 +138,34 @@ describe("HifzRegister — results", () => {
       expect(record).toHaveBeenCalledWith("s3", { from: 113, to: 112, passed: [112], note: "again" }));
   }, 20_000);
 });
+
+describe("HifzRegister — Up to opens on the current target", () => {
+  // Ali's target runs An-Nas (114) to S100: fifteen surahs.
+  const run = Array.from({ length: 15 }, (_, i) => 114 - i);
+  const ALI_T = row({ studentId: "s1", name: "Ali", target: 15, run, from: 114 });
+  const SAME = row({ studentId: "s3", name: "Sami", target: 15, run, from: 114 });
+  const OTHER = row({ studentId: "s4", name: "Omar", target: 5, run: run.slice(0, 5), from: 114 });
+  const upTo = (q: (l: string) => HTMLElement) => (q("Up to") as HTMLSelectElement).value;
+
+  it("shows one student's own target, ready to save as it is", () => {
+    const { getByLabelText, getByRole } = render(<HifzRegister rows={[ALI_T, BILAL]} surahs={surahs} />);
+    fireEvent.click(getByLabelText("Select Ali"));
+    expect(upTo(getByLabelText)).toBe("100");
+    expect((getByRole("button", { name: "Save target" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("stays empty for a student with no target yet", () => {
+    const { getByLabelText } = render(<HifzRegister rows={[ALI, BILAL]} surahs={surahs} />);
+    fireEvent.click(getByLabelText("Select Ali"));
+    expect(upTo(getByLabelText)).toBe("");
+  });
+
+  it("shows a target several students share, and nothing when they differ", () => {
+    const { getByLabelText } = render(<HifzRegister rows={[ALI_T, SAME, OTHER]} surahs={surahs} />);
+    fireEvent.click(getByLabelText("Select Ali"));
+    fireEvent.click(getByLabelText("Select Sami"));
+    expect(upTo(getByLabelText)).toBe("100");
+    fireEvent.click(getByLabelText("Select Omar"));
+    expect(upTo(getByLabelText)).toBe("");
+  });
+});
