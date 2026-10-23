@@ -84,8 +84,10 @@ export async function startSession(reciterId: string): Promise<string> {
  *  per word, or a single lapse would swamp the pattern tracker. */
 export type MistakeLocation = { surah: number; ayah: number; position: number | null };
 
-/** One mistake per target per session: logging replaces any earlier
- *  classification of the same word — or of the same ayah, which is tracked
+/** A target can carry several mistakes in one session — a word forgotten
+ *  AND its madd cut short are two rows. Logging the SAME mistake (category
+ *  and detail) on the same target again replaces it, so a re-save updates
+ *  the note rather than counting the slip twice. The ayah is tracked
  *  separately from the words inside it. RLS (reviewer + draft) guards both
  *  statements. Returns the new row id so the client can undo it. */
 export async function logMistake(
@@ -105,16 +107,17 @@ export async function logMistake(
     throw new Error("Makhraj applies to a word, not a whole ayah.");
   }
 
-  // `.eq` never matches NULL in Postgres, so the ayah-scoped row has to be
-  // matched with `.is` — using `.eq` here would silently skip the delete and
-  // let duplicates pile up on every re-classification.
-  const dup = db
+  // `.eq` never matches NULL in Postgres, so the ayah-scoped row and a
+  // detail-less mistake have to be matched with `.is` — using `.eq` here
+  // would silently skip the delete and let duplicates pile up on every
+  // re-save.
+  const at = db
     .from("revision_mistakes").delete()
     .eq("session_id", sessionId)
-    .eq("surah_number", loc.surah).eq("ayah_number", loc.ayah);
-  const { error: delErr } = await (loc.position === null
-    ? dup.is("word_position", null)
-    : dup.eq("word_position", loc.position));
+    .eq("surah_number", loc.surah).eq("ayah_number", loc.ayah)
+    .eq("category", category);
+  const scoped = loc.position === null ? at.is("word_position", null) : at.eq("word_position", loc.position);
+  const { error: delErr } = await (detail ? scoped.eq("detail", detail) : scoped.is("detail", null));
   if (delErr) throw new Error(delErr.message);
 
   const { data, error } = await db

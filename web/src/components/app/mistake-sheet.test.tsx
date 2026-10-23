@@ -56,14 +56,36 @@ describe("MistakeSheet", () => {
     expect(screen.queryByRole("button", { name: "Makhraj" })).toBeNull();
   }, SLOW);
 
-  it("shows remove for existing marks and calls it", () => {
+  // A word can carry several mistakes at once (forgotten AND a madd cut
+  // short): each is listed with its own Remove, and the picker below adds
+  // another rather than replacing them.
+  it("lists every mark on the word, each removable, and still adds another", () => {
     const onRemove = vi.fn();
+    const onSave = vi.fn();
     render(
-      <MistakeSheet word={word} onSave={() => {}} onRemove={onRemove} onClose={() => {}}
-        existing={{ category: "hifz", detail: "forgot", note: null }} />,
+      <MistakeSheet word={word} onSave={onSave} onRemove={onRemove} onClose={() => {}}
+        existing={[
+          { id: "m1", category: "hifz", detail: "forgot", note: null },
+          { id: "m2", category: "tajweed", detail: "madd", note: "too short" },
+        ]} />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Remove" }));
-    expect(onRemove).toHaveBeenCalled();
+    const list = screen.getByRole("list", { name: "Marked on this word" });
+    expect(list.textContent).toContain("Hifdh: Forgot it");
+    expect(list.textContent).toContain("Tajweed: Madd length");
+    expect(list.textContent).toContain("too short");
+    fireEvent.click(screen.getByRole("button", { name: "Remove Tajweed: Madd length" }));
+    expect(onRemove).toHaveBeenCalledWith("m2");
+
+    fireEvent.click(screen.getByRole("button", { name: "Tajweed" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ghunnah" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add mistake" }));
+    expect(onSave).toHaveBeenCalledWith({ category: "tajweed", detail: "ghunnah", note: "" });
+  }, SLOW);
+
+  it("shows no marked list on an unmarked word", () => {
+    render(<MistakeSheet word={word} onSave={vi.fn()} onClose={vi.fn()} existing={[]} />);
+    expect(screen.queryByRole("list", { name: "Marked on this word" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Save" })).toBeTruthy();
   }, SLOW);
 
   it("lists earlier marks on the word above the picker", () => {

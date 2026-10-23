@@ -31,8 +31,9 @@ async function runFor(db: Db, studentId: string): Promise<Set<number>> {
  * UK date, created by the first tap of the day: already submitted, so the
  * student sees it at once, and `counts_as_result = false`, so it never
  * decides passed or not passed (see surahState). Its range is the surah of
- * that first mark. One mark per word per session, as logMistake keeps it,
- * so tapping a word again today changes the mark. Returns the mark's id.
+ * that first mark. A word can take several marks today; saving the same
+ * mistake on it again replaces that one, as logMistake keeps it. Returns
+ * the mark's id.
  */
 export async function logHearingMistake(
   studentId: string,

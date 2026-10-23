@@ -78,9 +78,23 @@ describe("HearDesk", () => {
     render(<HearDesk {...base} initialMistakes={[mark({})]} />);
     expect(screen.getByText("1 mistake marked today")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /أَعُوذُ/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove Hifdh" }));
     expect(removeHearingMistake).toHaveBeenCalledWith("m1");
     expect(await screen.findByText("0 mistakes marked today", undefined, { timeout: 10_000 })).toBeTruthy();
+  }, SLOW);
+
+  it("a word marked twice today counts both, and Remove takes back only the one chosen", async () => {
+    render(
+      <HearDesk {...base} initialMistakes={[
+        mark({}),
+        mark({ id: "m2", category: "tajweed", detail: "ghunnah" }),
+      ]} />,
+    );
+    expect(screen.getByText("2 mistakes marked today")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /أَعُوذُ/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove Tajweed: Ghunnah" }));
+    expect(removeHearingMistake).toHaveBeenCalledWith("m2");
+    expect(await screen.findByText("1 mistake marked today", undefined, { timeout: 10_000 })).toBeTruthy();
   }, SLOW);
 
   it("switching student starts a fresh logger, and taps then go to the new student", async () => {

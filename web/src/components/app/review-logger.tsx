@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MushafReader, type SurahNames } from "./mushaf-reader";
 import { MushafPager } from "./mushaf-pager";
-import { MistakeSheet, type SheetResult } from "./mistake-sheet";
+import { MistakeSheet, type SheetMark, type SheetResult } from "./mistake-sheet";
 import { logMistake, removeMistake, submitSession } from "@/lib/hifz/review-actions";
 import { logHearingMistake, removeHearingMistake } from "@/lib/hifz/hearing-actions";
 import { SESSION_FLAGS, type Category } from "@/lib/hifz/mistake-taxonomy";
@@ -16,7 +16,9 @@ import type { WordHistoryEntry } from "@/lib/hifz/heat-spread";
 import { markKey, wordKey, type MushafPage, type QuranWord } from "@/lib/quran/mushaf";
 import type { MistakeRow } from "@/lib/hifz/mistakes";
 
-type Mark = { id?: string; category: Category; detail: string | null; note: string | null };
+/** Same mistake type, so logging it again replaces it (logMistake agrees). */
+const sameKind = (a: SheetMark, b: { category: Category; detail: string | null }) =>
+  a.category === b.category && a.detail === b.detail;
 
 /** The tapped token's target: an ayah end marker classifies the whole ayah,
  *  anything else the single word. */
@@ -27,8 +29,9 @@ const targetOf = (w: QuranWord) => ({
 /**
  * The live logging island: tap a word → classify → it tints. Tapping an
  * ayah's END MARKER classifies the whole ayah instead, which is the commoner
- * slip — one row, tinting every word in it. State is local (each tap is one
- * server action, no refresh).
+ * slip — one row, tinting every word in it. A target can hold several
+ * mistakes; tapping it again lists them and adds another. State is local
+ * (each tap is one server action, no refresh).
  *
  * Two modes, one logger:
  *  · `peer` — a partner listening. "Listening to B · Finish" on top; Finish
@@ -36,8 +39,8 @@ const targetOf = (w: QuranWord) => ({
  *    this for whatever comes after. The session always exists.
  *  · `hearing` — the teacher on the Hear tab. Every Save is logged at once
  *    for `studentId` (logHearingMistake finds or makes today's marking
- *    session), and a word marked today opens with its mark to change or
- *    Remove. No Start, no End: the result is a separate step (Pass / Not
+ *    session), and a word marked today opens with its marks to Remove or
+ *    add to. No Start, no End: the result is a separate step (Pass / Not
  *    passed). `initialMistakes` are today's marks; `heat`/`history` paint
  *    what earlier hearings said about the same words.
  */
@@ -67,14 +70,15 @@ export function ReviewLogger({
   pager?: { page: number; min: number; max: number; basePath: string; param?: string; step?: number };
 }) {
   const router = useRouter();
-  const [marks, setMarks] = useState<Record<string, Mark>>(() =>
-    Object.fromEntries(
-      initialMistakes.map((m) => [
-        markKey({ surah: m.surah_number, ayah: m.ayah_number, position: m.word_position }),
-        { id: m.id, category: m.category, detail: m.detail, note: m.note },
-      ]),
-    ),
-  );
+  // markKey → every mark on that target this session, oldest first.
+  const [marks, setMarks] = useState<Record<string, SheetMark[]>>(() => {
+    const byTarget: Record<string, SheetMark[]> = {};
+    for (const m of initialMistakes) {
+      const k = markKey({ surah: m.surah_number, ayah: m.ayah_number, position: m.word_position });
+      (byTarget[k] ??= []).push({ id: m.id, category: m.category, detail: m.detail, note: m.note });
+    }
+    return byTarget;
+  });
   const [tapped, setTapped] = useState<QuranWord | null>(null);
   const [wrapUp, setWrapUp] = useState(false);
   const [flags, setFlags] = useState<string[]>([]);
@@ -104,25 +108,28 @@ export function ReviewLogger({
     const target = targetOf(word);
     startTransition(async () => {
       const newId = await write(target, r);
+      const key = markKey(target);
       setMarks((m) => ({
         ...m,
-        [markKey(target)]: { id: newId, category: r.category, detail: r.detail, note: r.note },
+        [key]: [
+          ...(m[key] ?? []).filter((x) => !sameKind(x, r)),
+          { id: newId, category: r.category, detail: r.detail, note: r.note },
+        ],
       }));
     });
   };
 
-  const remove = () => {
+  const remove = (id: string) => {
     const word = tapped;
     if (!word) return;
     const key = markKey(targetOf(word));
-    const mark = marks[key];
     setTapped(null);
-    if (!mark?.id) return;
     startTransition(async () => {
-      await (hearing ? removeHearingMistake(mark.id!) : removeMistake(mark.id!));
+      await (hearing ? removeHearingMistake(id) : removeMistake(id));
       setMarks((m) => {
-        const next = { ...m };
-        delete next[key];
+        const left = (m[key] ?? []).filter((x) => x.id !== id);
+        const next = { ...m, [key]: left };
+        if (!left.length) delete next[key];
         return next;
       });
     });
@@ -136,14 +143,18 @@ export function ReviewLogger({
       router.refresh();
     });
 
-  const count = Object.keys(marks).length;
+  const count = Object.values(marks).reduce((n, list) => n + list.length, 0);
   const plural = count === 1 ? "mistake" : "mistakes";
   const existing = tapped ? marks[markKey(targetOf(tapped))] : undefined;
+  // The reader only needs to know a target is marked; it tints the same.
+  const tinted = Object.fromEntries(
+    Object.entries(marks).filter(([, list]) => list.length).map(([k, list]) => [k, list[0]]),
+  );
   // spreadHeat keys history by wordKey for every word, end markers included.
   const previous = tapped ? history?.[wordKey(tapped)] : undefined;
 
   const reader = (
-    <MushafReader pages={pages} marks={marks} heat={heat} surahNames={surahNames} onWordTap={setTapped} />
+    <MushafReader pages={pages} marks={tinted} heat={heat} surahNames={surahNames} onWordTap={setTapped} />
   );
 
   return (
@@ -185,7 +196,7 @@ export function ReviewLogger({
         existing={existing}
         previous={previous}
         onSave={save}
-        onRemove={existing ? remove : undefined}
+        onRemove={remove}
         onClose={() => setTapped(null)}
       />
 

@@ -40,6 +40,23 @@ describe("ReviewLogger", () => {
       "s1", { surah: 114, ayah: 1, position: 1 }, "hifz", undefined, "");
     expect(await screen.findByText(/1 mistake/, undefined, { timeout: 10_000 })).toBeTruthy();
   }, SLOW);
+  it("a second mistake on the same word adds to the first rather than replacing it", async () => {
+    vi.mocked(logMistake).mockResolvedValueOnce("id-1").mockResolvedValueOnce("id-2");
+    render(<ReviewLogger sessionId="s1" reciterName="Bilal" pages={pages} initialMistakes={[]} />);
+    fireEvent.click(screen.getByRole("button", { name: "قُلْ" }));
+    fireEvent.click(screen.getByRole("button", { name: "Hifdh" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText(/1 mistake/, undefined, { timeout: 10_000 })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "قُلْ" }));
+    expect(screen.getByRole("list", { name: "Marked on this word" }).textContent).toContain("Hifdh");
+    fireEvent.click(screen.getByRole("button", { name: "Tajweed" }));
+    fireEvent.click(screen.getByRole("button", { name: "Madd length" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add mistake" }));
+    expect(logMistake).toHaveBeenLastCalledWith(
+      "s1", { surah: 114, ayah: 1, position: 1 }, "tajweed", "madd", "");
+    expect(await screen.findByText(/2 mistakes/, undefined, { timeout: 10_000 })).toBeTruthy();
+  }, SLOW);
   it("submits flags and note from the wrap-up", async () => {
     render(<ReviewLogger sessionId="s1" reciterName="Bilal" pages={pages} initialMistakes={[]} />);
     fireEvent.click(screen.getByRole("button", { name: "Finish" }));

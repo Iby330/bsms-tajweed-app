@@ -6,17 +6,22 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CATEGORIES, DETAILS, lettersOf, type Category } from "@/lib/hifz/mistake-taxonomy";
+import { CATEGORIES, DETAILS, detailLabel, lettersOf, type Category } from "@/lib/hifz/mistake-taxonomy";
 import type { WordHistoryEntry } from "@/lib/hifz/heat-spread";
 import type { QuranWord } from "@/lib/quran/mushaf";
 import { cn } from "@/lib/utils";
 
 export type SheetResult = { category: Category; detail: string | null; note: string };
+export type SheetMark = { id?: string; category: Category; detail: string | null; note: string | null };
 
 /**
  * The two-level quick pick for one tap: category → specific (rule / letter /
  * slip) → optional note. Mount with key={markKey(...)} so state resets per
  * target.
+ *
+ * A word can carry several mistakes at once — forgotten, and its madd cut
+ * short when it came back. The marks already on it this session are listed
+ * on top, each with its own Remove; the picker below always ADDS one.
  *
  * Tapping an ayah's END MARKER classifies the whole ayah rather than a word
  * — forgetting an ayah outright is commoner than fumbling one word in it.
@@ -33,15 +38,16 @@ export function MistakeSheet({
   onClose,
 }: {
   word: QuranWord | null;
-  existing?: { category: Category; detail: string | null; note: string | null };
+  existing?: SheetMark[];          // this session's marks on this target
   previous?: WordHistoryEntry[];   // earlier, submitted marks on this word
   onSave: (r: SheetResult) => void;
-  onRemove?: () => void;
+  onRemove?: (id: string) => void;
   onClose: () => void;
 }) {
-  const [category, setCategory] = useState<Category | null>(existing?.category ?? null);
-  const [detail, setDetail] = useState<string | null>(existing?.detail ?? null);
-  const [note, setNote] = useState(existing?.note ?? "");
+  const [category, setCategory] = useState<Category | null>(null);
+  const [detail, setDetail] = useState<string | null>(null);
+  const [note, setNote] = useState("");
+  const marked = existing ?? [];
 
   // The end marker means "this whole ayah", not the marker glyph itself.
   const wholeAyah = word?.isEnd ?? false;
@@ -91,6 +97,32 @@ export function MistakeSheet({
             ))}
           </ul>
         )}
+        {marked.length > 0 && (
+          <ul aria-label="Marked on this word" className="space-y-1">
+            {marked.map((m) => {
+              const label = detailLabel(m.category, m.detail);
+              return (
+                <li key={m.id ?? label}
+                  className="flex items-center justify-between gap-2 rounded-md bg-danger/15 px-2.5 py-1 text-sm">
+                  <span className="min-w-0">
+                    <span className="font-medium">{label}</span>
+                    {m.note && <span className="ml-2 text-xs text-ink-2">{m.note}</span>}
+                  </span>
+                  {m.id && onRemove && (
+                    <button type="button" aria-label={`Remove ${label}`}
+                      onClick={() => onRemove(m.id!)}
+                      className="shrink-0 rounded-md px-1.5 text-xs text-muted-foreground underline hover:text-foreground">
+                      Remove
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {marked.length > 0 && (
+          <p className="text-xs text-muted-foreground">Add another mistake on this word</p>
+        )}
         {/* Fits the count: three categories on one row, two side by side.
             A fixed 2-col grid left Makhraj stranded alone on a second row. */}
         <div className={cn("grid gap-1.5", categories.length === 3 ? "grid-cols-3" : "grid-cols-2")}>
@@ -125,13 +157,10 @@ export function MistakeSheet({
         )}
         <Input value={note} onChange={(e) => setNote(e.target.value)}
           placeholder="Note (optional)" className="md:h-8" />
-        <div className="flex items-center justify-between gap-2">
-          {onRemove ? (
-            <Button size="sm" variant="outline" onClick={onRemove} className="max-md:flex-1">Remove</Button>
-          ) : <span className="max-md:hidden" />}
+        <div className="flex justify-end">
           <Button size="sm" disabled={!category} className="max-md:flex-1"
             onClick={() => category && onSave({ category, detail, note })}>
-            Save
+            {marked.length ? "Add mistake" : "Save"}
           </Button>
         </div>
       </DialogContent>
