@@ -165,13 +165,9 @@ describe("courseIndex", () => {
     expect(mine.map((t) => t.href).sort())
       .toEqual(["/courses/1/tajweed", "/courses/1/umm_al_kitab", "/courses/3/tajweed"]);
     // All that is left is the series these rows hold no content for at all.
-    // Sahabah Stories is planned in all three terms (2026-10-15), so it is a
-    // block a term, each on its way rather than off this year.
-    expect(locked.map((t) => t.block.series).sort()).toEqual(["qaidah", "seerah", "seerah", "seerah", "tfp"]);
+    // Sahabah Stories is not among them: it is in Resources, not a course.
+    expect(locked.map((t) => t.block.series).sort()).toEqual(["qaidah", "tfp"]);
     expect(locked.every((t) => t.block.moduleCount === 0)).toBe(true);
-    const sahabah = locked.filter((t) => t.block.series === "seerah");
-    expect(sahabah.map((t) => t.block.termId)).toEqual([1, 2, 3]);
-    expect(sahabah.every((t) => t.reason === "no-content")).toBe(true);
   });
 
   it("carries the catalogue's cover art and topic name onto the tile", () => {
@@ -337,19 +333,17 @@ describe("termIndex", () => {
     // by COURSES' own label, not whatever topic name a shared block carries.
     expect(rest.map((t) => t.block.label)).toEqual([
       "Ṣifāt", "Mabādi'", "Umm al-Kitāb", "Ṣifāt series", "Makhārij series", "Qāʿidah Nūrāniyyah",
-      "Sahabah Stories", "Sahabah Stories", "Sahabah Stories",
     ]);
     expect(rest.some((t) => t.block.series === "ghunna" || t.block.series === "mudood")).toBe(false);
     // A course owns the empty block of the series its lessons will live
-    // under, so neither TFP (Mabādi's rows) nor Seerah (Sahabah Stories') is
-    // left over as a second tile of its own: the list above has none.
+    // under, so TFP (Mabādi's rows) is not left over as a second tile of its
+    // own, and Sahabah Stories, in Resources, is no tile at all.
     expect(rest.every((t) => t.href === null)).toBe(true);
     // Another class's plan names every course, empty or not, so none reads as
-    // off this year: Sahabah Stories is every class's, every term (2026-10-15).
+    // off this year.
     const reasonOf = (label: string) => rest.find((t) => t.block.label === label)?.reason;
     expect(reasonOf("Ṣifāt series")).toBe("elsewhere");
     expect(reasonOf("Makhārij series")).toBe("elsewhere");
-    expect(rest.filter((t) => t.block.label === "Sahabah Stories").every((t) => t.reason === "elsewhere")).toBe(true);
   });
 
   it("shows a series never tied to its course once, as that course, and not to a class taking it", () => {
@@ -379,11 +373,12 @@ describe("termIndex", () => {
 
 describe("a course planned before its first video", () => {
   it("is a block a term in the catalogue, never one termless 'not running' block", () => {
-    const sahabah = cat(NOW).filter((b) => b.series === "seerah");
-    expect(sahabah.map((b) => [b.termId, b.courseKey, b.moduleCount])).toEqual([
-      [1, "sahabah_t1", 0],
-      [2, "sahabah_t2", 0],
-      [3, "sahabah_t3", 0],
-    ]);
+    // Qāʿidah: planned for Term 1, nothing in these rows yet
+    const qaidah = cat(NOW).filter((b) => b.series === "qaidah");
+    expect(qaidah.map((b) => [b.termId, b.courseKey, b.moduleCount])).toEqual([[1, "qaidah", 0]]);
+  });
+
+  it("makes no block for Sahabah Stories, which is in Resources, not a course", () => {
+    expect(cat(NOW).some((b) => b.series === "seerah")).toBe(false);
   });
 });

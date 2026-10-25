@@ -80,8 +80,8 @@ describe("CLASS_GROUP", () => {
     expect(CLASS_GROUP.Zukhruf).toBe(1);
     // Sajeda's Salsabeel is the basics class; Rezarta's Hareer takes the Matn (0068).
     expect(CLASS_GROUP.Salsabeel).toBe(CLASS_GROUP["Masjid Al-Aqsa"]);
-    expect(coursesForTerm("Rayyan", 3)).toEqual(["mudood", "sahabah_t3"]);
-    expect(coursesForTerm("Hareer", 3)).toEqual(["mudood", "mabadi", "sahabah_t3"]);
+    expect(coursesForTerm("Rayyan", 3)).toEqual(["mudood"]);
+    expect(coursesForTerm("Hareer", 3)).toEqual(["mudood", "mabadi"]);
     for (const name of ["Hareer", "Rayyan", "Salsabeel", "Zukhruf"])
       expect(hasSyllabus(name)).toBe(true);
   });
@@ -89,15 +89,15 @@ describe("CLASS_GROUP", () => {
 
 describe("coursesForTerm", () => {
   it("reads a class's plan for a term", () => {
-    expect(coursesForTerm("Masjid An-Nabawi", 1)).toEqual(["ghunna", "mudood", "sifaat_old", "sahabah_t1"]);
-    expect(coursesForTerm("Masjid Al-Haram", 2)).toEqual(["sifaat_old", "sahabah_t2"]);
-    expect(coursesForTerm("Masjid Quba", 3)).toEqual(["mudood", "mabadi", "sahabah_t3"]);
+    expect(coursesForTerm("Masjid An-Nabawi", 1)).toEqual(["ghunna", "mudood", "sifaat_old"]);
+    expect(coursesForTerm("Masjid Al-Haram", 2)).toEqual(["sifaat_old"]);
+    expect(coursesForTerm("Masjid Quba", 3)).toEqual(["mudood", "mabadi"]);
   });
 
-  it("gives every class with a plan the Sahabah halaqah, every term", () => {
+  it("plans Sahabah Stories for no class: its videos are in Resources", () => {
     for (const name of Object.keys(CLASS_GROUP))
       for (const term of [1, 2, 3] as const)
-        expect(coursesForTerm(name, term)).toContain(`sahabah_t${term}`);
+        expect(coursesForTerm(name, term).some((k) => k.startsWith("sahabah"))).toBe(false);
   });
 
   it("is empty for a class with no syllabus, and for an unknown one", () => {
@@ -109,7 +109,7 @@ describe("coursesForTerm", () => {
   it("hands back a copy, so a caller cannot edit the syllabus", () => {
     const first = coursesForTerm("Masjid An-Nabawi", 1);
     first.push("mabadi");
-    expect(coursesForTerm("Masjid An-Nabawi", 1)).toEqual(["ghunna", "mudood", "sifaat_old", "sahabah_t1"]);
+    expect(coursesForTerm("Masjid An-Nabawi", 1)).toEqual(["ghunna", "mudood", "sifaat_old"]);
   });
 });
 

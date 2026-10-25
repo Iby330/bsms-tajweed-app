@@ -31,8 +31,10 @@ export const SERIES_BLURB: Record<string, string> = {
  *  2026-10-15; kept so the next planned series has somewhere to go. */
 export const SERIES_COMING_SOON = new Set<string>();
 
-/** Teaching order. Anything unlisted sorts last, alphabetically. */
-export const SERIES_ORDER = ["tajweed", "umm_al_kitab", "tfp", "seerah", "qaidah"];
+/** Teaching order. Anything unlisted sorts last, alphabetically. Sahabah
+ *  Stories (`seerah`) is left off: it is no course, its videos are in every
+ *  class's Resources (2026-10-25), so the catalogue makes no empty block for it. */
+export const SERIES_ORDER = ["tajweed", "umm_al_kitab", "tfp", "qaidah"];
 
 export function seriesLabel(key: string): string {
   return SERIES_LABELS[key] ?? key;

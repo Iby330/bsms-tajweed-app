@@ -47,20 +47,17 @@ describe("planFromLessons", () => {
     expect(week1.lessons.map((l) => `${l.courseLabel} ${l.index}`)).toEqual([
       "Ghunna 1",
       "Umm al-Kitāb 1",
-      "Sahabah Stories 1",
     ]);
     // And each is labelled by the rule it teaches, not by its slot.
-    // (The halaqah has no lessons in these rows yet, so it carries its name.)
     expect(week1.lessons.map((l) => l.label)).toEqual([
       "tajweed lesson 1",
       "umm_al_kitab lesson 1",
-      "Sahabah Stories 1",
     ]);
   });
 
   it("walks each course forward a lesson per week", () => {
     const term1 = planFromLessons(ROWS, "Masjid Al-Umawi", tt, NOW)[1];
-    expect(term1[3].lessons.map((l) => l.index)).toEqual([4, 4, 4]);
+    expect(term1[3].lessons.map((l) => l.index)).toEqual([4, 4]);
     expect(term1[3].lessons[0].label).toBe("tajweed lesson 4");
   });
 
@@ -140,15 +137,9 @@ describe("planFromLessons", () => {
   });
 
   it("skips a term the class has no plan for", () => {
-    // Every planned class has Sahabah Stories each term now (2026-10-15), so
-    // the empty case is a class with no plan at all.
+    // Group 5's Term 3 is TBC; a class with no plan at all has no term either.
+    expect(planFromLessons(ROWS, "Masjid Al-Aqsa", tt, NOW)[3]).toBeUndefined();
     expect(planFromLessons(ROWS, "Demo: Brothers", tt, NOW)[3]).toBeUndefined();
-  });
-
-  it("gives a basics class's otherwise-unplanned term its halaqah", () => {
-    // Group 5's Term 3 is TBC apart from the weekly Sahabah halaqah.
-    const term3 = planFromLessons(ROWS, "Masjid Al-Aqsa", tt, NOW)[3];
-    expect(term3[0].lessons.map((l) => l.courseLabel)).toEqual(["Sahabah Stories"]);
   });
 
   it("plans only tajweed Mondays, never the hifdh day", () => {
@@ -207,13 +198,13 @@ describe("planFromLessons under a class's own item weeks", () => {
   const slots = (i: number) => term1[i].lessons.map((l) => `${l.courseLabel} ${l.index}`);
 
   it("puts several items of one course on one Monday", () => {
-    expect(slots(0)).toEqual(["Ghunna 1", "Ghunna 2", "Mudūd 1", "Ṣifāt 1", "Sahabah Stories 1"]);
-    expect(slots(1)).toEqual(["Ghunna 3", "Ghunna 4", "Ghunna 5", "Ghunna 6", "Mudūd 2", "Sahabah Stories 2"]);
+    expect(slots(0)).toEqual(["Ghunna 1", "Ghunna 2", "Mudūd 1", "Ṣifāt 1"]);
+    expect(slots(1)).toEqual(["Ghunna 3", "Ghunna 4", "Ghunna 5", "Ghunna 6", "Mudūd 2"]);
   });
 
   it("brings a course back in a later, non-consecutive week", () => {
-    expect(slots(2)).toEqual(["Mudūd 3", "Sahabah Stories 3"]);
-    expect(slots(3)).toEqual(["Mudūd 4", "Ṣifāt 2", "Ṣifāt 3", "Sahabah Stories 4"]);
+    expect(slots(2)).toEqual(["Mudūd 3"]);
+    expect(slots(3)).toEqual(["Mudūd 4", "Ṣifāt 2", "Ṣifāt 3"]);
   });
 
   it("opens a re-dated course on the class's date, not its row's", () => {
