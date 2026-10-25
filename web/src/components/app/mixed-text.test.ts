@@ -51,6 +51,20 @@ describe("splitRuns", () => {
     expect(runs[2].text).toBe("loudly");
   });
 
+  it("keeps ﷺ in the English it honours, not cut out as an Arabic quotation", () => {
+    expect(splitRuns("Why should we reflect on the life of the Prophet ﷺ?")).toEqual([
+      { ar: false, text: "Why should we reflect on the life of the Prophet ﷺ?" },
+    ]);
+    expect(splitRuns("the Messenger ﷺ and بِسْمِ")).toEqual([
+      { ar: false, text: "the Messenger ﷺ and " },
+      { ar: true, text: "بِسْمِ" },
+    ]);
+  });
+
+  it("keeps ﷺ in an Arabic run it follows", () => {
+    expect(splitRuns("قال النبي ﷺ")).toEqual([{ ar: true, text: "قال النبي ﷺ" }]);
+  });
+
   it("empty and whitespace-only input", () => {
     expect(splitRuns("")).toEqual([]);
     expect(splitRuns("   ")).toEqual([{ ar: false, text: "   " }]);

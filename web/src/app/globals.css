@@ -14,7 +14,7 @@
      cohort carry this resolves to the real face with nothing to download, and
      Arial substitutes at near-identical metrics everywhere else, so line
      breaks hold. The social posts are set in it; the product now matches. */
-  --font-sans: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
+  --font-sans: "Salawat", "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
   --font-heading: var(--font-sans);
   /* The display face, as the landing page pairs it: Fraunces against
      Helvetica. It is NOT the app's heading face. Page titles were set in it
@@ -23,11 +23,11 @@
      Helvetica two-weight is what the posts use for a headline anyway. It
      stays declared for the rare display moment that earns it, one phrase at
      a time. Georgia is the fallback closest in colour. */
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-display: "Salawat", var(--font-fraunces), Georgia, "Times New Roman", serif;
   /* Sticky-note device only (docs/brand-system.md). Times New Roman MT
      Condensed is a Monotype licence, so the web falls back to plain Times —
      same family, not condensed, present on every machine. */
-  --font-note: "Times New Roman MT Condensed", "Times New Roman", Times, serif;
+  --font-note: "Salawat", "Times New Roman MT Condensed", "Times New Roman", Times, serif;
   /* "Geist Mono" by name, NOT var(--font-geist-mono).
      Geist Mono carries no Latin Extended — not ā, not ū, not ṣ, not ṭ — and
      this programme's vocabulary is full of them, in exactly the uppercase
@@ -600,6 +600,45 @@ body::after {
      The ttf stays as the fallback. */
   src: url("/fonts/uthmanic_hafs_v22.woff2") format("woff2"),
        url("/fonts/uthmanic_hafs_v22.ttf") format("truetype");
+  font-display: swap;
+}
+/* ﷺ (U+FDFA) in English text. None of the Latin faces has it, so each machine
+   drew it from whatever Arabic font it had: on a Mac a calligraphic one, too
+   tall for the line and spaced unlike the words around it. This is the one
+   glyph, cut from IBM Plex Sans Arabic (the app's Arabic UI face), named
+   first in the text stacks above; unicode-range keeps it to that character,
+   and it is only fetched on a page that has one. At 75% its stack sits on the
+   baseline at about cap height, and the overrides keep it from opening up
+   the line. Three weights, so the 200 mastheads get a light ﷺ and a bold
+   title a bold one. */
+@font-face {
+  font-family: "Salawat";
+  src: url("/fonts/salawat-200.woff2") format("woff2");
+  font-weight: 100 349;
+  unicode-range: U+FDFA;
+  size-adjust: 75%;
+  ascent-override: 95%;
+  descent-override: 20%;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Salawat";
+  src: url("/fonts/salawat-400.woff2") format("woff2");
+  font-weight: 350 549;
+  unicode-range: U+FDFA;
+  size-adjust: 75%;
+  ascent-override: 95%;
+  descent-override: 20%;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Salawat";
+  src: url("/fonts/salawat-700.woff2") format("woff2");
+  font-weight: 550 900;
+  unicode-range: U+FDFA;
+  size-adjust: 75%;
+  ascent-override: 95%;
+  descent-override: 20%;
   font-display: swap;
 }
 /* tap — a passage whose every word is a tap target ("find the ikhfā'").

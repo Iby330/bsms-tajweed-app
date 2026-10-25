@@ -19,6 +19,12 @@ import { seatDaggerAlif } from "@/lib/quran/text";
 const AR_CHAR =
   /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/;
 
+// ﷺ is an honorific said with a name, not Arabic being quoted: in an English
+// title it belongs to the sentence, and quoting it set it large between two
+// gaps. It joins whatever run it follows, like whitespace; the "Salawat" face
+// in globals.css sizes it to the Latin around it.
+const HONORIFIC = /\uFDFA/;
+
 export type Run = { ar: boolean; text: string };
 
 /** Split into alternating Arabic / non-Arabic runs. Exported for tests. */
@@ -31,6 +37,11 @@ export function splitRuns(text: string): Run[] {
     if (/\s/.test(ch)) {
       // whitespace attaches to whichever run continues after it
       pendingWs += ch;
+      continue;
+    }
+    if (current && HONORIFIC.test(ch)) {
+      current.text += pendingWs + ch;
+      pendingWs = "";
       continue;
     }
     const ar = AR_CHAR.test(ch);
