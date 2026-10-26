@@ -4,7 +4,7 @@ import { readAll } from "@/lib/supabase/read-all";
 import { TERMS, sessionDates, termIdFor, termSessions, timetableFor, type Section } from "@/lib/attendance/calendar";
 import { londonDate } from "@/lib/attendance/session";
 import { getClassSchedule } from "./queries";
-import { moduleTitle, type ClassSchedule } from "./tree";
+import { classItemWeek, itemDates, moduleTitle, type ClassSchedule } from "./tree";
 
 /** One item of a class's schedule, as the teacher's schedule lists it. */
 export type EditorItem = {
@@ -20,7 +20,8 @@ export type EditorItem = {
   late: number;
 };
 
-/** An item of a course the class does not take, which can be added. */
+/** An item that can be added to a week: from a course the class does not
+ *  take, or one of its own taken out of its week. */
 export type LibraryItem = {
   courseId: string;
   courseLabel: string;
@@ -28,6 +29,10 @@ export type LibraryItem = {
   title: string;
   hasVideo: boolean;
   hwNumber: number | null;
+  /** The term it can go in, when its course already sits in one. */
+  termId: number | null;
+  /** The week it was removed from; null for an item never on the schedule. */
+  removedFrom: number | null;
 };
 
 export type EditorWeek = { number: number; classDate: string | null };
@@ -112,7 +117,9 @@ export async function getScheduleEditorData(classId: string): Promise<EditorData
     stat.set(s.homework_id, x);
   }
 
-  const items: EditorItem[] = mine.map((s) => {
+  // removed from its week (its own hold): off the schedule, back in the library
+  const removed = (s: { courseId: string; ordinal: number }) => itemDates(schedule, s.ordinal, s.courseId)?.held === true;
+  const items: EditorItem[] = mine.filter((s) => !removed(s)).map((s) => {
     const st = s.hw ? stat.get(s.hw.id) : undefined;
     return {
       courseId: s.courseId, ordinal: s.ordinal,
@@ -123,19 +130,23 @@ export async function getScheduleEditorData(classId: string): Promise<EditorData
     };
   }).sort((a, b) => a.ordinal - b.ordinal);
 
-  // Everything else in the programme: items of courses this class does not take.
-  // a course the class takes is not offered; a Resources course is, and an
-  // item added from it becomes that week's work, with its deadline (0113)
+  // Everything else in the programme: items of courses this class does not take,
+  // and its own items removed from their week. The rest of a course the class
+  // takes is not offered; a Resources course is, and an item added from it
+  // becomes that week's work, with its deadline (0113)
   const taken = new Set(schedule.courses.filter((c) => !c.added).map((c) => c.courseId));
   const resourceIds = new Set((resources ?? []).map((r) => r.course_id));
   const added = new Set(mine.map((s) => keyOf(s.courseId, s.ordinal)));
   const courseById = new Map((courses ?? []).map((c) => [c.id, c]));
   const library: LibraryItem[] = [...byKey.values()]
-    .filter((s) => !taken.has(s.courseId) && !added.has(keyOf(s.courseId, s.ordinal)) && courseById.has(s.courseId))
+    .filter((s) => courseById.has(s.courseId) && (removed(s)
+      || (!taken.has(s.courseId) && !added.has(keyOf(s.courseId, s.ordinal)))))
     .map((s) => ({
       courseId: s.courseId, courseLabel: courseById.get(s.courseId)!.label + (resourceIds.has(s.courseId) ? " (Resources)" : ""), ordinal: s.ordinal,
       title: moduleTitle(s.hw?.title ?? s.lesson?.title ?? "") || `${courseById.get(s.courseId)!.label} ${s.ordinal}`,
       hasVideo: !!s.lesson?.youtube_id, hwNumber: s.hw?.number ?? null,
+      termId: scheduled.get(s.courseId)?.termId ?? null,
+      removedFrom: removed(s) ? classItemWeek(schedule, s.ordinal, s.courseId) : null,
     }))
     .sort((a, b) => (courseById.get(a.courseId)!.position - courseById.get(b.courseId)!.position) || a.ordinal - b.ordinal);
 

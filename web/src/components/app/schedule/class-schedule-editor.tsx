@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { EditorData, EditorItem } from "@/lib/curriculum/schedule-editor-data";
 import {
-  addItem, removeAddedItem, restoreItemDates, setClassRule, setItemDates,
+  addItem, removeAddedItem, restoreItemDates, restorePlacement, setClassRule, setItemDates,
   type DatesPatch, type ItemKey, type ScheduleResult,
 } from "@/lib/curriculum/schedule-actions";
 import type { ClassSchedule } from "@/lib/curriculum/tree";
@@ -29,6 +29,7 @@ const WHICH = ["the first one after it opens", "a week after that", "two weeks a
  * A class's schedule: when each video and homework opens, when it is due, and
  * whether it is held, with the class default above it and an Undo after
  * every change. Everything not changed by hand follows the default dates.
+ * A removed item leaves the schedule and waits in the add list for a week.
  */
 export function ClassScheduleEditor({ data, canEdit, classParam }: { data: EditorData; canEdit: boolean; classParam: string | null }) {
   const { classId, schedule, items, section, nowIso } = { ...data, nowIso: data.now };
@@ -74,6 +75,28 @@ export function ClassScheduleEditor({ data, canEdit, classParam }: { data: Edito
     });
   const restore = (r: ScheduleResult) => (r.undo ? () => restoreItemDates(classId, r.undo!, r.clearedIds ?? []) : undefined);
   const patch = (keys: string[], p: DatesPatch, msg: string) => act(() => setItemDates(classId, keys.map(fromKey), p), msg, restore);
+
+  /** Take items out of their weeks: an added one off the schedule, one of the
+   *  class's own held for good, so it waits in the add list for another week. */
+  const isAdded = (it: EditorItem) => !!schedule.courses.find((c) => c.courseId === it.courseId)?.added;
+  const remove = (its: EditorItem[], msg: string) => start(async () => {
+    const undos: (() => Promise<{ error: string | null }>)[] = [];
+    const own = its.filter((it) => !isAdded(it));
+    if (own.length) {
+      const r = await setItemDates(classId, own.map((it) => fromKey(keyOf(it))), { held: true });
+      if (r.error) { say({ msg: r.error }); return; }
+      undos.push(() => restoreItemDates(classId, r.undo ?? [], r.clearedIds ?? []));
+    }
+    for (const it of its.filter(isAdded)) {
+      const r = await removeAddedItem(classId, it);
+      if (r.error) { say({ msg: r.error }); return; }
+      undos.push(async () => {
+        const a = await addItem(classId, it, r.termId ?? termId, r.week ?? states.get(keyOf(it))!.week);
+        return a.error || !r.undo?.[0]?.row ? a : restoreItemDates(classId, r.undo);
+      });
+    }
+    say({ msg, undo: async () => { for (const u of undos) { const r = await u(); if (r.error) return r; } return { error: null }; } });
+  });
 
   /* ── what is listed ── */
   const inTerm = items.filter((it) => states.get(keyOf(it))!.termId === termId);
@@ -135,8 +158,8 @@ export function ClassScheduleEditor({ data, canEdit, classParam }: { data: Edito
   const [addWeek, setAddWeek] = useState<number | null>(null);
   const [addQ, setAddQ] = useState("");
   const [addCourse, setAddCourse] = useState("all");
-  const libCourses = [...new Map(data.library.map((x) => [x.courseId, x.courseLabel])).entries()];
-  const libShown = data.library.filter((x) => (addCourse === "all" || x.courseId === addCourse)
+  const libCourses = [...new Map(data.library.filter((x) => x.termId === null || x.termId === termId).map((x) => [x.courseId, x.courseLabel])).entries()];
+  const libShown = data.library.filter((x) => (x.termId === null || x.termId === termId) && (addCourse === "all" || x.courseId === addCourse)
     && (!addQ.trim() || `${x.courseLabel} ${x.ordinal} ${x.title} ${x.hwNumber ?? ""}`.toLowerCase().includes(addQ.trim().toLowerCase())));
   const addTo = addWeek ?? (mode === "week" ? shownWeek : currentWeek);
 
@@ -229,9 +252,12 @@ export function ClassScheduleEditor({ data, canEdit, classParam }: { data: Edito
             {libShown.length ? libShown.map((x) => (
               <li key={`${x.courseId}|${x.ordinal}`} className="flex items-center justify-between gap-3 py-2 pr-2 pl-3 hover:bg-muted">
                 <span className="flex min-w-0 flex-col text-sm"><span className="font-medium">{x.title}</span>
-                  <span className="text-xs text-muted-foreground">{x.courseLabel} {x.ordinal} · {x.hasVideo && x.hwNumber ? `video + homework ${x.hwNumber}` : x.hasVideo ? "video" : `homework ${x.hwNumber}`}</span></span>
+                  <span className="text-xs text-muted-foreground">{x.courseLabel} {x.ordinal} · {x.hasVideo && x.hwNumber ? `video + homework ${x.hwNumber}` : x.hasVideo ? "video" : `homework ${x.hwNumber}`}{x.removedFrom ? ` · removed from week ${x.removedFrom}` : ""}</span></span>
                 <Button size="sm" variant="outline" disabled={pending} aria-label={`Add ${x.title}`}
-                  onClick={() => act(() => addItem(classId, x, termId, addTo), `Added ${x.title} to week ${addTo}.`, () => () => removeAddedItem(classId, x))}>Add</Button>
+                  onClick={() => act(() => addItem(classId, x, termId, addTo), `Added ${x.title} to week ${addTo}.`, (r) => {
+                    const before = (r as Awaited<ReturnType<typeof addItem>>).before;
+                    return before ? () => restorePlacement(classId, x, termId, before, r.clearedIds ?? []) : undefined;
+                  })}>Add</Button>
               </li>
             )) : <li className="p-3 text-sm text-muted-foreground">Nothing matches{addQ ? ` "${addQ}"` : ""}.</li>}
           </ul>
@@ -311,18 +337,11 @@ export function ClassScheduleEditor({ data, canEdit, classParam }: { data: Edito
                     }}>Open now</Button>
                     {it.homework && (() => { const nc = nextClassAt(schedule, section, s.opens && s.opens > nowIso ? s.opens : nowIso); return (
                       <Button size="sm" variant="outline" disabled={pending} onClick={() => { setMore(null); patch([k], { dueAt: nc }, `${it.title} is due ${when(nc)}.`); }}>Due at next class ({when(nc)})</Button>); })()}
-                    <Button size="sm" variant="outline" disabled={pending} onClick={() => { setMore(null); patch([k], { held: !s.held }, s.held ? `${it.title} is released.` : `${it.title} is held. Students can't see it.`); }}>{s.held ? "Release" : "Hold"}</Button>
+                    {s.held && <Button size="sm" variant="outline" disabled={pending} onClick={() => { setMore(null); patch([k], { held: false }, `${it.title} is released.`); }}>Release</Button>}
                     {(s.own?.opensAt || s.own?.dueAt) && <Button size="sm" variant="outline" disabled={pending} onClick={() => { setMore(null); patch([k], { opensAt: null, dueAt: null }, `${it.title} is back on the default dates.`); }}>Use default dates</Button>}
-                    {added && <Button size="sm" variant="ghost" className="text-danger" disabled={pending} onClick={() => {
-                      setMore(null);
-                      start(async () => {
-                        const r = await removeAddedItem(classId, it);
-                        if (r.error) { say({ msg: r.error }); return; }
-                        say({ msg: `Took ${it.title} off ${data.className}'s schedule.`, undo: async () => { await addItem(classId, it, r.termId ?? termId, r.week ?? s.week); if (r.undo?.[0]?.row) await restoreItemDates(classId, r.undo); } });
-                      });
-                    }}>Take it off the schedule</Button>}
+                    <Button size="sm" variant="ghost" className="text-danger" disabled={pending} onClick={() => { setMore(null); remove([it], `Removed ${it.title} from week ${s.week}. Add it to another week from “Add a video or homework”.`); }}>Remove from week {s.week}</Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">{s.held ? "Held: students can't see the video or the homework until you release it." : "Hold hides the video and the homework from students until you release it."} To change a date, click it in the row.</p>
+                  <p className="text-xs text-muted-foreground">{s.held ? "Held: students can't see the video or the homework until you release it. " : ""}Remove takes it off the schedule; it goes back in “Add a video or homework”, so you can put it in another week. To change a date, click it in the row.</p>
                 </div>
               )}
             </div>
@@ -336,8 +355,8 @@ export function ClassScheduleEditor({ data, canEdit, classParam }: { data: Edito
         <div className="fixed inset-x-0 bottom-0 z-30 max-h-[80vh] overflow-y-auto border-t border-line bg-card px-4 pt-2.5 pb-[calc(10px+env(safe-area-inset-bottom,0px))] shadow-[0_-10px_24px_-18px_rgba(0,0,0,.4)]">
           <div className="mx-auto flex max-w-[1040px] flex-wrap items-center gap-2">
             <span className="mr-1 text-sm font-semibold">{sel.length} selected</span>
-            <Button size="sm" variant="outline" disabled={pending} onClick={() => { const ks = sel.map(keyOf); setSelected(new Set()); patch(ks, { held: true }, `${ks.length} held.`); }}>Hold</Button>
-            <Button size="sm" variant="outline" disabled={pending} onClick={() => { const ks = sel.map(keyOf); setSelected(new Set()); patch(ks, { held: false }, `${ks.length} released.`); }}>Release</Button>
+            <Button size="sm" variant="outline" className="text-danger" disabled={pending} onClick={() => { const its = sel; setSelected(new Set()); remove(its, `${its.length} removed. They're back in “Add a video or homework”.`); }}>Remove</Button>
+            {sel.some((x) => states.get(keyOf(x))!.held) && <Button size="sm" variant="outline" disabled={pending} onClick={() => { const ks = sel.filter((x) => states.get(keyOf(x))!.held).map(keyOf); setSelected(new Set()); patch(ks, { held: false }, `${ks.length} released.`); }}>Release</Button>}
             <Button size="sm" variant="outline" aria-pressed={bulk === "opens"} onClick={() => setBulk(bulk === "opens" ? null : "opens")}>Set release date</Button>
             <Button size="sm" variant="outline" aria-pressed={bulk === "due"} disabled={!sel.some((x) => x.homework)} onClick={() => setBulk(bulk === "due" ? null : "due")}>Set due date</Button>
             <Button size="sm" variant="outline" disabled={pending} onClick={() => {

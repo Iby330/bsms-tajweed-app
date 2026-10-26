@@ -175,32 +175,82 @@ export async function setClassRule(classId: string, rule: ClassRule | null, late
   return { error: null, ...late, before };
 }
 
-/** Add a video or homework from a course the class does not take to one of its weeks. */
-export async function addItem(classId: string, item: ItemKey, termId: number, week: number): Promise<ScheduleResult> {
+/** Where an item sat before `addItem` placed it, for the screen's Undo:
+ *  its week (null: none of its own) and its dates row. */
+export type Placement = { week: number | null; dates: ItemRowSnapshot["row"] };
+
+/**
+ * Put a video or homework in one of the class's weeks. From a course the class
+ * does not take it is added (`class_added_items`); from one it does, it is an
+ * item removed from its week and put in this one (`class_course_items`).
+ * Either way it starts again on that week's default dates, not held.
+ */
+export async function addItem(classId: string, item: ItemKey, termId: number, week: number): Promise<ScheduleResult & { before?: Placement }> {
   const g = await guard(classId);
   if ("error" in g) return g;
   if (!Number.isInteger(week) || week < 1 || week > 20) return { error: "Pick a week." };
   if (![1, 2, 3].includes(termId)) return { error: "Pick a term." };
   const db = supabaseAdmin();
-  const [{ data: takes }, { data: lesson }, { data: hw }, { data: others }] = await Promise.all([
-    db.from("class_courses").select("course_id").eq("class_id", classId).eq("course_id", item.courseId).maybeSingle(),
+  const [{ data: takes }, { data: lesson }, { data: hw }, { data: others }, { data: ownWeek }, { data: dates }] = await Promise.all([
+    db.from("class_courses").select("term_id").eq("class_id", classId).eq("course_id", item.courseId).maybeSingle(),
     db.from("lessons").select("id").eq("course_id", item.courseId).eq("ordinal", item.ordinal).limit(1),
     db.from("homeworks").select("id").eq("course_id", item.courseId).eq("ordinal", item.ordinal).limit(1),
-    db.from("class_added_items").select("term_id").eq("class_id", classId).eq("course_id", item.courseId),
+    db.from("class_added_items").select("ordinal, term_id, week_number").eq("class_id", classId).eq("course_id", item.courseId),
+    db.from("class_course_items").select("week_number")
+      .eq("class_id", classId).eq("course_id", item.courseId).eq("ordinal", item.ordinal).maybeSingle(),
+    db.from("class_item_dates").select("opens_at, due_at, held")
+      .eq("class_id", classId).eq("course_id", item.courseId).eq("ordinal", item.ordinal).maybeSingle(),
   ]);
-  if (takes) return { error: "That course is already on this class's schedule." };
   if (!lesson?.length && !hw?.length) return { error: "That video or homework could not be found." };
-  // one course sits in one term for a class: the rest of it is already in another
-  if ((others ?? []).some((o) => o.term_id !== termId)) {
-    return { error: "Other items from this course are on a different term's schedule. Add it to that term." };
+  let was: number | null;
+  if (takes) {
+    if (takes.term_id !== termId) return { error: `That course is on Term ${takes.term_id}'s schedule. Add it to a week of that term.` };
+    was = ownWeek?.week_number ?? null;
+    const { error } = await db.from("class_course_items").upsert({
+      class_id: classId, course_id: item.courseId, ordinal: item.ordinal, week_number: week,
+    }, { onConflict: "class_id,course_id,ordinal" });
+    if (error) return { error: error.message };
+  } else {
+    // one course sits in one term for a class: the rest of it is already in another
+    if ((others ?? []).some((o) => o.term_id !== termId)) {
+      return { error: "Other items from this course are on a different term's schedule. Add it to that term." };
+    }
+    was = (others ?? []).find((o) => o.ordinal === item.ordinal)?.week_number ?? null;
+    const { error } = await db.from("class_added_items").upsert({
+      class_id: classId, course_id: item.courseId, ordinal: item.ordinal,
+      term_id: termId, week_number: week, added_by: g.teacherId, added_at: new Date().toISOString(),
+    }, { onConflict: "class_id,course_id,ordinal" });
+    if (error) return { error: error.message };
   }
-  const { error } = await db.from("class_added_items").upsert({
-    class_id: classId, course_id: item.courseId, ordinal: item.ordinal,
-    term_id: termId, week_number: week, added_by: g.teacherId, added_at: new Date().toISOString(),
-  }, { onConflict: "class_id,course_id,ordinal" });
-  if (error) return { error: error.message };
+  // dates set for the week it left do not carry over, and nor does the removal
+  const { error: datesErr } = await db.from("class_item_dates").delete()
+    .eq("class_id", classId).eq("course_id", item.courseId).eq("ordinal", item.ordinal);
+  if (datesErr) return { error: datesErr.message };
+  const late = await lateMarks(classId);
   settle();
-  return { error: null };
+  return {
+    error: null, ...late,
+    before: { week: was, dates: dates ? { opensAt: dates.opens_at, dueAt: dates.due_at, held: dates.held } : null },
+  };
+}
+
+/** Undo `addItem`: the item back in the week it was in, or off the schedule,
+ *  with its dates row as it was. */
+export async function restorePlacement(classId: string, item: ItemKey, termId: number, before: Placement, lateIds: string[] = []): Promise<ScheduleResult> {
+  const g = await guard(classId);
+  if ("error" in g) return g;
+  const db = supabaseAdmin();
+  const { data: takes } = await db.from("class_courses").select("course_id").eq("class_id", classId).eq("course_id", item.courseId).maybeSingle();
+  const key = { class_id: classId, course_id: item.courseId, ordinal: item.ordinal };
+  const { error } = before.week === null
+    ? await db.from(takes ? "class_course_items" : "class_added_items").delete()
+      .eq("class_id", classId).eq("course_id", item.courseId).eq("ordinal", item.ordinal)
+    : takes
+      ? await db.from("class_course_items").upsert({ ...key, week_number: before.week }, { onConflict: "class_id,course_id,ordinal" })
+      : await db.from("class_added_items").upsert({ ...key, term_id: termId, week_number: before.week, added_by: g.teacherId, added_at: new Date().toISOString() },
+        { onConflict: "class_id,course_id,ordinal" });
+  if (error) return { error: error.message };
+  return restoreItemDates(classId, [{ ...item, row: before.dates }], lateIds);
 }
 
 /** Take an added item off the class's schedule, with any dates set on it. */
