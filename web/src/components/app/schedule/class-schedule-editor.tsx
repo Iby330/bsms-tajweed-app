@@ -339,7 +339,7 @@ export function ClassScheduleEditor({ data, canEdit, classParam }: { data: Edito
                       <Button size="sm" variant="outline" disabled={pending} onClick={() => { setMore(null); patch([k], { dueAt: nc }, `${it.title} is due ${when(nc)}.`); }}>Due at next class ({when(nc)})</Button>); })()}
                     {s.held && <Button size="sm" variant="outline" disabled={pending} onClick={() => { setMore(null); patch([k], { held: false }, `${it.title} is released.`); }}>Release</Button>}
                     {(s.own?.opensAt || s.own?.dueAt) && <Button size="sm" variant="outline" disabled={pending} onClick={() => { setMore(null); patch([k], { opensAt: null, dueAt: null }, `${it.title} is back on the default dates.`); }}>Use default dates</Button>}
-                    <Button size="sm" variant="destructive" disabled={pending} onClick={() => { setMore(null); remove([it], `Removed ${it.title} from week ${s.week}. Add it to another week from “Add a video or homework”.`); }}>Remove from week {s.week}</Button>
+                    <Button size="sm" variant="destructive" className="border-destructive/40" disabled={pending} onClick={() => { setMore(null); remove([it], `Removed ${it.title} from week ${s.week}. Add it to another week from “Add a video or homework”.`); }}>Remove from week {s.week}</Button>
                   </div>
                   <p className="text-xs text-muted-foreground">{s.held ? "Held: students can't see the video or the homework until you release it. " : ""}Remove takes it off the schedule; it goes back in “Add a video or homework”, so you can put it in another week. To change a date, click it in the row.</p>
                 </div>
@@ -355,7 +355,7 @@ export function ClassScheduleEditor({ data, canEdit, classParam }: { data: Edito
         <div className="fixed inset-x-0 bottom-0 z-30 max-h-[80vh] overflow-y-auto border-t border-line bg-card px-4 pt-2.5 pb-[calc(10px+env(safe-area-inset-bottom,0px))] shadow-[0_-10px_24px_-18px_rgba(0,0,0,.4)]">
           <div className="mx-auto flex max-w-[1040px] flex-wrap items-center gap-2">
             <span className="mr-1 text-sm font-semibold">{sel.length} selected</span>
-            <Button size="sm" variant="destructive" disabled={pending} onClick={() => { const its = sel; setSelected(new Set()); remove(its, `${its.length} removed. They're back in “Add a video or homework”.`); }}>Remove</Button>
+            <Button size="sm" variant="destructive" className="border-destructive/40" disabled={pending} onClick={() => { const its = sel; setSelected(new Set()); remove(its, `${its.length} removed. They're back in “Add a video or homework”.`); }}>Remove</Button>
             {sel.some((x) => states.get(keyOf(x))!.held) && <Button size="sm" variant="outline" disabled={pending} onClick={() => { const ks = sel.filter((x) => states.get(keyOf(x))!.held).map(keyOf); setSelected(new Set()); patch(ks, { held: false }, `${ks.length} released.`); }}>Release</Button>}
             <Button size="sm" variant="outline" aria-pressed={bulk === "opens"} onClick={() => setBulk(bulk === "opens" ? null : "opens")}>Set release date</Button>
             <Button size="sm" variant="outline" aria-pressed={bulk === "due"} disabled={!sel.some((x) => x.homework)} onClick={() => setBulk(bulk === "due" ? null : "due")}>Set due date</Button>
