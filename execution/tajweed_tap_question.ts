@@ -71,6 +71,8 @@ const SURAH = Number(arg("surah", "78"));
 const FROM_AYAH = Number(arg("from", "12"));
 const TO_AYAH = Number(arg("to", "18"));
 const RULE = arg("rule", "ikhfa");
+/** For a paper that tells the student to stop at the end of every ayah. */
+const STOP_AT_AYAT = process.argv.includes("--stop-at-ayat");
 const POINTS = Number(arg("points", "4"));
 /** Last on the paper by default, so it never renumbers the real questions. */
 const POSITION = Number(arg("position", "99"));
@@ -437,7 +439,8 @@ const DERIVED = new Set(["idhaar_halqi", "idhaar_shafawi", "heavy_letters", "lam
 const defaultPrompt = () =>
   `Tap every word where ${RULES[RULE] ?? RULE} happens in this passage ` +
   `(${SURAH}:${FROM_AYAH}–${TO_AYAH}). When the rule sits across two words, ` +
-  `tap BOTH of them.`;
+  `tap BOTH of them.` +
+  (STOP_AT_AYAT ? ` Stop at the end of every ayah.` : ` Read the ayat joined: a rule where one ayah meets the next counts too.`);
 
 const PROMPT = arg("prompt", defaultPrompt());
 
@@ -453,6 +456,8 @@ Build a "tap the rule" question from sourced tajweed annotations.
   --points N     marks for the question              (default 4)
   --position N   position on the paper               (default 99)
   --prompt "…"   the question text                   (default: generated)
+  --stop-at-ayat leave out rules made by joining one ayah to the next
+                 (for a paper that says to stop at every ayah)
   --commit       write it (otherwise a dry run)
   --delete       remove the question at --position from --homework
 
@@ -507,6 +512,7 @@ export function mapRule(
   words: Word[],
   markup: Map<number, string>,
   rule: string,
+  stopAtAyat = false,
 ): { passage: Tapword[]; instances: number } {
   const byAyah = new Map<number, Word[]>();
   for (const w of words) {
@@ -571,7 +577,55 @@ export function mapRule(
     });
   }
 
+  if (!stopAtAyat) {
+    for (let k = 0; k + 1 < passage.length; k++) {
+      const a = passage[k], b = passage[k + 1];
+      if (b.ayah !== a.ayah + 1) continue;
+      const j = joinRules(a.text, b.text);
+      if (!j.rules.includes(rule)) continue;
+      instances++;
+      a.correct = b.correct = true;
+      a.letters[j.from].key = true;
+      b.letters[0].key = true;
+    }
+  }
+
   return { passage, instances };
+}
+
+/**
+ * The rule made where one ayah meets the next when they are read joined. The
+ * teachers' ruling (2026-10-26): every rule that happens on joining ayat is
+ * correct — أَحَدٌ يَقُولُ (90:5–6) is idghām with ghunna. quran.com's markup is
+ * one ayah at a time, so it never tags these; and deriveRule stays inside its
+ * ayah. Only the nūn and mīm families change at a join: a tanwīn, nūn sākinah
+ * or mīm sākinah ending the ayah, read into the next ayah's first letter. An
+ * ayah opening on hamzat al-waṣl gives the tanwīn or mīm a vowel instead.
+ * `from` is the letter of the first word that carries the rule.
+ */
+export function joinRules(end: string, start: string): { rules: string[]; from: number } {
+  const ls = letters(end).filter((l) => l.ch !== 0x640);
+  const first = letters(start).filter((l) => l.ch !== 0x640)[0];
+  if (!ls.length || !first || first.ch === 0x671) return { rules: [], from: 0 };
+  const nextCh = first.ch;
+  const tanween = ls.findLastIndex((l) => l.marks.some((m) => TANWEEN.has(m)));
+  const last = ls.length - 1;
+  const bare = !ls[last].marks.some((m) => (m >= 0x64e && m <= 0x650) || m === 0x651 || TANWEEN.has(m));
+  if (tanween >= 0 || (ls[last].ch === 0x646 && bare)) {
+    const from = tanween >= 0 ? tanween : last;
+    if (THROAT.has(nextCh)) return { rules: ["idhaar_halqi"], from };
+    if (nextCh === 0x628) return { rules: ["iqlab"], from };
+    if (nextCh === 0x645 || nextCh === 0x646) return { rules: ["idghaam_ghunnah", "ghunnah"], from };
+    if (nextCh === 0x64a || nextCh === 0x648) return { rules: ["idghaam_ghunnah"], from };
+    if (nextCh === 0x644 || nextCh === 0x631) return { rules: ["idghaam_no_ghunnah"], from };
+    return { rules: ["ikhfa"], from };
+  }
+  if (ls[last].ch === 0x645 && bare) {
+    if (nextCh === 0x645) return { rules: ["idghaam_shafawi", "ghunnah"], from: last };
+    if (nextCh === 0x628) return { rules: ["ikhfa_shafawi"], from: last };
+    return { rules: ["idhaar_shafawi"], from: last };
+  }
+  return { rules: [], from: 0 };
 }
 
 /* ── run ─────────────────────────────────────────────────────────────── */
@@ -608,7 +662,7 @@ async function main() {
   if (wordErr) throw wordErr;
   if (!words?.length) throw new Error(`no words seeded for ${SURAH}:${FROM_AYAH}-${TO_AYAH}`);
 
-  const { passage, instances } = mapRule(words as Word[], DERIVED.has(RULE) ? new Map() : await tajweedSurah(SURAH), RULE);
+  const { passage, instances } = mapRule(words as Word[], DERIVED.has(RULE) ? new Map() : await tajweedSurah(SURAH), RULE, STOP_AT_AYAT);
 
   // The label carries the page as well as the locator, because the page names
   // the glyph font; the value carries the glyph AND the readable text, because

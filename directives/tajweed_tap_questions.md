@@ -146,6 +146,14 @@ remake drafts was re-derived from the new source: none changed at word level.
   a letter starting the next (`سَبْعًۭا شِدَادًۭا`). Both words are marked correct, and
   the generated prompt says so. A student should never be marked on a convention
   they were not told.
+- **A rule made by joining two ayat counts (teachers' ruling, 2026-10-26).**
+  أَحَدٌ (90:5) read into يَقُولُ (90:6) is idghām with ghunna, and both words
+  are in the key. quran.com's markup is one ayah at a time and `deriveRule`
+  stays inside its ayah, so `joinRules()` in the script adds these: a tanwīn,
+  nūn sākinah or mīm sākinah ending one ayah, against the next ayah's first
+  letter (none if that is hamzat al-waṣl). The default prompt says to read the
+  ayat joined. For a paper that says "stop at the end of every ayah", pass
+  `--stop-at-ayat`. HW4 Q4 was keyed before this and fixed by migration 0125.
 - (cpfair era, obsolete) **The first ayah of a surah** carried the basmala in Tanzil's text, shifting
   every offset in it by the basmala's length plus one. Handled; do not "fix" it.
 - **Choose a passage with enough instances.** An-Naba' 12–18 gives 4 instances in
