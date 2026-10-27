@@ -11,7 +11,8 @@ import type { WordHistoryEntry } from "@/lib/hifz/heat-spread";
 import type { QuranWord } from "@/lib/quran/mushaf";
 import { cn } from "@/lib/utils";
 
-export type SheetResult = { category: Category; detail: string | null; note: string };
+/** `replaces`: the id of the mark this Save edits, rather than adds to. */
+export type SheetResult = { category: Category; detail: string | null; note: string; replaces?: string };
 export type SheetMark = { id?: string; category: Category; detail: string | null; note: string | null };
 
 /**
@@ -21,7 +22,8 @@ export type SheetMark = { id?: string; category: Category; detail: string | null
  *
  * A word can carry several mistakes at once — forgotten, and its madd cut
  * short when it came back. The marks already on it this session are listed
- * on top, each with its own Remove; the picker below always ADDS one.
+ * on top, each with its own Edit and Remove. The picker below ADDS one,
+ * unless Edit has loaded a mark into it, when Save changes that mark.
  *
  * Tapping an ayah's END MARKER classifies the whole ayah rather than a word
  * — forgetting an ayah outright is commoner than fumbling one word in it.
@@ -47,7 +49,15 @@ export function MistakeSheet({
   const [category, setCategory] = useState<Category | null>(null);
   const [detail, setDetail] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [editing, setEditing] = useState<string | null>(null);
   const marked = existing ?? [];
+
+  const edit = (m: SheetMark) => {
+    setEditing(m.id!); setCategory(m.category); setDetail(m.detail); setNote(m.note ?? "");
+  };
+  const stopEditing = () => {
+    setEditing(null); setCategory(null); setDetail(null); setNote("");
+  };
 
   // The end marker means "this whole ayah", not the marker glyph itself.
   const wholeAyah = word?.isEnd ?? false;
@@ -103,24 +113,43 @@ export function MistakeSheet({
               const label = detailLabel(m.category, m.detail);
               return (
                 <li key={m.id ?? label}
-                  className="flex items-center justify-between gap-2 rounded-md bg-danger/15 px-2.5 py-1 text-sm">
+                  className={cn(
+                    "flex items-center justify-between gap-2 rounded-md bg-danger/15 px-2.5 py-1 text-sm",
+                    editing && editing === m.id && "ring-2 ring-primary",
+                  )}>
                   <span className="min-w-0">
                     <span className="font-medium">{label}</span>
                     {m.note && <span className="ml-2 text-xs text-ink-2">{m.note}</span>}
                   </span>
-                  {m.id && onRemove && (
-                    <button type="button" aria-label={`Remove ${label}`}
-                      onClick={() => onRemove(m.id!)}
-                      className="shrink-0 rounded-md px-1.5 text-xs text-muted-foreground underline hover:text-foreground">
-                      Remove
-                    </button>
+                  {m.id && (
+                    <span className="flex shrink-0 gap-1">
+                      <button type="button" aria-label={`Edit ${label}`}
+                        onClick={() => edit(m)}
+                        className="rounded-md px-1.5 text-xs text-muted-foreground underline hover:text-foreground">
+                        Edit
+                      </button>
+                      {onRemove && (
+                        <button type="button" aria-label={`Remove ${label}`}
+                          onClick={() => onRemove(m.id!)}
+                          className="rounded-md px-1.5 text-xs text-muted-foreground underline hover:text-foreground">
+                          Remove
+                        </button>
+                      )}
+                    </span>
                   )}
                 </li>
               );
             })}
           </ul>
         )}
-        {marked.length > 0 && (
+        {editing ? (
+          <p className="flex items-center justify-between text-xs text-muted-foreground">
+            Change this mistake
+            <button type="button" onClick={stopEditing} className="underline hover:text-foreground">
+              Cancel
+            </button>
+          </p>
+        ) : marked.length > 0 && (
           <p className="text-xs text-muted-foreground">Add another mistake on this word</p>
         )}
         {/* Fits the count: three categories on one row, two side by side.
@@ -159,8 +188,8 @@ export function MistakeSheet({
           placeholder="Note (optional)" className="md:h-8" />
         <div className="flex justify-end">
           <Button size="sm" disabled={!category} className="max-md:flex-1"
-            onClick={() => category && onSave({ category, detail, note })}>
-            {marked.length ? "Add mistake" : "Save"}
+            onClick={() => category && onSave({ category, detail, note, replaces: editing ?? undefined })}>
+            {editing ? "Save changes" : marked.length ? "Add mistake" : "Save"}
           </Button>
         </div>
       </DialogContent>

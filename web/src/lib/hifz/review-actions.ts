@@ -89,16 +89,23 @@ export type MistakeLocation = { surah: number; ayah: number; position: number | 
  *  and detail) on the same target again replaces it, so a re-save updates
  *  the note rather than counting the slip twice. The ayah is tracked
  *  separately from the words inside it. RLS (reviewer + draft) guards both
- *  statements. Returns the new row id so the client can undo it. */
+ *  statements. Returns the new row id so the client can undo it.
+ *
+ *  `replaces` is an edit: the mark it names (in this session) goes once the
+ *  new one is in. There is no update policy on revision_mistakes, and
+ *  inserting first means a failed save leaves the old mark standing rather
+ *  than neither. */
 export async function logMistake(
   sessionId: string,
   loc: MistakeLocation,
   category: Category,
   detail?: string,
   note?: string,
+  replaces?: string,
 ): Promise<string> {
   await requireUser();
   if (!CATEGORY_IDS.includes(category)) throw new Error("Unknown category.");
+  if (replaces && !UUID_RE.test(replaces)) throw new Error("Unknown mark.");
   const db = await supabaseServer();
 
   if (loc.position === null && category === "makhraj") {
@@ -129,6 +136,13 @@ export async function logMistake(
     })
     .select("id").single();
   if (error) throw new Error(error.message);
+
+  if (replaces) {
+    const { error: oldErr } = await db
+      .from("revision_mistakes").delete()
+      .eq("id", replaces).eq("session_id", sessionId);
+    if (oldErr) throw new Error(oldErr.message);
+  }
   return data.id;
 }
 

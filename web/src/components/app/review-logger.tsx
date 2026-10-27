@@ -30,7 +30,7 @@ const targetOf = (w: QuranWord) => ({
  * The live logging island: tap a word → classify → it tints. Tapping an
  * ayah's END MARKER classifies the whole ayah instead, which is the commoner
  * slip — one row, tinting every word in it. A target can hold several
- * mistakes; tapping it again lists them and adds another. State is local
+ * mistakes; tapping it again lists them to edit or remove, and adds another. State is local
  * (each tap is one server action, no refresh).
  *
  * Two modes, one logger:
@@ -39,7 +39,7 @@ const targetOf = (w: QuranWord) => ({
  *    this for whatever comes after. The session always exists.
  *  · `hearing` — the teacher on the Hear tab. Every Save is logged at once
  *    for `studentId` (logHearingMistake finds or makes today's marking
- *    session), and a word marked today opens with its marks to Remove or
+ *    session), and a word marked today opens with its marks to edit, remove or
  *    add to. No Start, no End: the result is a separate step (Pass / Not
  *    passed). `initialMistakes` are today's marks; `heat`/`history` paint
  *    what earlier hearings said about the same words.
@@ -95,10 +95,10 @@ export function ReviewLogger({
   const write = (target: ReturnType<typeof targetOf>, r: SheetResult): Promise<string> => {
     if (hearing) {
       if (!studentId) return Promise.reject(new Error("No student chosen."));
-      return logHearingMistake(studentId, target, r.category, r.detail ?? undefined, r.note);
+      return logHearingMistake(studentId, target, r.category, r.detail ?? undefined, r.note, r.replaces);
     }
     if (!sessionId) return Promise.reject(new Error("This session is closed. Reload the page."));
-    return logMistake(sessionId, target, r.category, r.detail ?? undefined, r.note);
+    return logMistake(sessionId, target, r.category, r.detail ?? undefined, r.note, r.replaces);
   };
 
   const save = (r: SheetResult) => {
@@ -109,13 +109,16 @@ export function ReviewLogger({
     startTransition(async () => {
       const newId = await write(target, r);
       const key = markKey(target);
-      setMarks((m) => ({
-        ...m,
-        [key]: [
-          ...(m[key] ?? []).filter((x) => !sameKind(x, r)),
-          { id: newId, category: r.category, detail: r.detail, note: r.note },
-        ],
-      }));
+      const mark: SheetMark = { id: newId, category: r.category, detail: r.detail, note: r.note };
+      setMarks((m) => {
+        const list = m[key] ?? [];
+        // An edit keeps its place in the list; anything of the same kind
+        // goes, as logMistake removed it.
+        const at = r.replaces ? list.findIndex((x) => x.id === r.replaces) : -1;
+        const next = list.map((x, i) => (i === at ? mark : x))
+          .filter((x, i) => i === at || !sameKind(x, r));
+        return { ...m, [key]: at >= 0 ? next : [...next, mark] };
+      });
     });
   };
 

@@ -70,7 +70,7 @@ describe("HearDesk", () => {
     fireEvent.click(screen.getByRole("button", { name: "Hifdh" }));
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(logHearingMistake).toHaveBeenCalledWith(
-      "s1", { surah: 114, ayah: 1, position: 1 }, "hifz", undefined, "");
+      "s1", { surah: 114, ayah: 1, position: 1 }, "hifz", undefined, "", undefined);
     expect(await screen.findByText("1 mistake marked today", undefined, { timeout: 10_000 })).toBeTruthy();
   }, SLOW);
 
@@ -106,6 +106,6 @@ describe("HearDesk", () => {
     fireEvent.click(screen.getByRole("button", { name: "Hifdh" }));
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(logHearingMistake).toHaveBeenCalledWith(
-      "s3", { surah: 114, ayah: 1, position: 1 }, "hifz", undefined, "");
+      "s3", { surah: 114, ayah: 1, position: 1 }, "hifz", undefined, "", undefined);
   }, SLOW);
 });

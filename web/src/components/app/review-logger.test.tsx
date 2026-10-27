@@ -37,7 +37,7 @@ describe("ReviewLogger", () => {
     fireEvent.click(screen.getByRole("button", { name: "Hifdh" }));
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(logMistake).toHaveBeenCalledWith(
-      "s1", { surah: 114, ayah: 1, position: 1 }, "hifz", undefined, "");
+      "s1", { surah: 114, ayah: 1, position: 1 }, "hifz", undefined, "", undefined);
     expect(await screen.findByText(/1 mistake/, undefined, { timeout: 10_000 })).toBeTruthy();
   }, SLOW);
   it("a second mistake on the same word adds to the first rather than replacing it", async () => {
@@ -54,8 +54,28 @@ describe("ReviewLogger", () => {
     fireEvent.click(screen.getByRole("button", { name: "Madd length" }));
     fireEvent.click(screen.getByRole("button", { name: "Add mistake" }));
     expect(logMistake).toHaveBeenLastCalledWith(
-      "s1", { surah: 114, ayah: 1, position: 1 }, "tajweed", "madd", "");
+      "s1", { surah: 114, ayah: 1, position: 1 }, "tajweed", "madd", "", undefined);
     expect(await screen.findByText(/2 mistakes/, undefined, { timeout: 10_000 })).toBeTruthy();
+  }, SLOW);
+  it("editing a saved mark replaces it rather than adding one", async () => {
+    vi.mocked(logMistake).mockResolvedValueOnce("id-2");
+    render(<ReviewLogger sessionId="s1" reciterName="Bilal" pages={pages} initialMistakes={[{
+      id: "id-1", surah_number: 114, ayah_number: 1, word_position: 1,
+      category: "hifz", detail: "forgot", note: null,
+    } as never]} />);
+    expect(screen.getByText(/1 mistake/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "قُلْ" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit Hifdh: Forgot it" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tajweed" }));
+    fireEvent.click(screen.getByRole("button", { name: "Madd length" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(logMistake).toHaveBeenLastCalledWith(
+      "s1", { surah: 114, ayah: 1, position: 1 }, "tajweed", "madd", "", "id-1");
+    fireEvent.click(await screen.findByRole("button", { name: "قُلْ" }));
+    const list = await screen.findByRole("list", { name: "Marked on this word" });
+    expect(list.textContent).toContain("Tajweed: Madd length");
+    expect(list.textContent).not.toContain("Forgot it");
+    expect(screen.getByText(/1 mistake/)).toBeTruthy();
   }, SLOW);
   it("submits flags and note from the wrap-up", async () => {
     render(<ReviewLogger sessionId="s1" reciterName="Bilal" pages={pages} initialMistakes={[]} />);

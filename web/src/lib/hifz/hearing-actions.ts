@@ -32,8 +32,8 @@ async function runFor(db: Db, studentId: string): Promise<Set<number>> {
  * student sees it at once, and `counts_as_result = false`, so it never
  * decides passed or not passed (see surahState). Its range is the surah of
  * that first mark. A word can take several marks today; saving the same
- * mistake on it again replaces that one, as logMistake keeps it. Returns
- * the mark's id.
+ * mistake on it again replaces that one, as logMistake keeps it, and
+ * `replaces` edits one of today's marks into this one. Returns the mark's id.
  */
 export async function logHearingMistake(
   studentId: string,
@@ -41,6 +41,7 @@ export async function logHearingMistake(
   category: Category,
   detail?: string,
   note?: string,
+  replaces?: string,
 ): Promise<string> {
   const me = await requireTeacher();
   await requireOwnStudent(studentId);
@@ -68,7 +69,7 @@ export async function logHearingMistake(
     // empty, and an empty marking session is shown nowhere.
     session = (await todaysMarkingSession(db, me.id, studentId)) ?? data;
   }
-  return logMistake(session.id, loc, category, detail, note);
+  return logMistake(session.id, loc, category, detail, note, replaces);
 }
 
 /** Take back a mark from one of this teacher's own marking sessions. */

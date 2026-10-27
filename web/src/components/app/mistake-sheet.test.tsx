@@ -82,6 +82,35 @@ describe("MistakeSheet", () => {
     expect(onSave).toHaveBeenCalledWith({ category: "tajweed", detail: "ghunnah", note: "" });
   }, SLOW);
 
+  // A saved mark can be changed, not only removed: Edit loads it into the
+  // picker, and Save changes that mark rather than adding another.
+  it("edits a saved mark in place", () => {
+    const onSave = vi.fn();
+    render(
+      <MistakeSheet word={word} onSave={onSave} onClose={() => {}}
+        existing={[{ id: "m2", category: "tajweed", detail: "madd", note: "too short" }]} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Edit Tajweed: Madd length" }));
+    expect((screen.getByPlaceholderText(/note/i) as HTMLInputElement).value).toBe("too short");
+    fireEvent.click(screen.getByRole("button", { name: "Ghunnah" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(onSave).toHaveBeenCalledWith({ category: "tajweed", detail: "ghunnah", note: "too short", replaces: "m2" });
+  }, SLOW);
+
+  it("Cancel leaves the mark alone and goes back to adding", () => {
+    const onSave = vi.fn();
+    render(
+      <MistakeSheet word={word} onSave={onSave} onClose={() => {}}
+        existing={[{ id: "m1", category: "hifz", detail: "forgot", note: null }]} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Edit Hifdh: Forgot it" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.getByRole("button", { name: "Add mistake" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Tajweed" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add mistake" }));
+    expect(onSave.mock.calls[0][0].replaces).toBeUndefined();
+  }, SLOW);
+
   it("shows no marked list on an unmarked word", () => {
     render(<MistakeSheet word={word} onSave={vi.fn()} onClose={vi.fn()} existing={[]} />);
     expect(screen.queryByRole("list", { name: "Marked on this word" })).toBeNull();
