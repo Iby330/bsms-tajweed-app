@@ -1,0 +1,55 @@
+{
+ "_source": "Moadh's Google Doc 108A4Gs3RNnCmSIt38EzgehJ8TYotL-u5MVyHfGVDJPE (Homework 7: Shaddah), 2026-10-27. The doc gives pictures for Questions 1-3 and one line for Question 4. The last row of Question 2's picture repeats as the first row of Question 3's (the screenshots overlap); kept as in the doc. 1 mark per question.",
+ "papers": [
+  {
+   "number": 307,
+   "series": "qaidah",
+   "course": "qaidah",
+   "ordinal": 7,
+   "term1_week": 7,
+   "title": "Shaddah",
+   "questions": [
+    {
+     "n": 1,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "Read the following words and record yourself. Read each letter with a shaddah twice: once with a sukūn, joined to the letter before it, then again with its vowel.",
+     "images": [
+      { "src": "/images/homework/qaidah/hw7-1.jpg", "alt": "Twelve short words with a shaddah", "width": 960, "height": 279 }
+     ]
+    },
+    {
+     "n": 2,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "Read the following words and record yourself. Take your time over each shaddah.",
+     "images": [
+      { "src": "/images/homework/qaidah/hw7-2.jpg", "alt": "Twenty words with a shaddah", "width": 960, "height": 552 }
+     ]
+    },
+    {
+     "n": 3,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "Read the following words and record yourself. Take your time over each shaddah.",
+     "images": [
+      { "src": "/images/homework/qaidah/hw7-3.jpg", "alt": "Fifteen words with a shaddah", "width": 960, "height": 409 }
+     ]
+    },
+    {
+     "n": 4,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "This is meant to push you, but please remember the concepts we've covered already, such as ghunnah. Read the following words and record yourself.",
+     "images": [
+      { "src": "/images/homework/qaidah/hw7-4.jpg", "alt": "Five longer words with a shaddah", "width": 960, "height": 139 }
+     ]
+    }
+   ]
+  }
+ ]
+}

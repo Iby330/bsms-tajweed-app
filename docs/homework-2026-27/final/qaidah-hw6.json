@@ -1,0 +1,48 @@
+{
+ "_source": "Moadh's Google Doc 108A4Gs3RNnCmSIt38EzgehJ8TYotL-u5MVyHfGVDJPE (Homework 6: Sukoon), 2026-10-27. The doc's opening line (qalqalah and hams) heads Questions 1 and 2; its Question 3 text is kept. 1 mark per question, as Moadh asked for homework 4.",
+ "papers": [
+  {
+   "number": 306,
+   "series": "qaidah",
+   "course": "qaidah",
+   "ordinal": 6,
+   "term1_week": 6,
+   "title": "Sukūn",
+   "questions": [
+    {
+     "n": 1,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "Read the following words and record yourself. Make sure you properly observe the characteristics of qalqalah and hams.",
+     "images": [
+      { "src": "/images/homework/qaidah/hw6-1.jpg", "alt": "Twenty two-letter words, each ending in a letter with a sukūn", "width": 960, "height": 547 }
+     ]
+    },
+    {
+     "n": 2,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "Read the following words and record yourself. Make sure you properly observe the characteristics of qalqalah and hams.",
+     "images": [
+      { "src": "/images/homework/qaidah/hw6-2-1.jpg", "alt": "Sixteen words with a sukūn in the middle or at the end", "width": 960, "height": 552 },
+      { "src": "/images/homework/qaidah/hw6-2-2.jpg", "alt": "Sixteen more words with a sukūn", "width": 960, "height": 546 }
+     ]
+    },
+    {
+     "n": 3,
+     "format": "voice",
+     "marked": true,
+     "points": 1,
+     "prompt": "This is meant to be difficult, but it is there to push you and brings together what has been covered so far. Practise beforehand, then record what you believe is the correct way to recite each box.",
+     "images": [
+      { "src": "/images/homework/qaidah/hw6-3-1.jpg", "alt": "Three short phrases from the Qur'an", "width": 960, "height": 126 },
+      { "src": "/images/homework/qaidah/hw6-3-2.jpg", "alt": "Three more short phrases from the Qur'an", "width": 960, "height": 129 },
+      { "src": "/images/homework/qaidah/hw6-3-3.jpg", "alt": "Three more short phrases from the Qur'an", "width": 960, "height": 113 }
+     ]
+    }
+   ]
+  }
+ ]
+}
