@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { Constants } from "@/lib/database.types";
 import { blockTopic } from "@/lib/curriculum/catalogue";
 import { getCurriculumTree } from "@/lib/curriculum/queries";
 import { findCourse } from "@/lib/curriculum/tree";
@@ -32,8 +33,9 @@ export default async function CurriculumBlock({
 
   // `series` is an enum column, so the URL segment has to be narrowed to one of
   // its labels before it can be a filter — an unknown one is a 404, not a query.
-  const SERIES_KEYS = ["tajweed", "umm_al_kitab", "tfp", "seerah", "qaidah"] as const;
-  const series = SERIES_KEYS.find((k) => k === seriesParam);
+  // Read from the generated enum: a hand-kept list missed `seerah_reflections`
+  // (0123) and 404'd the Seerah tile.
+  const series = Constants.public.Enums.series_t.find((k) => k === seriesParam);
   if (!series) notFound();
 
   const [terms, roster] = await Promise.all([getCurriculumTree(), teacherRoster()]);
