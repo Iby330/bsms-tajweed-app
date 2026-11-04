@@ -39,15 +39,25 @@ describe("mobileNavFor", () => {
     }
   });
 
+  // With Resources folded into Courses nothing unpinned is live, so the
+  // student bar is all five and there is no More.
+  it("gives the student all five tabs and no More", () => {
+    expect(studentMobileNav.tabs.map((i) => i.label)).toEqual(["Home", "Courses", "Progress", "Hifdh", "Calendar"]);
+    expect(studentMobileNav.more).toEqual([]);
+  });
+
   /**
-   * Resources going live gave students a More tab, which costs the fifth
-   * pinned cell. The old split took the bar off the top of the pinned items
-   * and the sheet from the unpinned ones, so Calendar, pinned fifth, fell
-   * through both and had no phone link at all.
+   * More costs the fifth pinned cell. The old split took the bar off the top
+   * of the pinned items and the sheet from the unpinned ones, so a pinned
+   * fifth item fell through both and had no phone link at all.
    */
   it("moves a pinned item that no longer fits to the top of More", () => {
-    expect(studentMobileNav.tabs.map((i) => i.label)).toEqual(["Home", "Courses", "Progress", "Hifdh"]);
-    expect(studentMobileNav.more.map((i) => i.label).slice(0, 2)).toEqual(["Calendar", "Resources"]);
+    const nav = mobileNavFor([
+      ...studentNav.filter((i) => i.tab),
+      { href: "/x", label: "Extra", icon: "library" },
+    ]);
+    expect(nav.tabs.map((i) => i.label)).toEqual(["Home", "Courses", "Progress", "Hifdh"]);
+    expect(nav.more.map((i) => i.label)).toEqual(["Calendar", "Extra"]);
   });
 
   it("keeps coming-soon items out of the bar", () => {

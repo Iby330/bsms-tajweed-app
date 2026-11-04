@@ -1,6 +1,7 @@
 import { currentProfile } from "@/lib/supabase/server";
 import { getStudentCurriculum } from "@/lib/curriculum/queries";
 import { getCatalogue, termIndex } from "@/lib/curriculum/catalogue";
+import { getClassResources, type ResourceSet } from "@/lib/resources/queries";
 import { findCurrentModule } from "@/lib/curriculum/tree";
 import { CourseTile } from "@/components/app/course-tile";
 import { TermTile } from "@/components/app/term-tile";
@@ -17,14 +18,43 @@ export const dynamic = "force-dynamic";
  * ahead names what it will teach without opening it. Below, only courses
  * that are in no term of this class's plan, locked, to show the breadth of
  * the programme. A course this class takes later is in its term, not here.
+ *
+ * Between them, Reflections: Sahabah Stories and Seerah, the halaqah's
+ * videos, which are no term's work. They and any other series opened for
+ * the class (class_resources) were a Resources tab until 2026-11-04.
  */
+const REFLECTIONS = new Set(["sahabah_t1", "seerah"]);
+
+function SeriesTiles({ sets }: { sets: ResourceSet[] }) {
+  return (
+    <div className={cn("cards", sets.length < 3 && "few")} style={{ ["--n" as string]: sets.length }}>
+      {sets.map((s) => (
+        <CourseTile
+          key={s.key}
+          href={`/courses/series/${s.key}`}
+          note={s.videos.some((v) => v.homework) ? "Watch any time · homework has no deadline" : "Watch any time"}
+          block={{
+            series: s.key, termId: null, label: s.label, parentLabel: null, blurb: "",
+            slug: s.key, courseKey: s.key, moduleCount: s.videos.length, hasHomework: s.videos.some((v) => v.homework),
+            posterId: s.videos[0]?.youtubeId ?? null, opensAt: null, started: true, fullyOpen: true,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default async function Courses() {
   const profile = (await currentProfile())!;
-  const [{ terms, hasSyllabus }, { blocks: catalogue }] = await Promise.all([
+  const [{ terms, hasSyllabus }, { blocks: catalogue }, sets] = await Promise.all([
     getStudentCurriculum(profile.id),
     // her section's calendar, so "opens" agrees with her tree
     getCatalogue(new Date(), profile.section),
+    getClassResources(),
   ]);
+  const withVideos = sets.filter((s) => s.videos.length > 0);
+  const reflections = withVideos.filter((s) => REFLECTIONS.has(s.key));
+  const extra = withVideos.filter((s) => !REFLECTIONS.has(s.key));
 
   const { terms: tiles, rest } = termIndex(catalogue, terms, hasSyllabus);
 
@@ -53,6 +83,23 @@ export default async function Courses() {
       <div className="cards">
         {tiles.map((tile) => <TermTile key={tile.id} tile={tile} />)}
       </div>
+
+      {reflections.length > 0 && (
+        <>
+          <Rule label="Reflections" />
+          <SeriesTiles sets={reflections} />
+        </>
+      )}
+
+      {extra.length > 0 && (
+        <>
+          <Rule label="Extra videos" />
+          <p className="note" style={{ marginBottom: 18, maxWidth: "60ch" }}>
+            Opened for your class to go back to, whenever you need them.
+          </p>
+          <SeriesTiles sets={extra} />
+        </>
+      )}
 
       {rest.length > 0 && (
         <>

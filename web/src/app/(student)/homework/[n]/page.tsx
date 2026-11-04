@@ -118,13 +118,13 @@ export default async function HomeworkPage({
           <div className="flex flex-col items-start gap-1">
             <Crumbs
               items={[
-                { label: "Resources", href: "/resources" },
-                { label: resource.label, href: `/resources/${resource.key}` },
+                { label: "Courses", href: "/courses" },
+                { label: resource.label, href: `/courses/series/${resource.key}` },
                 { label },
               ]}
             />
             {resourceVideo && (
-              <Link href={`/resources/${resource.key}/${resourceVideo.id}`} className="label backlink" style={{ marginTop: 6 }}>
+              <Link href={`/courses/series/${resource.key}/${resourceVideo.id}`} className="label backlink" style={{ marginTop: 6 }}>
                 <span aria-hidden>▸</span> Watch the video
               </Link>
             )}

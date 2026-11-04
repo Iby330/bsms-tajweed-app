@@ -54,16 +54,15 @@ export function mobileNavFor(nav: NavItem[]): MobileNav {
   };
 }
 
-// Five are pinned, but Resources (live, unpinned) costs a cell for More, so
-// the bar holds the first four and Calendar leads the More sheet, Resources
-// beside it.
+// Five pinned and nothing else live, so all five hold a cell and there is no
+// More. Resources was the one unpinned item until it was folded into Courses
+// (Reflections, 2026-11-04).
 export const studentNav: NavItem[] = [
   { href: "/home", label: "Home", icon: "home", tab: true },
   { href: "/courses", label: "Courses", icon: "video", tab: true },
   { href: "/progress", label: "Progress", icon: "clipboard", tab: true },
   { href: "/hifdh", label: "Hifdh", icon: "book", tab: true },
   { href: "/calendar", label: "Calendar", icon: "calendar", tab: true },
-  { href: "/resources", label: "Resources", icon: "library" },
   { href: "/coming-soon/notifications", label: "Notifications", icon: "bell", comingSoon: true },
 ];
 export const studentMobileNav: MobileNav = mobileNavFor(studentNav);
