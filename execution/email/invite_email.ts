@@ -40,7 +40,7 @@ export type Invite = {
   firstName: string;
   className: string;
   studentCount: number;
-  section: "brothers" | "sisters";
+  section: "brothers" | "sisters" | "ustadhs";
   /** An admin has no class: `className` is "Every class" and the copy says so. */
   admin?: boolean;
   /** the one-time link that signs them in and lands on /welcome */
@@ -93,6 +93,7 @@ export function inviteHtml(i: Invite): string {
   const people = i.studentCount === 1 ? "1 student" : `${i.studentCount} students`;
   const sectionLabel = i.admin
     ? "Brothers and sisters"
+    : i.section === "ustadhs" ? "Esteemed Ustadhs"
     : i.section === "brothers" ? "Brothers" : "Sisters";
 
   return `<!doctype html>

@@ -141,7 +141,7 @@ async function main() {
       firstName: profile.full_name.split(/\s+/)[0],
       className: cls.name,
       studentCount: count ?? 0,
-      section: profile.section as "brothers" | "sisters",
+      section: profile.section as Invite["section"],
       admin,
       link,
     };
