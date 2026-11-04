@@ -8,6 +8,8 @@ import { HifzHero } from "@/components/app/hifz-hero";
 import { HifzJourney } from "@/components/app/hifz-journey";
 import { HifzTabs } from "@/components/app/hifz-tabs";
 import { ReviewTab } from "@/components/app/review-tab";
+import { ListenTab } from "@/components/app/listen-tab";
+import { fullMushafSurahs, hasFullMushaf } from "@/lib/hifz/mushaf-reach";
 import { RevisionHeatmap } from "@/components/app/revision-heatmap";
 import { revisionActivityFor } from "@/lib/hifz/activity-queries";
 import { londonDayKey } from "@/lib/hifz/revision-activity";
@@ -29,10 +31,12 @@ function EmptyState({ message }: { message: string }) {
 export default async function StudentHifz({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; page?: string; heat?: string; src?: string }>;
+  searchParams: Promise<{ tab?: string; page?: string; heat?: string; src?: string; listen?: string }>;
 }) {
-  const { tab, page, src, heat } = await searchParams;
+  const { tab, page, src, heat, listen } = await searchParams;
   const profile = (await currentProfile())!;
+
+  const fullMushaf = hasFullMushaf(profile.section);
 
   // The Review tab must stay reachable even before a target is set — a
   // student with no run of their own can still review their partner.
@@ -41,10 +45,12 @@ export default async function StudentHifz({
       <>
         <header className="masthead">
           <h1><span>Hifdh</span></h1>
-          <p>Peer revision with your partner.</p>
+          <p>{fullMushaf ? "Choose who you're listening to, and log their recitation." : "Peer revision with your partner."}</p>
         </header>
         <HifzTabs basePath="/hifdh" active="review" />
-        <ReviewTab userId={profile.id} pageParam={page} />
+        {fullMushaf
+          ? <ListenTab userId={profile.id} classId={profile.class_id} listenParam={listen} pageParam={page} />
+          : <ReviewTab userId={profile.id} pageParam={page} />}
       </>
     );
   }
@@ -208,8 +214,11 @@ export default async function StudentHifz({
           source={parseSource(src)}
           heat={heat}
           basePath="/hifdh"
-          run={list}
-          surahHref={(n, p) => `/hifdh/${n}${p ? `?p=${p}` : ""}`}
+          run={fullMushaf ? fullMushafSurahs(all) : list}
+          fullMushaf={fullMushaf}
+          // A surah's own page only exists for the programme's run; earlier ones
+          // open on the board's mushaf instead.
+          surahHref={(n, p) => (n < 46 ? `/hifdh?heat=${p ?? 1}` : `/hifdh/${n}${p ? `?p=${p}` : ""}`)}
         />
       </div>
 

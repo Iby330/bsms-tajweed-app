@@ -116,3 +116,30 @@ describe("groupIntoPages", () => {
     expect(pages[1].lines[0].words[0].ayah).toBe(3);
   });
 });
+
+describe("pageSlots on the pages that break the 15-line rule", () => {
+  const w = (surah: number, ayah: number, position: number, line: number, page: number) =>
+    ({ surah, ayah, position, line, page, text: "", code: "", isEnd: false }) as unknown as QuranWord;
+  const kinds = (slots: ReturnType<typeof pageSlots>) =>
+    slots.map((s) => (s.type === "header" ? `h${s.surah}` : s.type === "basmala" ? "b" : "w"));
+
+  it("page 1 is a header over Al-Fatihah's seven lines, with no basmala of its own", () => {
+    const words = [2, 3, 4, 5, 6, 7, 8].map((l, i) => w(1, i + 1, 1, l, 1));
+    expect(kinds(pageSlots(groupIntoPages(words)[0]))).toEqual(["h1", "w", "w", "w", "w", "w", "w", "w"]);
+  });
+
+  it("page 2 is a header and basmala over six lines, then stops", () => {
+    const words = [3, 4, 5, 6, 7, 8].map((l, i) => w(2, i + 1, 1, l, 2));
+    expect(kinds(pageSlots(groupIntoPages(words)[0]))).toEqual(["h2", "b", "w", "w", "w", "w", "w", "w"]);
+  });
+
+  it("At-Tawbah opens with a header and no basmala", () => {
+    const words = [
+      ...Array.from({ length: 4 }, (_, i) => w(8, 72 + i, 1, i + 1, 177)),
+      ...Array.from({ length: 10 }, (_, i) => w(9, i + 1, 1, i + 6, 177)),
+    ];
+    const out = kinds(pageSlots(groupIntoPages(words)[0]));
+    expect(out[4]).toBe("h9");
+    expect(out).not.toContain("b");
+  });
+});

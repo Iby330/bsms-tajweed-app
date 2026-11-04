@@ -24,10 +24,16 @@ content will change later, so nothing here should make that harder.
 
 The class is mainly for two things, and both must work on day one: **Resources**,
 for extra content the teachers cover, and **Hifdh revision pairs**, so they can
-log each other's recitation and track progress. A reviewer in this class can pick
-any surah the app holds, because teachers present portions from anywhere. This
-narrows the build to the basics, and the owner approved two profile records under
-one login.
+log each other's recitation and track progress. This narrows the build to the
+basics, and the owner approved two profile records under one login.
+
+The class has **no fixed pairs**: whoever is listening picks any classmate each
+time (`can_listen_freely`). It also gets the **full mushaf**, pages 1-604, while
+every other class keeps the programme's range from page 562. Surahs 1-45 stay out
+of the `surahs` table so the programme's target pickers don't change.
+
+The class also has one student outside the teachers: Shamoon, on his own normal
+login with no seat.
 
 ## Decisions
 

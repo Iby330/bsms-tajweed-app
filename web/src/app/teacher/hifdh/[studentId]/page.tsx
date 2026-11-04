@@ -1,3 +1,4 @@
+import { fullMushafSurahs, hasFullMushaf } from "@/lib/hifz/mushaf-reach";
 import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
@@ -233,8 +234,11 @@ export default async function StudentHifzDetail({
           source={parseSource(src)}
           heat={heat}
           basePath={`/teacher/hifdh/${studentId}`}
-          run={list}
-          surahHref={(n, p) => `/teacher/hifdh/${studentId}/${n}${p ? `?p=${p}` : ""}`}
+          run={hasFullMushaf(student.section) ? fullMushafSurahs(surahs as Surah[]) : list}
+          fullMushaf={hasFullMushaf(student.section)}
+          surahHref={(n, p) => (n < 46
+            ? `/teacher/hifdh/${studentId}?heat=${p ?? 1}`
+            : `/teacher/hifdh/${studentId}/${n}${p ? `?p=${p}` : ""}`)}
           viewer="teacher"
         />
       </div>

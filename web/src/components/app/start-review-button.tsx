@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { startSession } from "@/lib/hifz/review-actions";
 
 export function StartReviewButton({
-  reciterId, partnerName, disabled,
-}: { reciterId: string; partnerName: string; disabled?: boolean }) {
+  reciterId, partnerName, disabled, label,
+}: { reciterId: string; partnerName: string; disabled?: boolean; label?: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   return (
@@ -20,7 +20,7 @@ export function StartReviewButton({
         })
       }
     >
-      {pending ? "Starting…" : `Start reviewing ${partnerName}`}
+      {pending ? "Starting…" : label ?? `Start reviewing ${partnerName}`}
     </Button>
   );
 }

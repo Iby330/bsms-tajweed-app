@@ -64,11 +64,15 @@ export async function startSession(reciterId: string): Promise<string> {
     .is("submitted_at", null).maybeSingle();
   if (existing) return existing.id;
 
-  const { data: pair } = await db
-    .from("revision_pairs").select("id").eq("active", true)
-    .or(`and(student_a.eq.${me.id},student_b.eq.${reciterId}),and(student_a.eq.${reciterId},student_b.eq.${me.id})`)
-    .maybeSingle();
-  if (!pair) throw new Error("You're not paired with this student.");
+  // The ustadhs pick who they listen to; the database still checks it's a
+  // classmate (can_listen_freely). Everyone else needs their pair.
+  if (me.section !== "ustadhs") {
+    const { data: pair } = await db
+      .from("revision_pairs").select("id").eq("active", true)
+      .or(`and(student_a.eq.${me.id},student_b.eq.${reciterId}),and(student_a.eq.${reciterId},student_b.eq.${me.id})`)
+      .maybeSingle();
+    if (!pair) throw new Error("You're not paired with this student.");
+  }
 
   const { data, error } = await db
     .from("revision_sessions")

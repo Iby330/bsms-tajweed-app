@@ -10,13 +10,16 @@
  * Idempotent: upserts on (surah_number, ayah_number, word_position).
  * One-off operational tooling — production NEVER calls quran.com.
  */
-import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "..");
+// The dependency lives in web/node_modules; a bare import from this folder only
+// resolves if an execution/node_modules happens to exist (see create_teacher.ts).
+const { createClient } = createRequire(join(repoRoot, "web/package.json"))("@supabase/supabase-js");
 
 const env: Record<string, string> = {};
 for (const line of readFileSync(join(repoRoot, "web/.env.local"), "utf8").split("\n")) {

@@ -3,7 +3,6 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getCachedSurahs } from "@/lib/reference/cached";
 import { memorisationList, type Surah } from "@/lib/hifz/pace";
-import { reviewableSurahs } from "./reviewable";
 import { MISTAKE_COLS, type MistakeRow, type SessionRow } from "./mistakes";
 
 export type ActivePair = { pairId: string; partnerId: string; partnerName: string };
@@ -34,19 +33,44 @@ export type RangeSurah = {
  *  Admin reads — ONLY call with a partnerId that came out of myActivePair(). */
 export async function partnerRange(partnerId: string): Promise<RangeSurah[]> {
   const admin = supabaseAdmin();
-  const [surahs, { data: hp }, { data: records }, { data: partner }] = await Promise.all([
+  const [surahs, { data: hp }, { data: records }] = await Promise.all([
     getCachedSurahs(),
     admin.from("hifz_profiles").select("start_surah, target_count").eq("student_id", partnerId).maybeSingle(),
     admin.from("hifz_records").select("surah_number").eq("student_id", partnerId),
-    admin.from("profiles").select("section").eq("id", partnerId).maybeSingle(),
   ]);
   if (!hp) return [];
   const passed = new Set((records ?? []).map((r) => r.surah_number));
   const list = memorisationList(hp.start_surah, hp.target_count, surahs as Surah[]);
-  return reviewableSurahs(list, passed, partner?.section).map((s) => ({
-    number: s.number, name_en: s.name_en, name_ar: s.name_ar,
-    passed: s.passed, current: s.current,
-  }));
+  const current = list.find((s) => !passed.has(s.number))?.number ?? null;
+  return list
+    .filter((s) => passed.has(s.number) || s.number === current)
+    .map((s) => ({
+      number: s.number, name_en: s.name_en, name_ar: s.name_ar,
+      passed: passed.has(s.number), current: s.number === current,
+    }));
+}
+
+/** Everyone else in a class, for the ustadhs' "who are you listening to". Admin
+ *  read because students can't read each other's profiles; the class is the
+ *  authorisation here, as the pair row is above. */
+export async function classmatesOf(
+  userId: string, classId: string | null,
+): Promise<{ id: string; name: string }[]> {
+  if (!classId) return [];
+  const { data } = await supabaseAdmin()
+    .from("profiles").select("id, full_name")
+    .eq("class_id", classId).eq("role", "student").eq("is_active", true)
+    .neq("id", userId).order("full_name");
+  return (data ?? []).map((p) => ({ id: p.id, name: p.full_name }));
+}
+
+/** The caller's unfinished sessions: reciter id → session id. */
+export async function myOpenListens(reviewerId: string): Promise<Map<string, string>> {
+  const db = await supabaseServer();
+  const { data } = await db
+    .from("revision_sessions").select("id, reciter_id")
+    .eq("reviewer_id", reviewerId).eq("kind", "peer").is("submitted_at", null);
+  return new Map((data ?? []).map((s) => [s.reciter_id, s.id]));
 }
 
 /** The caller's open peer draft against this reciter, if any. Hearings share

@@ -46,7 +46,13 @@ import sys
 
 REPO = Path(__file__).resolve().parent.parent
 FONTS = REPO / "web/public/fonts/qcf"
-FIRST_PAGE, LAST_PAGE = 562, 604
+# The whole mushaf since the ustadhs got it; programme pages keep their values.
+FIRST_PAGE, LAST_PAGE = 1, 604
+
+
+# Under this share of the page's measure a line is centred, not filled. The
+# programme's own worst justified line stretched 4.2% and its centred ones 13%+.
+CENTRE_BELOW = 0.92
 
 
 def load_env() -> dict:
@@ -105,7 +111,7 @@ def main():
             continue
         pages.setdefault(r["page_number"], {}).setdefault(r["line_number"], []).append(r["code_v1"])
 
-    table, report = {}, []
+    table, report, short = {}, [], []
     for page in sorted(pages):
         by_char, space, upem = advances(page)
         widths = []
@@ -123,6 +129,10 @@ def main():
             widths.append((ink + space * (len(codes) - 1)) / upem)
         widest = max(widths)
         table[page] = widest
+        # Lines far short of the measure would stretch visibly if justified.
+        for (line, _), w in zip(sorted(pages[page].items()), widths):
+            if w < widest * CENTRE_BELOW:
+                short.append((page, line))
         report.append((page, widest, min(widths), len(widths)))
 
     target = max(table.values())
@@ -134,6 +144,12 @@ def main():
     for page, widest, narrowest, n in report:
         print(f"  p{page}  widest {widest:7.4f}em  narrowest {narrowest:7.4f}em  "
               f"lines {n:2d}  scale {target / widest:.4f}", file=sys.stderr)
+
+    print("\nshort lines, for CENTER_ALIGNED_PAGE_LINES:", file=sys.stderr)
+    by_page = {}
+    for page, line in short:
+        by_page.setdefault(page, []).append(line)
+    print("  " + ", ".join(f"{p}: {ls}" for p, ls in sorted(by_page.items())), file=sys.stderr)
 
     # emit the TS table: natural measure per page, in em of that page's font
     print("/**")

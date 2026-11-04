@@ -1,3 +1,4 @@
+import { firstReadablePage, fullMushafSurahs, surahPageForViewer } from "@/lib/hifz/mushaf-reach";
 import Link from "next/link";
 import { boardFor } from "@/lib/hifz/board-queries";
 import {
@@ -26,7 +27,6 @@ const LAST_PAGE = 604;
 /** Al-Mulk's first page, and the first with a deployed QCF font. Earlier
  *  pages have words but no font and render blank, so the heatmap offers no
  *  surah that starts before it and never turns below it. */
-const FIRST_FONT_PAGE = 562;
 /** Below this many sessions the chart says nothing a sentence can't. */
 const CHART_FROM = 3;
 
@@ -49,7 +49,7 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
  * `basePath` is the page the board sits on, without a query.
  */
 export async function MistakeBoard({
-  studentId, source, heat, basePath, run, surahHref, viewer = "student",
+  studentId, source, heat, basePath, run, surahHref, viewer = "student", fullMushaf = false,
 }: {
   studentId: string;
   /** who is looking: the student at their own board, or their teacher */
@@ -61,10 +61,15 @@ export async function MistakeBoard({
   run: { number: number; name_en: string }[];
   /** where a surah's own page lives, opened at a mushaf page */
   surahHref: (surah: number, page?: number) => string;
+  /** the ustadhs: marks can sit anywhere in the mushaf, not just the programme's range */
+  fullMushaf?: boolean;
 }) {
-  const [full, surahs, startPages] = await Promise.all([
+  const [full, tableSurahs, startPages] = await Promise.all([
     boardFor(studentId), getCachedSurahs(), getCachedSurahStartPages(),
   ]);
+  const surahs = fullMushaf ? fullMushafSurahs(tableSurahs) : tableSurahs;
+  const reach = fullMushaf ? "ustadhs" : null;
+  const firstReadable = firstReadablePage(reach);
   if (!full.marks.length) {
     return <p className="box c12 note">No mistakes marked yet.</p>;
   }
@@ -173,16 +178,25 @@ export async function MistakeBoard({
   }
 
   // The heatmap: `heat` names a surah (open at its first page) or a page.
-  const onRun = run.filter((s) => (startPages[s.number] ?? 0) >= FIRST_FONT_PAGE);
+  const onRun = run.filter((s) => (startPages[s.number] ?? 0) >= firstReadable);
   const counts = new Map(ranks.map((r) => [r.surah, r.count]));
   const heatNum = heat ? Number(heat) : NaN;
+  const heatFor = (surah: number) => (fullMushaf ? startPages[surah] : surah);
   const firstPage = Math.min(...onRun.map((s) => startPages[s.number]));
+  // Only a surah this viewer's mushaf reaches: the words for the rest are on the
+  // server, but they are the ustadhs' alone.
+  const heatStart = !fullMushaf && Number.isInteger(heatNum) && heatNum <= 114
+    ? surahPageForViewer(heatNum, startPages, reach) : null;
+  // With the whole mushaf, pages and surahs share the numbers 1–114, so there
+  // `heat` is always a page.
   const heatPage = !Number.isInteger(heatNum) ? null
-    : startPages[heatNum] !== undefined && heatNum <= 114 ? startPages[heatNum]
-      : heatNum >= firstPage && heatNum <= LAST_PAGE ? heatNum : null;
+    : heatStart !== null ? heatStart
+      : (fullMushaf || heatNum > 114) && heatNum >= firstPage && heatNum <= LAST_PAGE ? heatNum : null;
   const heatSurah = heatPage === null ? null
-    : startPages[heatNum] !== undefined && heatNum <= 114 ? heatNum
-      : onRun.find((s) => startPages[s.number] <= heatPage)?.number ?? null;
+    : heatStart !== null ? heatNum
+      : fullMushaf
+        ? onRun.findLast((s) => startPages[s.number] <= heatPage)?.number ?? null
+        : onRun.find((s) => startPages[s.number] <= heatPage)?.number ?? null;
 
   let mushaf: React.ReactNode = null;
   if (heatPage !== null) {
@@ -267,7 +281,7 @@ export async function MistakeBoard({
         <CardHead title="Surahs, most mistakes" aside={plural(ranks.length, "surah")} />
         <SurahRanks ranks={ranks.map((r) => ({
           surah: r.surah, name: nameOf.get(r.surah) ?? String(r.surah), count: r.count,
-          href: href({ heat: r.surah }, "#heatmap"),
+          href: href({ heat: heatFor(r.surah) }, "#heatmap"),
         }))} />
       </section>
       </PhoneTabs>
@@ -293,7 +307,7 @@ export async function MistakeBoard({
               key={heatSurah ?? "closed"}
               options={onRun.map((s) => ({ surah: s.number, name: s.name_en, count: counts.get(s.number) ?? 0 }))}
               selected={heatSurah ?? ranks[0]?.surah ?? null}
-              hrefFor={Object.fromEntries(onRun.map((s) => [s.number, href({ heat: s.number }, "#heatmap")]))}
+              hrefFor={Object.fromEntries(onRun.map((s) => [s.number, href({ heat: heatFor(s.number) }, "#heatmap")]))}
               open={mushaf !== null}
               closeHref={href({ heat: "" }, "#heatmap")}
             />

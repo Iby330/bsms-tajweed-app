@@ -111,7 +111,8 @@ export default async function TeacherHifz({
 
   return shell(
     <>
-      <PairingPanel pairs={pairs} unpaired={unpaired} />
+      {/* The ustadhs pick who they listen to, so they have no pairs to set. */}
+      {mine?.section !== "ustadhs" && <PairingPanel pairs={pairs} unpaired={unpaired} />}
 
       {rows.length ? (
         <HifzRegister rows={rows} surahs={run} />
