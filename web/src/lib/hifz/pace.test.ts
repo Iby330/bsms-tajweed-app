@@ -187,3 +187,11 @@ describe("memorisationList across the five-juz run", () => {
     expect(list.map((s) => s.number)).toEqual([67, 66, 65, 64, 63, 62, 61, 60, 59, 58]);
   });
 });
+
+describe("expectedPassed for the ustadhs", () => {
+  it("expects nothing, so no pace is shown", () => {
+    const weeks = [{ unlock_at: "2020-01-01T00:00:00Z" }] as Parameters<typeof expectedPassed>[1];
+    expect(expectedPassed(new Date("2026-01-01"), weeks, 10, "ustadhs")).toBe(0);
+    expect(expectedPassed(new Date("2026-01-01"), weeks, 10, "brothers")).toBeGreaterThan(0);
+  });
+});

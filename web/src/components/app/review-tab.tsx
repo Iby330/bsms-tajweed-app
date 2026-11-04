@@ -69,7 +69,9 @@ export async function ReviewTab({
       <div className="space-y-3">
         <SurahJump
           basePath="/hifdh?tab=review"
-          options={range.map((s) => ({
+          // Only surahs the mushaf can open: an earlier one would clamp to the
+          // first page and show the wrong surah without saying so.
+          options={range.filter((s) => (startPages[s.number] ?? 0) >= firstPage).map((s) => ({
             number: s.number,
             name: s.name_en,
             page: startPages[s.number] ?? firstPage,

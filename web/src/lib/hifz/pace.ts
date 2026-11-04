@@ -18,7 +18,10 @@ export function expectedPassed(
   now: Date,
   weeks: Week[],
   targetCount: number,
+  section?: string | null,
 ): number {
+  // The ustadhs present portions when they choose; no calendar paces them.
+  if (section === "ustadhs") return 0;
   if (targetCount <= 0 || weeks.length === 0) return 0;
   const elapsed = weeks.filter((w) => Date.parse(w.unlock_at) <= now.getTime()).length;
   if (elapsed === 0) return 0;

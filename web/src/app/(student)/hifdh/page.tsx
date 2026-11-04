@@ -126,7 +126,7 @@ export default async function StudentHifz({
 
   const passedCount = list.filter((s) => passedSet.has(s.number)).length;
   const complete = passedCount === list.length;
-  const expected = expectedPassed(new Date(), weeks, Math.min(hp.target_count, list.length));
+  const expected = expectedPassed(new Date(), weeks, Math.min(hp.target_count, list.length), profile.section);
   const pace = !complete && expected > 0 ? paceStatus(passedCount, expected) : null;
   // NB: "current" is also derived inside juzProgress (from assumed) and
   // HifzJourney (from records); all three agree because assumed only ever

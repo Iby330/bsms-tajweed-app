@@ -171,7 +171,7 @@ export default async function StudentHome() {
   // Clamped to the list, as /hifdh does: a target set beyond the surahs the
   // list actually holds would otherwise expect work that is not on it.
   const expected = progress.hifz
-    ? expectedPassed(now, weeks, Math.min(progress.hifz.target, hifzList.length))
+    ? expectedPassed(now, weeks, Math.min(progress.hifz.target, hifzList.length), profile.section)
     : 0;
 
   return (

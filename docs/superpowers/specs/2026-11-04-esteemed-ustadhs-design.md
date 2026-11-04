@@ -38,7 +38,9 @@ one login.
 - **Only these five get the switch.** No other teacher sees the class or the
   switch, including the sisters' teachers.
 - **The class starts with no courses or homework.** The tabs exist with their
-  empty states, so no deadline, strike or email can fire until content is chosen.
+  empty states. A class with no syllabus normally falls back to the programme's
+  whole calendar, so `can_see_content` returns nothing for this section until it
+  has a syllabus (0134). No deadline, strike or email fires until content is chosen.
 
 ## How one login holds both roles
 
