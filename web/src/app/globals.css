@@ -1477,6 +1477,19 @@ body::after {
     text-transform: uppercase; color: color-mix(in oklab, var(--sidebar-foreground) 50%, transparent);
     padding: 16px 12px 6px;
   }
+  /* The switch between a teacher's own class and the ustadhs'. Reads like a nav
+     link, so it needs no new visual language, but it is a button, not a link. */
+  .rail .viewswitch {
+    display: flex; align-items: center; gap: 12px; width: 100%; cursor: pointer; text-align: left;
+    color: color-mix(in oklab, var(--sidebar-foreground) 58%, transparent); background: none;
+    font-size: 0.92rem; font-weight: 500; padding: 10px 12px; border-radius: 8px;
+    transition: background 0.16s, color 0.16s;
+  }
+  .rail .viewswitch:hover { background: color-mix(in oklab, var(--sidebar-foreground) 8%, transparent);
+                            color: var(--sidebar-foreground); }
+  .rail .viewswitch .lb { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .appshell[data-rail="off"] .rail .viewswitch { justify-content: center; padding: 11px 0; gap: 0; }
+  .appshell[data-rail="off"] .rail .viewswitch .lb { display: none; }
   .rail .foot {
     border-top: 1px solid var(--sidebar-border); padding-top: 14px;
     display: flex; align-items: center; justify-content: space-between; gap: 8px;

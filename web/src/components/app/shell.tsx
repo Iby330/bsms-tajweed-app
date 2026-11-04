@@ -10,6 +10,7 @@ import { clearSeatCookie, supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { ICONS } from "./nav-icons";
 import { MoreTab, initialsOf } from "./more-sheet";
+import { ViewSwitch, type ViewSwitchTarget } from "./view-switch";
 import type { NavItem, MobileNav } from "@/lib/nav";
 
 /**
@@ -72,6 +73,7 @@ export function AppShell({
   userName,
   roleLabel,
   avatarSrc,
+  viewSwitch,
   backdrop,
   children,
 }: {
@@ -82,6 +84,8 @@ export function AppShell({
   roleLabel: string;
   /** signed URL for their picture, or null — initials stand in when absent */
   avatarSrc?: string | null;
+  /** only for a login with a seat: the way between its two views */
+  viewSwitch?: ViewSwitchTarget;
   /** the class's place, painted behind the content area */
   backdrop?: React.ReactNode;
   children: React.ReactNode;
@@ -179,6 +183,8 @@ export function AppShell({
           {soon.map(railLink)}
         </nav>
 
+        {viewSwitch && <ViewSwitch target={viewSwitch} className="viewswitch" />}
+
         <div className="foot">
           {/* The name was already the one personal thing in the rail, so it
               becomes the way in to /account rather than spending a nav slot
@@ -242,7 +248,7 @@ export function AppShell({
             );
           })}
           {mobileNav.more.length > 0 && (
-            <MoreTab items={mobileNav.more} userName={userName} avatarSrc={avatarSrc} />
+            <MoreTab items={mobileNav.more} userName={userName} avatarSrc={avatarSrc} viewSwitch={viewSwitch} />
           )}
         </nav>
       </div>

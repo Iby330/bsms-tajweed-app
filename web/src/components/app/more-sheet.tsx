@@ -10,6 +10,7 @@ import {
 import { ICONS } from "./nav-icons";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "@/lib/nav";
+import { ViewSwitch, type ViewSwitchTarget } from "./view-switch";
 
 /** Two initials stand in for a picture nobody uploaded. Lives here rather
  *  than in the shell because the shell imports this file, not the other way
@@ -34,12 +35,15 @@ export function MoreTab({
   items,
   userName,
   avatarSrc,
+  viewSwitch,
 }: {
   /** the nav items that did not win a cell */
   items: NavItem[];
   userName: string;
   /** signed URL for their picture, or null: initials stand in when absent */
   avatarSrc?: string | null;
+  /** only for a login with a seat: the way between its two views */
+  viewSwitch?: ViewSwitchTarget;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -105,6 +109,12 @@ export function MoreTab({
             </i>
             <span>{userName}</span>
           </Link>
+          {viewSwitch && (
+            <ViewSwitch
+              target={viewSwitch}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm"
+            />
+          )}
           {live.map(row)}
           {soon.length > 0 && (
             <div className="grp px-3 pt-3 font-mono text-[0.58rem] tracking-[0.18em] uppercase opacity-60">

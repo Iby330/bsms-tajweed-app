@@ -4,6 +4,7 @@ import { ClassBackdrop } from "@/components/app/class-backdrop";
 import { HoverTip } from "@/components/app/hover-tip";
 import { teacherNav, teacherMobileNav } from "@/lib/nav";
 import { currentProfile } from "@/lib/supabase/server";
+import { viewSwitchFor } from "@/lib/account/view-switch-target";
 import { NO_PROFILE_PATH } from "@/lib/no-profile";
 import { requireSetup } from "@/lib/account/require-setup";
 import { signedAvatarUrl } from "@/lib/account/avatar";
@@ -24,6 +25,7 @@ export default async function TeacherLayout({
       mobileNav={teacherMobileNav}
       userName={profile.full_name}
       avatarSrc={await signedAvatarUrl(profile.avatar_url)}
+      viewSwitch={await viewSwitchFor(profile)}
       roleLabel="Teacher"
       backdrop={<ClassBackdrop className={profile.classes?.name ?? null} />}
     >
