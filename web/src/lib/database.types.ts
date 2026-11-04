@@ -1104,6 +1104,7 @@ export type Database = {
           id: string
           is_active: boolean
           is_admin: boolean
+          login_id: string | null
           role: Database["public"]["Enums"]["user_role"]
           section: Database["public"]["Enums"]["section_t"]
           setup_complete: boolean
@@ -1117,6 +1118,7 @@ export type Database = {
           id: string
           is_active?: boolean
           is_admin?: boolean
+          login_id?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           section: Database["public"]["Enums"]["section_t"]
           setup_complete?: boolean
@@ -1130,6 +1132,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_admin?: boolean
+          login_id?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           section?: Database["public"]["Enums"]["section_t"]
           setup_complete?: boolean
@@ -2158,7 +2161,7 @@ export type Database = {
         | "declined"
       qtype_t: "mcq" | "checkbox" | "text" | "paragraph" | "grid"
       scoring_t: "exact" | "per_option" | "pairs" | "manual"
-      section_t: "brothers" | "sisters" | "demo"
+      section_t: "brothers" | "sisters" | "demo" | "ustadhs"
       series_t: "tajweed" | "umm_al_kitab" | "tfp" | "seerah" | "qaidah" | "seerah_reflections"
       session_t: "tajweed" | "hifdh"
       strike_reason: "absence" | "homework" | "conduct"
@@ -2300,7 +2303,7 @@ export const Constants = {
       ],
       qtype_t: ["mcq", "checkbox", "text", "paragraph", "grid"],
       scoring_t: ["exact", "per_option", "pairs", "manual"],
-      section_t: ["brothers", "sisters", "demo"],
+      section_t: ["brothers", "sisters", "demo", "ustadhs"],
       series_t: ["tajweed", "umm_al_kitab", "tfp", "seerah", "qaidah", "seerah_reflections"],
       session_t: ["tajweed", "hifdh"],
       strike_reason: ["absence", "homework", "conduct"],

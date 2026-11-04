@@ -1,4 +1,5 @@
 import { supabaseServer } from "@/lib/supabase/server";
+import { PROGRAMME_SECTIONS } from "@/lib/sections";
 import type { Database } from "@/lib/database.types";
 
 export type Status = Database["public"]["Enums"]["application_status_t"];
@@ -104,7 +105,7 @@ export async function placeableClasses(): Promise<ClassOption[]> {
   const { data } = await db
     .from("classes")
     .select("id, name, section")
-    .neq("section", "demo")
+    .in("section", [...PROGRAMME_SECTIONS])
     .order("name");
   return data ?? [];
 }

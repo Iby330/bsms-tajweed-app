@@ -6,6 +6,7 @@ import { memorisationList, type Surah } from "@/lib/hifz/pace";
 import { currentSurah } from "@/lib/teacher/class-progress";
 import { passRecords } from "@/lib/hifz/roster";
 import { scopeLabel, teacherClass } from "@/lib/teacher/scope";
+import { sectionsVisibleTo } from "@/lib/sections";
 import { RosterNotice, RosterRemove, type MoveOption } from "@/components/app/roster-remove";
 import { cn } from "@/lib/utils";
 
@@ -89,7 +90,7 @@ export default async function Roster() {
     q.order("full_name"),
     // Every real class, for Remove → Move: where a student can go is their
     // own side minus where they are, worked out per row below.
-    db.from("classes").select("id, name, section, teacher_id").neq("section", "demo").order("name"),
+    db.from("classes").select("id, name, section, teacher_id").in("section", sectionsVisibleTo(mine?.section)).order("name"),
   ]);
   const ids = (students ?? []).map((s) => s.id);
   const teacherIds = (classRows ?? []).map((c) => c.teacher_id).filter((x): x is string => Boolean(x));

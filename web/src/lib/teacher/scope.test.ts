@@ -12,6 +12,15 @@ const scope = (over: Partial<HomeworkScope> = {}): HomeworkScope => ({
   ...over,
 });
 
+describe("canOpenSection and the ustadhs", () => {
+  it("is closed to a programme admin and open to its own section", () => {
+    expect(canOpenSection("brothers", "ustadhs", true)).toBe(false);
+    expect(canOpenSection("brothers", "ustadhs", false)).toBe(false);
+    expect(canOpenSection("ustadhs", "ustadhs", true)).toBe(true);
+    expect(canOpenSection("ustadhs", "sisters", true)).toBe(true);
+  });
+});
+
 /** Every link out of a homework screen has to keep the class being marked. */
 describe("scopedHref", () => {
   it("leaves the teacher's own class out of the URL", () => {

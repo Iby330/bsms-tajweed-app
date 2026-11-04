@@ -113,6 +113,8 @@ export const SECTION_TIMETABLES: Readonly<Record<Section, Timetable>> = {
   brothers: { tajweed: MONDAY, hifdh: THURSDAY },
   sisters: { tajweed: WEDNESDAY, hifdh: MONDAY },
   demo: { tajweed: MONDAY, hifdh: THURSDAY },
+  // Placeholder until the ustadhs' real days are known.
+  ustadhs: { tajweed: MONDAY, hifdh: THURSDAY },
 };
 
 /**

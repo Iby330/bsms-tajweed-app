@@ -1,4 +1,5 @@
 import { supabaseServer } from "@/lib/supabase/server";
+import { isProgrammeSection, type ProgrammeSection } from "@/lib/sections";
 
 export type SeasonFinance = {
   season_id: number;
@@ -106,7 +107,7 @@ export async function depositRoster(seasonId: number): Promise<DepositRow[]> {
     // the compiler so, without an `as` that would lie if a demo row ever did
     // arrive. A type predicate rather than an assertion, so the narrowing is
     // something the code checks rather than something it claims.
-    .filter((e): e is typeof e & { section: "brothers" | "sisters" } => e.section !== "demo")
+    .filter((e): e is typeof e & { section: ProgrammeSection } => isProgrammeSection(e.section))
     .map((e) => {
     const t = byEntry.get(e.id);
     return {

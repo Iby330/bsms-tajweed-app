@@ -1,3 +1,4 @@
+import { cohortLabels } from "@/lib/sections";
 import Link from "next/link";
 import { currentProfile } from "@/lib/supabase/server";
 import {
@@ -59,20 +60,8 @@ export default async function StudentHome() {
   // The cohort scope is the student's own section and only ever that — the
   // views filter on it in SQL, so this label describes what is shown rather
   // than choosing it.
-  const cohortNoun =
-    profile.section === "sisters" ? "sisters"
-    : profile.section === "demo" ? "demo classes"
-    : "brothers";
+  const { noun: cohortNoun, classes: cohortClassesLabel, crossSection } = cohortLabels(profile.section);
   const cohortLabel = `All ${cohortNoun}`;
-  // "All classes" used to mean this section's classes; it is renamed to say so
-  // and the name goes to the board that really spans the programme (0021).
-  const cohortClassesLabel =
-    profile.section === "sisters" ? "Sisters' classes"
-    : profile.section === "demo" ? "Demo classes"
-    : "Brothers' classes";
-  // A demo viewer's "everyone" is the demo cohort either way (0020), so the
-  // cross-section scope would only repeat the one above it.
-  const crossSection = profile.section !== "demo";
 
   // "This week" comes off the TREE, not from matching `week_id`. Since the
   // per-class syllabus a course can sit in a different term for different

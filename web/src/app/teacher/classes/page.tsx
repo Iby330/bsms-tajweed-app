@@ -2,6 +2,7 @@ import Link from "next/link";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { Rule } from "@/components/app/rule";
 import { canOpenSection, SECTION_POSSESSIVE } from "@/lib/teacher/scope";
+import { sectionsVisibleTo } from "@/lib/sections";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +46,7 @@ export default async function Classes() {
   // rosters they cannot open. Everyone else sees the two real cohorts and not
   // the training classes, which are noise on this page.
   const sections =
-    profile?.section === "demo" ? (["demo"] as const) : (["brothers", "sisters"] as const);
+    profile?.section === "demo" ? (["demo"] as const) : sectionsVisibleTo(profile?.section);
 
   const teacherName = new Map((people ?? []).filter((p) => p.role === "teacher").map((p) => [p.id, p.full_name]));
   const counts = new Map<string, number>();
@@ -60,7 +61,9 @@ export default async function Classes() {
         <p>
           {profile?.section === "demo"
             ? "Your training class. It is made of demo students, so nothing you do here touches a real record."
-            : "Every class across the programme. The ones in your own section open."}
+              : profile?.section === "ustadhs"
+              ? "Your class, and every class across the programme."
+              : "Every class across the programme. The ones in your own section open."}
         </p>
       </header>
 

@@ -37,7 +37,7 @@ export default async function TeacherCalendar() {
         <div className="meta">
           <span className="label">{teachingDaysLabel(timetable)}</span>
           <span className="label hi">
-            {section === "sisters" ? "Sisters" : "Brothers"}
+            {section === "sisters" ? "Sisters" : section === "ustadhs" ? "Esteemed Ustadhs" : "Brothers"}
           </span>
         </div>
       </header>

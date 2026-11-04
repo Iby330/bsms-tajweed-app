@@ -2,6 +2,7 @@ import { cache } from "react";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 
 import type { Section } from "@/lib/attendance/calendar";
+import { isProgrammeSection, sectionsVisibleTo } from "@/lib/sections";
 
 /** `section` is the enum, not a bare string: the teaching calendar keys off
  *  it, and a widened string there was how a whole cohort got cast away. */
@@ -100,8 +101,9 @@ export const teacherClasses = cache(async (): Promise<TeacherClass[]> => {
   if (!profile || profile.role !== "teacher") return [];
   const db = await supabaseServer();
   let q = db.from("classes").select("id, name, section");
-  // An admin oversees both cohorts; the training classes stay out of it.
-  q = profile.is_admin ? q.neq("section", "demo") : q.eq("section", profile.section);
+  // An admin oversees both cohorts. The training classes stay out of it, and
+  // the ustadhs' class is only on the list of the admin who teaches it.
+  q = profile.is_admin ? q.in("section", sectionsVisibleTo(profile.section)) : q.eq("section", profile.section);
   const { data } = await q.order("section").order("name");
   return (data ?? []) as TeacherClass[];
 });
@@ -195,7 +197,7 @@ export function canOpenSection(
   classSection: string | null | undefined,
   viewerIsAdmin = false,
 ): boolean {
-  if (viewerIsAdmin) return !!classSection && classSection !== "demo";
+  if (viewerIsAdmin && isProgrammeSection(classSection)) return true;
   return !!viewerSection && !!classSection && viewerSection === classSection;
 }
 
@@ -208,4 +210,5 @@ export const SECTION_POSSESSIVE: Record<string, string> = {
   brothers: "the brothers’",
   sisters: "the sisters’",
   demo: "the demo cohort’s",
+  ustadhs: "the ustadhs’",
 };

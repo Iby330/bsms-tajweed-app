@@ -116,7 +116,7 @@ async function main() {
       continue;
     }
     // An admin's count is every active student in the real (non-demo) classes.
-    const { data: real } = await db.from("classes").select("id").neq("section", "demo");
+    const { data: real } = await db.from("classes").select("id").in("section", ["brothers", "sisters"]);
     const classIds = own ? [own.id] : (real ?? []).map((c: { id: string }) => c.id);
     const cls = own ?? { id: "", name: "Every class" };
     const { count } = await db

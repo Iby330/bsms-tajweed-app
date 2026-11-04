@@ -1,3 +1,4 @@
+import { cohortLabels } from "@/lib/sections";
 import Link from "next/link";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks, currentTermId, getHomeLeaderboards, getClassProgress } from "@/lib/dashboard/queries";
@@ -35,26 +36,10 @@ export default async function TeacherHome() {
   ]);
 
   const termId = currentTermId(terms);
-  // Whose ranking the cohort scope shows. 'demo' is a training cohort of its
-  // own — the leaderboard views filter on the viewer's section, so a demo
-  // teacher's "everyone" IS the demo classes, and calling it "All brothers"
-  // (the old fallback for anything that was not 'sisters') named the wrong
-  // people entirely.
-  const cohortNoun =
-    profile.section === "sisters" ? "sisters"
-    : profile.section === "demo" ? "demo classes"
-    : "brothers";
-  // The class-board equivalent: "All classes" used to mean this section's
-  // classes, so it is renamed to say so and the name is freed for the board
-  // that really does span the programme.
-  const cohortClassesLabel =
-    profile.section === "sisters" ? "Sisters' classes"
-    : profile.section === "demo" ? "Demo classes"
-    : "Brothers' classes";
-  // A demo viewer's "everyone" IS the demo cohort (migration 0020 isolates it
-  // in both directions), so the cross-section scope would duplicate the one
-  // above it. Offer it only where the two can differ.
-  const crossSection = profile.section !== "demo";
+  // Whose ranking the cohort scope shows, and whether the programme-wide board
+  // would differ from it. The leaderboard views filter on the viewer's section,
+  // so a walled-off cohort's "everyone" is itself (0020).
+  const { noun: cohortNoun, classes: cohortClassesLabel, crossSection } = cohortLabels(profile.section);
 
   // the queue is this teacher's own class — someone else's marking is not
   // their problem, and mixing it in buries their twenty students in a hundred
