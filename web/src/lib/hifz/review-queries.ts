@@ -3,6 +3,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getCachedSurahs } from "@/lib/reference/cached";
 import { memorisationList, type Surah } from "@/lib/hifz/pace";
+import { reviewableSurahs } from "./reviewable";
 import { MISTAKE_COLS, type MistakeRow, type SessionRow } from "./mistakes";
 
 export type ActivePair = { pairId: string; partnerId: string; partnerName: string };
@@ -33,21 +34,19 @@ export type RangeSurah = {
  *  Admin reads — ONLY call with a partnerId that came out of myActivePair(). */
 export async function partnerRange(partnerId: string): Promise<RangeSurah[]> {
   const admin = supabaseAdmin();
-  const [surahs, { data: hp }, { data: records }] = await Promise.all([
+  const [surahs, { data: hp }, { data: records }, { data: partner }] = await Promise.all([
     getCachedSurahs(),
     admin.from("hifz_profiles").select("start_surah, target_count").eq("student_id", partnerId).maybeSingle(),
     admin.from("hifz_records").select("surah_number").eq("student_id", partnerId),
+    admin.from("profiles").select("section").eq("id", partnerId).maybeSingle(),
   ]);
   if (!hp) return [];
   const passed = new Set((records ?? []).map((r) => r.surah_number));
   const list = memorisationList(hp.start_surah, hp.target_count, surahs as Surah[]);
-  const current = list.find((s) => !passed.has(s.number))?.number ?? null;
-  return list
-    .filter((s) => passed.has(s.number) || s.number === current)
-    .map((s) => ({
-      number: s.number, name_en: s.name_en, name_ar: s.name_ar,
-      passed: passed.has(s.number), current: s.number === current,
-    }));
+  return reviewableSurahs(list, passed, partner?.section).map((s) => ({
+    number: s.number, name_en: s.name_en, name_ar: s.name_ar,
+    passed: s.passed, current: s.current,
+  }));
 }
 
 /** The caller's open peer draft against this reciter, if any. Hearings share

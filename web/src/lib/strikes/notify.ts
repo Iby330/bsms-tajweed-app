@@ -1,3 +1,4 @@
+import { loginIdOf } from "@/lib/account/login-of";
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/send";
@@ -36,8 +37,10 @@ export type RemovedStrike = {
 };
 
 async function recipient(db: Db, studentId: string, termId: number, teacherId: string) {
+  // A seat's email lives on the login that owns it.
+  const { data: owner } = await db.from("profiles").select("id, login_id").eq("id", studentId).maybeSingle();
   const [{ data: user }, { data: student }, { data: teacher }, { count }] = await Promise.all([
-    db.auth.admin.getUserById(studentId),
+    db.auth.admin.getUserById(loginIdOf(owner, studentId)),
     db.from("profiles").select("full_name").eq("id", studentId).maybeSingle(),
     db.from("profiles").select("full_name, section").eq("id", teacherId).maybeSingle(),
     db.from("strikes").select("id", { count: "exact", head: true })

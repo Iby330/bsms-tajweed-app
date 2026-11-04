@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { supabaseBrowser } from "@/lib/supabase/client";
+import { clearSeatCookie, supabaseBrowser } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
 export function SignOutButton() {
@@ -14,6 +14,7 @@ export function SignOutButton() {
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
+          clearSeatCookie();
           await supabaseBrowser().auth.signOut();
           router.push("/login");
           router.refresh();

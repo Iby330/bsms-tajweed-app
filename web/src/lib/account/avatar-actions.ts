@@ -35,7 +35,7 @@ export async function saveAvatar(formData: FormData): Promise<PasswordResult> {
     return { ok: false, message: "Use a JPG, PNG or WebP." };
   }
 
-  const db = await supabaseServer();
+  const db = await supabaseServer({ asLogin: true });
   const { data: userData } = await db.auth.getUser();
   const user = userData.user;
   if (!user) return { ok: false, message: "You're not signed in." };
@@ -66,7 +66,7 @@ export async function saveAvatar(formData: FormData): Promise<PasswordResult> {
 
 /** Clear the picture and delete the stored file. Falls back to initials. */
 export async function removeAvatar(): Promise<PasswordResult> {
-  const db = await supabaseServer();
+  const db = await supabaseServer({ asLogin: true });
   const { data: userData } = await db.auth.getUser();
   const user = userData.user;
   if (!user) return { ok: false, message: "You're not signed in." };

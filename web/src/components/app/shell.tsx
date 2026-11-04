@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Moon, Sun, User, LogOut, PanelLeftClose } from "lucide-react";
-import { supabaseBrowser } from "@/lib/supabase/client";
+import { clearSeatCookie, supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { ICONS } from "./nav-icons";
 import { MoreTab, initialsOf } from "./more-sheet";
@@ -54,6 +54,7 @@ function SignOutIcon({ className }: { className?: string }) {
       disabled={busy}
       onClick={async () => {
         setBusy(true);
+        clearSeatCookie();
         await supabaseBrowser().auth.signOut();
         router.push("/login");
         router.refresh();

@@ -1,3 +1,4 @@
+import { loginIdOf } from "@/lib/account/login-of";
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/send";
@@ -24,8 +25,10 @@ export async function emailMarkedHomework(o: {
 }): Promise<void> {
   try {
     const db = supabaseAdmin();
+    // A seat's email lives on the login that owns it.
+    const { data: owner } = await db.from("profiles").select("id, login_id").eq("id", o.studentId).maybeSingle();
     const [{ data: user }, { data: profile }, { data: homework }] = await Promise.all([
-      db.auth.admin.getUserById(o.studentId),
+      db.auth.admin.getUserById(loginIdOf(owner, o.studentId)),
       db.from("profiles").select("full_name").eq("id", o.studentId).maybeSingle(),
       db
         .from("homeworks")

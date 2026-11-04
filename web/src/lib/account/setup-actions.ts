@@ -35,7 +35,7 @@ export async function completeSetup(
   if (complaint) return { ok: false, message: complaint };
 
   const fullName = `${first} ${last}`;
-  const db = await supabaseServer();
+  const db = await supabaseServer({ asLogin: true });
   const { data: userData } = await db.auth.getUser();
   const user = userData.user;
   if (!user) {
