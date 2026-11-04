@@ -166,29 +166,17 @@ export const getCachedSurahPageRange = unstable_cache(
 /**
  * How many mushaf pages each seeded surah spans: surah → page count.
  *
- * Paginated deliberately. quran_words is 5964 rows and PostgREST caps a
- * response at 1000, so a single select silently returns a third of the text
- * and undercounts every surah past the cut — the kind of bug that looks like
- * plausible data rather than an error.
+ * Counted by a view rather than read row by row: quran_words holds every page
+ * of the mushaf, far past what a page should fetch to answer this.
  */
 export const getCachedSurahPageSpans = unstable_cache(
   async () => {
-    const db = supabaseAdmin();
-    const pages: Record<number, Set<number>> = {};
-    const CHUNK = 1000;
-    for (let from = 0; ; from += CHUNK) {
-      const { data, error } = await db
-        .from("quran_words")
-        .select("surah_number, page_number")
-        .order("surah_number")
-        .order("page_number")
-        .range(from, from + CHUNK - 1);
-      if (error) throw error;
-      for (const r of data ?? []) (pages[r.surah_number] ??= new Set()).add(r.page_number);
-      if (!data || data.length < CHUNK) break;
-    }
+    const { data, error } = await supabaseAdmin()
+      .from("v_surah_page_spans")
+      .select("surah_number, pages");
+    if (error) throw error;
     return Object.fromEntries(
-      Object.entries(pages).map(([surah, set]) => [Number(surah), set.size]),
+      (data ?? []).map((r) => [Number(r.surah_number), Number(r.pages)]),
     ) as Record<number, number>;
   },
   ["ref-surah-page-spans-v1"],

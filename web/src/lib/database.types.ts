@@ -1886,6 +1886,13 @@ export type Database = {
           },
         ]
       }
+      v_surah_page_spans: {
+        Row: {
+          pages: number | null
+          surah_number: number | null
+        }
+        Relationships: []
+      }
       v_hifz_progress: {
         Row: {
           passed: number | null

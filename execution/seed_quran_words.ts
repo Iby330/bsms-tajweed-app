@@ -130,10 +130,12 @@ const V2_BASE = "https://static-cdn.tarteel.ai/qul/fonts/quran_fonts/v2/woff2";
 async function fetchPageFonts(rows: Record<string, unknown>[]) {
   const { mkdirSync, existsSync, writeFileSync } = await import("node:fs");
   const pages = [...new Set(rows.map((r) => r.page_number as number))].sort((a, b) => a - b);
-  for (const [dirName, base, name] of [
+  const sets = [
     ["web/public/fonts/qcf2", V2_BASE, (p: number) => `p${p}.woff2`],
     ["web/public/fonts/qcf", V1_BASE, (p: number) => `QCF_P${String(p).padStart(3, "0")}.woff2`],
-  ] as const) {
+  ] as const;
+  // --v1-only: the reader draws the 1405 print, so a large seed can skip V2.
+  for (const [dirName, base, name] of process.argv.includes("--v1-only") ? sets.slice(1) : sets) {
     const dir = join(repoRoot, dirName);
     mkdirSync(dir, { recursive: true });
     let fetched = 0;
