@@ -8,11 +8,11 @@ import { MushafPager } from "./mushaf-pager";
 import type { SurahNames } from "./mushaf-reader";
 
 /**
- * One printed page, tinted by the mistakes given, turning only within
- * `range` — the pages one surah occupies. Read-only: tapping a hot word
- * lists what went wrong there. The page is a whole printed page, so a
- * neighbouring surah's words show too; only this surah's mistakes are
- * passed in, so only its words can be hot.
+ * One printed page, tinted by the mistakes given, turning anywhere within
+ * `range` — the stretch of the mushaf this reader can open. Read-only:
+ * tapping a hot word lists what went wrong there. Pass every mark the
+ * student has, not one surah's: the page is a whole printed page, and a
+ * neighbouring surah's mistakes on it belong on it too.
  */
 export async function SurahMushaf({
   page, range, mistakes, basePath, surahNames,

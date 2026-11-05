@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
-import { supabaseServer } from "@/lib/supabase/server";
+import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getCachedSurahPageRange, getCachedSurahs } from "@/lib/reference/cached";
-import { pageWithin } from "@/lib/quran/page-within";
+import { LAST_PAGE, surahPage } from "@/lib/quran/page-within";
+import { firstReadablePage } from "@/lib/hifz/mushaf-reach";
 import { memorisationList, type Surah } from "@/lib/hifz/pace";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
-import { hearingsFor, hearingsForStudent } from "@/lib/hifz/hearing-queries";
+import { hearingMistakesFor, hearingsFor, hearingsForStudent } from "@/lib/hifz/hearing-queries";
 import { latestResult, recordLine, summaryOf, surahState } from "@/lib/hifz/hearings";
 import { teacherClass } from "@/lib/teacher/scope";
 import { RecordActions } from "@/components/app/record-actions";
@@ -37,21 +38,25 @@ export default async function TeacherSurahPage({
 
   const db = await supabaseServer();
 
-  const [mine, { data: student }, { data: hp }, surahs, { data: records }, hearings, allHearings, range] =
+  const [mine, me, { data: student }, { data: hp }, surahs, { data: records }, hearings, allHearings, range, pageMistakes] =
     await Promise.all([
       teacherClass(),
-      db.from("profiles").select("full_name, class_id").eq("id", studentId).maybeSingle(),
+      currentProfile(),
+      db.from("profiles").select("full_name, class_id, section").eq("id", studentId).maybeSingle(),
       db.from("hifz_profiles").select("start_surah, target_count").eq("student_id", studentId).maybeSingle(),
       getCachedSurahs(),
       db.from("hifz_records").select("surah_number, passed_at, teacher_comment").eq("student_id", studentId),
       hearingsFor(studentId, number),
       hearingsForStudent(studentId),
       getCachedSurahPageRange(number),
+      // Every mark, not just this surah's (see the student's surah page).
+      hearingMistakesFor(studentId),
     ]);
   if (!student) notFound();
   // Same scoping as the student's hifdh page: a teacher with a class of
-  // their own sees only their own students.
-  if (mine && student.class_id !== mine.id) notFound();
+  // their own sees only their own students. An admin sees every class.
+  if (mine && !me?.is_admin && student.class_id !== mine.id) notFound();
+  const reach = { from: firstReadablePage(student.section), to: LAST_PAGE };
 
   const surah = surahs.find((s) => s.number === number);
   if (!surah || !range) notFound();
@@ -120,9 +125,9 @@ export default async function TeacherSurahPage({
                 : "Once this surah is heard, its marks show here."}
           </p>
           <SurahMushaf
-            page={pageWithin(p, range)}
-            range={range}
-            mistakes={mistakes}
+            page={surahPage(p, range, reach)}
+            range={reach}
+            mistakes={pageMistakes}
             basePath={`/teacher/hifdh/${studentId}/${number}`}
             surahNames={surahNames}
           />

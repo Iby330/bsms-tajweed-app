@@ -5,8 +5,9 @@ import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getCachedSurahs, getCachedSurahPageRange } from "@/lib/reference/cached";
 import { memorisationList } from "@/lib/hifz/pace";
 import { hizbOf } from "@/lib/hifz/hizb";
-import { pageWithin } from "@/lib/quran/page-within";
-import { hearingsFor, hearingsForStudent } from "@/lib/hifz/hearing-queries";
+import { LAST_PAGE, surahPage } from "@/lib/quran/page-within";
+import { firstReadablePage } from "@/lib/hifz/mushaf-reach";
+import { hearingMistakesFor, hearingsFor, hearingsForStudent } from "@/lib/hifz/hearing-queries";
 import { commentToShow, latestResult, recordLine, summaryOf, surahState } from "@/lib/hifz/hearings";
 import { SURAH_META } from "@/lib/hifz/surah-meta";
 import { SURAH_INFO } from "@/lib/hifz/surah-info";
@@ -53,7 +54,7 @@ export default async function SurahPage({
   const profile = (await currentProfile())!;
   const db = await supabaseServer();
 
-  const [surahs, hp, rec, hearings, allHearings, range] = await Promise.all([
+  const [surahs, hp, rec, hearings, allHearings, range, pageMistakes] = await Promise.all([
     getCachedSurahs(),
     db
       .from("hifz_profiles")
@@ -67,7 +68,11 @@ export default async function SurahPage({
     hearingsFor(profile.id, number),
     hearingsForStudent(profile.id),
     getCachedSurahPageRange(number),
+    // Every mark, not just this surah's: a page shared with the next surah
+    // shows that surah's mistakes too, and the arrows turn past this one.
+    hearingMistakesFor(profile.id),
   ]);
+  const reach = { from: firstReadablePage(profile.section), to: LAST_PAGE };
 
   const surah = surahs.find((s) => s.number === number);
   if (!surah) notFound();
@@ -206,9 +211,9 @@ export default async function SurahPage({
                     : "Once your teacher has heard this surah, their marks show here."}
               </p>
               <SurahMushaf
-                page={pageWithin(p, range)}
-                range={range}
-                mistakes={hearingMistakes}
+                page={surahPage(p, range, reach)}
+                range={reach}
+                mistakes={pageMistakes}
                 basePath={`/hifdh/${number}`}
                 surahNames={surahNames}
               />

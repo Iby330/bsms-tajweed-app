@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { supabaseServer } from "@/lib/supabase/server";
+import { supabaseServer, currentProfile } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { getCachedSurahs } from "@/lib/reference/cached";
 import { expectedPassed, paceStatus, memorisationList, type Surah } from "@/lib/hifz/pace";
@@ -76,7 +76,8 @@ export default async function StudentHifzDetail({
   // student's hifdh record — and, worse, offered the buttons that sign their
   // surahs off. Usability and blast-radius scoping, not a security boundary:
   // RLS still grants teachers the whole cohort.
-  if (mine && student.class_id !== mine.id) notFound();
+  // An admin oversees every class, their own among them.
+  if (mine && !(await currentProfile())?.is_admin && student.class_id !== mine.id) notFound();
 
   const className = student.classes?.name ?? null;
   // The recitation day is the class's, not the programme's, so it comes off

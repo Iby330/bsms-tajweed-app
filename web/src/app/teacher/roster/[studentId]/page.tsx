@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { supabaseServer } from "@/lib/supabase/server";
+import { supabaseServer, currentProfile } from "@/lib/supabase/server";
 import {
   getFullProgress,
   getIndividualLeaderboard,
@@ -93,7 +93,8 @@ export default async function StudentRecord({
   // A teacher with a class of their own sees only their own students. This is
   // the same usability scoping the roster applies, not a security boundary —
   // RLS remains the thing that actually decides.
-  if (mine && student.class_id !== mine.id) notFound();
+  // An admin oversees every class, their own among them.
+  if (mine && !(await currentProfile())?.is_admin && student.class_id !== mine.id) notFound();
 
   const termId = currentTermId(terms);
   const rank = lb.find((r) => r.name === student.full_name);
