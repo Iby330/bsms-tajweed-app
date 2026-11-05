@@ -39,7 +39,10 @@ export default async function TeacherHome() {
   // Whose ranking the cohort scope shows, and whether the programme-wide board
   // would differ from it. The leaderboard views filter on the viewer's section,
   // so a walled-off cohort's "everyone" is itself (0020).
-  const { noun: cohortNoun, classes: cohortClassesLabel, crossSection } = cohortLabels(profile.section);
+  const { noun: cohortNoun, classes: cohortClassesLabel, crossSection: otherCohorts } = cohortLabels(profile.section);
+  // An admin in a walled-off cohort still oversees the programme, so their
+  // "everyone" boards are the brothers' and sisters' (0137).
+  const crossSection = otherCohorts || profile.is_admin;
 
   // the queue is this teacher's own class — someone else's marking is not
   // their problem, and mixing it in buries their twenty students in a hundred

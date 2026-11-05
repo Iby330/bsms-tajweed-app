@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { supabaseServer } from "@/lib/supabase/server";
+import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks, currentTermId, getIndividualLeaderboard } from "@/lib/dashboard/queries";
 import { getCachedSurahs } from "@/lib/reference/cached";
 import { memorisationList, type Surah } from "@/lib/hifz/pace";
 import { currentSurah } from "@/lib/teacher/class-progress";
 import { passRecords } from "@/lib/hifz/roster";
-import { scopeLabel, teacherClass } from "@/lib/teacher/scope";
+import { scopeLabel, teacherClass, teacherClasses } from "@/lib/teacher/scope";
 import { sectionsVisibleTo } from "@/lib/sections";
 import { RosterNotice, RosterRemove, type MoveOption } from "@/components/app/roster-remove";
 import { cn } from "@/lib/utils";
@@ -85,7 +85,11 @@ export default async function Roster() {
     .from("profiles")
     .select("id, full_name, is_active, class_id, section")
     .eq("role", "student");
-  if (mine) q = q.eq("class_id", mine.id);
+  // An admin's roster is every class they may see, their own among them
+  // (see teacherRoster). Everyone else keeps their own class.
+  const admin = (await currentProfile())?.is_admin ?? false;
+  if (admin) q = q.in("class_id", (await teacherClasses()).map((c) => c.id));
+  else if (mine) q = q.eq("class_id", mine.id);
   const [{ data: students }, { data: classRows }] = await Promise.all([
     q.order("full_name"),
     // Every real class, for Remove → Move: where a student can go is their

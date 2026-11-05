@@ -66,12 +66,13 @@ export const teacherRoster = cache(
       .select("id, full_name")
       .eq("role", "student")
       .eq("is_active", true);
-    if (cls) q = q.eq("class_id", cls.id);
-    // An admin's everything is both cohorts' real classes, not the demo one.
-    else if (profile?.is_admin) {
+    // An admin sees every class, their own among them: the programme lead
+    // also teaches the Esteemed Ustadhs, and owning that class must not
+    // narrow them to its six (2026-11-05). Everyone else keeps their class.
+    if (profile?.is_admin) {
       const classes = await teacherClasses();
       q = q.in("class_id", classes.map((c) => c.id));
-    }
+    } else if (cls) q = q.eq("class_id", cls.id);
     const { data } = await q.order("full_name");
     return data ?? [];
   },
@@ -79,7 +80,8 @@ export const teacherRoster = cache(
 
 /** What to call the current scope in a heading. */
 export async function scopeLabel(): Promise<string> {
-  const cls = await teacherClass();
+  const [cls, profile] = await Promise.all([teacherClass(), currentProfile()]);
+  if (profile?.is_admin) return "All classes";
   return cls?.name ?? "All classes";
 }
 
