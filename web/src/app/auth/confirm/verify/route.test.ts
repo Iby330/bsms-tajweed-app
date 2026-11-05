@@ -39,9 +39,23 @@ describe("POST /auth/confirm/verify", () => {
     expect(verifyOtp).toHaveBeenCalledWith({ type: "recovery", token_hash: "abc" });
     // 303, not 307: a 307 would repeat the POST against /welcome.
     expect(res.status).toBe(303);
-    expect(res.headers.get("location")).toBe("https://www.bsmstajweed.com/welcome");
+    expect(res.headers.get("location")).toBe("/welcome");
     expect(res.cookies.get("sb-test-auth-token")?.value).toBe("session");
     expect(res.cookies.get("bsms-recovery")?.value).toBe("1");
+  });
+
+  // The session is set for the host that answered this POST. An absolute
+  // redirect to Netlify's primary domain left it behind (2026-11-05).
+  it("stays on the host the browser posted to", async () => {
+    verifyOtp.mockResolvedValue({ error: null });
+    const req = new NextRequest("https://bsms-tajweed.netlify.app/auth/confirm/verify", {
+      method: "POST",
+      body: new URLSearchParams({ token_hash: "abc", type: "recovery", next: "/welcome" }),
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+    });
+    const res = await POST(req);
+    expect(new URL(res.headers.get("location")!, "https://bsms-tajweed.netlify.app").host)
+      .toBe("bsms-tajweed.netlify.app");
   });
 
   it("a spent or expired token goes to the request-a-new-link screen", async () => {
@@ -49,20 +63,20 @@ describe("POST /auth/confirm/verify", () => {
     const res = await POST(post({ token_hash: "abc", type: "recovery", next: "/reset-password" }));
 
     expect(res.status).toBe(303);
-    expect(res.headers.get("location")).toBe("https://www.bsmstajweed.com/forgot-password?error=link");
+    expect(res.headers.get("location")).toBe("/forgot-password?error=link");
     expect(res.cookies.get("bsms-recovery")).toBeUndefined();
   });
 
   it("a missing token never reaches Supabase", async () => {
     const res = await POST(post({ type: "recovery" }));
     expect(verifyOtp).not.toHaveBeenCalled();
-    expect(res.headers.get("location")).toBe("https://www.bsmstajweed.com/forgot-password?error=link");
+    expect(res.headers.get("location")).toBe("/forgot-password?error=link");
   });
 
   it("next is only followed on this site", async () => {
     verifyOtp.mockResolvedValue({ error: null });
     const res = await POST(post({ token_hash: "abc", type: "recovery", next: "https://evil.com" }));
-    expect(res.headers.get("location")).toBe("https://www.bsmstajweed.com/home");
+    expect(res.headers.get("location")).toBe("/home");
   });
 
   it("only a recovery token earns the recovery cookie", async () => {

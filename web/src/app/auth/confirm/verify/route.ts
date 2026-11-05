@@ -40,8 +40,17 @@ export async function POST(request: NextRequest) {
 
   // 303 on every way out: it turns the POST into a GET. The default 307 would
   // repeat the POST, form body and all, against the page it lands on.
-  const fail = () =>
-    NextResponse.redirect(new URL("/forgot-password?error=link", request.url), 303);
+  //
+  // RELATIVE Location, never `new URL(path, request.url)`. On Netlify,
+  // request.url carries the primary domain (www.bsmstajweed.com) whatever host
+  // the browser used, so an absolute redirect moved anyone who arrived on
+  // bsms-tajweed.netlify.app to www. The session cookies are set for the host
+  // that answered the POST, so they stayed behind on netlify.app and /welcome
+  // met a signed-out visitor: "Invitation expired", on a token that had just
+  // worked (2026-11-05). A relative path keeps them on the host they came in on.
+  const to = (path: string) =>
+    new NextResponse(null, { status: 303, headers: { Location: path } });
+  const fail = () => to("/forgot-password?error=link");
 
   if (!tokenHash || !type) return fail();
 
@@ -65,7 +74,7 @@ export async function POST(request: NextRequest) {
   const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
   if (error) return fail();
 
-  const response = NextResponse.redirect(new URL(next, request.url), 303);
+  const response = to(next);
   for (const { name, value, options } of pending) {
     response.cookies.set(name, value, options);
   }

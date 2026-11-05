@@ -41,7 +41,9 @@ for (const line of readFileSync(join(repoRoot, "web/.env.local"), "utf8").split(
   if (i > 0) env[line.slice(0, i).trim()] = line.slice(i + 1).trim();
 }
 
-const SITE = "https://bsms-tajweed.netlify.app";
+// The custom domain, not the netlify.app one: the app redirects to www, and a
+// session minted on netlify.app does not follow the redirect (2026-11-05).
+const SITE = "https://www.bsmstajweed.com";
 const FROM = "BSMS Tajweed <noreply@bsmstajweed.com>";
 const REPLY_TO = "info@bsmstajweed.com";
 
