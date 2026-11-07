@@ -40,6 +40,10 @@
  *                                            mouth diagram (label diagram:<region>)
  *   tap_letters                            → checkbox, per_option, one option per
  *                                            LETTER (label L:surah:ayah:word:letter)
+ *   rule_hunt (name the rule on each letter) → checkbox, one option per LETTER AND
+ *                                            RULE (label H:surah:ayah:word:letter:rule);
+ *                                            `inst` marks a thing to find
+ *                                            (web/src/lib/homework/rule-hunt.ts)
  *
  * `--rows <file>` also writes the computed rows as JSON, so a review page can
  * show exactly what would be loaded.
@@ -58,6 +62,7 @@ import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { REGIONS, type Region } from "../web/src/lib/homework/diagram";
 import { ordinal } from "../web/src/lib/homework/choice-grid";
+import { HUNT_RULES } from "../web/src/lib/homework/rule-hunt";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "..");
@@ -82,6 +87,15 @@ type Q = {
   diagram?: { answer: string } | null;
   /** Pictures under the prompt, served from web/public/images/homework (0081). */
   images?: { src: string; alt?: string; width?: number; height?: number }[] | null;
+  /** A rule hunt. Letter ids are "ayahIndex-wordIndex-letterIndex", from 0. */
+  hunt?: {
+    surah: number; from: number; to: number;
+    ayahs: string[][][];
+    /** Each thing to find: its rule, and the letters any one of which finds it. */
+    inst: { r: string; l: string[] }[];
+    /** Letters where a rule is accepted but not asked for. */
+    accept: Record<string, string[]>;
+  } | null;
   /** A voice task the teacher gives a mark for: it keeps `points`. */
   marked?: boolean;
 };
@@ -219,6 +233,63 @@ async function letterOptions(q: Q) {
   return out;
 }
 
+async function huntOptions(q: Q) {
+  const h = q.hunt!;
+  const { data, error } = await db
+    .from("quran_words")
+    .select("ayah_number, word_position, text_uthmani, is_end")
+    .eq("surah_number", h.surah).gte("ayah_number", h.from).lte("ayah_number", h.to)
+    .order("ayah_number").order("word_position");
+  if (error) throw error;
+  const words = (data as { ayah_number: number; word_position: number; text_uthmani: string; is_end: boolean }[]).filter((w) => !w.is_end);
+  const norm = (x: string) => x.normalize("NFC");
+  const drafted = h.ayahs.flatMap((ayah, a) => ayah.map((letters, w) => ({ a, w, letters })));
+  if (words.length !== drafted.length) throw new Error(`Q${q.n}: ${drafted.length} drafted words, the mushaf has ${words.length}`);
+
+  const rules = HUNT_RULES.map((r) => r.id as string);
+  const instOf = new Map<string, string>();
+  const seen = new Map<string, number>();
+  for (const i of h.inst) {
+    if (!rules.includes(i.r)) throw new Error(`Q${q.n}: unknown rule "${i.r}"`);
+    const n = (seen.get(i.r) ?? 0) + 1;
+    seen.set(i.r, n);
+    for (const id of i.l) {
+      if (instOf.has(`${id}|${i.r}`)) throw new Error(`Q${q.n}: ${id} is in two ${i.r} things to find`);
+      instOf.set(`${id}|${i.r}`, `${i.r}-${n}`);
+    }
+  }
+  const accepted = new Set(Object.entries(h.accept).flatMap(([r, ids]) => ids.map((id) => `${id}|${r}`)));
+
+  const out = [];
+  const known = new Set<string>();
+  let position = 0;
+  for (const [i, d] of drafted.entries()) {
+    const w = words[i];
+    if (w.ayah_number !== h.from + d.a) throw new Error(`Q${q.n}: word ${i + 1} is in ayah ${w.ayah_number}, drafted in ${h.from + d.a}`);
+    if (norm(d.letters.join("")) !== norm(w.text_uthmani))
+      throw new Error(`Q${q.n}: letters of ${w.text_uthmani} spell ${d.letters.join("")}`);
+    for (const [k, t] of d.letters.entries()) {
+      const id = `${d.a}-${d.w}-${k}`;
+      for (const rule of rules) {
+        known.add(`${id}|${rule}`);
+        const inst = instOf.get(`${id}|${rule}`);
+        out.push({
+          position: position++,
+          label: `H:${h.surah}:${w.ayah_number}:${w.word_position}:${k + 1}:${rule}`,
+          value: t,
+          correct: !!inst || accepted.has(`${id}|${rule}`),
+          ...(inst ? { inst } : {}),
+        });
+      }
+    }
+  }
+  for (const key of [...instOf.keys(), ...accepted]) {
+    if (!known.has(key)) throw new Error(`Q${q.n}: the key names ${key}, which is not a letter of the passage`);
+  }
+  if (q.points !== h.inst.length) throw new Error(`Q${q.n}: ${q.points} marks for ${h.inst.length} things to find`);
+  return out;
+}
+
 let paperNumber = 0;
 async function row(q: Q, position: number) {
   const base = { position, prompt: q.prompt, points: q.points, is_task: false, scoring: "exact", options: null as unknown, rubric: null as unknown, media: null as unknown };
@@ -273,6 +344,7 @@ async function row(q: Q, position: number) {
         position: i, label: `diagram:${r}`, value: REGIONS[r], correct: r === answer })) };
     }
     case "tap_letters": return { ...base, qtype: "checkbox", scoring: "per_option", options: await letterOptions(q) };
+    case "rule_hunt": return { ...base, qtype: "checkbox", scoring: "per_option", options: await huntOptions(q) };
     case "whatsapp":
       return { ...base, qtype: "mcq", points: 0,
         options: [{ position: 0, label: "Option A", value: "Done: I sent my recording to the class WhatsApp group", correct: true }] };

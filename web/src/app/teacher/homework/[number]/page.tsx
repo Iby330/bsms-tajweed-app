@@ -392,6 +392,7 @@ export default async function HomeworkResults({
         label: o.label,
         value: o.value,
         correct: o.correct,
+        inst: o.inst,
       })) ?? null,
     rubric: parseRubric(q.rubric),
     // raw: the panel reads it through parseMedia, as the student's form does

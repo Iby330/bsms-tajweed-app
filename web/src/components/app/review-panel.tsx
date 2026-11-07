@@ -26,7 +26,7 @@ export type ReviewQuestion = {
   is_task: boolean;
   /** `label` carries the word locator on a tap-the-rule question — see
    *  lib/homework/tap-words. Ordinary options use it for "Option 3". */
-  options: { position: number; label: string; value: string; correct: boolean }[] | null;
+  options: { position: number; label: string; value: string; correct: boolean; inst?: string }[] | null;
   /** The model answer for a written, non-task question — one entry per
    *  concept, with the marks it carries. Null when nothing was written for it. */
   rubric?: { id: string; desc: string; marks: number }[] | null;

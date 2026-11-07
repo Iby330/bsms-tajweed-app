@@ -5,6 +5,7 @@ import { RecitationClip } from "@/components/app/recitation-clip";
 import { parseOptions, parseRubric } from "@/lib/marking/objective";
 import { isTapWords } from "@/lib/homework/tap-words";
 import { isTapLetters } from "@/lib/homework/tap-letters";
+import { huntTally, isRuleHunt } from "@/lib/homework/rule-hunt";
 import { choiceGrid } from "@/lib/homework/choice-grid";
 import { questionStats, tallyOptions, type ScoreAnswer } from "@/lib/marking/responses";
 import { parseMedia } from "@/lib/homework/media";
@@ -169,7 +170,12 @@ export function QuestionBreakdown({
                 says nothing a teacher can act on — the useful figure is how
                 many found each spot, which the per-question average above
                 already carries. The passage itself belongs on the script. */}
-            {options && (isTapWords(options) || isTapLetters(options)) ? (
+            {options && isRuleHunt(options) ? (
+              <p className="mt-4 text-xs text-muted-foreground">
+                A surah with {huntTally(options, []).total} things to find. Open a student
+                under Individual to see their tags on it.
+              </p>
+            ) : options && (isTapWords(options) || isTapLetters(options)) ? (
               <p className="mt-4 text-xs text-muted-foreground">
                 A passage of {options.length} {isTapWords(options) ? "words" : "letters"} with{" "}
                 {options.filter((o) => o.correct).length} to find. Open a student

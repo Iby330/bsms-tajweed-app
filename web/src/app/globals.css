@@ -657,6 +657,32 @@ body::after {
   unicode-bidi: isolate;
 }
 
+/* A rule hunt's letter. The Qur'anic face has tall ascent and descent, so a
+   plain background runs into the lines above and below; --hl paints only the
+   band around the letter. Unlayered like .ar-tap, and these are the only colours
+   it takes. */
+.hunt-letter {
+  --hl: transparent;
+  background-image: linear-gradient(to bottom, transparent 22%, var(--hl) 22%, var(--hl) 78%, transparent 78%);
+  -webkit-tap-highlight-color: transparent;
+}
+.hunt-letter:hover { --hl: color-mix(in oklab, var(--brand) 12%, transparent); }
+.hunt-letter:focus-visible { --hl: color-mix(in oklab, var(--brand) 20%, transparent); }
+.hunt-letter[data-state="tagged"] { --hl: color-mix(in oklab, var(--brand) 28%, transparent); color: var(--brand); }
+.hunt-letter[data-state="tagged-dim"] { --hl: color-mix(in oklab, var(--brand) 10%, transparent); }
+.hunt-letter[data-state="hit"] { --hl: color-mix(in oklab, var(--ok) 20%, transparent); color: var(--ok); }
+.hunt-letter[data-state="wrong"] { --hl: color-mix(in oklab, var(--danger) 20%, transparent); color: var(--danger); }
+.hunt-letter[data-state="missed"] { --hl: var(--color-miss); color: #00004d; }
+/* The rule chips stay in reach down a long surah, under the app's top bar on a
+   phone or tablet (--chrome-top is that bar, measured by the shell). */
+.hunt-rules { position: sticky; top: var(--chrome-top, 0px); z-index: 10; }
+.hunt-rules::-webkit-scrollbar { display: none; }
+.hunt-letter[data-also-missed] {
+  text-decoration: underline wavy var(--color-miss);
+  text-underline-offset: 0.4em;
+  text-decoration-skip-ink: none;
+}
+
 @layer base {
   /* The word buttons take the page's Qur'anic type rather than the UA's button
      font. In `base` deliberately: written unlayered it would outrank the

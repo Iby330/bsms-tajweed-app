@@ -247,3 +247,23 @@ describe("scoreObjective: a match or order grid", () => {
     expect(scoreObjective(grid("match", "per_option"), { selected: [] })).toBe(0);
   });
 });
+
+describe("scoreObjective: a rule hunt", () => {
+  const options = [
+    { position: 0, label: "H:91:1:1:1:hams", value: "س", correct: true, inst: "hams-1" },
+    { position: 1, label: "H:91:1:1:1:tanwin", value: "س", correct: false },
+    { position: 2, label: "H:91:1:1:2:hams", value: "ت", correct: true },
+    { position: 3, label: "H:91:1:1:2:tanwin", value: "ت", correct: true, inst: "tanwin-1" },
+  ];
+  const q = { qtype: "checkbox" as const, scoring: "per_option" as const, points: 2, options };
+
+  it("marks things found, with wrong tags cancelling and accepted ones costing nothing", () => {
+    expect(scoreObjective(q, { selected: [0, 3] })).toBe(2);
+    expect(scoreObjective(q, { selected: [0, 2] })).toBe(1);
+    expect(scoreObjective(q, { selected: [0, 1] })).toBe(0);
+  });
+
+  it("keeps the key through the jsonb parser", () => {
+    expect(parseOptions(options)?.map((o) => o.inst)).toEqual(["hams-1", undefined, undefined, "tanwin-1"]);
+  });
+});

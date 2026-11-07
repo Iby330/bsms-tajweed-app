@@ -34,6 +34,8 @@ export type StudentOption = {
   value?: string;
   /** Only once the student's own paper is approved (0094); absent before. */
   correct?: boolean;
+  /** A rule hunt's thing to find (lib/homework/rule-hunt), released with `correct` (0138). */
+  inst?: string | null;
 };
 
 export type StudentQuestion = {

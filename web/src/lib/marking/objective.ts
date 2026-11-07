@@ -10,6 +10,7 @@
  */
 
 import { choiceGrid, gridScore } from "@/lib/homework/choice-grid";
+import { huntScore, isRuleHunt } from "@/lib/homework/rule-hunt";
 
 /* ── types ───────────────────────────────────────────────────────────── */
 
@@ -27,6 +28,8 @@ export type QuestionOption = {
   label: string;
   value: string;
   correct: boolean;
+  /** A rule hunt's thing to find: see lib/homework/rule-hunt. */
+  inst?: string;
 };
 
 export type RubricConcept = { id: string; desc: string; marks: number };
@@ -73,13 +76,14 @@ export function parseOptions(raw: unknown): QuestionOption[] | null {
   const out: QuestionOption[] = [];
   for (const item of raw) {
     if (!isRecord(item)) return null;
-    const { position, label, value, correct } = item;
+    const { position, label, value, correct, inst } = item;
     if (typeof position !== "number") return null;
     out.push({
       position,
       label: typeof label === "string" ? label : "",
       value: typeof value === "string" ? value : "",
       correct: correct === true,
+      ...(typeof inst === "string" ? { inst } : {}),
     });
   }
   return out;
@@ -140,6 +144,10 @@ export function scoreObjective(
 
   const parsed = parseResponse(response);
   const selected = [...new Set(parsed.selected ?? [])];
+
+  // A rule hunt: marked a thing found at a time, whatever `scoring` says, since
+  // one thing can sit on several letters and some tags are merely accepted.
+  if (isRuleHunt(question.options)) return huntScore(question.options!, selected, question.points);
 
   // Match / put-in-order: marked a row at a time, whatever `scoring` says —
   // a swapped pair is two wrong rows, not a reason to cancel two right ones.

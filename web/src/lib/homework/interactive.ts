@@ -2,6 +2,7 @@ import { isTapWords } from "@/lib/homework/tap-words";
 import { isTapLetters } from "@/lib/homework/tap-letters";
 import { isChoiceGrid } from "@/lib/homework/choice-grid";
 import { isDiagram } from "@/lib/homework/diagram";
+import { isRuleHunt } from "@/lib/homework/rule-hunt";
 
 type Option = { position: number; label: string; value?: string; correct?: boolean };
 
@@ -20,5 +21,5 @@ type Option = { position: number; label: string; value?: string; correct?: boole
  * the error page.
  */
 export function isInteractive(options: Option[] | null | undefined): boolean {
-  return isTapWords(options) || isTapLetters(options) || isChoiceGrid(options) || isDiagram(options);
+  return isTapWords(options) || isTapLetters(options) || isChoiceGrid(options) || isDiagram(options) || isRuleHunt(options);
 }

@@ -4,12 +4,14 @@ import { TapWords } from "@/components/app/tap-words";
 import { TapLetters } from "@/components/app/tap-letters";
 import { ChoiceGridView } from "@/components/app/choice-grid";
 import { MouthDiagram } from "@/components/app/mouth-diagram";
+import { RuleHunt } from "@/components/app/rule-hunt";
 import { isTapWords } from "@/lib/homework/tap-words";
 import { isTapLetters } from "@/lib/homework/tap-letters";
 import { isChoiceGrid } from "@/lib/homework/choice-grid";
 import { isDiagram } from "@/lib/homework/diagram";
+import { isRuleHunt } from "@/lib/homework/rule-hunt";
 
-type Option = { position: number; label: string; value?: string; correct?: boolean };
+type Option = { position: number; label: string; value?: string; correct?: boolean; inst?: string | null };
 
 
 /**
@@ -37,5 +39,6 @@ export function InteractiveAnswer({
   if (isTapLetters(options)) return <TapLetters {...props} />;
   if (isChoiceGrid(options)) return <ChoiceGridView {...props} />;
   if (isDiagram(options)) return <MouthDiagram {...props} />;
+  if (isRuleHunt(options)) return <RuleHunt {...props} />;
   return null;
 }
