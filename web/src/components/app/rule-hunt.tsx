@@ -198,7 +198,7 @@ export function RuleHunt({
                 >
                   <span className="min-w-0 font-medium">{r.name}</span>
                   <span className="flex shrink-0 gap-3 text-xs tabular-nums">
-                    <span>{r.found}/{r.total} found</span>
+                    <span>{r.total === 0 ? "none to find" : `${r.found}/${r.total} found`}</span>
                     <span className={cn(r.wrong > 0 ? "font-medium text-danger" : "text-muted-foreground")}>{r.wrong} wrong</span>
                   </span>
                 </button>

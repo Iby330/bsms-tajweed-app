@@ -57,11 +57,13 @@ describe("RuleHunt", () => {
   });
 
   it("marks found, wrong and accepted, and a found thing's other letters are not missed", () => {
-    const { container, getByText } = render(<InteractiveAnswer options={OPTIONS} selected={[0, 3, 5]} readOnly reveal />);
+    const { container, getByText, getAllByText } = render(<InteractiveAnswer options={OPTIONS} selected={[0, 3, 5]} readOnly reveal />);
     expect(letter(container, 0).dataset.state).toBe("hit");
     expect(letter(container, 1).dataset.state).toBe("hit"); // hams accepted; the lām is found already
     expect(letter(container, 2).dataset.state).toBe("wrong");
     expect(getByText("1 of 1 found")).toBeTruthy();
+    // Every rule but lām shamsiyyah has nothing to find in this passage.
+    expect(getAllByText("none to find")).toHaveLength(5);
   });
 
   it("marks every letter of a thing missed", () => {
