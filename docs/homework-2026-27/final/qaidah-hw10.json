@@ -11,7 +11,7 @@
     {
      "n": 1,
      "format": "rule_hunt",
-     "prompt": "Find the rules in Sūrat az-Zalzalah. Tap any letter and choose the rule or rules on it: a letter can carry more than one. For Lām shamsiyyah and Lām qamariyyah, tag the ال or the letter straight after it. Find as many as you can. Each thing you find earns a mark, and each wrong tag cancels one you found.",
+     "prompt": "Find the rules in Sūrat az-Zalzalah. Tap any letter and choose the rule or rules on it: a letter can carry more than one. For Lām shamsiyyah and Lām qamariyyah, tag the ل or the letter straight after it. Find as many as you can. Each thing you find earns a mark, and each wrong tag cancels one you found.",
      "points": 20,
      "hunt": {
       "surah": 99,
