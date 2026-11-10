@@ -179,7 +179,19 @@ describe("ListenerScreen: listening", () => {
   it("Space and M add a mistake; keys are ignored while typing", async () => {
     renderScreen(view());
     fireEvent.keyDown(window, { key: " " });
-    fireEvent.keyDown(window, { key: "m" });
+    fireEvent.keyDown(screen.getByRole("button", { name: "Finish" }), { key: "m" });
+    await settle();
+    expect(A.addMark).toHaveBeenCalledTimes(2);
+
+    // Not from outside the screen (My revision has its own controls).
+    const outside = document.createElement("button");
+    document.body.appendChild(outside);
+    fireEvent.keyDown(outside, { key: " " });
+    outside.remove();
+    // Not while typing in the picker's search.
+    fireEvent.click(screen.getByRole("button", { name: "Hizb 60" }));
+    fireEvent.click(screen.getByRole("tab", { name: /Surah/ }));
+    fireEvent.keyDown(screen.getByRole("searchbox"), { key: "m" });
     await settle();
     expect(A.addMark).toHaveBeenCalledTimes(2);
   });

@@ -153,6 +153,8 @@ export function ListenerScreen({
 
   // A Space that clicks the focused +1 button would count twice.
   const lastKeyPlus = useRef(0);
+  const spaceTaken = useRef(false);
+  const root = useRef<HTMLElement>(null);
   const plus = (fromKeyboardClick: boolean) => {
     if (fromKeyboardClick && Date.now() - lastKeyPlus.current < 400) return;
     s.plus();
@@ -163,10 +165,14 @@ export function ListenerScreen({
   keys.current = (e: KeyboardEvent) => {
     if (!draft || finished || pickerOpen) return;
     if (e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target)) return;
+    // Only while focus is on this screen (or nowhere): "My revision" below keeps its own keys.
+    const t = e.target;
+    if (t instanceof Node && t !== document.body && t !== document.documentElement && !root.current?.contains(t)) return;
     const k = shortcutOf(e.key);
     if (!k) return;
     e.preventDefault();
     if (k === "plus") {
+      if (e.key === " ") spaceTaken.current = true;
       if (!e.repeat) {
         lastKeyPlus.current = Date.now();
         s.plus();
@@ -185,9 +191,11 @@ export function ListenerScreen({
   };
   useEffect(() => {
     const down = (e: KeyboardEvent) => keys.current(e);
-    // Space on a focused button clicks it on keyup; the keydown already counted.
+    // Space on a focused button clicks it on keyup; the keydown already counted it.
     const up = (e: KeyboardEvent) => {
-      if (e.key === " " && !isTyping(e.target) && !e.ctrlKey && !e.metaKey && !e.altKey) e.preventDefault();
+      if (e.key !== " " || !spaceTaken.current) return;
+      spaceTaken.current = false;
+      e.preventDefault();
     };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
@@ -296,7 +304,7 @@ export function ListenerScreen({
   }
 
   return (
-    <section className="space-y-4" aria-label="Murāja'ah">
+    <section ref={root} className="space-y-4" aria-label="Murāja'ah">
       <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
         <TitleLine
           people={people}

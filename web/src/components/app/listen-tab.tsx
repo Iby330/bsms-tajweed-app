@@ -6,6 +6,7 @@ import { classmatesOf, classTarget, myDraft, overrides } from "@/lib/murajaah/qu
 import { firstPageOf } from "@/lib/murajaah/portions";
 import { DEFAULT_CLASS_TARGET } from "@/lib/murajaah/targets";
 import { ListenerScreen } from "@/components/murajaah/listener/listener-screen";
+import { MyRevision } from "@/components/murajaah/listener/my-revision";
 import type { SurahNames } from "./mushaf-reader";
 
 const LAST_PAGE = 604;
@@ -72,6 +73,7 @@ export async function ListenTab({
         surahNames={surahNames}
         basePath={BASE_PATH}
       />
+      <MyRevision studentId={userId} classId={classId} target={target} />
     </div>
   );
 }
