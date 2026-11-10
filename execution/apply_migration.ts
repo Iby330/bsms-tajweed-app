@@ -42,6 +42,24 @@
  *    reusing the name of a real migration). Use `--probe` instead: it sends the
  *    SQL and prints the full result without touching the ledger — and it is
  *    also how you delete a junk row that a pre-`--probe` session left behind.
+ *  - Migration NUMBERS collide across concurrent sessions/branches: on
+ *    2026-11-10 a branch named its file 0137_* while main already had a
+ *    different 0137_*, and the ledger (keyed by full filename) would have
+ *    taken both without complaint. This script now refuses to apply a file
+ *    whose 4-digit prefix is already in the ledger under another name
+ *    (--allow-dup-number overrides). Before NAMING a migration, also check
+ *    `git fetch && git ls-tree --name-only origin/main web/supabase/migrations/`
+ *    — main may hold numbers that are merged but not applied yet.
+ *  - Testing RLS as a seat (a second profiles row acting through one login,
+ *    see acting_id() in 0131) works in ONE rolled-back --probe batch:
+ *    `begin; <migration sql>; do $$ … $$;` where the DO block calls
+ *    set_config('role','authenticated',true),
+ *    set_config('request.jwt.claims', json_build_object('sub',<login id>)::text, true),
+ *    set_config('request.headers', json_build_object('x-bsms-seat',<seat id>)::text, true),
+ *    wraps each write that SHOULD be refused in its own BEGIN … EXCEPTION
+ *    block to record the outcome, and ends with `raise exception` carrying
+ *    the collected results so everything rolls back (see the partial-commit
+ *    gotcha in LEARNINGS.md).
  */
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { basename, resolve } from "node:path";
@@ -181,6 +199,21 @@ async function main() {
     if (already[0]?.n > 0 && !force) {
       console.log(`skip  ${name} — already applied (--force to re-run)`);
       continue;
+    }
+
+    // Refuse a number another migration already holds (see header gotcha).
+    const num = /^(\d{4})_/.exec(name)?.[1];
+    if (num && !args.includes("--allow-dup-number")) {
+      const clash = (await runSql(
+        token,
+        `select filename from schema_migrations where filename like '${num}\\_%' and filename <> '${name.replace(/'/g, "''")}'`,
+      )) as { filename: string }[];
+      if (clash.length > 0) {
+        throw new Error(
+          `refusing ${name}: number ${num} is already applied as ${clash.map((c) => c.filename).join(", ")}.\n` +
+            "Rename the file to the next free number (check origin/main too), or pass --allow-dup-number.",
+        );
+      }
     }
 
     const sql = readFileSync(path, "utf8");
