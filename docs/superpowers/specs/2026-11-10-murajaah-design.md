@@ -245,10 +245,21 @@ murajaah_target_overrides                -- per student; null column = use class
 - `web/src/components/murajaah/attempt-chart.tsx`: a shared presentational
   inline-SVG chart, used by both sides.
   - **Input:** attempts `[{date, ms, mistakes}]`, `hizbEq`, `minutes`, `limit`.
-  - **Time series:** band shading behind it, dashed mistake-limit line,
-    the latest point emphasised.
-  - **Axes:** attempt numbers 1, 2, 3… along the x axis, real axis labels,
-    and tabular figures.
+  - **A bar chart, not a line chart (owner, 2026-11-10):** one vertical bar
+    per attempt in date order. Bar height is the time, and the fill is that
+    attempt's band colour (Ideal solid `--ok`, Good `--ok` tint, Acceptable
+    `--warn`, Too slow `--danger`, the same tokens as the band pills).
+  - **Reference lines:** the portion's band limits (ideal / good / acceptable
+    × hizbEq) as faint dashed horizontal lines, labelled at the y-axis end
+    ("Ideal 20:00"). No line series at all, and no separate mistakes line.
+  - **Mistakes:** each bar shows its count as a small label inside the top of
+    the bar, or just above it when the bar is too short, in `--danger` text
+    when the attempt is over its mistake limit.
+  - **Latest bar emphasised** (an outline). With more than 12 attempts, show
+    the latest 12 and a note: "Showing the last 12 of N".
+  - **Axes:** attempt numbers 1, 2, 3… along the x axis (the date in each
+    bar's title/aria-label and in a hover/focus tip); the y axis in m:ss or
+    h:mm:ss with real values; tabular figures.
   - **Colours:** from tokens only.
 
 ## Listener screen (student side), design C
