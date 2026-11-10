@@ -244,7 +244,25 @@ murajaah_target_overrides                -- per student; null column = use class
   - `classmates`: reuse the existing `classmatesOf` from `lib/hifz/review-queries`.
 - `web/src/components/murajaah/attempt-chart.tsx`: a shared presentational
   inline-SVG chart, used by both sides.
-  - **Input:** attempts `[{date, ms, mistakes}]`, `hizbEq`, `minutes`, `limit`.
+  - **Views (owner, 2026-11-10):** both UIs offer the same portion select:
+    every single portion label the student has done, plus two aggregates,
+    "All hizb" and "All juz" (no "All surahs", no "All revision"). The pure
+    logic lives in `lib/murajaah/chart-data.ts`: `chartViews(sessions)` lists
+    the views and picks the default ('all-juz' if any juz attempt, else
+    'all-hizb', else the most recent label); `chartBars(sessions, viewId,
+    classTarget, override?)` builds the bars.
+  - **Aggregates:** "All hizb" is every hizb-kind attempt and "All juz" every
+    juz-kind attempt, in date order. A multi-unit attempt ("Juz 28 + 30") is
+    one bar whose value is its time ÷ its unit count, banded on a single unit;
+    the reference lines are single-unit limits. A single-portion view uses
+    the session's own hizbEq.
+  - **Input:** per bar, `[{id, date, valueMs, totalMs, perUnit: 'hizb'|'juz'|null,
+    label, mistakes, limit, band}]`, plus `refLines: {ideal, good, acceptable}`
+    in ms.
+  - **Tips:** every bar is keyboard-focusable, with a hover/focus tooltip and
+    a `<title>`: the portion label, the date, the total time (plus "x:xx per
+    juz" when divided), and the mistakes (plus "over the limit of N" when
+    over). The mistake count stays written on each bar.
   - **A bar chart, not a line chart (owner, 2026-11-10):** one vertical bar
     per attempt in date order. Bar height is the time, and the fill is that
     attempt's band colour (Ideal solid `--ok`, Good `--ok` tint, Acceptable
