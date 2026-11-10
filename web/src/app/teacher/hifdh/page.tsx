@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { getCachedSurahs } from "@/lib/reference/cached";
@@ -10,18 +11,17 @@ import { HifzRegister, type RegisterRow } from "@/components/app/hifz-register";
 import { PairingPanel, type PairRow, type UnpairedStudent } from "@/components/app/pairing-panel";
 import { HifzTabs } from "@/components/app/hifz-tabs";
 import { HearTab } from "@/components/app/hear-tab";
+import { HIFDH_TABS, MURAJAAH_TABS } from "./tabs";
 
 export const dynamic = "force-dynamic";
-
-const TABS = [
-  { id: "overview", label: "Overview" },
-  { id: "hear", label: "Hear" },
-];
 
 /**
  * The hifdh register: Overview (the class, targets, Pass / Not passed on
  * each row, the revision pairs) and Hear (`?tab=hear`), where the teacher
  * picks a student and marks their mistakes as they recite.
+ *
+ * The Esteemed Ustadhs' teacher has a third tab, Murāja'ah, which lives on
+ * its own route (/teacher/hifdh/murajaah); `?tab=murajaah` goes there.
  */
 export default async function TeacherHifz({
   searchParams,
@@ -29,6 +29,8 @@ export default async function TeacherHifz({
   searchParams: Promise<{ tab?: string; student?: string; p?: string; heat?: string }>;
 }) {
   const { tab, student, p, heat } = await searchParams;
+  // teacherClass() is cached for the request, so asking first costs nothing.
+  if (tab === "murajaah" && (await teacherClass())?.section === "ustadhs") redirect("/teacher/hifdh/murajaah");
   const hear = tab === "hear";
   const db = await supabaseServer();
 
@@ -62,7 +64,11 @@ export default async function TeacherHifz({
         </p>
       </header>
 
-      <HifzTabs basePath="/teacher/hifdh" active={hear ? "hear" : "overview"} tabs={TABS} />
+      <HifzTabs
+        basePath="/teacher/hifdh"
+        active={hear ? "hear" : "overview"}
+        tabs={mine?.section === "ustadhs" ? MURAJAAH_TABS : HIFDH_TABS}
+      />
 
       {body}
     </>
