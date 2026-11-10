@@ -26,6 +26,9 @@ export type TargetOverride = {
   note?: string | null;
 };
 
+/** One student's override as the targets panel saves it. */
+export type OverrideInput = TargetOverride & { studentId: string };
+
 /** The columns of a `murajaah_targets` row this needs. */
 export type TargetsRowLike = {
   ideal_min: number; good_min: number; acceptable_min: number;
