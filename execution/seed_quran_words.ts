@@ -6,7 +6,8 @@
  * memorisation run in `surahs` currently ends at Al-Jinn (72); the text is
  * seeded past it (migration 0014 dropped the FK) so extending the run never
  * has to wait on a reseed.
- * Run:  npx tsx execution/seed_quran_words.ts
+ * Run:  npx tsx execution/seed_quran_words.ts [--pages 1,502-561] [--v1-only]
+ *       (--v1-only skips the V2 fonts, which nothing in the app loads)
  * Idempotent: upserts on (surah_number, ayah_number, word_position).
  * One-off operational tooling — production NEVER calls quran.com.
  */
@@ -62,6 +63,20 @@ type ApiWord = {
 };
 type ApiVerse = { verse_key: string; words: ApiWord[] };
 
+/** The feed files these words one line early; each shows as a line 1.3-2.8em
+ *  too wide above one short by the same amount. Migration 0136 corrected the
+ *  stored rows, so the seed applies the same correction or a reseed undoes it.
+ *  Keyed on the feed's own wrong line, so a corrected feed passes through. */
+const MISFILED: Record<string, { feed: number; printed: number }> = {
+  "8:6:10": { feed: 11, printed: 12 }, // p177
+  "36:52:11": { feed: 12, printed: 13 }, // p443
+};
+
+function printedLine(verseKey: string, w: ApiWord): number {
+  const fix = MISFILED[`${verseKey}:${w.position}`];
+  return fix && fix.feed === w.line_number ? fix.printed : w.line_number;
+}
+
 /** By PAGE, not by chapter: a verse that straddles a page boundary carries
  *  its verse-level page on every word in the by_chapter feed, which files
  *  the spill-over words under the wrong page (seen: 79:16 stamped p583,
@@ -108,7 +123,7 @@ async function main() {
           code_v2: null,
           is_end: w.char_type_name === "end",
           page_number: p,
-          line_number: w.line_number,
+          line_number: printedLine(v.verse_key, w),
         });
       }
     }
@@ -123,10 +138,10 @@ async function main() {
   await fetchPageFonts(rows);
 }
 
-/** Per-page fonts for every page the seed touched. V2 (1421H, what the
- *  reader renders) comes from QUL's CDN into web/public/fonts/qcf2/;
- *  V1 (1405H, kept as fallback data) from the nuqayah mirror into
- *  web/public/fonts/qcf/. Skips files already present. */
+/** Per-page fonts for every page the seed touched. V1 (1405H, what the reader
+ *  renders) comes from the nuqayah mirror into web/public/fonts/qcf/; V2
+ *  (1421H, unused by the app) from QUL's CDN into web/public/fonts/qcf2/.
+ *  Skips files already present. */
 const V1_BASE = "https://raw.githubusercontent.com/nuqayah/qpc-fonts/master/mushaf-woff2";
 const V2_BASE = "https://static-cdn.tarteel.ai/qul/fonts/quran_fonts/v2/woff2";
 

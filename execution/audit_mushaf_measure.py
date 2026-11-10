@@ -37,11 +37,18 @@ cloning a DOM node in DevTools, copy individual style properties onto the
 clone rather than setting `probe.style.cssText` — that wipes React's inline
 `font-family` and the page font falls back silently, understating widths by
 ~40%.
+
+A glyph filed one line off inflates that page's measure just as quietly, and the
+feed does this: see the "suspected misfiled glyphs" section on stderr. Treat
+anything listed there as wrong data until the print says otherwise, and correct
+it (migration 0136 and MISFILED in seed_quran_words.ts are the pattern) before
+pasting the table in.
 """
 from fontTools.ttLib import TTFont
 from pathlib import Path
 from urllib.request import Request, urlopen
 import json
+import statistics
 import sys
 
 REPO = Path(__file__).resolve().parent.parent
@@ -53,6 +60,12 @@ FIRST_PAGE, LAST_PAGE = 1, 604
 # Under this share of the page's measure a line is centred, not filled. The
 # programme's own worst justified line stretched 4.2% and its centred ones 13%+.
 CENTRE_BELOW = 0.92
+
+# A misfiled glyph makes one line too wide and its neighbour too short by the
+# same amount. Tuned on all 604 pages: the smallest real case is 0.71em (p454),
+# and no sound page beyond the ornamental 1 and 2 has such a pair at all.
+MISFILE_MIN_EM = 0.5
+MISFILE_MATCH_EM = 0.25
 
 
 def load_env() -> dict:
@@ -98,6 +111,20 @@ def advances(page: int) -> tuple:
     return by_char, space, upem
 
 
+def suspected_misfiles(widths: dict) -> list:
+    """(line, next line, em off the median, em off the median) for each adjacent
+    pair where one line's excess is the other's shortfall. `widths` is line -> em."""
+    middle = statistics.median(widths.values())
+    pairs = []
+    for line, width in sorted(widths.items()):
+        if line + 1 not in widths:
+            continue
+        a, b = width - middle, widths[line + 1] - middle
+        if a * b < 0 and min(abs(a), abs(b)) >= MISFILE_MIN_EM and abs(a + b) <= MISFILE_MATCH_EM:
+            pairs.append((line, line + 1, a, b))
+    return pairs
+
+
 def main():
     env = load_env()
     print("fetching line data…", file=sys.stderr)
@@ -111,7 +138,7 @@ def main():
             continue
         pages.setdefault(r["page_number"], {}).setdefault(r["line_number"], []).append(r["code_v1"])
 
-    table, report, short = {}, [], []
+    table, report, short, misfiles = {}, [], [], []
     for page in sorted(pages):
         by_char, space, upem = advances(page)
         widths = []
@@ -133,6 +160,8 @@ def main():
         for (line, _), w in zip(sorted(pages[page].items()), widths):
             if w < widest * CENTRE_BELOW:
                 short.append((page, line))
+        by_line = dict(zip((line for line, _ in sorted(pages[page].items())), widths))
+        misfiles.extend((page, *pair) for pair in suspected_misfiles(by_line))
         report.append((page, widest, min(widths), len(widths)))
 
     target = max(table.values())
@@ -150,6 +179,12 @@ def main():
     for page, line in short:
         by_page.setdefault(page, []).append(line)
     print("  " + ", ".join(f"{p}: {ls}" for p, ls in sorted(by_page.items())), file=sys.stderr)
+
+    print("\nsuspected misfiled glyphs (these lines inflate the page's measure):", file=sys.stderr)
+    for page, a, b, off_a, off_b in misfiles:
+        print(f"  p{page}  line {a} {off_a:+.3f}em, line {b} {off_b:+.3f}em", file=sys.stderr)
+    if not misfiles:
+        print("  none", file=sys.stderr)
 
     # emit the TS table: natural measure per page, in em of that page's font
     print("/**")
