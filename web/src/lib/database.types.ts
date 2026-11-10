@@ -1095,6 +1095,273 @@ export type Database = {
           },
         ]
       }
+      murajaah_checkpoints: {
+        Row: {
+          at_ms: number
+          created_at: string
+          id: string
+          kind: string
+          label: string
+          ord: number
+          session_id: string
+        }
+        Insert: {
+          at_ms: number
+          created_at?: string
+          id?: string
+          kind: string
+          label: string
+          ord: number
+          session_id: string
+        }
+        Update: {
+          at_ms?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          label?: string
+          ord?: number
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "murajaah_checkpoints_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "murajaah_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      murajaah_marks: {
+        Row: {
+          at_ms: number
+          ayah_number: number | null
+          category: string | null
+          created_at: string
+          id: string
+          session_id: string
+          surah_number: number | null
+          word_position: number | null
+        }
+        Insert: {
+          at_ms: number
+          ayah_number?: number | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          session_id: string
+          surah_number?: number | null
+          word_position?: number | null
+        }
+        Update: {
+          at_ms?: number
+          ayah_number?: number | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          session_id?: string
+          surah_number?: number | null
+          word_position?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "murajaah_marks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "murajaah_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      murajaah_sessions: {
+        Row: {
+          band_minutes: Json
+          class_id: string
+          created_at: string
+          elapsed_ms: number
+          finished_at: string | null
+          hizb_eq: number
+          id: string
+          listener_id: string
+          mistake_limit: number
+          note: string | null
+          portion_kind: string
+          portion_label: string
+          portion_ns: number[]
+          reciter_id: string
+          running_since: string | null
+          submitted_at: string | null
+          timer_started_at: string | null
+        }
+        Insert: {
+          band_minutes: Json
+          class_id: string
+          created_at?: string
+          elapsed_ms?: number
+          finished_at?: string | null
+          hizb_eq: number
+          id?: string
+          listener_id: string
+          mistake_limit: number
+          note?: string | null
+          portion_kind: string
+          portion_label: string
+          portion_ns: number[]
+          reciter_id: string
+          running_since?: string | null
+          submitted_at?: string | null
+          timer_started_at?: string | null
+        }
+        Update: {
+          band_minutes?: Json
+          class_id?: string
+          created_at?: string
+          elapsed_ms?: number
+          finished_at?: string | null
+          hizb_eq?: number
+          id?: string
+          listener_id?: string
+          mistake_limit?: number
+          note?: string | null
+          portion_kind?: string
+          portion_label?: string
+          portion_ns?: number[]
+          reciter_id?: string
+          running_since?: string | null
+          submitted_at?: string | null
+          timer_started_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "murajaah_sessions_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "murajaah_sessions_listener_id_fkey"
+            columns: ["listener_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "murajaah_sessions_reciter_id_fkey"
+            columns: ["reciter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      murajaah_target_overrides: {
+        Row: {
+          class_id: string
+          limit_hizb: number | null
+          limit_juz: number | null
+          limit_surah10: number | null
+          note: string | null
+          student_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          class_id: string
+          limit_hizb?: number | null
+          limit_juz?: number | null
+          limit_surah10?: number | null
+          note?: string | null
+          student_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          class_id?: string
+          limit_hizb?: number | null
+          limit_juz?: number | null
+          limit_surah10?: number | null
+          note?: string | null
+          student_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "murajaah_target_overrides_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "murajaah_target_overrides_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "murajaah_target_overrides_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      murajaah_targets: {
+        Row: {
+          acceptable_min: number
+          class_id: string
+          good_min: number
+          ideal_min: number
+          limit_hizb: number
+          limit_juz: number
+          limit_surah10: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          acceptable_min?: number
+          class_id: string
+          good_min?: number
+          ideal_min?: number
+          limit_hizb?: number
+          limit_juz?: number
+          limit_surah10?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          acceptable_min?: number
+          class_id?: string
+          good_min?: number
+          ideal_min?: number
+          limit_hizb?: number
+          limit_juz?: number
+          limit_surah10?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "murajaah_targets_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: true
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "murajaah_targets_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2125,8 +2392,30 @@ export type Database = {
         Args: { p_class: string; p_course: string; p_ordinal: number }
         Returns: boolean
       }
+      class_student: {
+        Args: { p_class: string; p_profile: string }
+        Returns: boolean
+      }
       clear_late_for_class: { Args: { p_class: string }; Returns: number }
       clear_late_for_class_ids: { Args: { p_class: string }; Returns: string[] }
+      murajaah_clock: {
+        Args: { p_op: string; p_session: string }
+        Returns: {
+          elapsed_ms: number
+          finished_at: string | null
+          running_since: string | null
+          server_now: string
+          timer_started_at: string | null
+        }[]
+      }
+      murajaah_portion_ok: {
+        Args: { p_kind: string; p_ns: number[] }
+        Returns: boolean
+      }
+      murajaah_submit: {
+        Args: { p_note: string | null; p_session: string }
+        Returns: string
+      }
       restore_late: { Args: { p_class: string; p_ids: string[] }; Returns: number }
       class_item_week: {
         Args: { p_class: string; p_course: string; p_ordinal: number }
@@ -2156,6 +2445,7 @@ export type Database = {
       }
       resend_api_key: { Args: never; Returns: string }
       sees_all_content: { Args: never; Returns: boolean }
+      teaches_class: { Args: { p_class: string }; Returns: boolean }
       voice_note_submission: { Args: { object_name: string }; Returns: string }
       voice_note_writable: { Args: { object_name: string }; Returns: boolean }
     }
