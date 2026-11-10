@@ -676,7 +676,6 @@ body::after {
 /* The rule chips stay in reach down a long surah, under the app's top bar on a
    phone or tablet (--chrome-top is that bar, measured by the shell). */
 .hunt-rules { position: sticky; top: var(--chrome-top, 0px); z-index: 10; }
-.hunt-rules::-webkit-scrollbar { display: none; }
 .hunt-letter[data-also-missed] {
   text-decoration: underline wavy var(--color-miss);
   text-underline-offset: 0.4em;

@@ -83,12 +83,13 @@ export function RuleHunt({
   return (
     <div className="space-y-3">
       {!readOnly && (
-        // One row that scrolls sideways, so it can stay on screen above a long
-        // surah on a phone without taking a quarter of it.
+        // Every rule on screen at once, wrapping onto a second line on a
+        // phone, and pinned there while the surah scrolls. A single row that
+        // scrolled sideways hid half the rules (Moadh, 11 Nov).
         <div
           role="toolbar"
           aria-label="Pick a rule, then tap letters"
-          className="hunt-rules -mx-1 flex gap-1.5 overflow-x-auto bg-card px-1 py-2 [scrollbar-width:none]"
+          className="hunt-rules -mx-1 flex flex-wrap gap-1.5 bg-card px-1 py-2"
         >
           {HUNT_RULES.map((r) => (
             <button
@@ -97,7 +98,7 @@ export function RuleHunt({
               aria-pressed={brush === r.id}
               onClick={() => setBrush(brush === r.id ? null : r.id)}
               className={cn(
-                "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
+                "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
                 brush === r.id ? "border-primary bg-primary text-primary-foreground" : "border-line bg-card hover:bg-muted",
               )}
             >
