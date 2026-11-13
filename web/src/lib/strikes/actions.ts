@@ -2,16 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
-import { supabaseServer, currentProfile } from "@/lib/supabase/server";
+import { supabaseServer } from "@/lib/supabase/server";
 import { emailStrikeIssued, emailStrikeRemoved } from "./notify";
+import { requireTeacher } from "@/lib/teacher/guards";
 
 export type StrikeReason = "absence" | "homework" | "conduct";
-
-async function requireTeacher() {
-  const profile = await currentProfile();
-  if (!profile || profile.role !== "teacher") throw new Error("Teachers only.");
-  return profile;
-}
 
 /**
  * Strikes are always a teacher's decision — nothing in the app issues one
@@ -74,17 +69,4 @@ export async function removeStrike(
   revalidatePath("/teacher/attendance");
   revalidatePath("/home");
   return { ok: true };
-}
-
-/** Every strike a student has this term, newest last. */
-export async function listStrikes(studentId: string, termId: number) {
-  await requireTeacher();
-  const db = await supabaseServer();
-  const { data } = await db
-    .from("strikes")
-    .select("id, reason, note, issued_at")
-    .eq("student_id", studentId)
-    .eq("term_id", termId)
-    .order("issued_at");
-  return data ?? [];
 }

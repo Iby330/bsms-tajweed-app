@@ -235,13 +235,15 @@ export function MakhrajGrid({
  * surah opens it straight away: the reader is already looking.
  */
 export function SurahPicker({
-  options, selected, hrefFor, open, closeHref,
+  options, selected, hrefFor, open, closeHref, onPick,
 }: {
   options: { surah: number; name: string; count: number }[];
   selected: number | null;
   hrefFor: Record<number, string>;
   open: boolean;
   closeHref: string;
+  /** While open, change surah in place rather than navigating to it. */
+  onPick?: (surah: number) => void;
 }) {
   const router = useRouter();
   const [value, setValue] = useState<number>(selected ?? options[0]?.surah ?? 0);
@@ -264,7 +266,10 @@ export function SurahPicker({
         onChange={(e) => {
           const n = Number(e.target.value);
           setValue(n);
-          if (open) go(n);
+          if (open) {
+            if (onPick) onPick(n);
+            else go(n);
+          }
         }}
         className="h-8 min-w-0 max-w-[14rem] rounded-md border border-line bg-card px-2 text-sm"
       >

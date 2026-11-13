@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { feedbackFor } from "@/lib/hifz/review-queries";
 import { aggregateFlags, aggregatePatterns } from "@/lib/hifz/mistakes";
 import { spreadHeat } from "@/lib/hifz/heat-spread";
@@ -7,18 +6,11 @@ import {
 } from "@/lib/reference/cached";
 import { fromRow, groupIntoPages } from "@/lib/quran/mushaf";
 import { PatternTracker } from "./pattern-tracker";
-import { HeatViewer } from "./heat-viewer";
-import { MushafPager } from "./mushaf-pager";
+import { LiveHeatMushaf } from "./live-heat-mushaf";
 import type { SurahNames } from "./mushaf-reader";
-import { cn } from "@/lib/utils";
+import { LAST_PAGE } from "@/lib/quran/page-within";
+import { PROGRAMME_FIRST_PAGE as FIRST_FONT_PAGE } from "@/lib/hifz/mushaf-reach";
 
-const LAST_PAGE = 604;
-/**
- * Al-Mulk's first page, and the first page with a deployed QCF font.
- * `quran_words` now holds earlier pages too, but without their font they
- * render as blank or boxed text, so the pager never goes below this.
- */
-const FIRST_FONT_PAGE = 562;
 
 /**
  * Submitted-review results for one student: pattern tracker and mushaf
@@ -76,27 +68,22 @@ export async function ReviewFeedback({
 
     const rows = await getCachedPageWords(page);
     const words = rows.map(fromRow);
-    const pages = groupIntoPages(words);
-    const onPage = new Set(rows.map((r) => r.surah_number));
-
     const { heat: heatValues, history } = spreadHeat(words, mistakes, now);
     heatBlock = (
       <div className="space-y-2">
         <h3 className="text-sm font-medium">Mistake heatmap</h3>
-        <div className="flex flex-wrap gap-1.5">
-          {heatSurahs.map((n) => (
-            <Link key={n} href={`${basePath}&heat=${startPages[n] ?? firstPage}`}
-              className={cn(
-                "rounded-md border border-line px-2 py-1 text-xs transition-colors",
-                onPage.has(n) ? "bg-primary text-primary-foreground" : "hover:bg-muted",
-              )}>
-              {nameOf.get(n) ?? n} · {counts.get(n)}
-            </Link>
-          ))}
-        </div>
-        <MushafPager page={page} min={firstPage} max={LAST_PAGE} basePath={basePath} param="heat">
-          <HeatViewer pages={pages} heat={heatValues} history={history} surahNames={surahNames} />
-        </MushafPager>
+        {/* Turns in the browser, chips and arrows alike; `mistakes` goes
+            along so each page is tinted there as it is here. */}
+        <LiveHeatMushaf
+          page={page} min={firstPage} max={LAST_PAGE} basePath={basePath}
+          pages={groupIntoPages(words)} heat={heatValues} history={history}
+          surahNames={surahNames} tint={mistakes}
+          chips={heatSurahs.map((n) => ({
+            surah: n,
+            label: `${nameOf.get(n) ?? n} · ${counts.get(n)}`,
+            page: Math.max(firstPage, startPages[n] ?? firstPage),
+          }))}
+        />
       </div>
     );
   }

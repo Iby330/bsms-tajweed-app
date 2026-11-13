@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getTermsAndWeeks } from "@/lib/dashboard/queries";
 import { getCachedSurahs } from "@/lib/reference/cached";
@@ -17,6 +18,7 @@ import { hearingsForStudent } from "@/lib/hifz/hearing-queries";
 import { heardSurahs } from "@/lib/hifz/hearings";
 import { MistakeBoard } from "@/components/app/mistake-board";
 import { parseSource } from "@/lib/hifz/mistake-board";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -56,16 +58,16 @@ export default async function StudentHifz({
   }
 
   const db = await supabaseServer();
-  // her section's calendar, so the pace agrees with Home's card
-  const weeks = (await getTermsAndWeeks()).weeksFor(profile.section);
-
-  const [{ data: hp }, surahs, { data: records }, activity, hearings] = await Promise.all([
+  const [calendar, { data: hp }, surahs, { data: records }, activity, hearings] = await Promise.all([
+    getTermsAndWeeks(),
     db.from("hifz_profiles").select("start_surah, target_count").eq("student_id", profile.id).maybeSingle(),
     getCachedSurahs(),
     db.from("hifz_records").select("surah_number, passed_at, teacher_comment").eq("student_id", profile.id),
     revisionActivityFor(profile.id),
     hearingsForStudent(profile.id),
   ]);
+  // her section's calendar, so the pace agrees with Home's card
+  const weeks = calendar.weeksFor(profile.section);
   // The grid's last column is "today". Resolve it here and hand the client a
   // plain ISO day: if each side called new Date() the server's timezone and
   // the browser's could disagree and React would flag a hydration mismatch.
@@ -208,7 +210,10 @@ export default async function StudentHifz({
           <RevisionHeatmap days={activity} end={today} />
         </section>
         {/* How their Qur'an is going: every mark from hearings and partner
-            revision, under how often they revised. */}
+            revision, under how often they revised. It makes its own reads
+            (marks, then the words on their pages), so it streams in behind
+            a placeholder rather than holding back the hero and journey. */}
+        <Suspense fallback={<Skeleton className="c12 h-72 rounded-2xl" aria-busy />}>
         <MistakeBoard
           studentId={profile.id}
           source={parseSource(src)}
@@ -220,6 +225,7 @@ export default async function StudentHifz({
           // open on the board's mushaf instead.
           surahHref={(n, p) => (n < 46 ? `/hifdh?heat=${p ?? 1}` : `/hifdh/${n}${p ? `?p=${p}` : ""}`)}
         />
+        </Suspense>
       </div>
 
       <div className="signoff">

@@ -56,8 +56,3 @@ export function seriesRank(key: string): number {
   const i = SERIES_ORDER.indexOf(key);
   return i === -1 ? SERIES_ORDER.length : i;
 }
-
-/** URL segment ⇄ series key. The enum values are already slug-safe. */
-export function isSeriesKey(value: string): boolean {
-  return /^[a-z_]+$/.test(value);
-}

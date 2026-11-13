@@ -1,4 +1,3 @@
-import React from "react";
 import { seatDaggerAlif } from "@/lib/quran/text";
 
 /**

@@ -238,11 +238,6 @@ export function termIdFor(iso: string): TermId | null {
   return TERMS.find((t) => iso >= t.startsOn && iso <= t.endsOn)?.id ?? null;
 }
 
-export function termFor(iso: string): Term | null {
-  const id = termIdFor(iso);
-  return id === null ? null : TERMS.find((t) => t.id === id)!;
-}
-
 export type Break = {
   /** Inclusive: the first and last day with no teaching. */
   startsOn: string;

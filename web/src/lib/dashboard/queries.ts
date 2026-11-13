@@ -259,21 +259,6 @@ export async function getHomeLeaderboards(className: string | null) {
   };
 }
 
-export async function getClassLeaderboards() {
-  const db = await supabaseServer();
-  const [hw, hifz] = await Promise.all([
-    db.from("v_lb_class").select("class_name, pct, rank").order("rank"),
-    db.from("v_lb_hifz_class").select("class_name, pct, rank").order("rank"),
-  ]);
-  const map = (rows: { class_name: unknown; pct: unknown; rank: unknown }[] | null) =>
-    (rows ?? []).map((r) => ({
-      name: String(r.class_name),
-      pct: Number(r.pct),
-      rank: Number(r.rank),
-    }));
-  return { homework: map(hw.data), hifz: map(hifz.data) };
-}
-
 /**
  * The dashboard's per-student view of one class.
  *

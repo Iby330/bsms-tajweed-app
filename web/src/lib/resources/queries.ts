@@ -26,20 +26,22 @@ export type ResourceSet = { courseId: string; key: string; label: string; videos
  * a video grid needs leave this function.
  */
 export async function getClassResources(): Promise<ResourceSet[]> {
-  const db = await supabaseServer();
-  const { data: rows } = await db
-    .from("class_resources")
-    .select("course_id, position, courses(key, label)")
-    .order("position");
+  const [db, me] = await Promise.all([supabaseServer(), currentProfile()]);
+  // Items the teacher put into one of the class's weeks are that week's work
+  // now, so they show there, not here (0108). That read needs only the
+  // (request-cached) profile, so it goes alongside the class's resources.
+  const [{ data: rows }, { data: added }] = await Promise.all([
+    db
+      .from("class_resources")
+      .select("course_id, position, courses(key, label)")
+      .order("position"),
+    me?.class_id
+      ? db.from("class_added_items").select("course_id, ordinal").eq("class_id", me.class_id)
+      : { data: [] as { course_id: string; ordinal: number }[] },
+  ]);
   if (!rows?.length) return [];
 
   const courseIds = rows.map((r) => r.course_id);
-  // items the teacher put into one of the class's weeks are that week's work
-  // now, so they show there, not here (0108)
-  const me = await currentProfile();
-  const { data: added } = me?.class_id
-    ? await db.from("class_added_items").select("course_id, ordinal").eq("class_id", me.class_id)
-    : { data: [] as { course_id: string; ordinal: number }[] };
   const inAWeek = new Set((added ?? []).map((a) => `${a.course_id}|${a.ordinal}`));
   const [{ data: lessons }, { data: homeworks }, { data: subs }] = await Promise.all([
     supabaseAdmin()

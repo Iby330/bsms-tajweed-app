@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  hwNumber, classifyItem, transformForm, answerToConcepts, parseGuide,
+  hwNumber, classifyItem, transformForm, answerToConcepts,
   weekFor, run, GRADEBOOK_TOTALS,
 } from "../../../execution/import_forms";
 

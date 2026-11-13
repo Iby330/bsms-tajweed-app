@@ -19,13 +19,18 @@ export default async function TeacherLayout({
   if (!profile) redirect(NO_PROFILE_PATH);
   if (profile.role !== "teacher") redirect("/home");
   requireSetup(profile);
+  // Independent round trips (Storage, profiles): start both at once.
+  const [avatarSrc, viewSwitch] = await Promise.all([
+    signedAvatarUrl(profile.avatar_url),
+    viewSwitchFor(profile),
+  ]);
   return (
     <AppShell
       nav={teacherNav}
       mobileNav={teacherMobileNav}
       userName={profile.full_name}
-      avatarSrc={await signedAvatarUrl(profile.avatar_url)}
-      viewSwitch={await viewSwitchFor(profile)}
+      avatarSrc={avatarSrc}
+      viewSwitch={viewSwitch}
       roleLabel="Teacher"
       backdrop={<ClassBackdrop className={profile.classes?.name ?? null} />}
     >

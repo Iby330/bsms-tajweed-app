@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { supabaseServer, currentProfile } from "@/lib/supabase/server";
+import { supabaseServer } from "@/lib/supabase/server";
+import { requireTeacher } from "@/lib/teacher/guards";
 
 export type Result = { ok: true } | { ok: false; error: string };
 
@@ -12,12 +13,6 @@ const PATH = "/teacher/deposits";
  * programme actually runs on. The audit trigger on each table is what makes
  * that safe rather than the permission check — this only keeps students out.
  */
-async function requireTeacher() {
-  const profile = await currentProfile();
-  if (!profile || profile.role !== "teacher") throw new Error("Teachers only.");
-  return profile;
-}
-
 export async function setStillIn(entryId: string, stillIn: boolean): Promise<Result> {
   await requireTeacher();
   const db = await supabaseServer();

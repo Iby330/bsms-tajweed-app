@@ -10,23 +10,18 @@ import {
   getCachedPageWords, getCachedSurahStartPages, getCachedSurahWords, getCachedSurahs,
 } from "@/lib/reference/cached";
 import { fromRow, groupIntoPages, type QuranWordRow } from "@/lib/quran/mushaf";
-import { HeatViewer } from "./heat-viewer";
-import { MushafPager } from "./mushaf-pager";
+import { MistakeBoardHeat } from "./mistake-board-heat";
 import type { SurahNames } from "./mushaf-reader";
 import {
-  DrillCarousel, MakhrajGrid, SourceDot, SurahPicker, SurahRanks,
+  DrillCarousel, MakhrajGrid, SourceDot, SurahRanks,
   type DrillCard, type LetterWord,
   PhoneTabs,
 } from "./mistake-board-parts";
 import { CAT_BG, CAT_FILL } from "./mistake-colors";
 import { cn } from "@/lib/utils";
 import { seatDaggerAlif } from "@/lib/quran/text";
+import { LAST_PAGE } from "@/lib/quran/page-within";
 
-/** The seeded mushaf runs An-Nas back to Al-Mulk — pages 562–604. */
-const LAST_PAGE = 604;
-/** Al-Mulk's first page, and the first with a deployed QCF font. Earlier
- *  pages have words but no font and render blank, so the heatmap offers no
- *  surah that starts before it and never turns below it. */
 /** Below this many sessions the chart says nothing a sentence can't. */
 const CHART_FROM = 3;
 
@@ -198,17 +193,18 @@ export async function MistakeBoard({
         ? onRun.findLast((s) => startPages[s.number] <= heatPage)?.number ?? null
         : onRun.find((s) => startPages[s.number] <= heatPage)?.number ?? null;
 
-  let mushaf: React.ReactNode = null;
+  let mushaf: React.ComponentProps<typeof MistakeBoardHeat>["mushaf"] = null;
   if (heatPage !== null) {
     const rows = await getCachedPageWords(heatPage);
     const words = rows.map(fromRow);
     const { heat: tint, history } = spreadHeat(words, board.marks, new Date());
     const surahNames: SurahNames = Object.fromEntries(surahs.map((s) => [s.number, { ar: s.name_ar, en: s.name_en }]));
-    mushaf = (
-      <MushafPager page={heatPage} min={firstPage} max={LAST_PAGE} basePath={href({ heat: "" })} param="heat">
-        <HeatViewer pages={groupIntoPages(words)} heat={tint} history={history} surahNames={surahNames} />
-      </MushafPager>
-    );
+    // Turned in the browser from here on; the marks go along so each page
+    // is tinted there as it is here.
+    mushaf = {
+      page: heatPage, min: firstPage, max: LAST_PAGE, basePath: href({ heat: "" }),
+      pages: groupIntoPages(words), heat: tint, history, surahNames, tint: board.marks,
+    };
   }
 
   return (
@@ -291,29 +287,21 @@ export async function MistakeBoard({
       </section>
 
       <section id="heatmap" className="box c12 scroll-mt-24" aria-label="Mushaf heatmap">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-col gap-0.5">
-            <span className="label">Mushaf heatmap</span>
-            <span className="note">
-              {onRun.length
-                ? `Any surah on ${viewer === "teacher" ? "their" : "your"} run, page by page. Tap a surah above to open it too.`
-                : "The mushaf here runs from An-Nas to Al-Mulk for now."}
-            </span>
-          </div>
-          {onRun.length > 0 && <div className="flex items-center gap-2">
-            <SurahPicker
-              // keyed on the open surah, so turning pages into the next surah
-              // (or tapping one in the list) moves the choice with it
-              key={heatSurah ?? "closed"}
-              options={onRun.map((s) => ({ surah: s.number, name: s.name_en, count: counts.get(s.number) ?? 0 }))}
-              selected={heatSurah ?? ranks[0]?.surah ?? null}
-              hrefFor={Object.fromEntries(onRun.map((s) => [s.number, href({ heat: heatFor(s.number) }, "#heatmap")]))}
-              open={mushaf !== null}
-              closeHref={href({ heat: "" }, "#heatmap")}
-            />
-          </div>}
-        </div>
-        {mushaf}
+        <MistakeBoardHeat
+          note={onRun.length
+            ? `Any surah on ${viewer === "teacher" ? "their" : "your"} run, page by page. Tap a surah above to open it too.`
+            : "The mushaf here runs from An-Nas to Al-Mulk for now."}
+          picker={onRun.length ? {
+            options: onRun.map((s) => ({ surah: s.number, name: s.name_en, count: counts.get(s.number) ?? 0 })),
+            hrefFor: Object.fromEntries(onRun.map((s) => [s.number, href({ heat: heatFor(s.number) }, "#heatmap")])),
+            closeHref: href({ heat: "" }, "#heatmap"),
+            order: onRun.map((s) => ({ surah: s.number, start: startPages[s.number] })),
+            pickLast: !!fullMushaf,
+            selected: heatSurah,
+            fallback: ranks[0]?.surah ?? null,
+          } : null}
+          mushaf={mushaf}
+        />
       </section>
     </>
   );

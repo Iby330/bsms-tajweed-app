@@ -33,12 +33,17 @@ export default async function HomeworkPage({
   const db = await supabaseServer();
 
   // The week and its lessons come back on the homework's own foreign keys, so
-  // the crumbs and the "watch the video" link cost no extra round trip.
-  const { data: row } = await db
-    .from("homeworks")
-    .select("id, number, title, is_graded, week_id, series, course_id, ordinal, weeks(term_id, lessons(id, series, position))")
-    .eq("number", number)
-    .maybeSingle();
+  // the crumbs and the "watch the video" link cost no extra round trip. The
+  // class schedule needs only the profile, so it rides in the same wave.
+  const [{ data: row }, schedule] = await Promise.all([
+    db
+      .from("homeworks")
+      .select("id, number, title, is_graded, week_id, series, course_id, ordinal, weeks(term_id, lessons(id, series, position))")
+      .eq("number", number)
+      .maybeSingle(),
+    // the course page this homework sits under, as this class files it
+    profile.unlock_all ? null : getClassSchedule(profile.class_id),
+  ]);
   if (!row) notFound();
 
   const week = row.weeks;
@@ -50,23 +55,26 @@ export default async function HomeworkPage({
     .filter((l) => l.series === row.series)
     .sort((a, b) => a.position - b.position)[0];
 
-  // answer keys are stripped server-side — students never receive them.
-  // Neither read depends on the other, so they share one wave.
-  const [{ data: payload }, { data: sub }, schedule] = await Promise.all([
-    db.rpc("get_homework_for_student", { hw_id: row.id }),
-    db
-      .from("submissions").select("id, status, attempt, previous_pct")
-      .eq("homework_id", row.id).eq("student_id", profile.id).maybeSingle(),
-    // the course page this homework sits under, as this class files it
-    profile.unlock_all ? null : getClassSchedule(profile.class_id),
-  ]);
   // A Resources homework (0077): another course's, open to this class with no
   // deadline. It belongs under Resources, not under a course page the class
   // cannot open, so it gets its own crumbs and a link back to its video.
   const planned = (schedule?.courses ?? []).some((c) => c.courseId === row.course_id);
-  const resource = !planned && row.course_id
-    ? (await getClassResources()).find((r) => r.courseId === row.course_id) ?? null
-    : null;
+
+  // answer keys are stripped server-side — students never receive them.
+  // None of these reads depends on another, so they share one wave. The
+  // answers and recordings come embedded on the submission (as on the
+  // teacher's marking page), so an existing paper costs no further trip.
+  const [{ data: payload }, { data: sub }, resources] = await Promise.all([
+    db.rpc("get_homework_for_student", { hw_id: row.id }),
+    db
+      .from("submissions")
+      .select(`id, status, attempt, previous_pct,
+        answers(question_id, response, final_marks, auto_rubric, teacher_comment),
+        voice_notes(question_id, storage_path, duration_s)`)
+      .eq("homework_id", row.id).eq("student_id", profile.id).maybeSingle(),
+    !planned && row.course_id ? getClassResources() : null,
+  ]);
+  const resource = resources?.find((r) => r.courseId === row.course_id) ?? null;
   const resourceVideo = resource?.videos.find((v) => v.ordinal === row.ordinal) ?? null;
 
   const course = week && !resource
@@ -84,18 +92,17 @@ export default async function HomeworkPage({
   const redoOpen = isRedo && sub?.status === "draft";
   // A submission of any status already answers the question — only a student
   // opening the homework for the first time pays for a write.
+  // Only on that first open is the paper read separately: the draft upsert can
+  // land on a row another tab created a moment ago, answers and all.
   const submissionId = sub ? sub.id : await createDraftSubmission(row.id);
-
-  const [{ data: answers }, { data: voiceNotes }] = await Promise.all([
-    db
-      .from("answers")
-      .select("question_id, response, final_marks, auto_rubric, teacher_comment")
-      .eq("submission_id", submissionId),
-    db
-      .from("voice_notes")
-      .select("question_id, storage_path, duration_s")
-      .eq("submission_id", submissionId),
-  ]);
+  const fresh = sub ? null : await db
+    .from("submissions")
+    .select(`answers(question_id, response, final_marks, auto_rubric, teacher_comment),
+      voice_notes(question_id, storage_path, duration_s)`)
+    .eq("id", submissionId)
+    .maybeSingle();
+  const answers = (sub ?? fresh?.data)?.answers ?? [];
+  const voiceNotes = (sub ?? fresh?.data)?.voice_notes ?? [];
 
   // TFP homework is numbered 101+ in the database — the label turns that back
   // into "TFP 5" so a student is never shown "Homework 105".

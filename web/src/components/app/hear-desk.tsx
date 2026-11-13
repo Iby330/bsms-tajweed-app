@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { FilterSelect } from "./filter-select";
-import { ReviewLogger } from "./review-logger";
+import { ReviewLogger, type LoggerPager } from "./review-logger";
 import type { MushafPage } from "@/lib/quran/mushaf";
 import type { MistakeRow } from "@/lib/hifz/mistakes";
 import type { WordHistoryEntry } from "@/lib/hifz/heat-spread";
@@ -36,7 +36,7 @@ export function HearDesk({
   heat: Record<string, string>;
   history: Record<string, WordHistoryEntry[]>;
   surahNames: SurahNames;
-  pager?: { page: number; min: number; max: number; basePath: string; param?: string; step?: number };
+  pager?: LoggerPager;
   /** The surah being heard and its Pass / Not passed, under the picker. */
   result?: ReactNode;
 }) {

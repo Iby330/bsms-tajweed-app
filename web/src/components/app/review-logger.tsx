@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MushafReader, type SurahNames } from "./mushaf-reader";
 import { MushafPager } from "./mushaf-pager";
+import { useLivePages } from "./use-live-pages";
+import { SurahJump, type SurahJumpOption } from "./surah-jump";
 import { MistakeSheet, type SheetMark, type SheetResult } from "./mistake-sheet";
 import { logMistake, removeMistake, submitSession } from "@/lib/hifz/review-actions";
 import { logHearingMistake, removeHearingMistake } from "@/lib/hifz/hearing-actions";
@@ -15,6 +17,11 @@ import { SESSION_FLAGS, type Category } from "@/lib/hifz/mistake-taxonomy";
 import type { WordHistoryEntry } from "@/lib/hifz/heat-spread";
 import { markKey, wordKey, type MushafPage, type QuranWord } from "@/lib/quran/mushaf";
 import type { MistakeRow } from "@/lib/hifz/mistakes";
+
+export type LoggerPager = {
+  page: number; min: number; max: number; basePath: string; param?: string; step?: number;
+  live?: { tint?: MistakeRow[] };
+};
 
 /** Same mistake type, so logging it again replaces it (logMistake agrees). */
 const sameKind = (a: SheetMark, b: { category: Category; detail: string | null }) =>
@@ -55,6 +62,7 @@ export function ReviewLogger({
   history,
   surahNames,
   pager,
+  jump,
 }: {
   mode?: "peer" | "hearing";
   /** Peer mode: the draft session. Hearing mode: unused (null). */
@@ -67,9 +75,20 @@ export function ReviewLogger({
   heat?: Record<string, string>;                  // earlier hearings' tint
   history?: Record<string, WordHistoryEntry[]>;   // …and what they said
   surahNames?: SurahNames;
-  pager?: { page: number; min: number; max: number; basePath: string; param?: string; step?: number };
+  /** With `live`, the pager turns in place — no navigation, no server
+   *  render of the whole tab. `live.tint` is what colours every page. */
+  pager?: LoggerPager;
+  /** A jump-to-surah picker above the page, turning the same pager. */
+  jump?: { options: SurahJumpOption[]; basePath: string };
 }) {
   const router = useRouter();
+  const { live, ...pagerProps } = pager ?? { live: undefined };
+  const { view, turning, turn } = useLivePages(
+    { pages, heat, history },
+    pager && live
+      ? { page: pager.page, min: pager.min, max: pager.max, param: pager.param ?? "page", tint: live.tint }
+      : undefined,
+  );
   // markKey → every mark on that target this session, oldest first.
   const [marks, setMarks] = useState<Record<string, SheetMark[]>>(() => {
     const byTarget: Record<string, SheetMark[]> = {};
@@ -154,14 +173,15 @@ export function ReviewLogger({
     Object.entries(marks).filter(([, list]) => list.length).map(([k, list]) => [k, list[0]]),
   );
   // spreadHeat keys history by wordKey for every word, end markers included.
-  const previous = tapped ? history?.[wordKey(tapped)] : undefined;
+  const previous = tapped ? view.history[wordKey(tapped)] : undefined;
 
   const reader = (
-    <MushafReader pages={pages} marks={tinted} heat={heat} surahNames={surahNames} onWordTap={setTapped} />
+    <MushafReader pages={view.pages} marks={tinted} heat={view.heat} surahNames={surahNames} onWordTap={setTapped} />
   );
 
   return (
     <div className="space-y-3">
+      {jump && <SurahJump {...jump} onPick={turn} />}
       <div className="glass sticky top-[calc(var(--chrome-top,0px)+0.5rem)] z-10 flex items-center justify-between gap-3 rounded-xl px-4 py-2.5">
         {hearing ? (
           <>
@@ -190,7 +210,16 @@ export function ReviewLogger({
           allows. Outside the pager, which shrinks to fit its page and so
           cannot be what the page measures itself against. */}
       <div className="mushaf-bleed">
-        {pager ? <MushafPager {...pager}>{reader}</MushafPager> : reader}
+        {pager ? (
+          <MushafPager
+            {...(pagerProps as NonNullable<typeof pager>)}
+            page={turn ? view.page : pager.page}
+            onTurn={turn}
+            busy={turning}
+          >
+            {reader}
+          </MushafPager>
+        ) : reader}
       </div>
 
       <MistakeSheet

@@ -177,8 +177,3 @@ export function scoreObjective(
   const exact = hits === correct.length && misses === 0;
   return exact ? question.points : 0;
 }
-
-/** True when this question needs the LLM or a human rather than code. */
-export function needsHumanOrLlm(question: MarkableQuestion): boolean {
-  return scoreObjective(question, { selected: [] }) === null;
-}

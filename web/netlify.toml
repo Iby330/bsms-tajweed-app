@@ -4,3 +4,11 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# The mushaf's 604 per-page QCF fonts (~80 KB each). Without this they were
+# served `max-age=0, must-revalidate`, so every page turn re-asked the CDN for
+# a font the browser already held. They are never edited in place.
+[[headers]]
+  for = "/fonts/qcf/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"

@@ -26,6 +26,11 @@ export default async function AccountLayout({
   // Not /login: the proxy bounces a signed-in visitor off it, back here.
   if (!profile) redirect(NO_PROFILE_PATH);
   requireSetup(profile);
+  // Independent round trips (Storage, profiles): start both at once.
+  const [avatarSrc, viewSwitch] = await Promise.all([
+    signedAvatarUrl(profile.avatar_url),
+    viewSwitchFor(profile),
+  ]);
 
   const teacher = profile.role === "teacher";
   return (
@@ -33,8 +38,8 @@ export default async function AccountLayout({
       nav={teacher ? teacherNav : studentNav}
       mobileNav={teacher ? teacherMobileNav : studentMobileNav}
       userName={profile.full_name}
-      avatarSrc={await signedAvatarUrl(profile.avatar_url)}
-      viewSwitch={await viewSwitchFor(profile)}
+      avatarSrc={avatarSrc}
+      viewSwitch={viewSwitch}
       roleLabel={teacher ? "Teacher" : "Student"}
     >
       {children}

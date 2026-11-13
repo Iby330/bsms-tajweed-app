@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { supabaseServer, currentProfile } from "@/lib/supabase/server";
+import { supabaseServer } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
 import { randomBytes } from "node:crypto";
 import {
@@ -16,6 +16,7 @@ import {
   SITE, confirmationHtml, confirmationSubject, confirmationText, loginHtml, loginSubject,
   loginText, type Confirmation,
 } from "@/lib/email/applicant-emails";
+import { requireTeacher } from "@/lib/teacher/guards";
 
 export type Status = Database["public"]["Enums"]["application_status_t"];
 export type Result = { ok: true } | { ok: false; error: string };
@@ -139,11 +140,6 @@ export async function submitApplication(
  * RLS policy is the one that actually holds, and this runs before it so the
  * failure is a sentence rather than an empty update.
  */
-async function requireTeacher() {
-  const profile = await currentProfile();
-  if (!profile || profile.role !== "teacher") throw new Error("Teachers only.");
-  return profile;
-}
 
 /**
  * Move applications along: invited to the recitation session, heard,

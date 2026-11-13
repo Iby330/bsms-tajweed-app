@@ -674,8 +674,5 @@ export const MAIDAH_95: readonly Section[] = [
   },
 ] as const;
 
-/** Every rule in the ayah, flattened — used by the counter on the landing page. */
-export const ALL_RULES = MAIDAH_95.flatMap((s) => s.rules);
-
 /** The verse as one string, for meta tags and the full-verse band. */
 export const FULL_VERSE = MAIDAH_95.map((s) => s.words.join(" ")).join(" ");

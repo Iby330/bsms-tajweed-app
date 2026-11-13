@@ -14,7 +14,7 @@ export type SurahNames = Record<number, { ar: string; en: string }>;
 const BASMALA = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
 
 // the 1405H print's per-page fonts (QCF v1)
-const pageFont = (page: number) => `QCF_P${String(page).padStart(3, "0")}`;
+export const pageFont = (page: number) => `QCF_P${String(page).padStart(3, "0")}`;
 
 // The QUL surah-name fonts carry 116 glyphs for 114 surahs: U+E001..U+E072
 // are the names, and U+E000 is the word سُورَةُ in the same cut. The print

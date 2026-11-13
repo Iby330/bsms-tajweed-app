@@ -4,7 +4,8 @@
  * cheap to build and the tables are small (26 weeks, 28 homeworks).
  */
 
-import { supabaseServer } from "@/lib/supabase/server";
+import { cache } from "react";
+import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { getCachedTerms, getCachedWeeks, getCachedSectionWeeks } from "@/lib/reference/cached";
 import { rowsForSection, withExtensions } from "./section-weeks";
 import { ruleFromRow, scheduleFromRows, type ScheduleInput } from "./schedule-rows";
@@ -71,14 +72,15 @@ export async function getClassSchedule(
 /** A class's section, whose week calendar its syllabus runs on, and its
  *  default for opening and deadlines (0108). Null when the class is
  *  unreadable, which leaves it on the shared weeks. */
-async function classInfo(classId: string): Promise<{ section: string; rule: ClassRule | null } | null> {
+// `cache`: one request reads it from both the tree and the schedule.
+const classInfo = cache(async (classId: string): Promise<{ section: string; rule: ClassRule | null } | null> => {
   const db = await supabaseServer();
   const { data } = await db.from("classes")
     .select("section, open_weekday, open_time, due_weekday, due_time, due_weeks_after")
     .eq("id", classId).maybeSingle();
   if (!data) return null;
   return { section: data.section, rule: ruleFromRow(data) };
-}
+});
 
 export type StudentCurriculum = {
   terms: Term[];
@@ -174,9 +176,13 @@ export async function getStudentCurriculum(
 
   // The student's own class, for their syllabus, and whether they are exempt
   // from the calendar altogether. Read here rather than threaded through five
-  // call sites that all pass the current user anyway.
-  const { data: me } = await db
-    .from("profiles").select("class_id, unlock_all, section").eq("id", studentId).single();
+  // call sites that all pass the current user anyway — and since they do, the
+  // request-cached `currentProfile()` already holds these three fields, which
+  // spares a round trip in front of the batch below. Anyone else is read.
+  const current = await currentProfile();
+  const me = current?.id === studentId
+    ? current
+    : (await db.from("profiles").select("class_id, unlock_all, section").eq("id", studentId).single()).data;
 
   const [terms, weeks, sectionWeeks, lessons, homeworks, watches, subs, pcts, schedule, extensions, resources] = await Promise.all([
     getCachedTerms(),

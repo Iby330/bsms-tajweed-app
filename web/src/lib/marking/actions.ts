@@ -3,8 +3,6 @@
 import { refresh, revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { currentProfile } from "@/lib/supabase/server";
-import { parseRubric } from "./objective";
 import {
   mapWithConcurrency, planAnswerUpdates, planFinalMarks, planLlmJobs,
   type LlmMark, type MarkingAnswer, type MarkingQuestion,
@@ -13,6 +11,7 @@ import { markFreeText } from "./llm";
 import { APPROVABLE_STATUSES, canApprove, redoVerdict } from "./redo";
 import { emailMarkedHomework } from "./notify";
 import { teacherClasses } from "@/lib/teacher/scope";
+import { requireTeacher } from "@/lib/teacher/guards";
 
 /**
  * The marking pipeline.
@@ -36,14 +35,6 @@ import { teacherClasses } from "@/lib/teacher/scope";
  * markFreeText still backs off on a 429.
  */
 const LLM_CONCURRENCY = 5;
-
-async function requireTeacher() {
-  const profile = await currentProfile();
-  if (!profile || profile.role !== "teacher") {
-    throw new Error("Only teachers can do that.");
-  }
-  return profile;
-}
 
 
 /**
@@ -129,8 +120,10 @@ export async function markSubmission(
     .eq("id", submissionId)
     .in("status", ["submitted", "auto_marked"]);
   if (statusError) throw new Error(statusError.message);
-
-  revalidatePath("/teacher/homework");
+  // No revalidatePath: both callers run this while rendering a page, and Next
+  // throws on revalidation during render — after every write above had
+  // landed, so each script opened unmarked logged a failure for nothing. The
+  // pages are dynamic and re-read on their next visit anyway.
 }
 
 /**
@@ -347,9 +340,9 @@ async function scopedSubmission(submissionId: string) {
     db
       .from("submissions")
       .select(`
-        status, student_id, homework_id, imported_marks,
+        student_id,
         profiles!submissions_student_id_fkey(class_id),
-        homeworks(number, total_marks, is_graded, questions(id, is_bonus))
+        homeworks(number)
       `)
       .eq("id", submissionId)
       .maybeSingle(),
@@ -401,40 +394,4 @@ export async function clearLate(submissionId: string): Promise<{ error: string |
   revalidatePath(`/teacher/roster/${found.sub.student_id}`);
   refresh();
   return { error: null };
-}
-
-/** Re-run the model on a single answer (teacher pressed "re-mark"). */
-export async function remarkAnswer(answerId: string): Promise<void> {
-  await requireTeacher();
-  const db = supabaseAdmin();
-
-  const { data: answer } = await db
-    .from("answers")
-    .select("id, response, submission_id, question_id")
-    .eq("id", answerId)
-    .single();
-  if (!answer) throw new Error("Answer not found.");
-
-  const { data: q } = await db
-    .from("questions")
-    .select("prompt, rubric, points")
-    .eq("id", answer.question_id)
-    .single();
-  const rubric = parseRubric(q?.rubric);
-  if (!q || !rubric?.length) return;
-
-  const text =
-    typeof answer.response === "object" && answer.response !== null
-      ? String((answer.response as { text?: unknown }).text ?? "")
-      : "";
-
-  const result = await markFreeText({ prompt: q.prompt, rubric, answer: text });
-  if (!result) return;
-
-  await db
-    .from("answers")
-    .update({ auto_marks: result.marks, auto_rubric: result.concepts as never })
-    .eq("id", answerId);
-
-  revalidatePath(`/teacher/homework/submission/${answer.submission_id}`);
 }

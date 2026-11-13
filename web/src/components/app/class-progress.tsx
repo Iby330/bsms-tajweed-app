@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useId, useMemo, useState } from "react";
 import { FilterSelect } from "@/components/app/filter-select";
-import { MixedText } from "@/components/app/mixed-text";
 import { sortClassRows, type ClassRow, type ClassSort } from "@/lib/teacher/class-progress";
 import type { PaceStatus } from "@/lib/hifz/pace";
 import { cn } from "@/lib/utils";

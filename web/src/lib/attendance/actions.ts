@@ -2,16 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
-import { supabaseServer, currentProfile } from "@/lib/supabase/server";
+import { supabaseServer } from "@/lib/supabase/server";
 import { emailStrikeIssued, emailStrikeRemoved } from "@/lib/strikes/notify";
 import { sessionLabel, type SessionType } from "./session";
 import { isSessionDate, sessionTypeFor, timetableFor, type Timetable } from "./calendar";
-
-async function requireTeacher() {
-  const profile = await currentProfile();
-  if (!profile || profile.role !== "teacher") throw new Error("Teachers only.");
-  return profile;
-}
+import { requireTeacher } from "@/lib/teacher/guards";
 
 /**
  * The timetable a class runs on, read from the class rather than taken from
@@ -54,53 +49,6 @@ function badSession(
     return `${sessionDate} is not a ${sessionLabel(sessionType)} session for this class.`;
   }
   return null;
-}
-
-/**
- * Mark one student present or absent for one session.
- *
- * An absence can carry a strike. If it does, the strike is linked to the row so
- * that flipping the student back to present takes the strike away with it —
- * a mis-tap shouldn't leave a permanent mark against someone.
- */
-export async function setPresence({
-  classId,
-  studentId,
-  sessionDate,
-  sessionType,
-  present,
-  late,
-  absenceReason,
-  strike,
-  termId,
-}: {
-  classId: string;
-  studentId: string;
-  sessionDate: string;
-  sessionType: SessionType;
-  present: boolean;
-  /** Present, but came in late. Ignored on an absence. */
-  late?: boolean;
-  absenceReason?: string;
-  strike?: boolean;
-  termId: number;
-}): Promise<{ ok: true } | { ok: false; error: string }> {
-  const teacher = await requireTeacher();
-  const db = await supabaseServer();
-
-  const timetable = await timetableOfClass(db, classId);
-  if (!timetable) return { ok: false, error: "That class no longer exists." };
-  const invalid = badSession(sessionDate, sessionType, timetable);
-  if (invalid) return { ok: false, error: invalid };
-
-  const result = await writePresence(db, teacher.id, {
-    classId, studentId, sessionDate, sessionType, present, late, absenceReason, strike, termId,
-  });
-  if (!result.ok) return result;
-
-  revalidatePath("/teacher/attendance");
-  revalidatePath("/teacher/roster");
-  return { ok: true };
 }
 
 /**
@@ -244,56 +192,4 @@ async function writePresence(
   );
   if (error) return { ok: false, error: error.message };
   return { ok: true };
-}
-
-/**
- * The usual case: everyone turned up. One click fills the register, then the
- * teacher flips the two or three who didn't.
- */
-export async function markAllPresent({
-  classId,
-  studentIds,
-  sessionDate,
-  sessionType,
-}: {
-  classId: string;
-  studentIds: string[];
-  sessionDate: string;
-  sessionType: SessionType;
-}): Promise<{ ok: true; count: number } | { ok: false; error: string }> {
-  const teacher = await requireTeacher();
-  const db = await supabaseServer();
-
-  const timetable = await timetableOfClass(db, classId);
-  if (!timetable) return { ok: false, error: "That class no longer exists." };
-  const invalid = badSession(sessionDate, sessionType, timetable);
-  if (invalid) return { ok: false, error: invalid };
-  if (studentIds.length === 0) return { ok: true, count: 0 };
-
-  // Don't silently wipe strikes already issued for this session — only fill in
-  // the students who haven't been marked either way yet.
-  const { data: already } = await db
-    .from("attendance")
-    .select("student_id")
-    .eq("session_date", sessionDate)
-    .eq("session_type", sessionType)
-    .in("student_id", studentIds);
-  const done = new Set((already ?? []).map((r) => r.student_id));
-  const todo = studentIds.filter((id) => !done.has(id));
-  if (todo.length === 0) return { ok: true, count: 0 };
-
-  const { error } = await db.from("attendance").insert(
-    todo.map((studentId) => ({
-      class_id: classId,
-      student_id: studentId,
-      session_date: sessionDate,
-      session_type: sessionType,
-      present: true,
-      recorded_by: teacher.id,
-    })),
-  );
-  if (error) return { ok: false, error: error.message };
-
-  revalidatePath("/teacher/attendance");
-  return { ok: true, count: todo.length };
 }

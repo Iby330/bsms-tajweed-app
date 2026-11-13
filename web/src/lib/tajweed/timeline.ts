@@ -198,6 +198,3 @@ export function ruleIntensity(sec: SectionBeat, t: number, words: number[]): num
 function clamp01(v: number) {
   return v < 0 ? 0 : v > 1 ? 1 : v;
 }
-
-/** Seconds, for anyone reading the numbers above and wondering. */
-export const DURATION_SECONDS = TIMELINE.durationInFrames / FPS;

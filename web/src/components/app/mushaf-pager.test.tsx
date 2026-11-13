@@ -136,4 +136,18 @@ describe("MushafPager arrows", () => {
     expect(next.className).not.toMatch(/(^|\s)absolute/);
     expect(next.className).toMatch(/md:absolute/);
   });
+
+  it("with onTurn, hands the page over instead of navigating", () => {
+    const onTurn = vi.fn();
+    const { getByLabelText } = renderPager({ onTurn });
+    fireEvent.click(getByLabelText("Next page"));
+    fireEvent.click(getByLabelText("Previous page"));
+    expect(onTurn.mock.calls).toEqual([[6], [4]]);
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("dims the page while a turn is loading", () => {
+    const { surface } = renderPager({ busy: true });
+    expect(surface.getAttribute("aria-busy")).toBe("true");
+  });
 });

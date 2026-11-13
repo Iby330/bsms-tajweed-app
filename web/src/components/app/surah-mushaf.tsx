@@ -3,8 +3,7 @@ import { fromRow, groupIntoPages } from "@/lib/quran/mushaf";
 import type { PageRange } from "@/lib/quran/page-within";
 import { spreadHeat } from "@/lib/hifz/heat-spread";
 import type { MistakeRow } from "@/lib/hifz/mistakes";
-import { HeatViewer } from "./heat-viewer";
-import { MushafPager } from "./mushaf-pager";
+import { LiveHeatMushaf } from "./live-heat-mushaf";
 import type { SurahNames } from "./mushaf-reader";
 
 /**
@@ -12,7 +11,8 @@ import type { SurahNames } from "./mushaf-reader";
  * `range` — the stretch of the mushaf this reader can open. Read-only:
  * tapping a hot word lists what went wrong there. Pass every mark the
  * student has, not one surah's: the page is a whole printed page, and a
- * neighbouring surah's mistakes on it belong on it too.
+ * neighbouring surah's mistakes on it belong on it too. Turns in the
+ * browser; the marks go along so each page is tinted there as it is here.
  */
 export async function SurahMushaf({
   page, range, mistakes, basePath, surahNames,
@@ -27,8 +27,10 @@ export async function SurahMushaf({
   const words = rows.map(fromRow);
   const { heat, history } = spreadHeat(words, mistakes, new Date());
   return (
-    <MushafPager page={page} min={range.from} max={range.to} basePath={basePath} param="p">
-      <HeatViewer pages={groupIntoPages(words)} heat={heat} history={history} surahNames={surahNames} />
-    </MushafPager>
+    <LiveHeatMushaf
+      page={page} min={range.from} max={range.to} basePath={basePath} param="p"
+      pages={groupIntoPages(words)} heat={heat} history={history} surahNames={surahNames}
+      tint={mistakes}
+    />
   );
 }

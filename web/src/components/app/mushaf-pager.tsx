@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 /**
  * RTL page turning around the rendered mushaf. The next page (higher
@@ -18,6 +19,11 @@ import { Button } from "@/components/ui/button";
  * edges. Below md they sit under the page instead, where they cannot
  * cover the glyphs on a phone. `step` is 2 for a two-page spread. Neighbours are prefetched so a
  * turn feels immediate.
+ *
+ * Given `onTurn`, the pager navigates nowhere: it hands the page number over
+ * and the caller turns the page in place (see use-live-pages). `busy` dims
+ * the page while such a turn is still loading — after a beat, so a turn that
+ * was already prefetched never flickers.
  */
 export function MushafPager({
   page,
@@ -26,6 +32,8 @@ export function MushafPager({
   basePath,
   param = "page",
   step = 1,
+  onTurn,
+  busy = false,
   children,
 }: {
   page: number;
@@ -34,21 +42,40 @@ export function MushafPager({
   basePath: string;   // with or without a query string
   param?: string;     // query key this pager owns
   step?: number;
+  onTurn?: (page: number) => void;
+  busy?: boolean;
   children: React.ReactNode;
 }) {
   const router = useRouter();
   // basePath may already carry a query (`/hifdh?tab=review`) or be bare
   // (`/hifdh/88`); start the string or extend it accordingly.
-  const href = (p: number) => `${basePath}${basePath.includes("?") ? "&" : "?"}${param}=${p}`;
+  //
+  // Only ever called in the browser (a turn, a prefetch). The rest of the
+  // query is read from the address bar where it can be: another pager on the
+  // same page may have turned in place since this one's basePath was rendered,
+  // and a link built from the stale copy would turn that one back.
+  const href = (p: number) => {
+    const u = new URL(`${basePath}${basePath.includes("?") ? "&" : "?"}${param}=${p}`, window.location.href);
+    if (u.pathname === window.location.pathname) {
+      new URLSearchParams(window.location.search).forEach((v, k) => {
+        if (k !== param && u.searchParams.has(k)) u.searchParams.set(k, v);
+      });
+    }
+    return `${u.pathname}${u.search}`;
+  };
   const go = (p: number) => {
-    if (p >= min && p <= max) router.push(href(p), { scroll: false });
+    if (p < min || p > max) return;
+    if (onTurn) onTurn(p);
+    else router.push(href(p), { scroll: false });
   };
 
+  const inPlace = !!onTurn;
   useEffect(() => {
+    if (inPlace) return; // the caller loads its own neighbours
     if (page - step >= min) router.prefetch(href(page - step));
     if (page + step <= max) router.prefetch(href(page + step));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, min, max, step, basePath, param]);
+  }, [page, min, max, step, basePath, param, inPlace]);
 
   const startX = useRef<number | null>(null);
   // Timestamp of the last wheel-driven turn. A continuous trackpad swipe
@@ -79,7 +106,8 @@ export function MushafPager({
           if (e.deltaX < 0) go(page + step);
           else go(page - step);
         }}
-        className="touch-pan-y"
+        className={cn("touch-pan-y transition-opacity", busy ? "opacity-50 delay-150" : "opacity-100")}
+        aria-busy={busy || undefined}
       >
         {children}
       </div>

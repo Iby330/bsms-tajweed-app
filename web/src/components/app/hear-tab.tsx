@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { currentProfile } from "@/lib/supabase/server";
 import { getCachedPageWords, getCachedSurahs, getCachedSurahStartPages } from "@/lib/reference/cached";
 import { fromRow, groupIntoPages } from "@/lib/quran/mushaf";
-import { pageWithin } from "@/lib/quran/page-within";
+import { pageWithin, LAST_PAGE } from "@/lib/quran/page-within";
 import { hearingMistakesFor, todaysMarksFor } from "@/lib/hifz/hearing-queries";
 import { aggregatePatterns } from "@/lib/hifz/mistakes";
 import { spreadHeat } from "@/lib/hifz/heat-spread";
@@ -13,9 +13,6 @@ import { PatternTracker } from "./pattern-tracker";
 import { ReviewFeedback } from "./review-feedback";
 import { Rule } from "./rule";
 import type { SurahNames } from "./mushaf-reader";
-
-/** The seeded mushaf runs An-Nas back to Al-Mulk — pages 562–604. */
-const LAST_PAGE = 604;
 
 /**
  * The register's Hear tab: a student picker, the one-page mushaf opening at
@@ -161,6 +158,8 @@ export async function HearTab({
             pager={{
               page, min: range.from, max: range.to,
               basePath: heat ? `${basePath}&heat=${heat}` : basePath, param: "p",
+              // Turns in the browser: each page is tinted from these, as here.
+              live: { tint: earlier },
             }}
           />
         </section>

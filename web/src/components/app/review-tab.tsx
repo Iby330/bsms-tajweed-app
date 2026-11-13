@@ -8,16 +8,9 @@ import { fromRow, groupIntoPages } from "@/lib/quran/mushaf";
 import type { SurahNames } from "./mushaf-reader";
 import { ReviewLogger } from "./review-logger";
 import { StartReviewButton } from "./start-review-button";
-import { SurahJump } from "./surah-jump";
+import { LAST_PAGE } from "@/lib/quran/page-within";
+import { PROGRAMME_FIRST_PAGE as FIRST_FONT_PAGE } from "@/lib/hifz/mushaf-reach";
 
-/** The seeded mushaf runs An-Nas back to Al-Mulk — pages 562–604. */
-const LAST_PAGE = 604;
-/**
- * Al-Mulk's first page, and the first page with a deployed QCF font.
- * `quran_words` now holds earlier pages too, but without their font they
- * render as blank or boxed text, so the pager never goes below this.
- */
-const FIRST_FONT_PAGE = 562;
 
 /** The student Review tab: reviewing your partner, and only that. Your own
  *  mistakes live on the Overview's mistakes board. The reader is a real
@@ -67,24 +60,25 @@ export async function ReviewTab({
 
     logging = (
       <div className="space-y-3">
-        <SurahJump
-          basePath="/hifdh?tab=review"
-          // Only surahs the mushaf can open: an earlier one would clamp to the
-          // first page and show the wrong surah without saying so.
-          options={range.filter((s) => (startPages[s.number] ?? 0) >= firstPage).map((s) => ({
-            number: s.number,
-            name: s.name_en,
-            page: startPages[s.number] ?? firstPage,
-            current: s.current,
-          }))}
-        />
         <ReviewLogger
+          jump={{
+            basePath: "/hifdh?tab=review",
+            // Only surahs the mushaf can open: an earlier one would clamp to the
+            // first page and show the wrong surah without saying so.
+            options: range.filter((s) => (startPages[s.number] ?? 0) >= firstPage).map((s) => ({
+              number: s.number,
+              name: s.name_en,
+              page: startPages[s.number] ?? firstPage,
+              current: s.current,
+            })),
+          }}
           sessionId={draft.id}
           reciterName={pair.partnerName}
           pages={groupIntoPages(rows.map(fromRow))}
           initialMistakes={mistakes}
           surahNames={surahNames}
-          pager={{ page, min: firstPage, max: LAST_PAGE, basePath: "/hifdh?tab=review" }}
+          // Turns in the browser; a partner's review page carries no tint.
+          pager={{ page, min: firstPage, max: LAST_PAGE, basePath: "/hifdh?tab=review", live: {} }}
         />
       </div>
     );

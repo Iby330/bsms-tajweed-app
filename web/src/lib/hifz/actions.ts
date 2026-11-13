@@ -8,31 +8,6 @@ import { requireOwnStudent, requireTeacher } from "@/lib/teacher/guards";
 import { memorisationList, type Surah } from "@/lib/hifz/pace";
 import { planTargets } from "@/lib/hifz/targets";
 
-/** Recited correctly to the teacher. The comment is visible to the student —
- *  it replaces the mistakes they used to mark in their physical Qur'an. */
-export async function markSurahPassed(
-  studentId: string,
-  surahNumber: number,
-  comment?: string,
-): Promise<void> {
-  const teacher = await requireTeacher();
-  await requireOwnStudent(studentId);
-  const db = await supabaseServer();
-  const { error } = await db.from("hifz_records").upsert(
-    {
-      student_id: studentId,
-      surah_number: surahNumber,
-      teacher_comment: comment?.trim() || null,
-      marked_by: teacher.id,
-    },
-    { onConflict: "student_id,surah_number" },
-  );
-  if (error) throw new Error(error.message);
-  revalidatePath("/teacher/hifdh");
-  revalidatePath("/hifdh");
-  revalidatePath(`/teacher/hifdh/${studentId}`);
-}
-
 /**
  * Reword the comment on a surah already signed off.
  *
