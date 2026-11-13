@@ -94,33 +94,42 @@ export function useLivePages(
     setView(fromProps());
   }
 
+  // Primitives, so `turn` keeps its identity across renders: callers hand
+  // it to effects and memoised callbacks, and a fresh one each render would
+  // re-run them.
+  const on = live !== undefined;
+  const lo = live?.min ?? 0;
+  const hi = live?.max ?? 0;
+  const key = live?.param ?? "";
+  const tint = live?.tint;
+
   const turn = useCallback(async (page: number) => {
-    if (!live || page < live.min || page > live.max) return;
+    if (!on || page < lo || page > hi) return;
     wanted.current = page;
     setTurning(true);
     try {
       const [rows] = await Promise.all([loadWords(page), loadFont(page)]);
       if (wanted.current !== page) return; // a later turn overtook this one
       const words = rows.map(fromRow);
-      const { heat, history } = live.tint
-        ? spreadHeat(words, live.tint, new Date())
+      const { heat, history } = tint
+        ? spreadHeat(words, tint, new Date())
         : { heat: {}, history: {} };
       setView({ page, pages: groupIntoPages(words), heat, history });
       // The address bar keeps up, so a reload or a shared link opens here.
       // Replaced rather than pushed: Back leaves the tab, as a turned page
       // is not somewhere the teacher went.
       const url = new URL(window.location.href);
-      url.searchParams.set(live.param, String(page));
+      url.searchParams.set(key, String(page));
       window.history.replaceState(null, "", `${url.pathname}${url.search}`);
     } catch {
       // The old way still works: navigate, and let the server render it.
       const url = new URL(window.location.href);
-      url.searchParams.set(live.param, String(page));
+      url.searchParams.set(key, String(page));
       router.push(`${url.pathname}${url.search}`, { scroll: false });
     } finally {
       if (wanted.current === page) setTurning(false);
     }
-  }, [live, router]);
+  }, [on, lo, hi, key, tint, router]);
 
   // Both neighbours, words and font, so the next turn is immediate.
   const page = view.page;

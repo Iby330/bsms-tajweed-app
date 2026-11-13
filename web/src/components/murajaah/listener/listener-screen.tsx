@@ -16,10 +16,11 @@
  *   next person.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { MushafReader, type SurahNames } from "@/components/app/mushaf-reader";
 import { MushafPager } from "@/components/app/mushaf-pager";
+import { useLivePages } from "@/components/app/use-live-pages";
+import { LAST_PAGE } from "@/lib/quran/page-within";
 import { BAND_LABEL, BAND_TONE, bandOf, formatClock } from "@/lib/murajaah/bands";
 import { clockPhase } from "@/lib/murajaah/clock";
 import { inRanges, rangesOf } from "@/lib/murajaah/portions";
@@ -74,7 +75,6 @@ export function ListenerScreen({
   /** The Review tab's own URL, e.g. "/hifdh?tab=review". */
   basePath: string;
 }) {
-  const router = useRouter();
   const limitFor = useCallback((reciterId: string, sel: Selection) => {
     const o = overrides.find((x) => x.studentId === reciterId) ?? null;
     return mistakeLimitFor(sel.kind, sel.ns, target, o);
@@ -96,11 +96,18 @@ export function ListenerScreen({
   const [result, setResult] = useState<SavedResult | null>(null);
 
   const range = sel ? pageRangeOf(sel.kind, sel.ns) : null;
-  const shownPage = pages[0]?.page ?? null;
+  // The page turns in place (use-live-pages): its words are fetched alone and
+  // swapped in, the URL's `page` kept in step, and both neighbours preloaded,
+  // rather than the whole tab being rendered again on the server for each
+  // turn. The bounds are the whole mushaf; each portion's own are the pager's.
+  const live = useLivePages({ pages }, { page: pages[0]?.page ?? 0, min: 1, max: LAST_PAGE, param: "page" });
+  const shown = live.view.pages;
+  const shownPage = shown[0]?.page ?? null;
   const pageReady = !!range && shownPage !== null && shownPage >= range.first && shownPage <= range.last;
+  const turn = live.turn;
   const goPage = useCallback((p: number) => {
-    router.push(`${basePath}&page=${p}`, { scroll: false });
-  }, [basePath, router]);
+    void turn?.(p);
+  }, [turn]);
 
   // A restored draft on a page outside its portion (an old link, say) opens at its first page.
   const pushed = useRef<number | null>(null);
@@ -137,7 +144,7 @@ export function ListenerScreen({
   }) : []), [draft, s.elapsed, started]);
 
   const ranges = useMemo(() => (sel ? rangesOf(sel.kind, sel.ns) : []), [sel]);
-  const heat = useMemo(() => dimHeat(pages, ranges), [pages, ranges]);
+  const heat = useMemo(() => dimHeat(shown, ranges), [shown, ranges]);
   const marks = useMemo(() => markMap(draft?.marks ?? []), [draft?.marks]);
   const last = draft ? latestMark(draft.marks) : null;
 
@@ -286,9 +293,10 @@ export function ListenerScreen({
         </div>
         {pageReady ? (
           <div className="mushaf-bleed">
-            <MushafPager page={shownPage!} min={range!.first} max={range!.last} basePath={basePath}>
+            <MushafPager page={shownPage!} min={range!.first} max={range!.last} basePath={basePath}
+              onTurn={goPage} busy={live.turning}>
               <MushafReader
-                pages={pages}
+                pages={shown}
                 marks={marks}
                 heat={heat}
                 surahNames={surahNames}

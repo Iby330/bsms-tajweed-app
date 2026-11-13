@@ -65,11 +65,25 @@ const renderScreen = (initialDraft: SessionView | null = null, pg = pages) => re
   />,
 );
 
+// Pages turn in place (use-live-pages): a turn fetches that page's words.
+const fetchMock = vi.fn(async (url: string) => {
+  const page = Number(url.split("/").pop());
+  return Response.json([{
+    surah_number: 87, ayah_number: 1, word_position: 1, text_uthmani: "سَبِّحِ",
+    code_v1: null, code_v2: null, is_end: false, page_number: page, line_number: 3,
+  }]);
+});
+
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.stubGlobal("fetch", fetchMock);
+  window.history.replaceState(null, "", "/hifdh?tab=review");
   try { window.localStorage.clear(); } catch { /* none */ }
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 const SLOW = 20_000;
 const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 0)); });
@@ -91,7 +105,10 @@ describe("ListenerScreen: choosing", () => {
     fireEvent.keyDown(document, { key: "Escape" });
     await settle();
     expect(A.startDraft).toHaveBeenCalledWith(people[0].id, "juz", [28, 30]);
-    expect(push).toHaveBeenCalledWith("/hifdh?tab=review&page=542", { scroll: false });
+    // the portion's first page, turned to in place rather than navigated to
+    await waitFor(() => expect(window.location.search).toBe("?tab=review&page=542"));
+    expect(fetchMock).toHaveBeenCalledWith("/api/mushaf/542");
+    expect(push).not.toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).toBeNull();
   }, SLOW);
 
@@ -209,7 +226,8 @@ describe("ListenerScreen: listening", () => {
     expect(A.tickCheckpoint).toHaveBeenCalledWith(SID, "auto", 1, "Q1 · Al-A'la", expect.any(Number));
     expect(screen.getByRole("button", { name: /Tick Q2 · Al-Balad/ })).toBeTruthy();
     // Q1 is done; ticking it turned the page to where Q2 starts.
-    expect(push).toHaveBeenCalledWith("/hifdh?tab=review&page=594", { scroll: false });
+    await waitFor(() => expect(window.location.search).toBe("?tab=review&page=594"));
+    expect(push).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: "Add checkpoint" }));
     await settle();
