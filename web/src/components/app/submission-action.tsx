@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { clearLate, liftRedoCap, reopenSubmission } from "@/lib/marking/actions";
+import { clearLate, liftRedoCap, reopenSubmission, undoRedo } from "@/lib/marking/actions";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -50,6 +50,81 @@ export function SubmissionAction({
           }
         >
           {pending ? "Reopening…" : "Yes, reopen it"}
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={pending}
+          onClick={() => {
+            setConfirming(false);
+            setError(null);
+          }}
+        >
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Take back a redo the teacher sent by mistake, while the student has not
+ * started it: the paper that was sent back returns to the teacher to mark,
+ * as it was. Two presses with an inline confirm, as with reopening, because
+ * it changes what the student sees and the first press is easy to hit.
+ *
+ * On success the action refreshes the page, which then has a marked script
+ * to show in place of the redo, so this component simply goes away.
+ */
+export function UndoRedo({
+  submissionId,
+  studentName,
+  capped,
+}: {
+  submissionId: string;
+  studentName: string;
+  /** Whether the redo counts as 60% at most, so the confirm only promises
+   *  to take away a cap that is there. */
+  capped: boolean;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+
+  if (!confirming) {
+    return (
+      <Button size="sm" variant="outline" onClick={() => setConfirming(true)}>
+        Undo the redo
+      </Button>
+    );
+  }
+
+  return (
+    <div className="box c12 gap-3">
+      <p className="text-sm">
+        Take back the redo you sent {studentName}? The paper comes back to you to mark,
+        with their answers, recordings and your marks as they were. Correct the mark and
+        release it again.{capped && " The 60% cap on the redo goes too."} This only works
+        while {studentName} hasn&apos;t started the redo.
+      </p>
+      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          disabled={pending}
+          onClick={() =>
+            start(async () => {
+              setError(null);
+              // A throw (the network, a page older than the deploy) is put in
+              // our words: production hides a server action's own message.
+              const result = await undoRedo(submissionId).catch(() => ({
+                error: "Could not undo the redo. Reload the page and try again.",
+              }));
+              if (result.error) setError(result.error);
+            })
+          }
+        >
+          {pending ? "Undoing…" : "Yes, undo the redo"}
         </Button>
         <Button
           size="sm"

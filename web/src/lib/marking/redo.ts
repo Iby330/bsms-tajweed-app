@@ -86,3 +86,29 @@ export type SubmissionStatus = "draft" | (typeof APPROVABLE_STATUSES)[number];
 export function canApprove(status: SubmissionStatus): boolean {
   return (APPROVABLE_STATUSES as readonly string[]).includes(status);
 }
+
+/**
+ * Can a teacher take this redo back (`undoRedo`, migration 0145)? Only a
+ * paper that was sent back and is still a draft: once the redo is handed in
+ * it is the student's new work, and a first attempt has nothing behind it.
+ * The database checks the same, and also refuses a redo the student has
+ * started writing, which a page cannot know without reading their draft.
+ */
+export function canUndoRedo(sub: { status: string; attempt: number }): boolean {
+  return sub.status === "draft" && sub.attempt > 1;
+}
+
+/**
+ * The teacher's sentence for an `undo_homework_redo` refusal. The function
+ * raises in the database's words; the two a teacher can run into in normal
+ * use are put plainly, and anything else is a fault to reload past.
+ */
+export function undoRedoError(dbMessage: string, studentName: string): string {
+  if (dbMessage.includes("already started the redo")) {
+    return `${studentName} has already started the redo, so it can't be undone.`;
+  }
+  if (dbMessage.includes("not a redo waiting to be written")) {
+    return "This redo has already been handed in or undone. Reload the page to see where it stands.";
+  }
+  return "Could not undo the redo. Reload the page and try again.";
+}

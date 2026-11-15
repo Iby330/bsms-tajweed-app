@@ -2446,6 +2446,7 @@ export type Database = {
       resend_api_key: { Args: never; Returns: string }
       sees_all_content: { Args: never; Returns: boolean }
       teaches_class: { Args: { p_class: string }; Returns: boolean }
+      undo_homework_redo: { Args: { sub_id: string }; Returns: number }
       voice_note_submission: { Args: { object_name: string }; Returns: string }
       voice_note_writable: { Args: { object_name: string }; Returns: boolean }
     }

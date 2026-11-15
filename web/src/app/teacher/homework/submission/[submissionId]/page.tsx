@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { supabaseServer } from "@/lib/supabase/server";
 import { teacherClasses } from "@/lib/teacher/scope";
 import { markSubmission } from "@/lib/marking/actions";
-import { canApprove, redoCapped } from "@/lib/marking/redo";
+import { canApprove, canUndoRedo, redoCapped } from "@/lib/marking/redo";
 import { ReviewPanel } from "@/components/app/review-panel";
 import { PastAttempts } from "@/components/app/past-attempts";
 import { MixedText } from "@/components/app/mixed-text";
@@ -12,7 +12,7 @@ import { homeworkLabel } from "@/components/app/homework-row";
 import { moduleTitle } from "@/lib/curriculum/tree";
 import { reviewQueue } from "@/lib/marking/queue";
 import { ReviewQueueBar } from "@/components/app/review-queue-bar";
-import { CapTag, LateTag, SubmissionAction } from "@/components/app/submission-action";
+import { CapTag, LateTag, SubmissionAction, UndoRedo } from "@/components/app/submission-action";
 
 export const dynamic = "force-dynamic";
 
@@ -184,6 +184,19 @@ export default async function SubmissionReview({
           <SubmissionAction
             submissionId={sub.id}
             studentName={student?.full_name ?? "the student"}
+          />
+        </div>
+      )}
+
+      {/* Sent back by a fail that was the teacher's own slip: while the redo
+          is still blank, the paper can come back here to mark as it was. A
+          fail's redo lands here, since releasing it reloads this page. */}
+      {canUndoRedo(sub) && (
+        <div className="mb-4 flex justify-end">
+          <UndoRedo
+            submissionId={sub.id}
+            studentName={student?.full_name ?? "the student"}
+            capped={capped}
           />
         </div>
       )}

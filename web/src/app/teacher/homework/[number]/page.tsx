@@ -14,14 +14,14 @@ import { Crumbs } from "@/components/app/crumbs";
 import { MixedText } from "@/components/app/mixed-text";
 import { ReviewPanel } from "@/components/app/review-panel";
 import { PastAttempts } from "@/components/app/past-attempts";
-import { redoCapped } from "@/lib/marking/redo";
+import { canUndoRedo, redoCapped } from "@/lib/marking/redo";
 import { StudentPicker } from "@/components/app/student-picker";
 import { ResultsTabs, type ResultsTab } from "@/components/app/results-tabs";
 import { ResultsSummary, type SummaryRow } from "@/components/app/results-summary";
 import { QuestionBreakdown } from "@/components/app/question-breakdown";
 import { questionLabels } from "@/lib/homework/letters";
 import { ExtensionControl } from "@/components/app/extension-control";
-import { CapTag, LateTag, SubmissionAction } from "@/components/app/submission-action";
+import { CapTag, LateTag, SubmissionAction, UndoRedo } from "@/components/app/submission-action";
 
 export const dynamic = "force-dynamic";
 
@@ -573,6 +573,18 @@ export default async function HomeworkResults({
                         )}{" "}
                         and hasn&apos;t handed the redo in yet.
                       </p>
+                      {/* A fail that was the teacher's own slip: the paper
+                          comes back here to mark, while the redo is blank. */}
+                      {canUndoRedo(redoLive) && (
+                        <div className="flex justify-end">
+                          <UndoRedo
+                            key={redoLive.id}
+                            submissionId={redoLive.id}
+                            studentName={selected.full_name}
+                            capped={capped}
+                          />
+                        </div>
+                      )}
                       {extension}
                       <PastAttempts attempts={pastAttempts} questions={reviewQuestions} />
                     </>

@@ -8,7 +8,7 @@ import {
   type LlmMark, type MarkingAnswer, type MarkingQuestion,
 } from "./plan";
 import { markFreeText } from "./llm";
-import { APPROVABLE_STATUSES, canApprove, redoVerdict } from "./redo";
+import { APPROVABLE_STATUSES, canApprove, redoVerdict, undoRedoError } from "./redo";
 import { emailMarkedHomework } from "./notify";
 import { teacherClasses } from "@/lib/teacher/scope";
 import { requireTeacher } from "@/lib/teacher/guards";
@@ -341,7 +341,7 @@ async function scopedSubmission(submissionId: string) {
       .from("submissions")
       .select(`
         student_id,
-        profiles!submissions_student_id_fkey(class_id),
+        profiles!submissions_student_id_fkey(class_id, full_name),
         homeworks(number)
       `)
       .eq("id", submissionId)
@@ -373,6 +373,43 @@ export async function liftRedoCap(submissionId: string): Promise<{ error: string
   if (error) return { error: error.message };
   revalidatePath("/teacher/homework");
   revalidatePath(`/teacher/roster/${found.sub.student_id}`);
+  revalidatePath("/progress");
+  refresh();
+  return { error: null };
+}
+
+/**
+ * Take back a redo the teacher sent by mistake: the fail was the teacher's
+ * slip (no marks given on a hand-marked question, a mistyped mark), not the
+ * student's. `undo_homework_redo` (migration 0145) puts the attempt that was
+ * sent back in place again, answers, recordings and the teacher's marks
+ * included, and deletes its snapshot, so the 60% cap that fail imposed goes
+ * with it.
+ *
+ * The paper comes back as auto_marked: in the teacher's queue to correct and
+ * release again, which emails the student the corrected result. Opening it
+ * does not send it to the model; only a `submitted` paper is marked on open.
+ *
+ * Only while the student has not started the redo. Once they have, putting
+ * the old paper back would overwrite what they wrote, and the database says
+ * so; the teacher is told in plain words.
+ */
+export async function undoRedo(submissionId: string): Promise<{ error: string | null }> {
+  await requireTeacher();
+  const found = await scopedSubmission(submissionId);
+  if (!found.ok) return { error: found.error };
+  const { sub } = found;
+
+  const { error } = await supabaseAdmin().rpc("undo_homework_redo", { sub_id: submissionId });
+  if (error) {
+    console.error("undoRedo failed", submissionId, error.message);
+    return { error: undoRedoError(error.message, sub.profiles?.full_name ?? "The student") };
+  }
+
+  revalidatePath("/teacher/homework");
+  revalidatePath(`/teacher/roster/${sub.student_id}`);
+  if (sub.homeworks) revalidatePath(`/homework/${sub.homeworks.number}`);
+  revalidatePath("/home");
   revalidatePath("/progress");
   refresh();
   return { error: null };

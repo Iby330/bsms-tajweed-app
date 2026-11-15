@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { APPROVABLE_STATUSES, REDO_THRESHOLD_PCT, canApprove, redoCapped, redoVerdict } from "./redo";
+import {
+  APPROVABLE_STATUSES, REDO_THRESHOLD_PCT, canApprove, canUndoRedo, redoCapped, redoVerdict,
+  undoRedoError,
+} from "./redo";
 
 /* ── fixtures ───────────────────────────────────────────────────────────── */
 
@@ -157,5 +160,53 @@ describe("redoCapped", () => {
 
   it("failing again after a lift caps the next redo", () => {
     expect(redoCapped([sentBack(30), sentBack(45, true)])).toBe(true);
+  });
+});
+
+/* ── taking a redo back ─────────────────────────────────────────────────── */
+
+describe("canUndoRedo", () => {
+  it("offers it on a redo still being written", () => {
+    expect(canUndoRedo({ status: "draft", attempt: 2 })).toBe(true);
+    expect(canUndoRedo({ status: "draft", attempt: 3 })).toBe(true);
+  });
+
+  it("never on a first attempt, which has nothing behind it", () => {
+    expect(canUndoRedo({ status: "draft", attempt: 1 })).toBe(false);
+  });
+
+  it("never once the redo is handed in, marked or released", () => {
+    for (const status of APPROVABLE_STATUSES) {
+      expect(canUndoRedo({ status, attempt: 2 })).toBe(false);
+    }
+  });
+});
+
+describe("undoRedoError", () => {
+  it("names the student when they have started the redo", () => {
+    expect(
+      undoRedoError(
+        "Submission 3f1c: the student has already started the redo",
+        "Adam Whitfield",
+      ),
+    ).toBe("Adam Whitfield has already started the redo, so it can't be undone.");
+  });
+
+  it("says so when the redo was handed in or undone in another tab", () => {
+    expect(undoRedoError("Submission 3f1c is not a redo waiting to be written", "Adam"))
+      .toBe("This redo has already been handed in or undone. Reload the page to see where it stands.");
+  });
+
+  it("falls back to a plain sentence for anything else", () => {
+    expect(undoRedoError("Submission 3f1c has no earlier attempt to bring back", "Adam"))
+      .toBe("Could not undo the redo. Reload the page and try again.");
+  });
+
+  it("never shows the database's own words, or an em dash", () => {
+    for (const msg of ["already started the redo", "not a redo waiting to be written", "boom"]) {
+      const out = undoRedoError(msg, "Adam");
+      expect(out).not.toContain("Submission");
+      expect(out).not.toContain("\u2014");
+    }
   });
 });

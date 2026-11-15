@@ -214,6 +214,43 @@ describe("ReviewPanel — entering a mark", () => {
   });
 });
 
+// A redo the teacher took back (undoRedo, migration 0145) returns as
+// auto_marked with the teacher's earlier marks on it, some of them typed by
+// hand over the automatic one. approveSubmission falls back to auto_marks for
+// any answer missing from its edits (planFinalMarks), so those hand marks
+// survive a re-release only because the panel sends every answer's mark,
+// prefilled from final_marks, and not just the one the teacher changed.
+describe("ReviewPanel: a paper brought back from a redo", () => {
+  const restored = () =>
+    panel(
+      [WRITTEN, MCQ, MARKED_TASK],
+      [
+        // hand-marked written answer: the model gave 1, the teacher 4
+        answer({ id: "a1", question_id: "q1", auto_marks: 1, final_marks: 4 }),
+        // the slip: an MCQ the teacher wants to change
+        answer({ id: "a2", question_id: "q2", response: { selected: [0] }, auto_marks: 2, final_marks: 0 }),
+        // a recitation only a teacher marks: no automatic mark at all
+        answer({ id: "a4", question_id: "q4", response: { voice: "x" }, auto_marks: null, final_marks: 3 }),
+        // an answer whose question has since left the paper
+        answer({ id: "a9", question_id: "gone", auto_marks: 0, final_marks: 1 }),
+      ],
+    );
+
+  it("opens on the teacher's marks, not the automatic ones", () => {
+    const { container } = restored();
+    expect(markField(container, "a1").value).toBe("4");
+    expect(markField(container, "a4").value).toBe("3");
+  });
+
+  it("keeps every earlier hand mark when only one question is corrected", async () => {
+    const { container } = restored();
+    fireEvent.change(markField(container, "a2"), { target: { value: "2" } });
+    fireEvent.click(approveButton(container));
+    await vi.waitFor(() => expect(approve).toHaveBeenCalled());
+    expect(approve.mock.calls[0][1]).toEqual({ a1: 4, a2: 2, a4: 3, a9: 1 });
+  });
+});
+
 describe("ReviewPanel — where approving lands", () => {
   const editReleased = () => {
     const { container } = panel(
