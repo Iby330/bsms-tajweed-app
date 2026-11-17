@@ -63,14 +63,20 @@ acc = sorted(i for i in acc if not (letter(i)[0] == 'ا' or (letter(i)[0] == 'م
 q = json.load(open(os.path.join(D, 'qpc.json')))
 mark = lambda c: u.category(c) in ('Mn', 'Me') or c in 'ـۥۦ'
 def clusters(w):
+    """Letters with their marks. A tatweel is dropped (a stretch, كـَلَّا) unless it
+    is the seat of a hamza (ٱلۡأَفۡـِٔدَةِ), where it is a letter of its own."""
     out = []
-    for c in w:
-        if c == 'ـ': continue
+    for i, c in enumerate(w):
+        if c == 'ـ':
+            j = i + 1
+            while j < len(w) and mark(w[j]) and w[j] != 'ـ': j += 1
+            if any(x in 'ٕٔ' for x in w[i + 1:j]): out.append(c)
+            continue
         if mark(c) and out: out[-1] += c
         else: out.append(c)
     return out
 # The two texts spell the same letter two ways in places: ى in one, ي in the other (فِيٓ).
-bare = lambda s: ''.join(c for c in s if not mark(c)).replace('\u0649', '\u064a')
+bare = lambda s: ''.join(c for c in s if not mark(c) and not c.isspace()).replace('\u0649', '\u064a')
 qpc = []
 for v, ay in zip(q['verses'], ayahs):
     ws = [w['text_qpc_hafs'] for w in v['words'] if w['char_type_name'] == 'word']
@@ -78,6 +84,13 @@ for v, ay in zip(q['verses'], ayahs):
     row = []
     for w, letters in zip(ws, ay):
         cl = clusters(w)
+        # A pause mark (كَلَّا ۖ) is its own "letter" in the source but rides on
+        # the alif in QPC: give it back its own slot so the two stay in step.
+        for k, t in enumerate(letters):
+            if k > 0 and len(cl) < len(letters) and t.strip() and all(u.category(c) in ('Mn', 'Me') for c in t.strip()):
+                marks = t.strip()
+                cl[k - 1] = cl[k - 1].replace(marks, '')
+                cl.insert(k, marks)
         assert len(cl) == len(letters) and all(bare(a) == bare(b) for a, b in zip(cl, letters)), (w, letters)
         row.append(cl)
     qpc.append(row)
