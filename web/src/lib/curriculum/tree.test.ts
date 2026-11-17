@@ -521,6 +521,30 @@ describe("edge cases", () => {
     );
     expect(odd[0].courses[0].label).toBe("mystery");
   });
+
+  /**
+   * Qāʿidah 310, 311 and 312 were all filed under Term 1 week 10. A week held
+   * ONE homework slot, so each load overwrote the last: 311 vanished from Home
+   * and the course page the day 312 was released, a day before it was due.
+   */
+  it("keeps every homework when several share a week", () => {
+    const qaidah: HomeworkRow[] = [
+      { ...hw("q10", "t1w3", 310, "qaidah", "Az-Zalzalah"), ordinal: 10 },
+      { ...hw("q11", "t1w3", 311, "qaidah", "At-Tin"), ordinal: 11 },
+      { ...hw("q12", "t1w3", 312, "qaidah", "Al-Humazah"), ordinal: 12 },
+    ];
+    const t = buildTree({ terms, weeks, lessons, homeworks: [...homeworks, ...qaidah] }, NOW);
+    const course = findCourse(t, 1, "qaidah")!;
+    expect(course.modules.map((m) => m.homework?.number)).toEqual([310, 311, 312]);
+    expect(listHomework(t).map((e) => e.homework.number)).toEqual(
+      expect.arrayContaining([310, 311, 312]),
+    );
+    // the course page keys its rows on these, so they must not collide
+    const keys = course.modules.map((m) => m.key);
+    expect(new Set(keys).size).toBe(keys.length);
+    // and a week's own lesson still has its own homework beside it
+    expect(findCourse(t, 1, "tajweed")!.modules[2].homework?.id).toBe("h3");
+  });
 });
 
 /* ── The per-class syllabus ────────────────────────────────────────────────

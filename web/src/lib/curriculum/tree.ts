@@ -382,6 +382,12 @@ export type CurriculumRows = {
 export type RedoInfo = { attempt: number; previousPct: number | null };
 
 export type Module = {
+  /**
+   * Unique within its course. Usually the week id, but a week can carry more
+   * than one homework-only item (Qāʿidah 310–312 share Term 1 week 10), and
+   * each of those is a module of its own with the same `weekId`.
+   */
+  key: string;
   weekId: string;
   weekNumber: number;
   unlockAt: string;
@@ -503,7 +509,7 @@ export function moduleTitle(raw: string): string {
 
 /* ── Build ────────────────────────────────────────────────────────────── */
 
-type Bucket = { lessons: LessonRow[]; homework: HomeworkRow | null };
+type Bucket = { weekId: string; lessons: LessonRow[]; homework: HomeworkRow | null };
 
 export function buildTree(
   rows: CurriculumRows,
@@ -550,6 +556,8 @@ export function buildTree(
    */
   const bucketFor = (
     weekId: string, series: string, courseId: string | null | undefined, ordinal?: number | null,
+    /** Which of the week's buckets: the week's own unless a homework overflows it. */
+    slot: string = weekId,
   ): Bucket | null => {
     const week = weekById.get(weekId);
     if (!week) return null; // orphan row — a week that no longer exists
@@ -565,15 +573,22 @@ export function buildTree(
     }
     let weeks = byCourse.get(k);
     if (!weeks) byCourse.set(k, (weeks = new Map()));
-    let bucket = weeks.get(weekId);
-    if (!bucket) weeks.set(weekId, (bucket = { lessons: [], homework: null }));
+    let bucket = weeks.get(slot);
+    if (!bucket) weeks.set(slot, (bucket = { weekId, lessons: [], homework: null }));
     return bucket;
   };
 
   for (const l of rows.lessons) bucketFor(l.week_id, l.series, l.course_id, l.ordinal)?.lessons.push(l);
-  for (const h of rows.homeworks) {
+  // A week has one homework slot beside its lessons. A second homework filed
+  // under the same week (and course) gets a module of its own rather than
+  // overwriting the first: that overwrite hid Qāʿidah 310 and 311 from the
+  // class the moment 312 was loaded into the same week. The first by number
+  // keeps the week's slot, so a lesson keeps its own homework.
+  for (const h of [...rows.homeworks].sort((a, b) => a.number - b.number)) {
     const bucket = bucketFor(h.week_id, h.series, h.course_id, h.ordinal);
-    if (bucket) bucket.homework = h;
+    if (!bucket) continue;
+    if (!bucket.homework) bucket.homework = h;
+    else bucketFor(h.week_id, h.series, h.course_id, h.ordinal, `${h.week_id} ${h.id}`)!.homework = h;
   }
 
   const currentTermId = resolveCurrentTerm(rows.terms, nowMs);
@@ -602,7 +617,8 @@ export function buildTree(
       }
 
       const modules: Module[] = [...weeks.entries()]
-        .map(([weekId, bucket]) => {
+        .map(([slot, bucket]) => {
+          const weekId = bucket.weekId;
           const week = weekById.get(weekId)!;
           const lessons = [...bucket.lessons].sort((a, b) => a.position - b.position);
           const source = lessons[0]?.title ?? bucket.homework?.title ?? "";
@@ -622,6 +638,7 @@ export function buildTree(
           return {
             ordinal,
             module: {
+              key: slot,
               weekId,
               // the week the class meets it in, which under group 1's schedule
               // is not the item's number

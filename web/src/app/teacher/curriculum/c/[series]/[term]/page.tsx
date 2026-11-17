@@ -107,7 +107,7 @@ export default async function CurriculumBlock({
           const stats = m.homework ? statsByHw.get(m.homework.id) : undefined;
           return (
             <TeacherModuleCard
-              key={m.weekId}
+              key={m.key}
               module={m}
               series={course.series}
               homeworkHref={

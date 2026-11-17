@@ -27,6 +27,7 @@ const homework = (number: number, series: string) => ({
 });
 
 const wk = (over: Partial<Module> = {}): Module => ({
+  key: "w1",
   weekId: "w1",
   weekNumber: 1,
   unlockAt: "2026-10-03T00:00:00Z",

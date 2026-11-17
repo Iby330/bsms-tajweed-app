@@ -21,6 +21,7 @@ const lesson = (id: string, youtubeId: string | null, title = "Tajweed 3 — Iql
 });
 
 const wk = (over: Partial<Module> = {}): Module => ({
+  key: "w1",
   weekId: "w1",
   weekNumber: 3,
   unlockAt: "2026-09-12T00:00:00Z",

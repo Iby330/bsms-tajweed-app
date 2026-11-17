@@ -72,7 +72,7 @@ export default async function CoursePage({
       <ul className="cards">
         {course.modules.map((m) => (
           <ModuleCard
-            key={m.weekId}
+            key={m.key}
             module={m}
             series={course.series}
             courseLabel={course.label}
