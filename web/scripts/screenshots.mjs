@@ -410,6 +410,9 @@ async function teardown() {
   await delOwned("hifz_records", "student_id");
   await delOwned("attendance", "student_id"); // before strikes, because of attendance.strike_id
   await delOwned("strikes", "student_id");
+  // Exam Builder test papers (sections and items cascade) and test bank questions.
+  await delOwned("exam_papers", "owner_id");
+  await delOwned("exam_bank_questions", "created_by");
 
   // actor references on other people's rows
   await nullActor("submissions", "approved_by");
