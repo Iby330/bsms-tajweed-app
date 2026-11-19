@@ -11,6 +11,7 @@ import { useState, useTransition } from "react";
 import { FileText, Lock, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createPaper, deletePaper } from "@/lib/exam-builder/actions";
+import { usedLabel } from "@/lib/exam-builder/labels";
 import { formatMarks } from "@/lib/exam-builder/numbering";
 import type { PaperSummary } from "@/lib/exam-builder/queries";
 import { cn } from "@/lib/utils";
@@ -64,7 +65,10 @@ export function NewPaperButton({ size = "lg", label = "New paper" }: { size?: "l
 
 export function PaperList({ papers }: { papers: PaperSummary[] }) {
   const router = useRouter();
-  const [list, setList] = useState(papers);
+  // Deleted ones are hidden at once; the rest always follow the server's list,
+  // so a refresh (after edits in the builder) shows the new counts.
+  const [gone, setGone] = useState<Set<string>>(() => new Set());
+  const list = papers.filter((p) => !gone.has(p.id));
   const [deleting, setDeleting] = useState<PaperSummary | null>(null);
 
   if (list.length === 0) {
@@ -98,6 +102,11 @@ export function PaperList({ papers }: { papers: PaperSummary[] }) {
                 </span>
                 <StatusChip final={final} />
               </div>
+              {final && (
+                <p className="-mt-1 text-xs text-muted-foreground">
+                  Its bank questions are stamped <b className="font-semibold text-ok">{usedLabel(p.code, p.season)}</b>
+                </p>
+              )}
               <h2 className="text-lg leading-snug font-semibold text-balance">
                 <Link
                   href={`/teacher/exam-builder/${p.id}`}
@@ -152,7 +161,8 @@ export function PaperList({ papers }: { papers: PaperSummary[] }) {
           if (!deleting) return;
           const res = await deletePaper(deleting.id);
           if (!res.ok) return res.error;
-          setList((l) => l.filter((x) => x.id !== deleting.id));
+          const id = deleting.id;
+          setGone((g) => new Set([...g, id]));
           router.refresh();
         }}
       >

@@ -11,8 +11,19 @@
  * paper the caller may not touch reads as "not found".
  *
  * Expected failures come back as `{ ok: false, error }`, never as a throw, so
- * the workspace can show them inline. After every successful write the whole
- * /teacher/exam-builder tree is revalidated.
+ * the workspace can show them inline.
+ *
+ * Revalidation, deliberately sparing. In Next 16 ANY `revalidatePath` inside
+ * a server action re-renders the route the caller is on, whatever path it
+ * names (see `pathWasRevalidated` in next/dist/server/web/spec-extension/
+ * revalidate.js: "TODO: only revalidate if the path matches"). On the
+ * workspace that means re-reading the whole bank and re-signing every
+ * picture after each click, for nothing: the workspace keeps its own
+ * optimistic state. So the edits made from the workspace revalidate nothing.
+ * The paper list, the bank page and the workspace are all `force-dynamic`,
+ * and a dynamic page is fetched fresh on every navigation, so the list's
+ * counts are right the next time it is opened. Only the actions called FROM
+ * the list (create, delete) revalidate it, as a page: it is cheap.
  *
  * Only async functions may be exported from a "use server" file: the pure
  * checks live in ./validate and ./parse.
@@ -38,8 +49,9 @@ const NO_ITEM = "That question isn't there, or isn't yours.";
 
 const fail = (error: string): Fail => ({ ok: false, error });
 
-function revalidate() {
-  revalidatePath(PATH, "layout");
+/** Refresh the paper list (a cheap page). Only for actions called from the list itself. */
+function revalidateList() {
+  revalidatePath(PATH);
 }
 
 /** A database refusal in words a teacher can act on. */
@@ -162,7 +174,7 @@ export async function createPaper(): Promise<Result<{ id: string }>> {
     await db.from("exam_papers").delete().eq("id", data.id);
     return dbFail(secErr);
   }
-  revalidate();
+  revalidateList();
   return { ok: true, id: data.id };
 }
 
@@ -183,7 +195,6 @@ export async function updatePaper(
   const { error } = await db
     .from("exam_papers").update({ ...clean.patch, updated_at: new Date().toISOString() }).eq("id", id);
   if (error) return dbFail(error);
-  revalidate();
   return { ok: true };
 }
 
@@ -202,7 +213,7 @@ export async function deletePaper(id: string): Promise<Result> {
   const { data, error } = await db.from("exam_papers").delete().eq("id", id).select("id");
   if (error) return dbFail(error);
   if (!data?.length) return fail(NO_PAPER);
-  revalidate();
+  revalidateList();
   return { ok: true };
 }
 
@@ -215,7 +226,6 @@ export async function setPaperFinal(id: string, final: boolean): Promise<Result<
   const db = await supabaseServer();
   const { data, error } = await db.rpc("exam_paper_set_final", { p_paper: id, p_final: final });
   if (error) return dbFail(error);
-  revalidate();
   return { ok: true, label: typeof data === "string" ? data : "" };
 }
 
@@ -252,7 +262,6 @@ export async function addSection(paperId: string, kind: SectionKind): Promise<Re
     .single();
   if (error) return dbFail(error);
   if (!data) return fail("The section wasn't added.");
-  revalidate();
   return { ok: true, section: toSection(data) };
 }
 
@@ -269,7 +278,6 @@ export async function updateSection(id: string, patch: { title?: string; practic
 
   const { error } = await db.from("exam_paper_sections").update(clean.patch).eq("id", id);
   if (error) return dbFail(error);
-  revalidate();
   return { ok: true };
 }
 
@@ -288,7 +296,6 @@ export async function removeSection(id: string): Promise<Result> {
   if (restErr) return dbFail(restErr);
   const written = await writePositions(db, "exam_paper_sections", rest ?? []);
   if (!written.ok) return written;
-  revalidate();
   return { ok: true };
 }
 
@@ -308,7 +315,6 @@ export async function moveSection(id: string, dir: "up" | "down"): Promise<Resul
   if (!order) return { ok: true };
   const written = await writePositions(db, "exam_paper_sections", order);
   if (!written.ok) return written;
-  revalidate();
   return { ok: true };
 }
 
@@ -373,7 +379,6 @@ export async function addItemFromBank(
     .single();
   if (error) return dbFail(error);
   if (!data) return fail("The question wasn't added.");
-  revalidate();
   return { ok: true, item: toPaperItem(data) };
 }
 
@@ -416,7 +421,6 @@ export async function addBlankItem(
     .single();
   if (error) return dbFail(error);
   if (!data) return fail("The question wasn't added.");
-  revalidate();
   return { ok: true, item: toPaperItem(data) };
 }
 
@@ -444,7 +448,6 @@ export async function updateItem(
   }
   const { error } = await db.from("exam_paper_items").update(update).eq("id", id);
   if (error) return dbFail(error);
-  revalidate();
   return { ok: true };
 }
 
@@ -463,7 +466,6 @@ export async function removeItem(id: string): Promise<Result> {
   if (restErr) return dbFail(restErr);
   const written = await writePositions(db, "exam_paper_items", rest ?? []);
   if (!written.ok) return written;
-  revalidate();
   return { ok: true };
 }
 
@@ -483,7 +485,6 @@ export async function moveItem(id: string, dir: "up" | "down"): Promise<Result> 
   if (!order) return { ok: true };
   const written = await writePositions(db, "exam_paper_items", order);
   if (!written.ok) return written;
-  revalidate();
   return { ok: true };
 }
 
@@ -513,6 +514,5 @@ export async function moveItemToSection(id: string, sectionId: string): Promise<
     const written = await writePositions(db, "exam_paper_items", rows ?? []);
     if (!written.ok) return written;
   }
-  revalidate();
   return { ok: true };
 }

@@ -7,15 +7,15 @@
  * total is worked out from what is on the sheet, so they change the moment
  * a question is added, moved or re-marked.
  */
-import { Pencil, Plus, Table2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatMarks, numberItems, paperTotal, sectionTotal } from "@/lib/exam-builder/numbering";
-import type { Paper, Section } from "@/lib/exam-builder/types";
+import type { Paper, Section, SectionKind } from "@/lib/exam-builder/types";
 import { itemsIn, orderedSections, type Item, type PaperOps } from "./paper-state";
 import { SectionBlock } from "./section-block";
 
 export function PaperCanvas({
-  paper, sections, items, ops, locked, showAnswers, flashId,
+  paper, sections, items, ops, locked, showAnswers, flashId, addingSection = null,
 }: {
   paper: Paper;
   sections: Section[];
@@ -24,6 +24,8 @@ export function PaperCanvas({
   locked: boolean;
   showAnswers: boolean;
   flashId: string | null;
+  /** A section being added: its button shows it is waiting for the server. */
+  addingSection?: SectionKind | null;
 }) {
   const ordered = orderedSections(sections);
   const numbers = numberItems(ordered, items);
@@ -83,11 +85,13 @@ export function PaperCanvas({
 
       {!locked && (
         <div className="font-sans mt-10 flex flex-wrap items-center justify-center gap-2 border-t border-dashed border-line pt-6">
-          <Button variant="outline" className="bg-white" onClick={() => ops.addSection("questions")}>
-            <Plus aria-hidden /> Add a section
+          <Button variant="outline" className="bg-white" onClick={() => ops.addSection("questions")} disabled={addingSection !== null}>
+            {addingSection === "questions" ? <Loader2 className="animate-spin" aria-hidden /> : <Plus aria-hidden />}
+            {addingSection === "questions" ? "Adding a section…" : "Add a section"}
           </Button>
-          <Button variant="outline" className="bg-white" onClick={() => ops.addSection("practical")} disabled={hasPractical} title={hasPractical ? "The paper already has the practical table" : undefined}>
-            <Table2 aria-hidden /> Add the practical (hifdh) table
+          <Button variant="outline" className="bg-white" onClick={() => ops.addSection("practical")} disabled={hasPractical || addingSection !== null} title={hasPractical ? "The paper already has the practical table" : undefined}>
+            {addingSection === "practical" ? <Loader2 className="animate-spin" aria-hidden /> : <Table2 aria-hidden />}
+            {addingSection === "practical" ? "Adding the table…" : "Add the practical (hifdh) table"}
           </Button>
         </div>
       )}

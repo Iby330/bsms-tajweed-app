@@ -8,7 +8,7 @@
  */
 import { useState } from "react";
 import {
-  ArrowDown, ArrowUp, ChevronDown, FolderInput, Pencil, Plus, Trash2,
+  ArrowDown, ArrowUp, FolderInput, Pencil, Plus, Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatMarks, marksLabel } from "@/lib/exam-builder/numbering";
@@ -164,11 +164,16 @@ function PracticalTable({ section, locked, ops }: { section: Section; locked: bo
   const p = section.practical ?? { rows: 3, marks: 9, columns: ["Verse", "Surah", "Order - before/after"] };
   const [rows, setRows] = useState(String(p.rows));
   const [marks, setMarks] = useState(String(p.marks));
+  const [cols, setCols] = useState(p.columns.join(", "));
   const save = () => {
     const r = Number(rows), m = Number(marks);
     if (!Number.isInteger(r) || r < 1 || r > 30) { setRows(String(p.rows)); return; }
     if (!Number.isFinite(m) || m < 0 || !Number.isInteger(m * 2)) { setMarks(String(p.marks)); return; }
-    if (r !== p.rows || m !== p.marks) ops.updatePractical(section.id, { ...p, rows: r, marks: m });
+    const c = cols.split(",").map((x) => x.trim()).filter(Boolean);
+    if (c.length < 1 || c.length > 6 || c.some((x) => x.length > 60)) { setCols(p.columns.join(", ")); return; }
+    if (r !== p.rows || m !== p.marks || c.join("\u0000") !== p.columns.join("\u0000")) {
+      ops.updatePractical(section.id, { rows: r, marks: m, columns: c });
+    }
   };
   return (
     <div className="grid gap-3 py-3">
@@ -177,14 +182,14 @@ function PracticalTable({ section, locked, ops }: { section: Section; locked: bo
           <thead>
             <tr>
               <th className="w-10 border border-[#00004d]/50 px-2 py-1.5" aria-label="Row" />
-              {p.columns.map((c) => <th key={c} className="border border-[#00004d]/50 px-2 py-1.5 text-left font-bold">{c}</th>)}
+              {p.columns.map((c, ci) => <th key={ci} className="border border-[#00004d]/50 px-2 py-1.5 text-left font-bold">{c}</th>)}
             </tr>
           </thead>
           <tbody>
             {Array.from({ length: p.rows }, (_, i) => (
               <tr key={i}>
                 <td className="border border-[#00004d]/50 px-2 py-3 text-center tabular-nums">{i + 1}</td>
-                {p.columns.map((c) => <td key={c} className="border border-[#00004d]/50" />)}
+                {p.columns.map((_, ci) => <td key={ci} className="border border-[#00004d]/50" />)}
               </tr>
             ))}
           </tbody>
@@ -202,6 +207,14 @@ function PracticalTable({ section, locked, ops }: { section: Section; locked: bo
             <input type="number" min={0} max={100} step={0.5} value={marks} onChange={(e) => setMarks(e.target.value)} onBlur={save}
               className="h-8 w-20 rounded-md border border-input bg-white px-2 text-right text-foreground tabular-nums outline-none focus:ring-2 focus:ring-ring/50" />
           </label>
+          <label className="flex min-w-0 basis-full items-center gap-2 text-muted-foreground">
+            <span className="shrink-0">Column headings</span>
+            <input type="text" value={cols} onChange={(e) => setCols(e.target.value)} onBlur={save}
+              onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+              aria-describedby={`cols-hint-${section.id}`}
+              className="h-8 min-w-0 flex-1 rounded-md border border-input bg-white px-2 text-foreground outline-none focus:ring-2 focus:ring-ring/50" />
+          </label>
+          <p id={`cols-hint-${section.id}`} className="-mt-2 basis-full text-xs text-muted-foreground">Separate the headings with commas, up to six.</p>
         </div>
       )}
     </div>
@@ -250,7 +263,7 @@ export function SectionBlock({
       </div>
 
       {practical ? (
-        <PracticalTable key={`${section.practical?.rows}-${section.practical?.marks}`} section={section} locked={locked} ops={ops} />
+        <PracticalTable key={`${section.practical?.rows}-${section.practical?.marks}-${section.practical?.columns.join("|")}`} section={section} locked={locked} ops={ops} />
       ) : (
         <>
           {items.length === 0 ? (
@@ -266,18 +279,9 @@ export function SectionBlock({
           )}
           {!locked && (
             <div className="font-sans mt-1">
-              <ActionMenu
-                align="start"
-                label="Write a new question"
-                trigger={
-                  <Button variant="outline" size="sm" className="bg-white">
-                    <Plus aria-hidden /> Write a new question <ChevronDown aria-hidden />
-                  </Button>
-                }
-              >
-                <ActionItem onSelect={() => ops.addBlank(section.id, "mcq")}>Multiple choice</ActionItem>
-                <ActionItem onSelect={() => ops.addBlank(section.id, "short")}>Short answer</ActionItem>
-              </ActionMenu>
+              <Button variant="outline" size="sm" className="bg-white" onClick={() => ops.writeNew(section.id)}>
+                <Plus aria-hidden /> Write a new question
+              </Button>
             </div>
           )}
         </>

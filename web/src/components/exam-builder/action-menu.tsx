@@ -74,6 +74,24 @@ export function ActionLink({ href, children }: { href: string; children: ReactNo
   );
 }
 
+/** A menu entry that downloads a file (the route answers with an attachment). */
+export function ActionDownload({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Menu.LinkItem href={href} download className={cn(ITEM, "no-underline")}>
+      {children}
+    </Menu.LinkItem>
+  );
+}
+
+/** A small group heading inside a menu: "Print", "Word", "Finish". */
+export function ActionHeading({ children }: { children: ReactNode }) {
+  return (
+    <div className="px-2.5 pt-1.5 pb-0.5 font-mono text-[0.68rem] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
+      {children}
+    </div>
+  );
+}
+
 export function ActionSeparator() {
   return <Menu.Separator className="my-1 h-px bg-border" />;
 }

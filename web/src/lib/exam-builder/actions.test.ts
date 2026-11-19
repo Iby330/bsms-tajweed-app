@@ -142,7 +142,7 @@ describe("createPaper", () => {
     expect(secs.args[0]).toEqual(DEFAULT_SECTIONS.map((s, i) => ({
       paper_id: PAPER, position: i + 1, title: s.title, kind: s.kind, practical: s.practical,
     })));
-    expect(revalidatePath).toHaveBeenCalledWith("/teacher/exam-builder", "layout");
+    expect(revalidatePath).toHaveBeenCalledWith("/teacher/exam-builder");
   });
 
   it("removes the paper again if its sections fail", async () => {
@@ -306,7 +306,8 @@ describe("addItemFromBank", () => {
       answer: "A nasal sound (1)", marks: 1, answer_lines: 2,
     });
     expect(res).toMatchObject({ ok: true, item: { id: ITEM, kind: "short", marks: 1, prompt_quran: { surah: 103 } } });
-    expect(revalidatePath).toHaveBeenCalledWith("/teacher/exam-builder", "layout");
+    // Saves from the workspace never re-render it: no revalidation.
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("keeps the bank's marks and gives an mcq no writing lines", async () => {
@@ -385,7 +386,7 @@ describe("moving and removing questions", () => {
     await expect(moveItem(ITEM_3, "up")).resolves.toEqual({ ok: true });
     const ups = calls.filter((c) => c.op === "update").map((c) => [eqId(c), c.args[0]]);
     expect(ups).toEqual([[ITEM_3, { position: 2 }], [ITEM_2, { position: 3 }]]);
-    expect(revalidatePath).toHaveBeenCalledTimes(1);
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("moveItem at the top is a no-op", async () => {

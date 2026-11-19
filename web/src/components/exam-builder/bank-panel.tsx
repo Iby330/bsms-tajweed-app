@@ -76,12 +76,15 @@ export function BankPanel({
   topics,
   questions,
   add,
+  reveal = null,
   className,
 }: {
   topics: Topic[];
   questions: BankQuestion[];
   /** Omit for the read-only bank page. */
   add?: BankAdd;
+  /** A topic to open (with its series), e.g. where a just-written question went. */
+  reveal?: string | null;
   className?: string;
 }) {
   const [text, setText] = useState("");
@@ -89,6 +92,16 @@ export function BankPanel({
   const [unusedOnly, setUnusedOnly] = useState(false);
   const [kind, setKind] = useState<QuestionKind | null>(null);
   const [open, setOpen] = useState<Set<string>>(() => new Set());
+  // Open the revealed topic when it changes (adjusting state during render,
+  // React's pattern for "reset when a prop changes", rather than an effect).
+  const [revealed, setRevealed] = useState<string | null>(null);
+  if (reveal !== revealed) {
+    setRevealed(reveal);
+    if (reveal) {
+      const parent = topics.find((t) => t.id === reveal)?.parent_id;
+      setOpen((s) => new Set([...s, reveal, ...(parent ? [parent] : [])]));
+    }
+  }
 
   const groups = useMemo(() => groupTopics(topics), [topics]);
   const allMarks = useMemo(() => markValues(questions), [questions]);

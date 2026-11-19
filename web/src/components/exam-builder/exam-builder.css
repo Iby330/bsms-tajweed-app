@@ -78,3 +78,21 @@
 .exam-tree details[open] > summary .exam-chev {
   transform: rotate(90deg);
 }
+
+/* Qur'anic pictures on screen: until fit-pictures.ts has read a picture's
+   size, it is held to one line's height for where it sits, as print does
+   (22mm for a prompt, 13mm for an option, at the sheet's ~4.3px a mm). */
+.exam-sheet .exam-q-images { --exam-pic-max: 92px; }
+.exam-sheet .exam-q-options { --exam-pic-max: 56px; }
+.exam-tree .exam-q-images { --exam-pic-max: 64px; }
+.exam-tree .exam-q-options { --exam-pic-max: 44px; }
+/* A picture is paper: white behind it in dark mode too, so its black ink reads. */
+.exam-tree .exam-q-image {
+  background: #fff;
+  border-radius: 2px;
+}
+/* The new-question form's preview. */
+.exam-edit-image {
+  max-width: min(100%, 22rem);
+  max-height: 6rem;
+}

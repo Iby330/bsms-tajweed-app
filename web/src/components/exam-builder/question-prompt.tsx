@@ -37,8 +37,10 @@ function Picture({ path, url, variant }: { path: string; url: string | undefined
       src={url}
       alt={ALT}
       loading={variant === "screen" ? "lazy" : undefined}
-      className="exam-q-image block h-auto"
-      style={{ maxWidth: "100%", maxHeight: variant === "print" ? "32mm" : "9rem" }}
+      className="exam-q-image block h-auto w-auto"
+      // On screen the context sets the cap (exam-builder.css: one line on the
+      // sheet, smaller in a bank card) and fit-pictures refines it by lines.
+      style={{ maxWidth: "100%", maxHeight: variant === "print" ? "32mm" : "var(--exam-pic-max, 9rem)" }}
     />
   );
 }

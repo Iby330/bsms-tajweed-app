@@ -2,16 +2,17 @@
 
 /**
  * Top right of the builder: print the paper or its mark scheme (the print
- * route opens in a new tab, where "Save as PDF" is the browser's own), and
+ * route opens in a new tab, where "Save as PDF" is the browser's own),
+ * download either as a Word file (/api/exam-builder/<id>/docx), and
  * mark the paper final — which stamps each bank question on it as used in
  * "<code> <season>" — or reopen it.
  */
 import { useState } from "react";
-import { ChevronDown, FileCheck2, LockOpen, Printer, ScrollText } from "lucide-react";
+import { ChevronDown, FileCheck2, FileDown, LockOpen, Printer, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usedLabel } from "@/lib/exam-builder/labels";
 import type { Paper } from "@/lib/exam-builder/types";
-import { ActionItem, ActionLink, ActionMenu, ActionSeparator } from "./action-menu";
+import { ActionDownload, ActionHeading, ActionItem, ActionLink, ActionMenu, ActionSeparator } from "./action-menu";
 import { ConfirmDialog } from "./confirm-dialog";
 
 export function ExportMenu({
@@ -35,16 +36,26 @@ export function ExportMenu({
           </Button>
         }
       >
+        <ActionHeading>Print</ActionHeading>
         <ActionLink href={`/exam-print/${paper.id}`}>
           <Printer /> Print paper
         </ActionLink>
         <ActionLink href={`/exam-print/${paper.id}?scheme=1`}>
           <ScrollText /> Print mark scheme
         </ActionLink>
-        {/* Download Word goes here (plan Task 8): an ActionLink to
-            /api/exam-builder/<paperId>/docx (and ?scheme=1). Not rendered
-            until that route exists. */}
         <ActionSeparator />
+        <ActionHeading>Word</ActionHeading>
+        <ActionDownload href={`/api/exam-builder/${paper.id}/docx`}>
+          <FileDown /> Download paper (Word)
+        </ActionDownload>
+        <ActionDownload href={`/api/exam-builder/${paper.id}/docx?scheme=1`}>
+          <FileDown /> Download mark scheme (Word)
+        </ActionDownload>
+        <p className="max-w-64 px-2.5 pt-0.5 pb-1.5 text-xs leading-snug text-muted-foreground">
+          Opens in Word, or upload it to Google Drive to edit as a Google Doc.
+        </p>
+        <ActionSeparator />
+        <ActionHeading>Finish</ActionHeading>
         {final ? (
           <ActionItem onSelect={() => setConfirm("reopen")}>
             <LockOpen /> Reopen for editing

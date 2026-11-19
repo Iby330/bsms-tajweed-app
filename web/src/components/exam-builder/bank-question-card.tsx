@@ -7,7 +7,7 @@
  * section that suits it (the multiple-choice section for a multiple choice),
  * with a menu to choose another. On the bank page it is read-only.
  */
-import { memo } from "react";
+import { memo, useState } from "react";
 import { AlertTriangle, Check, ChevronDown, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatMarks } from "@/lib/exam-builder/numbering";
@@ -45,6 +45,7 @@ function BankQuestionCardImpl({
   /** The paper is final: adding is off. */
   locked?: boolean;
 }) {
+  const [whyOpen, setWhyOpen] = useState(false);
   const canAdd = !!onAdd && !!sections?.length;
   const target = sections?.find((s) => s.id === suggestedId) ?? sections?.[0];
   const sources = q.sources.map((s) => (s.number ? `${s.label} (${s.number})` : s.label));
@@ -65,9 +66,21 @@ function BankQuestionCardImpl({
           {q.kind === "mcq" ? (q.select_many ? "Multiple choice · tick all" : "Multiple choice") : "Short answer"}
         </span>
         {q.review_status === "check" && (
-          <span className={cn(chip, "bg-warn/15 text-warn")} title={q.review_note ?? undefined}>
-            <AlertTriangle className="size-3" aria-hidden /> Needs checking
-          </span>
+          q.review_note ? (
+            <button
+              type="button"
+              className={cn(chip, "cursor-pointer bg-warn/15 text-warn hover:bg-warn/25 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none")}
+              title={q.review_note}
+              aria-expanded={whyOpen}
+              onClick={() => setWhyOpen((v) => !v)}
+            >
+              <AlertTriangle className="size-3" aria-hidden /> Needs checking
+            </button>
+          ) : (
+            <span className={cn(chip, "bg-warn/15 text-warn")}>
+              <AlertTriangle className="size-3" aria-hidden /> Needs checking
+            </span>
+          )
         )}
         {lacksAnswer(q) && <span className={cn(chip, "bg-danger/15 text-danger")}>No answer yet</span>}
       </div>
@@ -100,7 +113,11 @@ function BankQuestionCardImpl({
             </details>
           )}
           {q.review_status === "check" && q.review_note && (
-            <details className="group text-sm">
+            <details
+              className="group text-sm"
+              open={whyOpen}
+              onToggle={(e) => { const o = e.currentTarget.open; if (o !== whyOpen) setWhyOpen(o); }}
+            >
               <summary className="w-fit cursor-pointer rounded-sm text-xs font-medium text-warn underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
                 Why it needs checking
               </summary>

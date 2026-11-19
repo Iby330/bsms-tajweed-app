@@ -5,7 +5,7 @@
  * and the action's reply has nothing to correct.
  */
 import type { PaperItemWithImages } from "@/lib/exam-builder/queries";
-import type { Paper, Practical, QuestionKind, Section, SectionKind } from "@/lib/exam-builder/types";
+import type { Paper, Practical, Section, SectionKind } from "@/lib/exam-builder/types";
 
 export type Item = PaperItemWithImages;
 export type PaperState = { paper: Paper; sections: Section[]; items: Item[] };
@@ -18,7 +18,8 @@ export type PaperOps = {
   moveSection: (id: string, dir: "up" | "down") => void;
   removeSection: (id: string) => void;
   addSection: (kind: SectionKind) => void;
-  addBlank: (sectionId: string, kind: QuestionKind) => void;
+  /** Open "Write a new question" for this section. */
+  writeNew: (sectionId: string) => void;
   editItem: (id: string) => void;
   moveItem: (id: string, dir: "up" | "down") => void;
   moveItemToSection: (id: string, sectionId: string) => void;

@@ -68,7 +68,7 @@ const item = (id: string, section_id: string, position: number, marks: number): 
 const noop = () => {};
 const ops: PaperOps = {
   editHeader: noop, renameSection: noop, updatePractical: noop, moveSection: noop, removeSection: noop, addSection: noop,
-  addBlank: noop, editItem: noop, moveItem: noop, moveItemToSection: noop, removeItem: noop,
+  writeNew: noop, editItem: noop, moveItem: noop, moveItemToSection: noop, removeItem: noop,
 };
 
 describe("PaperCanvas numbering", () => {

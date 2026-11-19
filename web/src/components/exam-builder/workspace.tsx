@@ -7,23 +7,33 @@
  *
  * This component owns the paper's state. Every change shows at once, then
  * goes to the server; if the server refuses, the change is undone and the
- * reason shown under the top bar. Server replies re-render the page, but the
- * state here is seeded once and not replaced, so pictures don't reload and
- * nothing jumps while a teacher is working.
+ * reason shown under the top bar. The actions deliberately revalidate
+ * nothing (see lib/exam-builder/actions.ts), so a save never re-renders the
+ * route: the state here is seeded once from the server and is the truth on
+ * screen from then on, so pictures don't reload and nothing jumps while a
+ * teacher is working.
+ *
+ * "Write a new question" opens a dialog; the question goes into the bank and
+ * onto the paper (or onto the paper only, when kept out of the bank), and
+ * shows in the bank panel at once under its topic.
  */
 import Link from "next/link";
-import { useCallback, useMemo, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { ArrowLeft, Check, Eye, EyeOff, Library, Loader2, Lock, LockOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import * as A from "@/lib/exam-builder/actions";
+import { addBankQuestion, addCustomItem } from "@/lib/exam-builder/new-question-actions";
 import { usedLabel, suggestSection } from "@/lib/exam-builder/labels";
 import { formatMarks, paperTotal } from "@/lib/exam-builder/numbering";
 import type { LoadedPaper } from "@/lib/exam-builder/queries";
-import type { BankQuestion, Paper, QuestionKind, Result, Topic } from "@/lib/exam-builder/types";
+import type { BankQuestion, Paper, QuestionKind, Result, SectionKind, Topic } from "@/lib/exam-builder/types";
 import { BankPanel, type BankAdd } from "./bank-panel";
 import { ExportMenu } from "./export-menu";
+import { useFitPictures } from "./fit-pictures";
 import { ItemEditor, type ItemPatch } from "./item-editor";
+import { NewQuestionForm, type NewQuestionInput } from "./new-question-form";
 import { PaperCanvas } from "./paper-canvas";
 import { PaperHeaderForm } from "./paper-header-form";
 import { StatusChip } from "./paper-list";
@@ -36,10 +46,13 @@ export function Workspace({
   initial,
   topics,
   questions: initialQuestions,
+  profileId,
 }: {
   initial: LoadedPaper;
   topics: Topic[];
   questions: BankQuestion[];
+  /** The signed-in teacher: new pictures upload under new/<profileId>/. */
+  profileId: string;
 }) {
   const [state, setStateRaw] = useState<State>(() => ({
     paper: initial.paper, sections: initial.sections, items: initial.items,
@@ -53,14 +66,29 @@ export function Workspace({
     });
   }, []);
   const [questions, setQuestions] = useState(initialQuestions);
+  useFitPictures();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  // Nothing revalidates on save, so a page the router kept from before (the
+  // list, reached with the browser's Back button) would show old counts.
+  // Leaving after a change refreshes whatever page we land on: one cheap fetch.
+  const router = useRouter();
+  const changed = useRef(false);
+  useEffect(() => {
+    if (saved) changed.current = true;
+  }, [saved]);
+  useEffect(() => () => {
+    if (changed.current) router.refresh();
+  }, [router]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [headerOpen, setHeaderOpen] = useState(false);
   const [bankOpen, setBankOpen] = useState(false);
   const [showAnswers, setShowAnswers] = useState(false);
   const [flashId, setFlashId] = useState<string | null>(null);
+  const [writingIn, setWritingIn] = useState<string | null>(null);
+  const [reveal, setReveal] = useState<string | null>(null);
+  const [addingSection, setAddingSection] = useState<SectionKind | null>(null);
 
   const { paper, sections, items } = state;
   const locked = paper.status === "final";
@@ -127,20 +155,24 @@ export function Workspace({
       commit((s) => L.updateSectionLocal(s, id, { practical }), () => A.updateSection(id, { practical })),
     moveSection: (id, dir) => commit((s) => L.moveSectionLocal(s, id, dir), () => A.moveSection(id, dir)),
     removeSection: (id) => commit((s) => L.removeSectionLocal(s, id), () => A.removeSection(id)),
-    addSection: (kind) =>
-      commit((s) => s, () => A.addSection(paper.id, kind), (r) => {
+    addSection: (kind) => {
+      setAddingSection(kind);
+      commit((s) => s, async () => {
+        try {
+          return await A.addSection(paper.id, kind);
+        } finally {
+          setAddingSection(null);
+        }
+      }, (r) => {
         setState((s) => L.addSectionLocal(s, r.section));
         requestAnimationFrame(() => {
           const el = document.querySelector<HTMLTextAreaElement>(`[data-section-title="${r.section.id}"]`);
           el?.scrollIntoView({ block: "center", behavior: "smooth" });
           el?.select();
         });
-      }),
-    addBlank: (sectionId, kind) =>
-      commit((s) => s, () => A.addBlankItem(paper.id, sectionId, kind), (r) => {
-        setState((s) => L.appendItemLocal(s, { ...r.item, imageUrls: {} }));
-        setEditingId(r.item.id);
-      }),
+      });
+    },
+    writeNew: (sectionId) => setWritingIn(sectionId),
     editItem: (id) => setEditingId(id),
     moveItem: (id, dir) => commit((s) => L.moveItemLocal(s, id, dir), () => A.moveItem(id, dir)),
     moveItemToSection: (id, sectionId) =>
@@ -160,6 +192,34 @@ export function Workspace({
       setState((s) => L.replaceItemLocal(s, tempId, { ...r.item, imageUrls: q.imageUrls }));
       flash(r.item.id);
     });
+  };
+
+  /** "Write a new question": into the bank and onto the paper, or onto the paper only. */
+  const submitNew = async (q: NewQuestionInput, keepOut: boolean, imageUrls: Record<string, string>): Promise<string | void> => {
+    const sectionId = writingIn;
+    if (!sectionId) return "Choose a section first.";
+    setError(null);
+    if (keepOut) {
+      const res = await addCustomItem(paper.id, sectionId, q);
+      if (!res.ok) return res.error;
+      setState((s) => L.appendItemLocal(s, { ...res.item, imageUrls: { ...imageUrls, ...res.imageUrls } }));
+      setSaved(true);
+      flash(res.item.id);
+      return;
+    }
+    const res = await addBankQuestion(q, { paperId: paper.id, sectionId });
+    if (!res.ok) return res.error;
+    const question = res.question;
+    setQuestions((qs) => [...qs, question]);
+    setReveal(question.topic_id);
+    setSaved(true);
+    if (res.item) {
+      const item = res.item;
+      setState((s) => L.appendItemLocal(s, { ...item, imageUrls: question.imageUrls }));
+      flash(item.id);
+    } else if (res.addError) {
+      setError(`It's in the bank, but it wasn't put on the paper: ${res.addError}`);
+    }
   };
 
   const saveItem = (id: string, patch: ItemPatch) =>
@@ -264,7 +324,7 @@ export function Workspace({
             <span className="ml-auto text-xs text-muted-foreground">Open a series, then a rule</span>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-            <BankPanel topics={topics} questions={questions} add={bankAdd} />
+            <BankPanel topics={topics} questions={questions} add={bankAdd} reveal={reveal} />
           </div>
         </aside>
 
@@ -282,6 +342,7 @@ export function Workspace({
             locked={locked}
             showAnswers={showAnswers}
             flashId={flashId}
+            addingSection={addingSection}
           />
           {locked && (
             <div className="mt-6 flex justify-center">
@@ -307,10 +368,19 @@ export function Workspace({
               {addedIds.size} on the paper · {formatMarks(total)} marks. Added questions go straight onto the paper.
             </DialogDescription>
           </DialogHeader>
-          <BankPanel topics={topics} questions={questions} add={bankAdd} />
+          <BankPanel topics={topics} questions={questions} add={bankAdd} reveal={reveal} />
         </DialogContent>
       </Dialog>
 
+      <NewQuestionForm
+        open={writingIn !== null}
+        onOpenChange={(o) => { if (!o) setWritingIn(null); }}
+        topics={topics}
+        profileId={profileId}
+        mode="paper"
+        defaultKind={sections.find((x) => x.id === writingIn)?.title.toLowerCase().includes("multiple") ? "mcq" : "short"}
+        onSubmit={submitNew}
+      />
       <ItemEditor item={editing} onOpenChange={(o) => { if (!o) setEditingId(null); }} onSave={saveItem} />
       <PaperHeaderForm open={headerOpen} onOpenChange={setHeaderOpen} paper={paper} onSave={saveHeader} />
     </div>
