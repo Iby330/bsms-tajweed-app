@@ -12,7 +12,7 @@
      "n": 1,
      "format": "rule_hunt",
      "prompt": "Find the rules in Sūrat ash-Shams. Tap any letter and choose the rule or rules on it: a letter can carry more than one. For Lām shamsiyyah and Lām qamariyyah, tag the ال or the letter straight after it. Find as many as you can. Each thing you find earns a mark, and each wrong tag cancels one you found.",
-     "points": 16,
+     "points": 17,
      "hunt": {
       "surah": 91,
       "from": 1,
@@ -474,6 +474,13 @@
          "4-0-1",
          "4-0-2",
          "4-0-3"
+        ]
+       },
+       {
+        "r": "lam_shamsi",
+        "l": [
+         "3-0-1",
+         "3-0-2"
         ]
        },
        {
