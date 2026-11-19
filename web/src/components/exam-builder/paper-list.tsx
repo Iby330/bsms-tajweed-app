@@ -1,0 +1,167 @@
+"use client";
+
+/**
+ * The teacher's papers, newest change first, and "New paper". A paper is a
+ * card that opens the builder; a draft can be deleted from here (a final
+ * paper has to be reopened first, which the builder does).
+ */
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { FileText, Lock, Plus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { createPaper, deletePaper } from "@/lib/exam-builder/actions";
+import { formatMarks } from "@/lib/exam-builder/numbering";
+import type { PaperSummary } from "@/lib/exam-builder/queries";
+import { cn } from "@/lib/utils";
+import { ConfirmDialog } from "./confirm-dialog";
+
+function edited(at: string): string {
+  const d = new Date(at);
+  const days = Math.floor((Date.now() - d.getTime()) / 86_400_000);
+  if (days <= 0) return `today, ${d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
+  if (days === 1) return "yesterday";
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: days > 300 ? "numeric" : undefined });
+}
+
+export function StatusChip({ final, className }: { final: boolean; className?: string }) {
+  return final ? (
+    <span className={cn("inline-flex items-center gap-1 rounded-full bg-ok/15 px-2.5 py-0.5 text-xs font-semibold text-ok", className)}>
+      <Lock className="size-3" aria-hidden /> Final
+    </span>
+  ) : (
+    <span className={cn("inline-flex items-center rounded-full bg-brand/15 px-2.5 py-0.5 text-xs font-semibold text-brand", className)}>
+      Draft
+    </span>
+  );
+}
+
+export function NewPaperButton({ size = "lg", label = "New paper" }: { size?: "lg" | "default"; label?: string }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <div className="grid gap-1.5">
+      <Button
+        size={size}
+        className={size === "lg" ? "h-11 px-4 text-[0.95rem]" : undefined}
+        disabled={pending}
+        onClick={() =>
+          start(async () => {
+            setError(null);
+            const res = await createPaper();
+            if (!res.ok) setError(res.error);
+            else router.push(`/teacher/exam-builder/${res.id}`);
+          })
+        }
+      >
+        <Plus aria-hidden /> {pending ? "Making the paper…" : label}
+      </Button>
+      {error && <p className="text-xs text-danger" role="alert">{error}</p>}
+    </div>
+  );
+}
+
+export function PaperList({ papers }: { papers: PaperSummary[] }) {
+  const router = useRouter();
+  const [list, setList] = useState(papers);
+  const [deleting, setDeleting] = useState<PaperSummary | null>(null);
+
+  if (list.length === 0) {
+    return (
+      <div className="grid justify-items-center gap-4 border border-dashed border-line bg-card px-6 py-14 text-center">
+        <span className="flex size-12 items-center justify-center rounded-full bg-brand/15 text-brand">
+          <FileText className="size-6" aria-hidden />
+        </span>
+        <div className="grid gap-1.5">
+          <h2 className="text-lg font-semibold">No papers yet</h2>
+          <p className="max-w-[46ch] text-sm text-muted-foreground">
+            A new paper starts with last year&apos;s three sections and notes. Pick questions from the
+            bank by topic and they appear on the paper as you go.
+          </p>
+        </div>
+        <NewPaperButton label="Start your first paper" />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <ul className="grid gap-px border border-line bg-line sm:grid-cols-2">
+        {list.map((p) => {
+          const final = p.status === "final";
+          return (
+            <li key={p.id} className="group relative flex flex-col gap-3 bg-card p-5 transition-colors hover:bg-[color-mix(in_oklab,var(--foreground)_3%,var(--card))]">
+              <div className="flex items-start justify-between gap-3">
+                <span className="font-mono text-[0.7rem] tracking-[0.12em] text-ink-3 uppercase">
+                  {p.code} · {p.season}
+                </span>
+                <StatusChip final={final} />
+              </div>
+              <h2 className="text-lg leading-snug font-semibold text-balance">
+                <Link
+                  href={`/teacher/exam-builder/${p.id}`}
+                  className="rounded-sm outline-none after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:ring-2 focus-visible:ring-ring underline-offset-4"
+                >
+                  {p.title}
+                </Link>
+              </h2>
+              <dl className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
+                <div>
+                  <dt className="sr-only">Questions</dt>
+                  <dd><b className="font-semibold text-foreground tabular-nums">{p.itemCount}</b> {p.itemCount === 1 ? "question" : "questions"}</dd>
+                </div>
+                <div>
+                  <dt className="sr-only">Total marks</dt>
+                  <dd><b className="font-semibold text-foreground tabular-nums">{formatMarks(p.totalMarks)}</b> marks</dd>
+                </div>
+                {p.date_label && (
+                  <div>
+                    <dt className="sr-only">Date</dt>
+                    <dd>{p.date_label}</dd>
+                  </div>
+                )}
+              </dl>
+              <div className="mt-auto flex items-center justify-between gap-3 pt-1">
+                <span className="text-xs text-muted-foreground">Edited {edited(p.updated_at)}</span>
+                {/* Above the card-wide link, so it stays its own target. */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="relative z-10 text-muted-foreground hover:text-danger"
+                  disabled={final}
+                  title={final ? "Reopen the paper before deleting it" : undefined}
+                  onClick={() => setDeleting(p)}
+                  aria-label={`Delete ${p.title}`}
+                >
+                  <Trash2 aria-hidden /> Delete
+                </Button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      <ConfirmDialog
+        open={deleting !== null}
+        onOpenChange={(o) => { if (!o) setDeleting(null); }}
+        title="Delete this paper?"
+        confirmLabel="Delete paper"
+        tone="destructive"
+        onConfirm={async () => {
+          if (!deleting) return;
+          const res = await deletePaper(deleting.id);
+          if (!res.ok) return res.error;
+          setList((l) => l.filter((x) => x.id !== deleting.id));
+          router.refresh();
+        }}
+      >
+        <p>
+          <strong className="text-foreground">{deleting?.title}</strong> and the {deleting?.itemCount ?? 0}{" "}
+          {deleting?.itemCount === 1 ? "question" : "questions"} on it will be gone for good. The question bank is
+          not touched.
+        </p>
+      </ConfirmDialog>
+    </>
+  );
+}

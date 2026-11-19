@@ -1,0 +1,80 @@
+/* Exam Builder, screen only. The printed paper has its own stylesheet under
+   app/exam-print/.
+
+   Plain (unlayered) CSS on purpose: the first rule has to beat `.shellview`,
+   which lives in `@layer components` in globals.css, and an unlayered rule
+   outranks every layered one. */
+
+/* The builder needs the whole width beside the rail: a 400px bank and an A4
+   sheet do not fit in the 1000px column every other page reads in. Scoped to
+   the page that carries the workspace, so nothing else widens. */
+.shellview:has(.exam-ws) {
+  max-width: none;
+}
+
+/* The sheet is paper, so it stays paper in dark mode: white ground, navy ink.
+   The tokens the sheet's own controls draw with are pinned to their navy
+   LIGHT values here (copied from `:root[data-brand="navy"]` in globals.css),
+   otherwise a dark-mode muted grey or hairline would land on white and
+   vanish. Menus and dialogs opened from the sheet are portalled out of it and
+   follow the theme as usual. */
+.exam-sheet {
+  --background: #e5e5ff;
+  --foreground: #00004d;
+  --card: #ffffff;
+  --card-foreground: #00004d;
+  --popover: #ffffff;
+  --popover-foreground: #00004d;
+  --primary: #00004d;
+  --primary-foreground: #e5e5ff;
+  --secondary: #e0e0f7;
+  --secondary-foreground: #00004d;
+  --muted: #e0e0f7;
+  --muted-foreground: #3a3a85;
+  --accent: #dcdcf6;
+  --accent-foreground: #00004d;
+  --border: #c8c8dc;
+  --input: #c8c8dc;
+  --ring: #2f4fd0;
+  --brand: #2f4fd0;
+  --ok: #2e5e4e;
+  --warn: #9a5314;
+  --danger: #8c3b2e;
+  --destructive: #8c3b2e;
+  --ink-3: #7676ac;
+  --tertiary: #404d1f;
+  color-scheme: light;
+  background: #ffffff;
+  color: #00004d;
+  font-family: "Times New Roman", Times, serif;
+}
+
+/* A question on the sheet is bold, as printed, but Uthmanic Hafs has no bold
+   and a synthesised one smears the marks: keep the ayah at its own weight. */
+.exam-sheet .exam-q-prompt .ar-quran,
+.exam-sheet .exam-q-options .ar-quran {
+  font-weight: 400;
+}
+
+/* A question that has just landed on the paper, so the eye finds it. */
+@keyframes exam-flash {
+  from { background-color: color-mix(in oklab, #2f4fd0 22%, transparent); }
+  to { background-color: transparent; }
+}
+.exam-flash {
+  animation: exam-flash 1.8s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .exam-flash { animation: none; }
+}
+
+/* The disclosure triangles of the bank's tree are drawn by us. */
+.exam-tree summary {
+  list-style: none;
+}
+.exam-tree summary::-webkit-details-marker {
+  display: none;
+}
+.exam-tree details[open] > summary .exam-chev {
+  transform: rotate(90deg);
+}
