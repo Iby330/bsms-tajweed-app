@@ -1,0 +1,484 @@
+/*
+ * The printed exam paper and its mark scheme (app/exam-print/[paperId]).
+ *
+ * Copies last year's EOT2 25/26 paper: serif, A4, black on white. On screen
+ * the paper is a 210mm sheet on a grey desk so it previews like paper; in
+ * print the desk and the toolbar go and the sheet's own padding gives way to
+ * the @page margins.
+ *
+ * Every rule is under `.exam-print` (the layout's wrapper) or keyed on
+ * `html:has(.exam-print)`, so nothing here reaches another page even if this
+ * stylesheet outlives a client-side navigation. `@page` cannot be scoped; the
+ * toolbar's "Back to the builder" is a full page load for that reason.
+ *
+ * Unlayered on purpose: it has to beat Tailwind's layered utilities and the
+ * unlayered `.ar-quran` size in globals.css on specificity alone.
+ */
+
+@page {
+  size: A4;
+  margin: 16mm 15mm 18mm;
+}
+
+/* ── paper colours, whatever the theme ─────────────────────────────────── */
+
+/* next-themes writes color-scheme inline on <html>; only !important outranks it. */
+html:has(.exam-print) {
+  color-scheme: light !important;
+  background: #e6e6ea !important;
+}
+html:has(.exam-print) body {
+  background: #e6e6ea !important;
+  color: #000;
+  padding: 0 !important;
+}
+/* The film grain would print as a grey haze. */
+html:has(.exam-print) body::after {
+  display: none !important;
+}
+
+.exam-print {
+  /* The app's tokens, reset to paper for this subtree: a `.dark` on <html>
+     changes nothing below here. */
+  --background: #fff;
+  --foreground: #000;
+  --card: #fff;
+  --card-foreground: #000;
+  --popover: #fff;
+  --popover-foreground: #000;
+  --muted: #f2f2f2;
+  --muted-foreground: #444;
+  --border: #000;
+  --input: #000;
+  --ring: #000;
+  color-scheme: light;
+  color: #000;
+  background: transparent;
+  min-height: 100vh;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* ── the toolbar (screen only) ─────────────────────────────────────────── */
+
+.exam-print .ep-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 10px 16px 8px;
+  padding-top: max(10px, env(safe-area-inset-top, 0px));
+  background: #fff;
+  border-bottom: 1px solid #c9c9d2;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: #00004d;
+}
+.exam-print .ep-toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  max-width: 210mm;
+  margin: 0 auto;
+}
+.exam-print .ep-toolbar-tip {
+  max-width: 210mm;
+  margin: 6px auto 0;
+  font-size: 12.5px;
+  color: #44445f;
+}
+.exam-print .ep-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.exam-print .ep-btn--plain {
+  padding-left: 0;
+  color: #00004d;
+}
+.exam-print .ep-btn--plain:hover {
+  text-decoration: underline;
+}
+.exam-print .ep-btn--primary {
+  margin-left: auto;
+  border: 0;
+  background: #00004d;
+  color: #fff;
+}
+.exam-print .ep-btn--primary:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.exam-print .ep-switch {
+  display: inline-flex;
+  border: 1px solid #00004d;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.exam-print .ep-switch a {
+  padding: 7px 12px;
+  color: #00004d;
+  text-decoration: none;
+  font-weight: 600;
+}
+.exam-print .ep-switch a + a {
+  border-left: 1px solid #00004d;
+}
+.exam-print .ep-switch a.is-on {
+  background: color-mix(in oklab, #00004d 15%, #fff);
+}
+.exam-print .ep-btn:focus-visible,
+.exam-print .ep-switch a:focus-visible {
+  outline: 2px solid #00004d;
+  outline-offset: 2px;
+}
+
+/* ── the sheet ─────────────────────────────────────────────────────────── */
+
+.exam-print .ep-desk {
+  padding: 24px 0 48px;
+}
+.exam-print .ep-sheet {
+  box-sizing: border-box;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  /* The @page margins, so the screen measure is the printed measure. */
+  padding: 16mm 15mm 18mm;
+  background: #fff;
+  color: #000;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.18), 0 8px 24px rgb(0 0 0 / 0.08);
+  font-family: "Times New Roman", Times, "Liberation Serif", serif;
+  font-size: 12pt;
+  line-height: 1.3;
+}
+/* Narrower than A4 (a phone): scale nothing, just let the sheet scroll sideways
+   inside the desk rather than the whole page. */
+@media screen and (max-width: 840px) {
+  .exam-print .ep-desk {
+    overflow-x: auto;
+    padding: 12px 8px 32px;
+  }
+}
+.exam-print .ep-sheet p,
+.exam-print .ep-sheet ol,
+.exam-print .ep-sheet ul,
+.exam-print .ep-sheet h1,
+.exam-print .ep-sheet h2 {
+  margin: 0;
+}
+/* The app gives headings its sans face; the paper is serif throughout. */
+.exam-print .ep-sheet h1,
+.exam-print .ep-sheet h2,
+.exam-print .ep-sheet th {
+  font-family: inherit;
+  letter-spacing: normal;
+}
+
+/* ── header: as last year's ────────────────────────────────────────────── */
+
+.exam-print .ep-head {
+  break-inside: avoid;
+}
+.exam-print .ep-brand {
+  text-align: center;
+  font-weight: 700;
+  font-size: 14pt;
+}
+.exam-print .ep-title {
+  text-align: center;
+  font-weight: 700;
+  font-size: 12pt;
+  margin-top: 1pt;
+}
+.exam-print .ep-date {
+  text-align: center;
+  font-style: italic;
+}
+.exam-print .ep-meta {
+  text-align: right;
+  margin-top: 2pt;
+}
+.exam-print .ep-notes {
+  margin-top: 4pt;
+}
+.exam-print .ep-notes ol {
+  list-style: decimal;
+  padding-left: 13mm;
+  margin-top: 1pt;
+}
+.exam-print .ep-notes li {
+  padding-left: 2mm;
+}
+.exam-print .ep-rule {
+  height: 0;
+  margin: 8pt 0 6pt;
+  border: 0;
+  border-top: 1.5pt solid #000;
+}
+
+/* ── sections ──────────────────────────────────────────────────────────── */
+
+.exam-print .ep-section + .ep-section {
+  margin-top: 14pt;
+}
+.exam-print .ep-section-title {
+  text-align: center;
+  font-weight: 700;
+  font-size: 14pt;
+  margin-bottom: 6pt;
+  break-after: avoid;
+}
+
+/* ── one question ──────────────────────────────────────────────────────── */
+
+.exam-print .ep-q {
+  break-inside: avoid;
+  margin-bottom: 12pt;
+}
+/* Number | bold question | marks on the first line; the picture (or the
+   typeset ayah) under the question across the rest of the measure. The
+   shared prompt component's wrapper is dissolved with display: contents so
+   its parts land in this grid's cells. */
+.exam-print .ep-q-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: 1.5mm;
+  align-items: baseline;
+  font-weight: 700;
+}
+.exam-print .ep-q-num {
+  grid-column: 1;
+  grid-row: 1;
+}
+.exam-print .ep-q-head > .exam-q-prompt {
+  display: contents;
+}
+.exam-print .ep-q-head > .exam-q-prompt > :first-child {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+}
+.exam-print .ep-q-head > .exam-q-prompt > :not(:first-child) {
+  grid-column: 2 / -1;
+  grid-row: 2;
+  margin: 4pt 0 0;
+  font-weight: 400;
+}
+.exam-print .ep-q-marks {
+  grid-column: 3;
+  grid-row: 1;
+  padding-left: 6mm;
+  white-space: nowrap;
+}
+
+/* Arabic in the sheet: the Qur'anic face is never faux-bolded, and sized to
+   sit with 12pt serif rather than the app's 15px sans. */
+.exam-print .ep-sheet .ar-quran {
+  font-weight: 400;
+  font-size: 1.3em;
+  line-height: 1.6;
+}
+.exam-print .ep-sheet .ar-ui {
+  font-weight: inherit;
+}
+
+/* Pictures: never stretched (natural size at most, aspect kept), never wider
+   than the measure, a single line no taller than 22mm. The toolbar lifts the
+   cap for multi-line passages once it knows their size; the !important here
+   beats the component's own inline max-height. */
+.exam-print .ep-sheet .exam-q-image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 22mm !important;
+  object-fit: contain;
+  break-inside: avoid;
+}
+.exam-print .ep-sheet .exam-q-images {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3pt;
+}
+.exam-print .ep-sheet .exam-q-ref {
+  font-size: 11pt;
+  font-style: italic;
+}
+
+/* ── options ───────────────────────────────────────────────────────────── */
+
+.exam-print .ep-options {
+  margin: 4pt 0 0 6mm;
+  break-before: avoid;
+}
+.exam-print .ep-options .exam-q-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.exam-print .ep-options .exam-q-options > li {
+  display: flex;
+  align-items: flex-start;
+  gap: 2.5mm;
+  margin: 0;
+  padding: 0.5pt 1.5mm;
+  font-weight: 400;
+}
+.exam-print .ep-options .exam-q-options > li + li {
+  margin-top: 1.5pt;
+}
+.exam-print .ep-options .exam-q-box {
+  width: 3.6mm;
+  height: 3.6mm;
+  margin-top: 0.6mm;
+  border: 0.75pt solid #000;
+  font-size: 9pt;
+  font-weight: 700;
+  line-height: 1;
+}
+/* Options with Arabic in them: give the box the line the letter sits on. */
+.exam-print .ep-options .exam-q-options > li:has(.ar-quran) .exam-q-box {
+  margin-top: 1.6mm;
+}
+.exam-print .ep-options .exam-q-options .ar-quran {
+  line-height: 1.35;
+}
+
+/* Picture options: a wrapping row, each picture with its box beside it. */
+.exam-print .ep-options--pictures .exam-q-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 4pt 9mm;
+}
+.exam-print .ep-options--pictures .exam-q-options > li + li {
+  margin-top: 0;
+}
+.exam-print .ep-options .exam-q-options .exam-q-image {
+  max-height: 13mm !important;
+}
+
+/* Mark scheme: the correct option is ticked, bold and boxed. The box and the
+   weight carry it on a black-and-white printer; the grey is extra. */
+.exam-print .ep-options .exam-q-options > li:has(> .exam-q-box:not(:empty)) {
+  width: fit-content;
+  min-width: 45mm;
+  font-weight: 700;
+  outline: 1.25pt solid #000;
+  outline-offset: 0;
+  background: #e8e8e8;
+}
+.exam-print .ep-options .exam-q-options > li:has(> .exam-q-box:not(:empty)) .exam-q-box {
+  border-width: 1.25pt;
+}
+
+/* ── writing space ─────────────────────────────────────────────────────── */
+
+.exam-print .ep-lines {
+  margin: 0 0 0 6mm;
+}
+.exam-print .ep-line {
+  height: 9mm;
+  border-bottom: 0.6pt solid #000;
+  break-inside: avoid;
+}
+/* Never strand the question at the foot of a page with its lines overleaf. */
+.exam-print .ep-line:first-child {
+  break-before: avoid;
+}
+
+/* ── mark scheme answers ───────────────────────────────────────────────── */
+
+.exam-print .ep-answer {
+  margin: 5pt 0 0 6mm;
+  padding: 4pt 7pt 5pt;
+  border: 1pt solid #000;
+  break-before: avoid;
+}
+.exam-print .ep-answer-label {
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 2pt;
+}
+.exam-print .ep-answer-text {
+  display: block;
+  white-space: pre-line;
+}
+.exam-print .ep-answer--missing {
+  border-style: dashed;
+  border-width: 1.25pt;
+  font-weight: 700;
+}
+
+/* ── practical table ───────────────────────────────────────────────────── */
+
+.exam-print .ep-practical {
+  break-inside: avoid;
+}
+.exam-print .ep-practical-marks {
+  text-align: right;
+  font-weight: 700;
+  margin-bottom: 4pt;
+}
+.exam-print .ep-blank {
+  display: inline-block;
+  width: 12mm;
+}
+.exam-print .ep-table {
+  /* Collapsed borders sit half outside the box: keep the right edge on the page. */
+  width: calc(100% - 1pt);
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.exam-print .ep-table th,
+.exam-print .ep-table td {
+  border: 0.75pt solid #000;
+  padding: 3pt 5pt;
+  text-align: left;
+  vertical-align: top;
+}
+.exam-print .ep-table thead th {
+  font-weight: 700;
+}
+.exam-print .ep-table tbody th {
+  width: 28mm;
+  font-weight: 700;
+}
+.exam-print .ep-table tbody tr {
+  height: 16mm;
+}
+
+/* ── print ─────────────────────────────────────────────────────────────── */
+
+@media print {
+  html:has(.exam-print),
+  html:has(.exam-print) body {
+    background: #fff !important;
+  }
+  .exam-print {
+    min-height: 0;
+  }
+  .exam-print .ep-toolbar {
+    display: none !important;
+  }
+  .exam-print .ep-desk {
+    padding: 0;
+    overflow: visible;
+  }
+  .exam-print .ep-sheet {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+}
