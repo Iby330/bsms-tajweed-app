@@ -13,9 +13,15 @@ regenerated key never undoes them:
   - Ghunnah is asked for only on a nūn or mīm with a shaddah; ikhfāʼ, iqlāb and
     idghām letters are accepted, never asked for (not a voweled م or an alif,
     which the source keys by mistake).
-  - Lām: the ٱ, the ل or the letter after it finds it, once. A single written
-    lām with a shaddah (ٱلَّيۡل, ٱلَّذِينَ) is not counted, and nor is the Name of Allah.
-  - Hams: only ت and ة are asked for; the other hams letters are accepted.
+  - Lām: the ٱ, the ل or the letter after it finds it, once. The Name of Allah
+    is not counted.
+  - ال before a word that starts with ل (ٱلَّيۡل) is lām shamsiyyah: the ٱ or the
+    one written لّ finds it (owner, 19 Nov 2026; Ash-Shams was corrected, 0150).
+    The relative pronouns ٱلَّذِى / ٱلَّتِى / ٱلَّذِينَ, also one lām with a
+    shaddah, are still not counted: the owner has not decided them yet.
+  - Hams: EVERY hams letter is asked for, each one a thing to find (owner,
+    19 Nov 2026; Al-Humazah was corrected, 0151). Ash-Shams, Az-Zalzalah and
+    At-Tīn were set when only ت and ة were asked for, and stay that way.
   - Tanwīn: every tanwīn is one thing to find.
 Output: letters in the QPC Hafs text (the King Fahd font's own), checked
 letter for letter against the source, and the page's glyphs and lines.
@@ -38,6 +44,9 @@ inst = []
 for k in keyed('ghunnah'): inst.append({'r': 'ghunnah', 'l': [k]})
 for k in keyed('qalqalah'): inst.append({'r': 'qalqalah', 'l': [k]})
 HAMS = set('فحثهشخصسكتة'); TANWIN = set('ًࣰٌࣱٍࣲ')
+# The relative pronouns, spelled bare (no marks, ٱ as ا, ى as ي).
+RELATIVE = {'الذي', 'الذين', 'التي', 'اللذان', 'اللذين', 'اللتان', 'اللتين', 'اللاتي', 'اللائي'}
+bare_word = lambda w: ''.join(c for c in ''.join(w) if u.category(c) not in ('Mn', 'Me') and c not in 'ـۥۦ').replace('ٱ', 'ا').replace('ى', 'ي')
 hams = []
 for ai, a in enumerate(ayahs):
     for wi, w in enumerate(a):
@@ -50,10 +59,11 @@ for ai, a in enumerate(ayahs):
                 if li + 2 < len(w) and w[li + 2][0] == 'ل' and 'ْ' not in lam: continue   # the Name of Allah
                 ids = [id_, f"{ai}-{wi}-{li+1}", f"{ai}-{wi}-{li+2}"]
                 if 'ْ' in lam: inst.append({'r': 'lam_qamari', 'l': ids})
-                elif 'ّ' in lam: continue            # one written lām with a shaddah: not counted
+                elif 'ّ' in lam:                     # one written lām with a shaddah
+                    if bare_word(w[li:]) in RELATIVE: continue   # ٱلَّذِى, وَٱلَّذِينَ and the like: not yet decided
+                    inst.append({'r': 'lam_shamsi', 'l': ids[:2]})   # ٱلَّيۡل: the ٱ or the لّ
                 else: inst.append({'r': 'lam_shamsi', 'l': ids})
-taa = [i for i in hams if letter(i)[0] in 'تة']
-for i in taa: inst.append({'r': 'hams', 'l': [i]})
+for i in hams: inst.append({'r': 'hams', 'l': [i]})
 acc = set()
 for r in ['ikhfa', 'iqlab', 'idghaam_ghunnah', 'ikhfa_shafawi']:
     acc.update(keyed(r))
@@ -109,5 +119,5 @@ pages = sorted({r['page_number'] for r in json.load(open(os.path.join(D, 'words.
 from collections import Counter
 print(Counter(i['r'] for i in inst), 'total', len(inst), 'accepted ghunnah', len(acc), 'pages', pages, file=sys.stderr)
 json.dump({'ayahs': ayahs, 'qpc': qpc, 'items': items, 'pages': pages, 'inst': inst,
-           'accept': {'ghunnah': acc, 'hams': sorted(set(hams) - set(taa))}},
+           'accept': {'ghunnah': acc}},
           open(OUT, 'w'), ensure_ascii=False, separators=(',', ':'))
