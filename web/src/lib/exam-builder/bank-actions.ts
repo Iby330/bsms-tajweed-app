@@ -1,0 +1,117 @@
+"use server";
+
+/**
+ * The admin's corrections to the question bank, from the review page:
+ * approve a question as it stands, edit it, or bin it (and restore it).
+ * Teachers can add to the bank but never change it; only an admin can, and
+ * row level security (0152: `is_admin()` for UPDATE) says so again.
+ *
+ * An update RLS refuses comes back with no error and no rows, so every write
+ * asks for the changed ids back and treats none as a failure.
+ *
+ * Papers already built hold their own copies of a question, so nothing here
+ * reaches them.
+ *
+ * Only async functions may be exported from a "use server" file: the pure
+ * checks live in ./bank-validate.
+ */
+import { revalidatePath } from "next/cache";
+import type { Database } from "@/lib/database.types";
+import { currentProfile, supabaseServer } from "@/lib/supabase/server";
+import { requireTeacher } from "@/lib/teacher/guards";
+import { cleanBankPatch, mcqProblem, type BankPatch } from "./bank-validate";
+import { parseKind, parseOptions } from "./parse";
+import type { Result } from "./types";
+import { isUuid } from "./validate";
+
+type Db = Awaited<ReturnType<typeof supabaseServer>>;
+type BankUpdate = Database["public"]["Tables"]["exam_bank_questions"]["Update"];
+type Fail = { ok: false; error: string };
+
+const PATH = "/teacher/exam-builder";
+const NOT_ADMIN = "Only an admin can change the bank.";
+const NO_QUESTION = "That question isn't in the bank.";
+const NOTHING_CHANGED = "Nothing changed — are you still an admin?";
+
+const fail = (error: string): Fail => ({ ok: false, error });
+
+function dbFail(error: { message: string; code?: string }): Fail {
+  if (error.code === "42501" || /row-level security/i.test(error.message)) return fail(NOT_ADMIN);
+  return fail(error.message);
+}
+
+/** A signed-in teacher who is an admin, or a refusal. */
+async function admin(): Promise<{ ok: true } | Fail> {
+  try {
+    await requireTeacher();
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Teachers only.");
+  }
+  const me = await currentProfile();
+  if (!me?.is_admin) return fail(NOT_ADMIN);
+  return { ok: true };
+}
+
+/** Write the change and confirm a row actually moved. */
+async function write(db: Db, id: string, update: BankUpdate): Promise<Result> {
+  const { data, error } = await db.from("exam_bank_questions").update(update).eq("id", id).select("id");
+  if (error) return dbFail(error);
+  if (!data?.length) return fail(NOTHING_CHANGED);
+  revalidatePath(PATH, "layout");
+  return { ok: true };
+}
+
+/** Keep the question exactly as it is, and mark it looked at. */
+export async function approveBankQuestion(id: string): Promise<Result> {
+  if (!isUuid(id)) return fail(NO_QUESTION);
+  const ok = await admin();
+  if (!ok.ok) return ok;
+  const db = await supabaseServer();
+  return write(db, id, { review_status: "approved" });
+}
+
+/**
+ * Correct a bank question. The caller decides the review status it ends on
+ * (the review page sends "approved" unless "keep flagged" is ticked); when
+ * the patch leaves it out, the status is not touched.
+ */
+export async function updateBankQuestion(id: string, patch: BankPatch): Promise<Result> {
+  if (!isUuid(id)) return fail(NO_QUESTION);
+  const clean = cleanBankPatch(patch);
+  if (!clean.ok) return clean;
+  const ok = await admin();
+  if (!ok.ok) return ok;
+  const db = await supabaseServer();
+  const update = { ...clean.patch };
+
+  if (update.topic_id !== undefined) {
+    const { data, error } = await db.from("exam_bank_topics").select("id").eq("id", update.topic_id).maybeSingle();
+    if (error) return dbFail(error);
+    if (!data) return fail("That topic isn't in the bank.");
+  }
+
+  if (update.kind !== undefined || update.options !== undefined) {
+    const { data, error } = await db
+      .from("exam_bank_questions").select("id, kind, options").eq("id", id).maybeSingle();
+    if (error) return dbFail(error);
+    if (!data) return fail(NO_QUESTION);
+    const kind = update.kind ?? parseKind(data.kind);
+    const options = update.options !== undefined ? update.options : parseOptions(data.options);
+    const problem = mcqProblem(kind, options);
+    if (problem) return fail(problem);
+    // A short answer carries no options; drop any left from multiple choice.
+    if (kind === "short") update.options = null;
+  }
+
+  return write(db, id, update);
+}
+
+/** Bin a question (teachers stop seeing it) or restore it from the bin. */
+export async function archiveBankQuestion(id: string, archived: boolean): Promise<Result> {
+  if (!isUuid(id)) return fail(NO_QUESTION);
+  if (typeof archived !== "boolean") return fail("Bin it or restore it?");
+  const ok = await admin();
+  if (!ok.ok) return ok;
+  const db = await supabaseServer();
+  return write(db, id, { archived });
+}
