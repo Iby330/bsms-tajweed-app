@@ -7,7 +7,7 @@ export type IconName =
   | "home" | "video" | "clipboard" | "book" | "user"
   | "library" | "landmark" | "bell" | "check" | "users"
   | "graduation" | "settings" | "calendar" | "calendar-range" | "wallet"
-  | "user-plus";
+  | "user-plus" | "file-text";
 
 export type NavItem = {
   href: string;
@@ -73,6 +73,8 @@ export const studentMobileNav: MobileNav = mobileNavFor(studentNav);
 export const teacherNav: NavItem[] = [
   { href: "/teacher/home", label: "Home", icon: "home", tab: true },
   { href: "/teacher/homework", label: "Homework", icon: "check" },
+  // Unpinned: papers are built a few times a year, not taught from weekly.
+  { href: "/teacher/exam-builder", label: "Exam Builder", icon: "file-text" },
   // The register is taken on a phone, in the room, which is why it is pinned
   // and homework above it is not.
   { href: "/teacher/attendance", label: "Register", icon: "calendar", tab: true },

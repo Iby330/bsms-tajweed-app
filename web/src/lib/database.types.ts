@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.15"
   }
   public: {
     Tables: {
@@ -293,107 +293,49 @@ export type Database = {
           },
         ]
       }
-      class_resources: {
-        Row: {
-          class_id: string
-          course_id: string
-          position: number
-        }
-        Insert: {
-          class_id: string
-          course_id: string
-          position?: number
-        }
-        Update: {
-          class_id?: string
-          course_id?: string
-          position?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "class_resources_class_id_fkey"
-            columns: ["class_id"]
-            isOneToOne: false
-            referencedRelation: "classes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "class_resources_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      class_homework_holds: {
-        Row: { class_id: string; course_id: string; from_ordinal: number }
-        Insert: { class_id: string; course_id: string; from_ordinal?: number }
-        Update: { class_id?: string; course_id?: string; from_ordinal?: number }
-        Relationships: []
-      }
-      class_item_dates: {
-        Row: {
-          class_id: string
-          course_id: string
-          ordinal: number
-          opens_at: string | null
-          due_at: string | null
-          held: boolean | null
-          set_by: string | null
-          set_at: string
-        }
-        Insert: {
-          class_id: string
-          course_id: string
-          ordinal: number
-          opens_at?: string | null
-          due_at?: string | null
-          held?: boolean | null
-          set_by?: string | null
-          set_at?: string
-        }
-        Update: {
-          class_id?: string
-          course_id?: string
-          ordinal?: number
-          opens_at?: string | null
-          due_at?: string | null
-          held?: boolean | null
-          set_by?: string | null
-          set_at?: string
-        }
-        Relationships: []
-      }
       class_added_items: {
         Row: {
+          added_at: string
+          added_by: string | null
           class_id: string
           course_id: string
           ordinal: number
           term_id: number
           week_number: number
-          added_by: string | null
-          added_at: string
         }
         Insert: {
+          added_at?: string
+          added_by?: string | null
           class_id: string
           course_id: string
           ordinal: number
           term_id: number
           week_number: number
-          added_by?: string | null
-          added_at?: string
         }
         Update: {
+          added_at?: string
+          added_by?: string | null
           class_id?: string
           course_id?: string
           ordinal?: number
           term_id?: number
           week_number?: number
-          added_by?: string | null
-          added_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "class_added_items_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_added_items_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "class_added_items_course_id_fkey"
             columns: ["course_id"]
@@ -495,39 +437,160 @@ export type Database = {
           },
         ]
       }
-      classes: {
+      class_homework_holds: {
         Row: {
-          id: string
-          name: string
-          section: Database["public"]["Enums"]["section_t"]
-          teacher_id: string | null
-          open_weekday: number | null
-          open_time: string | null
-          due_weekday: number | null
-          due_time: string | null
-          due_weeks_after: number
+          class_id: string
+          course_id: string
+          from_ordinal: number
         }
         Insert: {
-          id?: string
-          name: string
-          section: Database["public"]["Enums"]["section_t"]
-          teacher_id?: string | null
-          open_weekday?: number | null
-          open_time?: string | null
-          due_weekday?: number | null
-          due_time?: string | null
-          due_weeks_after?: number
+          class_id: string
+          course_id: string
+          from_ordinal?: number
         }
         Update: {
+          class_id?: string
+          course_id?: string
+          from_ordinal?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_homework_holds_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_homework_holds_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_item_dates: {
+        Row: {
+          class_id: string
+          course_id: string
+          due_at: string | null
+          held: boolean | null
+          opens_at: string | null
+          ordinal: number
+          set_at: string
+          set_by: string | null
+        }
+        Insert: {
+          class_id: string
+          course_id: string
+          due_at?: string | null
+          held?: boolean | null
+          opens_at?: string | null
+          ordinal: number
+          set_at?: string
+          set_by?: string | null
+        }
+        Update: {
+          class_id?: string
+          course_id?: string
+          due_at?: string | null
+          held?: boolean | null
+          opens_at?: string | null
+          ordinal?: number
+          set_at?: string
+          set_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_item_dates_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_item_dates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_item_dates_set_by_fkey"
+            columns: ["set_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_resources: {
+        Row: {
+          class_id: string
+          course_id: string
+          position: number
+        }
+        Insert: {
+          class_id: string
+          course_id: string
+          position?: number
+        }
+        Update: {
+          class_id?: string
+          course_id?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_resources_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_resources_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          due_time: string | null
+          due_weekday: number | null
+          due_weeks_after: number
+          id: string
+          name: string
+          open_time: string | null
+          open_weekday: number | null
+          section: Database["public"]["Enums"]["section_t"]
+          teacher_id: string | null
+        }
+        Insert: {
+          due_time?: string | null
+          due_weekday?: number | null
+          due_weeks_after?: number
+          id?: string
+          name: string
+          open_time?: string | null
+          open_weekday?: number | null
+          section: Database["public"]["Enums"]["section_t"]
+          teacher_id?: string | null
+        }
+        Update: {
+          due_time?: string | null
+          due_weekday?: number | null
+          due_weeks_after?: number
           id?: string
           name?: string
+          open_time?: string | null
+          open_weekday?: number | null
           section?: Database["public"]["Enums"]["section_t"]
           teacher_id?: string | null
-          open_weekday?: number | null
-          open_time?: string | null
-          due_weekday?: number | null
-          due_time?: string | null
-          due_weeks_after?: number
         }
         Relationships: [
           {
@@ -683,6 +746,274 @@ export type Database = {
           {
             foreignKeyName: "deposit_payments_recorded_by_fkey"
             columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_bank_questions: {
+        Row: {
+          answer: string | null
+          archived: boolean
+          created_at: string
+          created_by: string | null
+          id: string
+          import_key: string | null
+          kind: string
+          marks: number | null
+          options: Json | null
+          prompt: string
+          prompt_images: string[]
+          prompt_quran: Json | null
+          review_note: string | null
+          review_status: string
+          select_many: boolean
+          sources: Json
+          topic_id: string
+          used_in: string[]
+        }
+        Insert: {
+          answer?: string | null
+          archived?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          import_key?: string | null
+          kind: string
+          marks?: number | null
+          options?: Json | null
+          prompt: string
+          prompt_images?: string[]
+          prompt_quran?: Json | null
+          review_note?: string | null
+          review_status?: string
+          select_many?: boolean
+          sources?: Json
+          topic_id: string
+          used_in?: string[]
+        }
+        Update: {
+          answer?: string | null
+          archived?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          import_key?: string | null
+          kind?: string
+          marks?: number | null
+          options?: Json | null
+          prompt?: string
+          prompt_images?: string[]
+          prompt_quran?: Json | null
+          review_note?: string | null
+          review_status?: string
+          select_many?: boolean
+          sources?: Json
+          topic_id?: string
+          used_in?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_bank_questions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_bank_questions_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "exam_bank_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_bank_topics: {
+        Row: {
+          id: string
+          parent_id: string | null
+          position: number
+          title: string
+        }
+        Insert: {
+          id: string
+          parent_id?: string | null
+          position: number
+          title: string
+        }
+        Update: {
+          id?: string
+          parent_id?: string | null
+          position?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_bank_topics_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "exam_bank_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_paper_items: {
+        Row: {
+          answer: string | null
+          answer_lines: number
+          bank_question_id: string | null
+          id: string
+          kind: string
+          marks: number
+          options: Json | null
+          paper_id: string
+          position: number
+          prompt: string
+          prompt_images: string[]
+          prompt_quran: Json | null
+          section_id: string
+          select_many: boolean
+        }
+        Insert: {
+          answer?: string | null
+          answer_lines?: number
+          bank_question_id?: string | null
+          id?: string
+          kind: string
+          marks?: number
+          options?: Json | null
+          paper_id: string
+          position: number
+          prompt: string
+          prompt_images?: string[]
+          prompt_quran?: Json | null
+          section_id: string
+          select_many?: boolean
+        }
+        Update: {
+          answer?: string | null
+          answer_lines?: number
+          bank_question_id?: string | null
+          id?: string
+          kind?: string
+          marks?: number
+          options?: Json | null
+          paper_id?: string
+          position?: number
+          prompt?: string
+          prompt_images?: string[]
+          prompt_quran?: Json | null
+          section_id?: string
+          select_many?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_paper_items_bank_question_id_fkey"
+            columns: ["bank_question_id"]
+            isOneToOne: false
+            referencedRelation: "exam_bank_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_paper_items_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "exam_papers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_paper_items_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "exam_paper_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_paper_sections: {
+        Row: {
+          id: string
+          kind: string
+          paper_id: string
+          position: number
+          practical: Json | null
+          title: string
+        }
+        Insert: {
+          id?: string
+          kind?: string
+          paper_id: string
+          position: number
+          practical?: Json | null
+          title: string
+        }
+        Update: {
+          id?: string
+          kind?: string
+          paper_id?: string
+          position?: number
+          practical?: Json | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_paper_sections_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "exam_papers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_papers: {
+        Row: {
+          code: string
+          created_at: string
+          date_label: string
+          duration_label: string
+          finalised_at: string | null
+          id: string
+          notes: string[]
+          owner_id: string
+          season: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string
+          created_at?: string
+          date_label?: string
+          duration_label?: string
+          finalised_at?: string | null
+          id?: string
+          notes?: string[]
+          owner_id: string
+          season?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          date_label?: string
+          duration_label?: string
+          finalised_at?: string | null
+          id?: string
+          notes?: string[]
+          owner_id?: string
+          season?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_papers_owner_id_fkey"
+            columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -924,6 +1255,66 @@ export type Database = {
           },
         ]
       }
+      homework_extensions: {
+        Row: {
+          due_at: string
+          granted_at: string
+          granted_by: string | null
+          homework_id: string
+          student_id: string
+        }
+        Insert: {
+          due_at: string
+          granted_at?: string
+          granted_by?: string | null
+          homework_id: string
+          student_id: string
+        }
+        Update: {
+          due_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          homework_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_extensions_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_extensions_homework_id_fkey"
+            columns: ["homework_id"]
+            isOneToOne: false
+            referencedRelation: "homeworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_extensions_homework_id_fkey"
+            columns: ["homework_id"]
+            isOneToOne: false
+            referencedRelation: "v_hw_pct"
+            referencedColumns: ["homework_id"]
+          },
+          {
+            foreignKeyName: "homework_extensions_homework_id_fkey"
+            columns: ["homework_id"]
+            isOneToOne: false
+            referencedRelation: "v_hw_pct_all"
+            referencedColumns: ["homework_id"]
+          },
+          {
+            foreignKeyName: "homework_extensions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       homeworks: {
         Row: {
           course_id: string | null
@@ -974,52 +1365,6 @@ export type Database = {
             columns: ["week_id"]
             isOneToOne: false
             referencedRelation: "weeks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      homework_extensions: {
-        Row: {
-          due_at: string
-          granted_at: string
-          granted_by: string | null
-          homework_id: string
-          student_id: string
-        }
-        Insert: {
-          due_at: string
-          granted_at?: string
-          granted_by?: string | null
-          homework_id: string
-          student_id: string
-        }
-        Update: {
-          due_at?: string
-          granted_at?: string
-          granted_by?: string | null
-          homework_id?: string
-          student_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "homework_extensions_granted_by_fkey"
-            columns: ["granted_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "homework_extensions_homework_id_fkey"
-            columns: ["homework_id"]
-            isOneToOne: false
-            referencedRelation: "homeworks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "homework_extensions_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1378,6 +1723,7 @@ export type Database = {
           class_id: string | null
           created_at: string | null
           full_name: string
+          hidden_from_students: boolean
           id: string
           is_active: boolean
           is_admin: boolean
@@ -1392,6 +1738,7 @@ export type Database = {
           class_id?: string | null
           created_at?: string | null
           full_name: string
+          hidden_from_students?: boolean
           id: string
           is_active?: boolean
           is_admin?: boolean
@@ -1406,6 +1753,7 @@ export type Database = {
           class_id?: string | null
           created_at?: string | null
           full_name?: string
+          hidden_from_students?: boolean
           id?: string
           is_active?: boolean
           is_admin?: boolean
@@ -2163,13 +2511,6 @@ export type Database = {
           },
         ]
       }
-      v_surah_page_spans: {
-        Row: {
-          pages: number | null
-          surah_number: number | null
-        }
-        Relationships: []
-      }
       v_hifz_progress: {
         Row: {
           passed: number | null
@@ -2330,6 +2671,13 @@ export type Database = {
         }
         Relationships: []
       }
+      v_surah_page_spans: {
+        Row: {
+          pages: number | null
+          surah_number: number | null
+        }
+        Relationships: []
+      }
       v_term_pct: {
         Row: {
           student_id: string | null
@@ -2378,6 +2726,7 @@ export type Database = {
       }
     }
     Functions: {
+      acting_id: { Args: never; Returns: string }
       answer_on_paper: {
         Args: { q_id: string; sub_id: string }
         Returns: boolean
@@ -2386,15 +2735,23 @@ export type Database = {
         Args: { p_delta: number; p_student: string; p_term: number }
         Returns: undefined
       }
+      can_listen_freely: {
+        Args: { p_reciter: string; p_reviewer: string }
+        Returns: boolean
+      }
       can_see_content: {
         Args: { p_course: string; p_ordinal: number; p_week: string }
         Returns: boolean
       }
-      class_item_due_at: {
+      class_item_calendar_due_at: {
         Args: { p_class: string; p_course: string; p_ordinal: number }
         Returns: string
       }
-      class_item_unlock_at: {
+      class_item_calendar_unlock_at: {
+        Args: { p_class: string; p_course: string; p_ordinal: number }
+        Returns: string
+      }
+      class_item_due_at: {
         Args: { p_class: string; p_course: string; p_ordinal: number }
         Returns: string
       }
@@ -2402,12 +2759,44 @@ export type Database = {
         Args: { p_class: string; p_course: string; p_ordinal: number }
         Returns: boolean
       }
+      class_item_unlock_at: {
+        Args: { p_class: string; p_course: string; p_ordinal: number }
+        Returns: string
+      }
+      class_item_week: {
+        Args: { p_class: string; p_course: string; p_ordinal: number }
+        Returns: {
+          term_id: number
+          week_number: number
+        }[]
+      }
+      class_rule_unlock_at: {
+        Args: { p_class: string; p_course: string; p_ordinal: number }
+        Returns: string
+      }
       class_student: {
         Args: { p_class: string; p_profile: string }
         Returns: boolean
       }
       clear_late_for_class: { Args: { p_class: string }; Returns: number }
       clear_late_for_class_ids: { Args: { p_class: string }; Returns: string[] }
+      exam_paper_set_final: {
+        Args: { p_final: boolean; p_paper: string }
+        Returns: string
+      }
+      get_homework_for_student: { Args: { hw_id: string }; Returns: Json }
+      homework_due_for: {
+        Args: { p_hw: string; p_student: string }
+        Returns: string
+      }
+      homework_held: {
+        Args: { p_course: string; p_ordinal: number }
+        Returns: boolean
+      }
+      is_admin: { Args: never; Returns: boolean }
+      is_resource_course: { Args: { p_course: string }; Returns: boolean }
+      is_student_write: { Args: never; Returns: boolean }
+      is_teacher: { Args: never; Returns: boolean }
       murajaah_clock: {
         Args: { p_op: string; p_session: string }
         Returns: {
@@ -2426,25 +2815,20 @@ export type Database = {
         Args: { p_note: string | null; p_session: string }
         Returns: string
       }
-      restore_late: { Args: { p_class: string; p_ids: string[] }; Returns: number }
-      class_item_week: {
-        Args: { p_class: string; p_course: string; p_ordinal: number }
-        Returns: {
-          term_id: number
-          week_number: number
-        }[]
-      }
-      get_homework_for_student: { Args: { hw_id: string }; Returns: Json }
-      homework_due_for: {
-        Args: { p_hw: string; p_student: string }
+      next_weekday_at: {
+        Args: {
+          p_after: string
+          p_time: string
+          p_weekday: number
+          p_weeks?: number
+        }
         Returns: string
       }
-      is_student_write: { Args: never; Returns: boolean }
-      is_teacher: { Args: never; Returns: boolean }
       open_homework_redo: {
         Args: { capped?: boolean; failed_pct: number; sub_id: string }
         Returns: number
       }
+      owns_exam_paper: { Args: { p_paper: string }; Returns: boolean }
       record_fee_deposit: {
         Args: { a: Database["public"]["Tables"]["applications"]["Row"] }
         Returns: undefined
@@ -2454,6 +2838,14 @@ export type Database = {
         Returns: undefined
       }
       resend_api_key: { Args: never; Returns: string }
+      resource_only_for: {
+        Args: { p_course: string; p_student: string }
+        Returns: boolean
+      }
+      restore_late: {
+        Args: { p_class: string; p_ids: string[] }
+        Returns: number
+      }
       sees_all_content: { Args: never; Returns: boolean }
       teaches_class: { Args: { p_class: string }; Returns: boolean }
       undo_homework_redo: { Args: { sub_id: string }; Returns: number }
@@ -2468,9 +2860,15 @@ export type Database = {
         | "placed"
         | "declined"
       qtype_t: "mcq" | "checkbox" | "text" | "paragraph" | "grid"
-      scoring_t: "exact" | "per_option" | "pairs" | "manual"
+      scoring_t: "exact" | "per_option" | "manual" | "pairs"
       section_t: "brothers" | "sisters" | "demo" | "ustadhs"
-      series_t: "tajweed" | "umm_al_kitab" | "tfp" | "seerah" | "qaidah" | "seerah_reflections"
+      series_t:
+        | "tajweed"
+        | "umm_al_kitab"
+        | "tfp"
+        | "seerah"
+        | "qaidah"
+        | "seerah_reflections"
       session_t: "tajweed" | "hifdh"
       strike_reason: "absence" | "homework" | "conduct"
       sub_status: "draft" | "submitted" | "auto_marked" | "approved"
@@ -2610,9 +3008,16 @@ export const Constants = {
         "declined",
       ],
       qtype_t: ["mcq", "checkbox", "text", "paragraph", "grid"],
-      scoring_t: ["exact", "per_option", "pairs", "manual"],
+      scoring_t: ["exact", "per_option", "manual", "pairs"],
       section_t: ["brothers", "sisters", "demo", "ustadhs"],
-      series_t: ["tajweed", "umm_al_kitab", "tfp", "seerah", "qaidah", "seerah_reflections"],
+      series_t: [
+        "tajweed",
+        "umm_al_kitab",
+        "tfp",
+        "seerah",
+        "qaidah",
+        "seerah_reflections",
+      ],
       session_t: ["tajweed", "hifdh"],
       strike_reason: ["absence", "homework", "conduct"],
       sub_status: ["draft", "submitted", "auto_marked", "approved"],
