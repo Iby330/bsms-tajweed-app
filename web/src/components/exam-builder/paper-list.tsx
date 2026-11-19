@@ -91,7 +91,7 @@ export function PaperList({ papers }: { papers: PaperSummary[] }) {
 
   return (
     <>
-      <ul className="grid gap-px border border-line bg-line sm:grid-cols-2">
+      <ul className="grid gap-px border border-line bg-line sm:grid-cols-2 sm:[&>li:last-child:nth-child(odd)]:col-span-2">
         {list.map((p) => {
           const final = p.status === "final";
           return (

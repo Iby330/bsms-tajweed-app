@@ -6,6 +6,7 @@
  * its topic, which opens to show it.
  */
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { addBankQuestion } from "@/lib/exam-builder/new-question-actions";
@@ -23,6 +24,7 @@ export function BankBrowser({
   profileId: string;
 }) {
   const [questions, setQuestions] = useState(initial);
+  const router = useRouter();
   useFitPictures();
   const [writing, setWriting] = useState(false);
   const [reveal, setReveal] = useState<string | null>(null);
@@ -34,6 +36,8 @@ export function BankBrowser({
     setQuestions((qs) => [...qs, res.question]);
     setReveal(res.question.topic_id);
     setAdded(topicPath(res.question.topic_id, topics));
+    // The page header counts the bank on the server; refresh it so the new question is counted.
+    router.refresh();
   };
 
   return (
