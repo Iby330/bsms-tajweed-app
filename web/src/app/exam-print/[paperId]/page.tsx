@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MixedText } from "@/components/app/mixed-text";
 import { OptionList, QuestionPrompt } from "@/components/exam-builder/question-prompt";
+import { QuranSnippet } from "@/components/exam-builder/quran-snippet";
 import { formatMarks, marksLabel, numberItems, paperTotal, sectionTotal } from "@/lib/exam-builder/numbering";
 import { loadPaper, type PaperItemWithImages } from "@/lib/exam-builder/queries";
+import { loadQuranSnippets } from "@/lib/exam-builder/quran";
+import { snippetKey, type SnippetWord } from "@/lib/exam-builder/quran-lines";
 import type { Paper, Section } from "@/lib/exam-builder/types";
 import { PrintToolbar } from "./print-toolbar";
 
@@ -56,6 +59,9 @@ export default async function ExamPrintPage({ params, searchParams }: Props) {
   const { paper, sections, items } = loaded;
   const numbers = numberItems(sections, items);
   const notes = paper.notes.map((n) => n.trim()).filter(Boolean);
+  // An ayah typeset from the mushaf data stands in for a picture only when the
+  // item has none: where there are pictures, the pictures win (for now).
+  const typeset = await loadQuranSnippets(items.filter(wantsTypeset).map((i) => i.prompt_quran));
 
   return (
     <>
@@ -96,7 +102,15 @@ export default async function ExamPrintPage({ params, searchParams }: Props) {
               ) : (
                 items
                   .filter((i) => i.section_id === section.id)
-                  .map((item) => <Question key={item.id} item={item} number={numbers[item.id]} scheme={scheme} />)
+                  .map((item) => (
+                    <Question
+                      key={item.id}
+                      item={item}
+                      number={numbers[item.id]}
+                      scheme={scheme}
+                      quranWords={wantsTypeset(item) ? typeset[snippetKey(item.prompt_quran!)] : undefined}
+                    />
+                  ))
               )}
             </section>
           ))}
@@ -106,7 +120,22 @@ export default async function ExamPrintPage({ params, searchParams }: Props) {
   );
 }
 
-function Question({ item, number, scheme }: { item: PaperItemWithImages; number: number | undefined; scheme: boolean }) {
+/** An item to typeset: it names an ayah and carries no picture of it. */
+const wantsTypeset = (item: PaperItemWithImages) =>
+  !!item.prompt_quran && item.prompt_images.filter(Boolean).length === 0;
+
+function Question({
+  item,
+  number,
+  scheme,
+  quranWords,
+}: {
+  item: PaperItemWithImages;
+  number: number | undefined;
+  scheme: boolean;
+  /** The ayah's words, when it is typeset; without them the prompt keeps its "(Surah N, ayah M)". */
+  quranWords?: SnippetWord[];
+}) {
   const options = item.kind === "mcq" ? (item.options ?? []) : [];
   const pictureOptions = options.length > 0 && options.every((o) => o.image && !o.text.trim());
   const answer = scheme ? (item.answer ?? "").trim() : "";
@@ -121,6 +150,7 @@ function Question({ item, number, scheme }: { item: PaperItemWithImages; number:
           images={item.prompt_images}
           imageUrls={item.imageUrls}
           quran={item.prompt_quran}
+          quranSlot={quranWords?.length ? <QuranSnippet words={quranWords} variant="print" /> : undefined}
           variant="print"
         />
         <span className="ep-q-marks">{marksLabel(item.marks)}</span>
