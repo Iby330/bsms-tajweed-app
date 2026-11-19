@@ -53,6 +53,18 @@ function fakeDb(respond: (c: Call) => Reply = () => ({})) {
 
 const has = (c: Call, ...f: unknown[]) => c.filters.some((x) => JSON.stringify(x) === JSON.stringify(f));
 const eqId = (c: Call) => c.filters.find((f) => f[0] === "eq" && f[1] === "id")?.[2];
+/** The writes to the paper's own rows, without the "Edited" stamp. */
+const contentUpdates = (calls: Call[]) =>
+  calls.filter((c) => c.op === "update" && c.table !== "exam_papers").map((c) => [eqId(c), c.args[0]]);
+/** The one "Edited" stamp an action leaves: an update of exam_papers' updated_at, on this paper, last. */
+function expectTouched(calls: Call[], paperId = PAPER) {
+  const touches = calls.filter((c) => c.table === "exam_papers" && c.op === "update");
+  expect(touches).toHaveLength(1);
+  expect(Object.keys(touches[0].args[0] as object)).toEqual(["updated_at"]);
+  expect(typeof (touches[0].args[0] as { updated_at: unknown }).updated_at).toBe("string");
+  expect(has(touches[0], "eq", "id", paperId)).toBe(true);
+  expect(writes(calls).at(-1)).toBe(touches[0]);
+}
 const writes = (calls: Call[]) => calls.filter((c) => ["insert", "update", "delete", "upsert", "rpc"].includes(c.op));
 
 const ME = "11111111-1111-4111-8111-111111111111";
@@ -258,6 +270,22 @@ describe("sections", () => {
       practical: DEFAULT_SECTIONS[2].practical,
     });
     expect(res).toMatchObject({ ok: true, section: { kind: "practical", practical: { rows: 3, marks: 9 } } });
+    expectTouched(calls);
+  });
+
+  it("updateSection and removeSection stamp the paper as edited", async () => {
+    let calls = as(TEACHER, paperWorld());
+    await expect(updateSection(SEC_A, { title: "Section A" })).resolves.toEqual({ ok: true });
+    expectTouched(calls);
+    calls = as(TEACHER, paperWorld());
+    await expect(removeSection(SEC_B)).resolves.toEqual({ ok: true });
+    expectTouched(calls);
+  });
+
+  it("a failed stamp does not fail the edit", async () => {
+    const world = paperWorld();
+    as(TEACHER, (c) => (c.table === "exam_papers" && c.op === "update" ? { error: { message: "boom" } } : world(c)));
+    await expect(updateSection(SEC_A, { title: "Section A" })).resolves.toEqual({ ok: true });
   });
 
   it("updateSection refuses a table on a question section", async () => {
@@ -270,8 +298,8 @@ describe("sections", () => {
   it("moveSection swaps and renumbers", async () => {
     const calls = as(TEACHER, paperWorld());
     await expect(moveSection(SEC_B, "up")).resolves.toEqual({ ok: true });
-    const ups = calls.filter((c) => c.op === "update").map((c) => [eqId(c), c.args[0]]);
-    expect(ups).toEqual([[SEC_B, { position: 1 }], [SEC_A, { position: 2 }]]);
+    expect(contentUpdates(calls)).toEqual([[SEC_B, { position: 1 }], [SEC_A, { position: 2 }]]);
+    expectTouched(calls);
   });
 });
 
@@ -306,6 +334,7 @@ describe("addItemFromBank", () => {
       answer: "A nasal sound (1)", marks: 1, answer_lines: 2,
     });
     expect(res).toMatchObject({ ok: true, item: { id: ITEM, kind: "short", marks: 1, prompt_quran: { surah: 103 } } });
+    expectTouched(calls);
     // Saves from the workspace never re-render it: no revalidation.
     expect(revalidatePath).not.toHaveBeenCalled();
   });
@@ -352,6 +381,7 @@ describe("addBlankItem", () => {
     });
     expect((ins.args[0] as { options: unknown[] }).options).toHaveLength(4);
     expect(res).toMatchObject({ ok: true, item: { kind: "mcq" } });
+    expectTouched(calls);
   });
 });
 
@@ -370,6 +400,7 @@ describe("updateItem", () => {
     const up = calls.find((c) => c.op === "update")!;
     expect(up.args[0]).toEqual({ prompt: "Which rule?", marks: 1.5, answer: null });
     expect(eqId(up)).toBe(ITEM);
+    expectTouched(calls);
   });
 
   it("gives a question turned multiple choice four empty options", async () => {
@@ -384,8 +415,8 @@ describe("moving and removing questions", () => {
   it("moveItem swaps neighbours and renumbers the section", async () => {
     const calls = as(TEACHER, paperWorld());
     await expect(moveItem(ITEM_3, "up")).resolves.toEqual({ ok: true });
-    const ups = calls.filter((c) => c.op === "update").map((c) => [eqId(c), c.args[0]]);
-    expect(ups).toEqual([[ITEM_3, { position: 2 }], [ITEM_2, { position: 3 }]]);
+    expect(contentUpdates(calls)).toEqual([[ITEM_3, { position: 2 }], [ITEM_2, { position: 3 }]]);
+    expectTouched(calls);
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 
@@ -398,19 +429,19 @@ describe("moving and removing questions", () => {
   it("removeItem closes the gap", async () => {
     const calls = as(TEACHER, paperWorld());
     await expect(removeItem(ITEM)).resolves.toEqual({ ok: true });
-    expect(calls.filter((c) => c.op === "update").map((c) => [eqId(c), c.args[0]]))
-      .toEqual([[ITEM_2, { position: 1 }], [ITEM_3, { position: 2 }]]);
+    expect(contentUpdates(calls)).toEqual([[ITEM_2, { position: 1 }], [ITEM_3, { position: 2 }]]);
+    expectTouched(calls);
   });
 
   it("moveItemToSection appends to the target and renumbers both", async () => {
     const calls = as(TEACHER, paperWorld());
     await expect(moveItemToSection(ITEM, SEC_B)).resolves.toEqual({ ok: true });
-    const ups = calls.filter((c) => c.op === "update").map((c) => [eqId(c), c.args[0]]);
-    expect(ups).toEqual([
+    expect(contentUpdates(calls)).toEqual([
       [ITEM, { section_id: SEC_B, position: 1 }],
       [ITEM_2, { position: 1 }],
       [ITEM_3, { position: 2 }],
     ]);
+    expectTouched(calls);
   });
 
   it("moveItemToSection refuses the practical section or another paper's", async () => {

@@ -258,6 +258,8 @@ export function Workspace({
   const ordered = L.orderedSections(sections);
   const questionSections = ordered.filter((s) => s.kind === "questions");
   const total = paperTotal(ordered, items);
+  // Every question on the paper, bank or not; a question still being saved is not counted yet.
+  const questionCount = items.filter((i) => !i.id.startsWith("temp-")).length;
   const addedIds = useMemo(
     () => new Set(items.flatMap((i) => (i.bank_question_id ? [i.bank_question_id] : []))),
     [items],
@@ -292,7 +294,7 @@ export function Workspace({
             </div>
             <p className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground" aria-live="polite">
               <span className="font-mono tracking-[0.08em] uppercase">{paper.code} · {paper.season}</span>
-              <span><b className="font-semibold text-foreground tabular-nums">{items.filter((i) => !i.id.startsWith("temp-")).length}</b> questions</span>
+              <span><b className="font-semibold text-foreground tabular-nums">{questionCount}</b> {questionCount === 1 ? "question" : "questions"}</span>
               <span><b className="font-semibold text-foreground tabular-nums">{formatMarks(total)}</b> marks</span>
               {status}
             </p>
@@ -372,7 +374,7 @@ export function Workspace({
           <DialogHeader className="border-b border-line p-4">
             <DialogTitle>Question bank</DialogTitle>
             <DialogDescription>
-              {addedIds.size} on the paper · {formatMarks(total)} marks. Added questions go straight onto the paper.
+              {questionCount} on the paper · {formatMarks(total)} marks. Added questions go straight onto the paper.
             </DialogDescription>
           </DialogHeader>
           <BankPanel topics={topics} questions={questions} add={bankAdd} reveal={reveal} />

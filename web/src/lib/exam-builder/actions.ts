@@ -81,6 +81,20 @@ async function draftPaper(db: Db, paperId: string): Promise<{ ok: true } | Fail>
   return { ok: true };
 }
 
+/**
+ * Stamp the paper as just edited, so the list's "Edited …" moves when its
+ * sections or questions change (the header edits stamp it themselves). Called
+ * after the change itself has gone in; if the stamp fails the change still
+ * stands, so the result is ignored.
+ */
+async function touchPaper(db: Db, paperId: string): Promise<void> {
+  try {
+    await db.from("exam_papers").update({ updated_at: new Date().toISOString() }).eq("id", paperId);
+  } catch {
+    // Only the "Edited" time is lost.
+  }
+}
+
 /** Rewrite positions 1..n for rows already in the order they should read. */
 async function writePositions(
   db: Db,
@@ -262,6 +276,7 @@ export async function addSection(paperId: string, kind: SectionKind): Promise<Re
     .single();
   if (error) return dbFail(error);
   if (!data) return fail("The section wasn't added.");
+  await touchPaper(db, paperId);
   return { ok: true, section: toSection(data) };
 }
 
@@ -278,6 +293,7 @@ export async function updateSection(id: string, patch: { title?: string; practic
 
   const { error } = await db.from("exam_paper_sections").update(clean.patch).eq("id", id);
   if (error) return dbFail(error);
+  await touchPaper(db, found.section.paper_id);
   return { ok: true };
 }
 
@@ -296,6 +312,7 @@ export async function removeSection(id: string): Promise<Result> {
   if (restErr) return dbFail(restErr);
   const written = await writePositions(db, "exam_paper_sections", rest ?? []);
   if (!written.ok) return written;
+  await touchPaper(db, found.section.paper_id);
   return { ok: true };
 }
 
@@ -315,6 +332,7 @@ export async function moveSection(id: string, dir: "up" | "down"): Promise<Resul
   if (!order) return { ok: true };
   const written = await writePositions(db, "exam_paper_sections", order);
   if (!written.ok) return written;
+  await touchPaper(db, found.section.paper_id);
   return { ok: true };
 }
 
@@ -379,6 +397,7 @@ export async function addItemFromBank(
     .single();
   if (error) return dbFail(error);
   if (!data) return fail("The question wasn't added.");
+  await touchPaper(db, paperId);
   return { ok: true, item: toPaperItem(data) };
 }
 
@@ -421,6 +440,7 @@ export async function addBlankItem(
     .single();
   if (error) return dbFail(error);
   if (!data) return fail("The question wasn't added.");
+  await touchPaper(db, paperId);
   return { ok: true, item: toPaperItem(data) };
 }
 
@@ -448,6 +468,7 @@ export async function updateItem(
   }
   const { error } = await db.from("exam_paper_items").update(update).eq("id", id);
   if (error) return dbFail(error);
+  await touchPaper(db, found.item.paper_id);
   return { ok: true };
 }
 
@@ -466,6 +487,7 @@ export async function removeItem(id: string): Promise<Result> {
   if (restErr) return dbFail(restErr);
   const written = await writePositions(db, "exam_paper_items", rest ?? []);
   if (!written.ok) return written;
+  await touchPaper(db, found.item.paper_id);
   return { ok: true };
 }
 
@@ -485,6 +507,7 @@ export async function moveItem(id: string, dir: "up" | "down"): Promise<Result> 
   if (!order) return { ok: true };
   const written = await writePositions(db, "exam_paper_items", order);
   if (!written.ok) return written;
+  await touchPaper(db, found.item.paper_id);
   return { ok: true };
 }
 
@@ -514,5 +537,6 @@ export async function moveItemToSection(id: string, sectionId: string): Promise<
     const written = await writePositions(db, "exam_paper_items", rows ?? []);
     if (!written.ok) return written;
   }
+  await touchPaper(db, found.item.paper_id);
   return { ok: true };
 }
