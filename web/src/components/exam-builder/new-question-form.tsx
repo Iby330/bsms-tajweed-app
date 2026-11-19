@@ -21,9 +21,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { signNewQuestionImage } from "@/lib/exam-builder/new-question-actions";
 import { groupTopics } from "@/lib/exam-builder/topics";
-import type { McqOption, QuestionKind, Topic } from "@/lib/exam-builder/types";
+import { EMPTY_DRAFT, readDraft, type RefDraft } from "@/lib/exam-builder/quran-ref-draft";
+import type { McqOption, QuestionKind, QuranRef, Topic } from "@/lib/exam-builder/types";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { ArabicModeSwitch, QuranRefFields, type ArabicMode } from "./arabic-choice";
 
 /** What the form hands back: the question as the actions take it. */
 export type NewQuestionInput = {
@@ -31,6 +33,8 @@ export type NewQuestionInput = {
   kind: QuestionKind;
   prompt: string;
   prompt_images: string[];
+  /** The ayah typeset from the mushaf, as an alternative to a picture. */
+  prompt_quran: QuranRef | null;
   options: McqOption[] | null;
   select_many: boolean;
   answer: string | null;
@@ -42,7 +46,7 @@ const MAX_BYTES = 3 * 1024 * 1024;
 const TYPES: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif" };
 const blank = (): McqOption => ({ text: "", image: null, correct: false });
 
-type Errors = Partial<Record<"topic" | "prompt" | "options" | "marks" | "picture" | "form", string>>;
+type Errors = Partial<Record<"topic" | "prompt" | "options" | "marks" | "picture" | "ayah" | "form", string>>;
 
 function Form({
   topics, profileId, mode, defaultKind, onSubmit, onDone,
@@ -60,6 +64,8 @@ function Form({
   const [prompt, setPrompt] = useState("");
   const [picture, setPicture] = useState<{ path: string; url: string } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [arabic, setArabic] = useState<ArabicMode>("picture");
+  const [draft, setDraft] = useState<RefDraft>(EMPTY_DRAFT);
   const [options, setOptions] = useState<McqOption[]>([blank(), blank(), blank(), blank()]);
   const [selectMany, setSelectMany] = useState(false);
   const [marks, setMarks] = useState("1");
@@ -109,6 +115,8 @@ function Form({
     }
     const filled = options.filter((o) => o.text.trim() || o.image);
     if (kind === "mcq" && filled.length < 2) next.options = "Fill in at least two options.";
+    const read = arabic === "typeset" ? readDraft(draft) : null;
+    if (read && !read.ok) next.ayah = read.error;
     setErrors(next);
     if (Object.keys(next).length) return;
 
@@ -116,7 +124,8 @@ function Form({
       topic_id: topic,
       kind,
       prompt: prompt.trim(),
-      prompt_images: picture ? [picture.path] : [],
+      prompt_images: arabic === "picture" && picture ? [picture.path] : [],
+      prompt_quran: read?.ok ? read.ref : null,
       options: kind === "mcq" ? filled : null,
       select_many: kind === "mcq" && selectMany,
       answer: answer.trim() || null,
@@ -125,7 +134,7 @@ function Form({
     start(async () => {
       let err: string | void;
       try {
-        err = await onSubmit(q, mode === "paper" && keepOut, picture ? { [picture.path]: picture.url } : {});
+        err = await onSubmit(q, mode === "paper" && keepOut, picture && arabic === "picture" ? { [picture.path]: picture.url } : {});
       } catch {
         err = "Couldn't reach the server. Check the connection and try again.";
       }
@@ -201,9 +210,16 @@ function Form({
           {fieldError(errors.prompt)}
         </label>
 
-        <div className="grid gap-1.5">
-          <span className="text-sm font-medium">Picture of the Arabic <span className="font-normal text-muted-foreground">· optional</span></span>
-          {picture ? (
+        <div className="grid gap-2.5">
+          <span className="text-sm font-medium">Arabic for this question <span className="font-normal text-muted-foreground">· optional</span></span>
+          <ArabicModeSwitch mode={arabic} onChange={(m) => { setArabic(m); clear("ayah"); clear("picture"); }} />
+          {arabic === "typeset" && (
+            <div className="grid gap-2 rounded-lg border border-line p-3">
+              <QuranRefFields draft={draft} onChange={(d) => { setDraft(d); clear("ayah"); }} showErrors={!!errors.ayah} idPrefix="new-question" />
+            </div>
+          )}
+          {arabic === "none" && <p className="text-xs text-muted-foreground">No Arabic under the question. Choose Picture to upload one, or Typeset ayah to set an ayah from the mushaf.</p>}
+          {arabic !== "picture" ? null : picture ? (
             <div className="flex flex-wrap items-start gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={picture.url} alt="Arabic text for this question" className="exam-edit-image rounded border border-line bg-white" />

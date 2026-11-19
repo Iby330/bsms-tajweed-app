@@ -79,6 +79,46 @@ export function snippetLines(words: SnippetWord[]): SnippetLine[] {
   return out;
 }
 
+/**
+ * A short range set as ONE line: at most this many glyphs (words and ayah-end
+ * rosettes). A full mushaf line holds roughly 8–12, so 14 still fits the
+ * snippet's measure once the type scales to it (see `setLines`' `em`).
+ */
+export const ONE_LINE_MAX = 14;
+
+/** About how wide one QCF glyph is, in em of its page font, spaces included. */
+const EM_PER_GLYPH = 1.6;
+
+/** A full printed line is up to ~15.6em of its page font; 16 leaves a hair either side. */
+export const LINE_EM = 16;
+
+/** A line as the snippet sets it, with the width (in em) it scales its type to. */
+export type SetLine = SnippetLine & { em: number; joined: boolean };
+
+/**
+ * The lines the snippet sets. Normally the mushaf's own printed lines. But a
+ * short range that happens to straddle a line break of the mushaf (Luqman
+ * 31:19's first three words end a line) reads oddly on an exam paper as a
+ * stub and then the rest, so when the whole range is on ONE page — one font —
+ * and is at most `ONE_LINE_MAX` glyphs, it is set as a single line. A
+ * multi-line passage (Al-Fatihah) keeps the mushaf's lines.
+ */
+export function setLines(words: SnippetWord[]): SetLine[] {
+  const lines = snippetLines(words);
+  if (lines.length > 1 && words.length <= ONE_LINE_MAX && snippetPages(words).length === 1) {
+    const first = lines[0];
+    return [{
+      page: first.page,
+      line: first.line,
+      font: first.font,
+      words: lines.flatMap((l) => l.words),
+      em: Math.max(LINE_EM, Math.ceil(words.length * EM_PER_GLYPH)),
+      joined: true,
+    }];
+  }
+  return lines.map((l) => ({ ...l, em: LINE_EM, joined: false }));
+}
+
 /** Each page the words are printed on, once — one @font-face apiece. */
 export function snippetPages(words: SnippetWord[]): number[] {
   return [...new Set(words.map((w) => w.page))];

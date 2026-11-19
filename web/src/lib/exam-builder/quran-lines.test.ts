@@ -5,6 +5,9 @@ import {
   flowingAyahs,
   hasAllGlyphs,
   isQuranRef,
+  LINE_EM,
+  ONE_LINE_MAX,
+  setLines,
   sliceRef,
   snippetKey,
   snippetLabel,
@@ -111,6 +114,46 @@ describe("snippetLines", () => {
 
   it("lists each page font once", () => {
     expect(snippetPages(PASSAGE)).toEqual([411, 412]);
+  });
+});
+
+describe("setLines", () => {
+  // Luqman 19 as printed: three words end page 412's first line, the rest run on.
+  const AYAH_19: QuranWord[] = [
+    ...[1, 2, 3].map((p) => w(19, p, 412, 1)),
+    ...[4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => w(19, p, 412, 2)),
+    w(19, 13, 412, 2, true),
+  ];
+
+  it("sets a short range that straddles a mushaf line break as one line", () => {
+    const got = setLines(AYAH_19);
+    expect(got).toHaveLength(1);
+    expect(got[0]).toMatchObject({ page: 412, font: "QCF_P412", joined: true });
+    expect(got[0].words.map((x) => x.position)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
+    // Wider than a mushaf line, so the type scales down to fit rather than overflow.
+    expect(got[0].em).toBeGreaterThanOrEqual(LINE_EM);
+  });
+
+  it("keeps the mushaf's lines for a long passage (Al-Fatihah)", () => {
+    const fatihah: QuranWord[] = [];
+    let n = 0;
+    for (let line = 2; line <= 8; line++) for (let i = 0; i < 6; i++) fatihah.push({ ...w(1, ++n, 1, line), surah: 1 });
+    expect(fatihah.length).toBeGreaterThan(ONE_LINE_MAX);
+    const got = setLines(fatihah);
+    expect(got).toHaveLength(7);
+    expect(got.every((l) => !l.joined && l.em === LINE_EM)).toBe(true);
+  });
+
+  it("keeps the mushaf's lines when a short range crosses a page (two fonts)", () => {
+    const got = setLines(PASSAGE);
+    expect(got).toHaveLength(4);
+    expect(got.some((l) => l.joined)).toBe(false);
+  });
+
+  it("leaves a one-line range as it is", () => {
+    const got = setLines(AYAH_19.slice(3));
+    expect(got).toHaveLength(1);
+    expect(got[0]).toMatchObject({ line: 2, joined: false, em: LINE_EM });
   });
 });
 

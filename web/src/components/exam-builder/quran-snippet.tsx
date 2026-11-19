@@ -6,7 +6,8 @@
  * come from `loadQuranSnippets` on the server or `GET /api/exam-builder/quran`
  * in the browser.
  *
- * Set as the mushaf reader sets a page: one row per PRINTED line, each in its
+ * Set as the mushaf reader sets a page: one row per PRINTED line (except that
+ * a short range on one page is set as a single line — `setLines`), each in its
  * page's QCF v1 font (`QCF_P###`), drawn from `code_v1` glyphs and closed by
  * the page font's own rosettes — so it is the school's mushaf, not a
  * re-typeset approximation. Lines are centred and never wrap (the print
@@ -22,17 +23,13 @@ import { arabicNumber, pageFont } from "@/lib/homework/tap-words";
 import {
   flowingAyahs,
   hasAllGlyphs,
+  setLines,
   snippetLabel,
-  snippetLines,
   snippetPages,
   type SnippetWord,
 } from "@/lib/exam-builder/quran-lines";
 
 type Variant = "screen" | "print";
-
-/** A full printed line is up to ~15.6em of its page font, spaces included;
- *  16 leaves a hair either side. */
-const LINE_EM = 16;
 
 /** The cap: how big a short phrase may get. Tuned against the source
  *  documents' pictures (a one-line picture prints ≤22mm tall). */
@@ -62,6 +59,7 @@ export function QuranSnippet({ words, variant }: { words: SnippetWord[]; variant
         data-variant={variant}
         style={{
           margin: 0,
+          fontWeight: 400,
           fontSize: variant === "print" ? "16pt" : "1.45em",
           lineHeight: 2,
           textAlign: "right",
@@ -78,7 +76,9 @@ export function QuranSnippet({ words, variant }: { words: SnippetWord[]; variant
   for (const page of pages) {
     preload(fontUrl(page), { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
   }
-  const lines = snippetLines(words);
+  // A short range on one page is set as one line (setLines), not as the
+  // mushaf's stub-then-rest.
+  const lines = setLines(words);
 
   return (
     <figure
@@ -87,7 +87,9 @@ export function QuranSnippet({ words, variant }: { words: SnippetWord[]; variant
       aria-label={name}
       className="quran-snippet"
       data-variant={variant}
-      style={{ margin: 0, containerType: "inline-size", color: "inherit" }}
+      // A question is bold on the sheet; a page font has no bold, and a
+      // synthesised one smears the marks.
+      style={{ margin: 0, containerType: "inline-size", color: "inherit", fontWeight: 400 }}
     >
       <style>
         {pages
@@ -104,7 +106,7 @@ export function QuranSnippet({ words, variant }: { words: SnippetWord[]; variant
           className="quran-snippet-line"
           style={{
             fontFamily: `"${ln.font}"`,
-            fontSize: `min(${CAP[variant]}, calc(100cqi / ${LINE_EM}))`,
+            fontSize: `min(${CAP[variant]}, calc(100cqi / ${ln.em}))`,
             lineHeight: 1.75,
             whiteSpace: "nowrap",
             textAlign: "center",

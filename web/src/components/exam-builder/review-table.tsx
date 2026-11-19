@@ -22,6 +22,7 @@ import { groupTopics, topicPath } from "@/lib/exam-builder/topics";
 import type { BankQuestion, ReviewStatus, Topic } from "@/lib/exam-builder/types";
 import { cn } from "@/lib/utils";
 import { ReviewEditDialog } from "./review-edit-dialog";
+import { screenQuranSlot } from "./typeset-ayah";
 import {
   DEFAULT_FILTERS, hasAnswer, isNarrowed, reviewCounts, reviewMatcher, type ReviewFilters, type ReviewView,
 } from "./review-filter";
@@ -318,7 +319,7 @@ function QuestionCard({
 
         <div className="font-semibold">
           <QuestionPrompt
-            prompt={q.prompt} images={q.prompt_images} imageUrls={q.imageUrls} quran={q.prompt_quran} variant="screen"
+            prompt={q.prompt} images={q.prompt_images} imageUrls={q.imageUrls} quran={q.prompt_quran} quranSlot={screenQuranSlot(q)} variant="screen"
           />
         </div>
 

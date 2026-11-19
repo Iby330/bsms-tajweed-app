@@ -6,7 +6,7 @@
  * lines, and its pictures. The bank's original is never touched.
  */
 import { useState, useTransition } from "react";
-import { ArrowDown, ArrowUp, ImageOff, Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ImageOff, Plus, Undo2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -14,11 +14,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { snippetLabel } from "@/lib/exam-builder/quran-lines";
+import { draftFromRef, readDraft, type RefDraft } from "@/lib/exam-builder/quran-ref-draft";
 import type { McqOption, PaperItem, QuestionKind, Result } from "@/lib/exam-builder/types";
 import { cn } from "@/lib/utils";
+import { ArabicModeSwitch, AyahPreview, QuranRefFields, type ArabicMode } from "./arabic-choice";
 import type { Item } from "./paper-state";
 
-export type ItemPatch = Partial<Pick<PaperItem, "prompt" | "options" | "select_many" | "answer" | "marks" | "answer_lines" | "prompt_images" | "kind">>;
+export type ItemPatch = Partial<Pick<PaperItem, "prompt" | "options" | "select_many" | "answer" | "marks" | "answer_lines" | "prompt_images" | "prompt_quran" | "kind">>;
 
 const blank = (): McqOption => ({ text: "", image: null, correct: false });
 
@@ -49,6 +52,15 @@ function Form({ item, onSave, onDone }: { item: Item; onSave: (patch: ItemPatch)
   const [lines, setLines] = useState(String(item.answer_lines));
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  // Arabic for the question. Pictures win over a typeset ayah when both are
+  // set, so switching to the typeset text takes the pictures off this copy —
+  // only once the teacher says so (`replacePictures`).
+  const hadPictures = item.prompt_images.filter(Boolean).length > 0;
+  const [mode, setMode] = useState<ArabicMode>(hadPictures ? "picture" : item.prompt_quran ? "typeset" : "none");
+  const [draft, setDraft] = useState<RefDraft>(() => draftFromRef(item.prompt_quran));
+  const [replacePictures, setReplacePictures] = useState(false);
+  const [refErrors, setRefErrors] = useState(false);
+  const switchToTypeset = () => { setMode("typeset"); setReplacePictures(true); };
 
   const setOpt = (i: number, patch: Partial<McqOption>) =>
     setOptions((os) => os.map((o, j) => (j === i ? { ...o, ...patch } : patch.correct && !selectMany ? { ...o, correct: false } : o)));
@@ -78,6 +90,19 @@ function Form({ item, onSave, onDone }: { item: Item; onSave: (patch: ItemPatch)
         marks: m,
         answer: answer.trim() ? answer : null,
       };
+      if (mode === "typeset") {
+        const read = readDraft(draft);
+        if (!read.ok) { setRefErrors(true); return setError(`Typeset ayah: ${read.error}`); }
+        const live = images.filter(Boolean).length > 0;
+        if (live && !replacePictures) {
+          return setError("Tick “Use the typeset text instead of the picture” to switch, or choose Picture to keep it.");
+        }
+        patch.prompt_quran = read.ref;
+        patch.prompt_images = [];
+      } else if (mode === "none") {
+        patch.prompt_images = [];
+        patch.prompt_quran = null;
+      }
       if (kind === "mcq") {
         patch.options = options.filter((o) => o.text.trim() || o.image);
         patch.select_many = selectMany;
@@ -122,14 +147,62 @@ function Form({ item, onSave, onDone }: { item: Item; onSave: (patch: ItemPatch)
           <Textarea dir="auto" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Type the question" className="min-h-20 text-base" autoFocus={!prompt} />
         </label>
 
-        {images.length > 0 && (
-          <div className="grid gap-2">
-            <span className="text-sm font-medium">Pictures</span>
-            {images.map((p, i) => (
-              <Picture key={`${p}-${i}`} url={item.imageUrls[p]} onRemove={() => setImages((xs) => xs.filter((_, j) => j !== i))} label={`Remove picture ${i + 1}`} />
-            ))}
-          </div>
-        )}
+        <div className="grid gap-2.5" data-testid="arabic-choice">
+          <span className="text-sm font-medium">Arabic for this question</span>
+          <ArabicModeSwitch mode={mode} onChange={(m) => { setMode(m); setError(null); if (m !== "typeset") setReplacePictures(false); }} />
+
+          {mode === "picture" && (
+            images.length > 0 ? (
+              <div className={cn("grid gap-3", item.prompt_quran && "sm:grid-cols-2")}>
+                <div className="grid content-start gap-2">
+                  {item.prompt_quran && <span className="text-xs text-muted-foreground">The picture</span>}
+                  {images.map((p, i) => (
+                    <Picture key={`${p}-${i}`} url={item.imageUrls[p]} onRemove={() => setImages((xs) => xs.filter((_, j) => j !== i))} label={`Remove picture ${i + 1}`} />
+                  ))}
+                </div>
+                {item.prompt_quran && (
+                  <div className="grid content-start gap-2">
+                    <span className="text-xs text-muted-foreground">The same ayah typeset ({snippetLabel(item.prompt_quran)})</span>
+                    <AyahPreview quran={item.prompt_quran} />
+                    <Button variant="outline" size="sm" className="w-fit" onClick={switchToTypeset}>
+                      Use typeset text instead of the picture
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                {hadPictures ? "The picture is removed. Save to take it off, or Cancel to keep it." : "This question has no picture. Choose Typeset ayah to set the ayah from the mushaf."}
+              </p>
+            )
+          )}
+
+          {mode === "typeset" && (
+            <div className="grid gap-3 rounded-lg border border-line p-3">
+              <QuranRefFields draft={draft} onChange={(d) => { setDraft(d); setRefErrors(false); }} showErrors={refErrors} idPrefix={`edit-${item.id}`} />
+              {images.filter(Boolean).length > 0 && (
+                <div className="grid gap-2 border-t border-line pt-3">
+                  <label className="flex items-start gap-2 text-sm">
+                    <Checkbox checked={replacePictures} onCheckedChange={(c) => { setReplacePictures(c === true); setError(null); }} className="mt-0.5" />
+                    <span>
+                      Use the typeset text instead of the picture
+                      <span className="block text-xs text-muted-foreground">The picture comes off this paper&apos;s copy when you save. The bank keeps it.</span>
+                    </span>
+                  </label>
+                  <Button variant="ghost" size="sm" className="w-fit" onClick={() => { setMode("picture"); setReplacePictures(false); setError(null); }}>
+                    <Undo2 aria-hidden /> Go back to the picture
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {mode === "none" && (
+            <p className="text-xs text-muted-foreground">
+              {hadPictures || item.prompt_quran ? "No Arabic under the question: saving takes the picture and ayah off this paper's copy." : "No Arabic under the question."}
+            </p>
+          )}
+        </div>
 
         {kind === "mcq" ? (
           <fieldset className="grid gap-2">

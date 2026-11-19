@@ -18,6 +18,7 @@ import { ActionItem, ActionMenu } from "./action-menu";
 import { ConfirmDialog } from "./confirm-dialog";
 import type { Item, PaperOps } from "./paper-state";
 import { OptionList, QuestionPrompt } from "./question-prompt";
+import { screenQuranSlot } from "./typeset-ayah";
 
 const isTemp = (id: string) => id.startsWith("temp-");
 
@@ -81,7 +82,7 @@ function ItemRow({
       <div className="flex items-start gap-2">
         <span className="w-7 shrink-0 font-bold tabular-nums">{number}.</span>
         <div className="min-w-0 flex-1 font-bold">
-          <QuestionPrompt prompt={item.prompt} images={item.prompt_images} imageUrls={item.imageUrls} quran={item.prompt_quran} variant="screen" />
+          <QuestionPrompt prompt={item.prompt} images={item.prompt_images} imageUrls={item.imageUrls} quran={item.prompt_quran} quranSlot={screenQuranSlot(item)} variant="screen" />
         </div>
         <span className="shrink-0 pl-2 tabular-nums">{marksLabel(item.marks)}</span>
       </div>

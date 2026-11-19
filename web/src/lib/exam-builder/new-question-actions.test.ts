@@ -97,7 +97,7 @@ describe("addBankQuestion", () => {
     const row = ins.args[0] as Record<string, unknown>;
     expect(row).toMatchObject({
       topic_id: "noon.ikhfaa", kind: "short", marks: 1, created_by: ME, review_status: "clean", used_in: [],
-      options: null, prompt_images: [`new/${ME}/abc.png`],
+      options: null, prompt_images: [`new/${ME}/abc.png`], prompt_quran: null,
     });
     expect(row.sources).toEqual([writtenSource("Ibrahim Ramadan")]);
     expect((row.sources as { label: string }[])[0].label).toMatch(/^Ibrahim Ramadan, [A-Z][a-z]{2,3} \d{4}$/);
@@ -135,5 +135,19 @@ describe("the pure checks", () => {
     const short = cleanNewQuestion({ ...good, options: [{ text: "A", image: null, correct: true }] });
     expect(short).toMatchObject({ ok: true, value: { options: null } });
     expect(cleanNewQuestion({ ...good, marks: undefined })).toMatchObject({ ok: false });
+  });
+
+  it("cleanNewQuestion carries a typeset ayah, and refuses one that isn't a range", () => {
+    const q = cleanNewQuestion({ ...good, prompt_images: [], prompt_quran: { surah: 112, from_ayah: 1, to_ayah: 4 } });
+    expect(q).toMatchObject({ ok: true, value: { prompt_images: [], prompt_quran: { surah: 112, from_ayah: 1, to_ayah: 4 } } });
+    expect(cleanNewQuestion(good)).toMatchObject({ ok: true, value: { prompt_quran: null } });
+    expect(cleanNewQuestion({ ...good, prompt_quran: { surah: 115, from_ayah: 1, to_ayah: 1 } })).toMatchObject({ ok: false });
+  });
+
+  it("addBankQuestion stores the typeset ayah on the bank row", async () => {
+    const calls = as(TEACHER, world);
+    await addBankQuestion({ ...good, prompt_images: [], prompt_quran: { surah: 31, from_ayah: 19, to_ayah: 19 } });
+    const row = calls.find((c) => c.table === "exam_bank_questions" && c.op === "insert")!.args[0] as Record<string, unknown>;
+    expect(row.prompt_quran).toEqual({ surah: 31, from_ayah: 19, to_ayah: 19 });
   });
 });

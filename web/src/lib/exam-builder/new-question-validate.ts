@@ -10,7 +10,7 @@
  * options, and its pictures must be ones a teacher uploaded (`new/…`).
  */
 import { mcqProblem } from "./bank-validate";
-import type { McqOption, QuestionKind, SourceRef } from "./types";
+import type { McqOption, QuestionKind, QuranRef, SourceRef } from "./types";
 import { cleanItemPatch } from "./validate";
 
 export type NewQuestion = {
@@ -18,6 +18,8 @@ export type NewQuestion = {
   kind: QuestionKind;
   prompt: string;
   prompt_images: string[];
+  /** An ayah to typeset from the mushaf instead of a picture. */
+  prompt_quran: QuranRef | null;
   options: McqOption[] | null;
   select_many: boolean;
   answer: string | null;
@@ -62,6 +64,7 @@ export function cleanNewQuestion(input: unknown): Clean<NewQuestion> {
     answer: input.answer ?? null,
     select_many: kind === "mcq" ? input.select_many === true : false,
     prompt_images: input.prompt_images ?? [],
+    prompt_quran: input.prompt_quran ?? null,
     ...(kind === "mcq" ? { options: options ?? [] } : {}),
   });
   if (!item.ok) return item;
@@ -79,6 +82,7 @@ export function cleanNewQuestion(input: unknown): Clean<NewQuestion> {
       kind,
       prompt: p.prompt!,
       prompt_images: p.prompt_images ?? [],
+      prompt_quran: p.prompt_quran ?? null,
       options: opts,
       select_many: p.select_many ?? false,
       answer: p.answer ?? null,

@@ -15,6 +15,7 @@ import type { BankQuestion } from "@/lib/exam-builder/types";
 import { cn } from "@/lib/utils";
 import { ActionItem, ActionMenu } from "./action-menu";
 import { OptionList, QuestionPrompt } from "./question-prompt";
+import { screenQuranSlot } from "./typeset-ayah";
 
 export type SectionChoice = { id: string; title: string };
 
@@ -91,6 +92,7 @@ function BankQuestionCardImpl({
           images={q.prompt_images}
           imageUrls={q.imageUrls}
           quran={q.prompt_quran}
+          quranSlot={screenQuranSlot(q)}
           variant="screen"
         />
       </div>

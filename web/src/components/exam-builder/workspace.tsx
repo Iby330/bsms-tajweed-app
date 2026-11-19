@@ -28,6 +28,7 @@ import { addBankQuestion, addCustomItem } from "@/lib/exam-builder/new-question-
 import { usedLabel, suggestSection } from "@/lib/exam-builder/labels";
 import { formatMarks, paperTotal } from "@/lib/exam-builder/numbering";
 import type { LoadedPaper } from "@/lib/exam-builder/queries";
+import type { SnippetWord } from "@/lib/exam-builder/quran-lines";
 import type { BankQuestion, Paper, QuestionKind, Result, SectionKind, Topic } from "@/lib/exam-builder/types";
 import { BankPanel, type BankAdd } from "./bank-panel";
 import { ExportMenu } from "./export-menu";
@@ -38,6 +39,7 @@ import { PaperCanvas } from "./paper-canvas";
 import { PaperHeaderForm } from "./paper-header-form";
 import { StatusChip } from "./paper-list";
 import * as L from "./paper-state";
+import { primeQuranWords } from "./use-quran-words";
 import "./exam-builder.css";
 
 type State = L.PaperState;
@@ -47,13 +49,18 @@ export function Workspace({
   topics,
   questions: initialQuestions,
   profileId,
+  quranWords,
 }: {
   initial: LoadedPaper;
   topics: Topic[];
   questions: BankQuestion[];
   /** The signed-in teacher: new pictures upload under new/<profileId>/. */
   profileId: string;
+  /** The words of the typeset ayahs already on the paper, by snippetKey. */
+  quranWords?: Record<string, SnippetWord[]>;
 }) {
+  // Before the first render, so those ayahs render with the page.
+  useState(() => primeQuranWords(quranWords));
   const [state, setStateRaw] = useState<State>(() => ({
     paper: initial.paper, sections: initial.sections, items: initial.items,
   }));
