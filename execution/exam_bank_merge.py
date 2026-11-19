@@ -603,7 +603,12 @@ def merge(groups: dict[str, list], t_dir: Path) -> dict:
         questions.append({
             "import_key": m["import_key"], "topic_id": m["topic_id"], "kind": m["kind"],
             "prompt": m["prompt"], "prompt_images": m["prompt_images"],
-            "prompt_quran": m["prompt_quran"], "options": m["options"],
+            # The extractor's quran_ref says which ayah a PICTURE shows. The app
+            # typesets prompt_quran whenever a question has no picture, so on a
+            # question whose Arabic is typed inline it printed the whole ayah
+            # (all of 5:1) under a three-word phrase. Keep it only with a picture.
+            "prompt_quran": m["prompt_quran"] if m["prompt_images"] else None,
+            "options": m["options"],
             "select_many": m["select_many"], "answer": m["answer"], "marks": m["marks"],
             "sources": m["sources"], "used_in": m["used_in"],
             "review_status": m["status"],
