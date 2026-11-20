@@ -6,6 +6,8 @@ import { classItemWeek, moduleTitle } from "@/lib/curriculum/tree";
 import { getClassSchedule } from "@/lib/curriculum/queries";
 import { courseAddress } from "@/lib/curriculum/course-address";
 import { LessonPlayer } from "@/components/app/lesson-player";
+import { LessonCarousel } from "@/components/app/lesson-carousel";
+import { carouselFor } from "@/lib/lessons/carousels";
 import { MixedText } from "@/components/app/mixed-text";
 import { Crumbs } from "@/components/app/crumbs";
 
@@ -76,6 +78,7 @@ export default async function Lesson({
   // old `.maybeSingle()` showed no link at all rather than guess between them.
   const forSeries = week.homeworks.filter((h) => h.series === lesson.series);
   const homework = forSeries.length === 1 ? forSeries[0] : null;
+  const carousel = carouselFor(lesson.youtube_id);
 
   return (
     <>
@@ -128,6 +131,13 @@ export default async function Lesson({
             </div>
           )}
         </div>
+
+        {/* The lecture's carousel, where it has one (Sahaba Stories). */}
+        {carousel && (
+          <div className="box c12 carousel-box">
+            <LessonCarousel slides={carousel} />
+          </div>
+        )}
 
         {(next || homework) && (
           <div className="box c12 player-acts" style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getResourceSet } from "@/lib/resources/queries";
 import { moduleTitle } from "@/lib/curriculum/tree";
 import { LessonPlayer } from "@/components/app/lesson-player";
+import { LessonCarousel } from "@/components/app/lesson-carousel";
+import { carouselFor } from "@/lib/lessons/carousels";
 import { MixedText } from "@/components/app/mixed-text";
 import { Crumbs } from "@/components/app/crumbs";
 
@@ -21,6 +23,7 @@ export default async function ResourceVideo({
   if (!set || index < 0) notFound();
   const video = set.videos[index];
   const next = set.videos[index + 1];
+  const carousel = carouselFor(video.youtubeId);
 
   return (
     <>
@@ -47,6 +50,13 @@ export default async function ResourceVideo({
         <div className="box c12 player-box">
           <LessonPlayer lessonId={video.id} youtubeId={video.youtubeId} initiallyWatched={false} />
         </div>
+
+        {/* The lecture's carousel, where it has one (Sahaba Stories). */}
+        {carousel && (
+          <div className="box c12 carousel-box">
+            <LessonCarousel slides={carousel} />
+          </div>
+        )}
         {(video.homework || next) && (
           <div className="box c12 player-acts" style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
             {video.homework && (

@@ -5,6 +5,8 @@ import { blockTopic } from "@/lib/curriculum/catalogue";
 import { moduleTitle } from "@/lib/curriculum/tree";
 import { SERIES_LABELS } from "@/lib/lessons/series";
 import { LessonPlayer } from "@/components/app/lesson-player";
+import { LessonCarousel } from "@/components/app/lesson-carousel";
+import { carouselFor } from "@/lib/lessons/carousels";
 import { LessonVideoInput } from "@/components/app/lesson-video-input";
 import { MixedText } from "@/components/app/mixed-text";
 import { Crumbs } from "@/components/app/crumbs";
@@ -63,6 +65,7 @@ export default async function TeacherLesson({
 
   const forSeries = week.homeworks.filter((h) => h.series === lesson.series);
   const homework = forSeries.length === 1 ? forSeries[0] : null;
+  const carousel = carouselFor(lesson.youtube_id);
 
   const topic = blockTopic(lesson.series, week.term_id);
   const blockHref = `/teacher/curriculum/c/${lesson.series}/${week.term_id}`;
@@ -109,6 +112,13 @@ export default async function TeacherLesson({
             </div>
           )}
         </div>
+
+        {/* The lecture's carousel, where it has one (Sahaba Stories). */}
+        {carousel && (
+          <div className="box c12 carousel-box">
+            <LessonCarousel slides={carousel} />
+          </div>
+        )}
 
         {(next || homework) && (
           <div className="box c12 player-acts" style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>

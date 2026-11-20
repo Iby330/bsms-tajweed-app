@@ -178,6 +178,10 @@ export const config = {
      * /login if the session lapsed mid-homework. The names (hw1-a.mp3) give
      * no answer away.
      *
+     * `carousels/` is the Sahaba Stories slides under a lecture's video
+     * (lib/lessons/carousels.ts): a <video> fetches in byte ranges, the same
+     * cost as `audio/`. They are the programme's public Instagram posts.
+     *
      * `robots.txt` is for crawlers, who are always signed out — redirected to
      * /login they would read a page of HTML as the rules.
      *
@@ -185,6 +189,6 @@ export const config = {
      * no session, and checks that secret itself. Through the proxy it was
      * redirected to /login and could never be reached.
      */
-    "/((?!_next/static|_next/image|favicon.ico|robots\\.txt$|api/revalidate$|brand/|fonts/|testimonials/|audio/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf|webmanifest)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots\\.txt$|api/revalidate$|brand/|fonts/|testimonials/|audio/|carousels/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf|webmanifest)$).*)",
   ],
 };

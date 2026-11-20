@@ -1278,6 +1278,11 @@ body::after {
     gap: 14px; min-width: 0; transition: background 0.2s;
   }
   .box:hover { background: color-mix(in oklab, var(--foreground) 3%, var(--card)); }
+  /* The lecture's carousel: its strip runs to the box's edges, so the box
+     keeps only its vertical padding and the labels pad themselves. It is
+     swiped, not clicked, so it does not tint under the pointer. */
+  .box.carousel-box { padding-inline: 0; }
+  .box.carousel-box:hover { background: var(--card); }
   .box.needs {
     box-shadow: inset 0 2px 0 var(--danger);
     background: linear-gradient(180deg, color-mix(in oklab, var(--danger) 8%, transparent), transparent 62%), var(--card);
