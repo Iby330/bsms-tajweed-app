@@ -1283,6 +1283,8 @@ body::after {
      swiped, not clicked, so it does not tint under the pointer. */
   .box.carousel-box { padding-inline: 0; }
   .box.carousel-box:hover { background: var(--card); }
+  .carousel-count { animation: carousel-count 3s ease-out forwards; }
+  @keyframes carousel-count { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
   .box.needs {
     box-shadow: inset 0 2px 0 var(--danger);
     background: linear-gradient(180deg, color-mix(in oklab, var(--danger) 8%, transparent), transparent 62%), var(--card);
