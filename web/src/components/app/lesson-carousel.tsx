@@ -9,7 +9,7 @@ import type { CarouselSlide } from "@/lib/lessons/carousels";
  * the same way.
  *
  * Laid out as Instagram lays out a post: one slide at a time, the arrows,
- * the count and the sound button on the slide itself, dots underneath, and
+ * the count and the sound button on the slide itself, dots underneath to jump to any slide, and
  * between them a playhead for the slide showing, pressed or dragged to any
  * moment in it. It
  * moves by swipe on a phone or trackpad, by drag with a mouse, by the arrows
@@ -323,13 +323,30 @@ export function LessonCarousel({ slides }: { slides: CarouselSlide[] }) {
         </div>
       </div>
 
-      {/* The post's dots: which slide this is, and how many there are. */}
-      <div className="flex items-center gap-1.5 pb-1" aria-hidden>
+      {/* The post's dots, made to be pressed: any slide is one tap away,
+          not a swipe through every slide before it. Each button is wider and
+          taller than the dot it draws, so a thumb lands on the right one. A
+          far jump goes straight there: gliding past a dozen slides would
+          start loading each one on the way. */}
+      <div className="flex max-w-full items-center justify-center pb-1" role="tablist" aria-label="Slides">
         {slides.map((slide, i) => (
-          <span
+          <button
             key={slide.video}
-            className={`size-1.5 rounded-full transition-colors ${i === active ? "bg-[var(--brand)]" : "bg-[var(--hair)]"}`}
-          />
+            type="button"
+            role="tab"
+            aria-selected={i === active}
+            aria-label={`Slide ${i + 1} of ${count}`}
+            onClick={() => go(i, Math.abs(i - active) > 1)}
+            className="group grid h-8 w-[clamp(1.125rem,5.6vw,1.5rem)] place-items-center"
+          >
+            <span
+              className={`rounded-full transition-all ${
+                i === active
+                  ? "size-3 bg-[var(--brand)]"
+                  : "size-2.5 bg-[var(--hair)] group-hover:bg-[var(--muted-foreground)]"
+              }`}
+            />
+          </button>
         ))}
       </div>
     </section>
