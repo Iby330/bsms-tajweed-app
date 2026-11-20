@@ -9,9 +9,9 @@ import type { CarouselSlide } from "@/lib/lessons/carousels";
  * the same way.
  *
  * Laid out as Instagram lays out a post: one slide at a time, the arrows,
- * the count and the sound button on the slide itself. Underneath is a
- * playhead for the whole carousel: a segment per slide that fills as it
- * plays, pressed or dragged to go to any slide at any moment in it. It
+ * the count and the sound button on the slide itself, dots underneath, and
+ * between them a playhead for the slide showing, pressed or dragged to any
+ * moment in it. It
  * moves by swipe on a phone or trackpad, by drag with a mouse, by the arrows
  * on either, and by the arrow keys.
  *
@@ -27,10 +27,8 @@ import type { CarouselSlide } from "@/lib/lessons/carousels";
 export function LessonCarousel({ slides }: { slides: CarouselSlide[] }) {
   const stripRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  // The playhead's own state, in one object so the frame loop, the effect
-  // and the handlers share it without a render: whether it is being dragged,
-  // and where in a slide a seek landed, kept until that slide's video exists.
-  const scrubRef = useRef<{ on: boolean; seek: { index: number; frac: number } | null }>({ on: false, seek: null });
+  // Whether the playhead is being dragged, shared with its handlers.
+  const scrubRef = useRef({ on: false });
   const [active, setActive] = useState(0);
   const [muted, setMuted] = useState(true);
   // Which slide was paused, not whether one is: moving to another slide
@@ -73,12 +71,6 @@ export function LessonCarousel({ slides }: { slides: CarouselSlide[] }) {
     // Set on the element, not only as a prop: React does not reliably carry
     // `muted` through, and an unmuted autoplay is refused outright.
     video.muted = muted;
-    // A seek from the playhead that landed on this slide before its video
-    // existed. Set before the file has loaded, it is where playback starts.
-    if (scrubRef.current.seek?.index === active) {
-      video.currentTime = scrubRef.current.seek.frac * slides[active].seconds;
-      if (!scrubRef.current.on) scrubRef.current.seek = null;
-    }
     if (onScreen && !paused) {
       // Refused when the browser will not autoplay at all (data saver, low
       // power): the still stays up and a tap plays it.
@@ -86,7 +78,7 @@ export function LessonCarousel({ slides }: { slides: CarouselSlide[] }) {
     } else {
       video.pause();
     }
-  }, [active, muted, paused, onScreen, slides]);
+  }, [active, muted, paused, onScreen]);
 
   const count = slides.length;
 
@@ -98,47 +90,39 @@ export function LessonCarousel({ slides }: { slides: CarouselSlide[] }) {
     strip.scrollTo({ left: to * strip.clientWidth, behavior: instant || reduce ? "auto" : "smooth" });
   }, [count]);
 
-  // The playhead: one bar for the whole carousel, a segment per slide. It
-  // fills as the slide plays, and pressing or dragging along it goes to that
-  // slide at that moment. Drawn straight onto the elements every frame: a
-  // state update sixty times a second would re-render every slide.
+  // The playhead under the slide. Drawn straight onto the elements every
+  // frame: a state update sixty times a second would re-render every slide.
   const barRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLSpanElement>(null);
-  const fillRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const fillRef = useRef<HTMLSpanElement>(null);
+
   useEffect(() => {
     let frame = 0;
     const draw = () => {
       frame = requestAnimationFrame(draw);
       const video = videoRef.current;
-      const pending = scrubRef.current.seek;
-      const frac =
-        pending?.index === active
-          ? pending.frac
-          : video && video.duration > 0
-            ? Math.min(video.currentTime / video.duration, 1)
-            : 0;
-      fillRefs.current.forEach((el, i) => {
-        if (el) el.style.transform = `scaleX(${i < active ? 1 : i === active ? frac : 0})`;
-      });
-      if (knobRef.current) knobRef.current.style.left = `${((active + frac) / count) * 100}%`;
+      const frac = video && video.duration > 0 ? Math.min(video.currentTime / video.duration, 1) : 0;
+      if (fillRef.current) fillRef.current.style.transform = `scaleX(${frac})`;
+      if (knobRef.current) knobRef.current.style.left = `${frac * 100}%`;
     };
     frame = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(frame);
-  }, [active, count]);
+  }, []);
+
+  const endScrub = () => {
+    scrubRef.current.on = false;
+    if (onScreen && !paused) videoRef.current?.play().catch(() => {});
+  };
 
   const scrubTo = (clientX: number) => {
     const bar = barRef.current;
-    if (!bar) return;
+    const video = videoRef.current;
+    if (!bar || !video) return;
     const box = bar.getBoundingClientRect();
-    const at = Math.max(0, Math.min((clientX - box.left) / box.width, 0.9999)) * count;
-    const index = Math.floor(at);
-    const frac = at - index;
-    scrubRef.current.seek = { index, frac };
-    if (index !== active) {
-      go(index, true);
-    } else if (videoRef.current) {
-      videoRef.current.currentTime = frac * slides[index].seconds;
-    }
+    const frac = Math.max(0, Math.min((clientX - box.left) / box.width, 1));
+    // Short of the very end: a looping video seeked to its last instant
+    // wraps to the start, and the playhead would jump back under the finger.
+    video.currentTime = Math.min(frac * slides[active].seconds, slides[active].seconds - 0.05);
   };
 
   // A mouse cannot swipe a scroller, so on a computer the slide is dragged.
@@ -293,46 +277,43 @@ export function LessonCarousel({ slides }: { slides: CarouselSlide[] }) {
         </button>
       </div>
 
+      {/* The slide's own playhead, as a video's: it fills as the slide plays
+          and is pressed or dragged to any moment in it. Taller than the track
+          it draws, so a thumb can find it; and it owns its touches, or a drag
+          along it would scroll the page instead. */}
       <div
         role="slider"
         tabIndex={0}
-        aria-label="Position in the carousel"
-        aria-valuemin={1}
-        aria-valuemax={count}
-        aria-valuenow={active + 1}
+        aria-label="Position in this slide"
+        aria-valuemin={0}
+        aria-valuemax={slides[active].seconds}
+        aria-valuenow={0}
         aria-valuetext={`Slide ${active + 1} of ${count}`}
         onKeyDown={(e) => {
-          if (e.key === "ArrowRight") { e.preventDefault(); go(active + 1); }
-          if (e.key === "ArrowLeft") { e.preventDefault(); go(active - 1); }
+          const video = videoRef.current;
+          if (!video || (e.key !== "ArrowRight" && e.key !== "ArrowLeft")) return;
+          e.preventDefault();
+          video.currentTime = Math.max(0, Math.min(video.currentTime + (e.key === "ArrowRight" ? 2 : -2), slides[active].seconds));
         }}
         onPointerDown={(e) => {
           if (e.button !== 0) return;
           e.currentTarget.setPointerCapture(e.pointerId);
           scrubRef.current.on = true;
+          // Held still while it is dragged: left playing, a slide dragged
+          // to its end would loop and pull the playhead back to the start.
+          videoRef.current?.pause();
           scrubTo(e.clientX);
         }}
         onPointerMove={(e) => { if (scrubRef.current.on) scrubTo(e.clientX); }}
-        onPointerUp={() => {
-          scrubRef.current.on = false;
-          // Still held for a slide whose video has not mounted yet.
-          if (scrubRef.current.seek?.index === active && videoRef.current) scrubRef.current.seek = null;
-        }}
-        onPointerCancel={() => { scrubRef.current.on = false; scrubRef.current.seek = null; }}
-        // Taller than the track it draws, so a thumb can find it; and it owns
-        // its touches, or a drag along it would scroll the page instead.
-        className="relative flex h-7 w-[min(100%,27rem,64svh)] cursor-pointer touch-none items-center gap-[3px] max-md:px-[var(--gutter)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
+        onPointerUp={endScrub}
+        onPointerCancel={endScrub}
+        className="flex h-7 w-[min(100%,27rem,64svh)] cursor-pointer touch-none items-center max-md:px-[var(--gutter)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
       >
         {/* Measured for seeking: the track itself, inside the phone's gutter. */}
-        <div ref={barRef} className="relative flex h-full flex-1 items-center gap-[3px]">
-          {slides.map((slide, i) => (
-            <span key={slide.video} className="h-[3px] flex-1 overflow-hidden rounded-full bg-[var(--hair)]">
-              <span
-                ref={(el) => { fillRefs.current[i] = el; }}
-                className="block size-full origin-left bg-[var(--brand)]"
-                style={{ transform: "scaleX(0)" }}
-              />
-            </span>
-          ))}
+        <div ref={barRef} className="relative h-[3px] flex-1 rounded-full bg-[var(--hair)]">
+          <span className="block size-full overflow-hidden rounded-full">
+            <span ref={fillRef} className="block size-full origin-left bg-[var(--brand)]" style={{ transform: "scaleX(0)" }} />
+          </span>
           <span
             ref={knobRef}
             aria-hidden
@@ -340,6 +321,16 @@ export function LessonCarousel({ slides }: { slides: CarouselSlide[] }) {
             style={{ left: 0 }}
           />
         </div>
+      </div>
+
+      {/* The post's dots: which slide this is, and how many there are. */}
+      <div className="flex items-center gap-1.5 pb-1" aria-hidden>
+        {slides.map((slide, i) => (
+          <span
+            key={slide.video}
+            className={`size-1.5 rounded-full transition-colors ${i === active ? "bg-[var(--brand)]" : "bg-[var(--hair)]"}`}
+          />
+        ))}
       </div>
     </section>
   );
