@@ -8,7 +8,7 @@ import { currentProfile } from "@/lib/supabase/server";
 export const metadata: Metadata = { title: "Exam paper" };
 export const dynamic = "force-dynamic";
 
-/** One paper in the builder: the bank beside the paper. */
+/** One paper in the builder: the paper with its outline, and the bank in the "Add a question" drawer. */
 export default async function ExamPaper({ params }: { params: Promise<{ paperId: string }> }) {
   const { paperId } = await params;
   const [loaded, bank, me] = await Promise.all([loadPaper(paperId), loadBank(), currentProfile()]);

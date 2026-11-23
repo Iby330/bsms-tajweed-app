@@ -49,17 +49,18 @@ const blank = (): McqOption => ({ text: "", image: null, correct: false });
 type Errors = Partial<Record<"topic" | "prompt" | "options" | "marks" | "picture" | "ayah" | "form", string>>;
 
 function Form({
-  topics, profileId, mode, defaultKind, onSubmit, onDone,
+  topics, profileId, mode, defaultKind, defaultTopic, onSubmit, onDone,
 }: {
   topics: Topic[];
   profileId: string;
   mode: "paper" | "bank";
   defaultKind: QuestionKind;
+  defaultTopic: string;
   onSubmit: (q: NewQuestionInput, keepOut: boolean, imageUrls: Record<string, string>) => Promise<string | void>;
   onDone: () => void;
 }) {
   const groups = useMemo(() => groupTopics(topics), [topics]);
-  const [topic, setTopic] = useState("");
+  const [topic, setTopic] = useState(defaultTopic);
   const [kind, setKind] = useState<QuestionKind>(defaultKind);
   const [prompt, setPrompt] = useState("");
   const [picture, setPicture] = useState<{ path: string; url: string } | null>(null);
@@ -309,7 +310,7 @@ function Form({
 }
 
 export function NewQuestionForm({
-  open, onOpenChange, topics, profileId, mode, defaultKind = "short", onSubmit,
+  open, onOpenChange, topics, profileId, mode, defaultKind = "short", defaultTopic = "", onSubmit,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -318,6 +319,8 @@ export function NewQuestionForm({
   /** "paper": onto a paper (and the bank unless kept out); "bank": the bank page, bank only. */
   mode: "paper" | "bank";
   defaultKind?: QuestionKind;
+  /** A rule (or one-level subject) to start on, e.g. the one the drawer is showing. */
+  defaultTopic?: string;
   /** Save it; resolve with a refusal to show, or nothing when done. */
   onSubmit: (q: NewQuestionInput, keepOut: boolean, imageUrls: Record<string, string>) => Promise<string | void>;
 }) {
@@ -330,6 +333,7 @@ export function NewQuestionForm({
             profileId={profileId}
             mode={mode}
             defaultKind={defaultKind}
+            defaultTopic={defaultTopic}
             onSubmit={onSubmit}
             onDone={() => onOpenChange(false)}
           />

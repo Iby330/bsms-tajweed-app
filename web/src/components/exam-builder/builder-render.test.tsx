@@ -22,30 +22,31 @@ const q = (over: Partial<BankQuestion> = {}): BankQuestion => ({
 
 describe("BankQuestionCard", () => {
   it("shows marks, used-in, needs checking and Add", () => {
-    const el = html(<BankQuestionCard q={q()} sections={[{ id: "s1", title: "Section A" }]} suggestedId="s1" onAdd={() => {}} />);
+    const el = html(<BankQuestionCard q={q()} onAdd={() => {}} addLabel="Add to Section A" topicLabel="Aḥkām › Idghaam" />);
     const text = el.textContent!;
     expect(text).toContain("2 marks");
     expect(text).toContain("EOT2 25/26");
     expect(text).toContain("Needs checking");
     expect(text).toContain("Found in EOT2 25/26 (A3)");
-    expect(text).toContain("Add to paper");
+    expect(text).toContain("Add to Section A");
+    expect(text).toContain("Aḥkām › Idghaam");
     expect(text).not.toContain("No answer yet"); // a correct option counts as an answer
   });
 
-  it("says when there are no marks, no answer, and it is unused; and reads Added", () => {
+  it("says when there are no marks, no answer, and it is unused; and reads On the paper", () => {
     const el = html(
       <BankQuestionCard q={q({ kind: "short", options: null, marks: null, used_in: [], review_status: "clean" })}
-        added sections={[{ id: "s1", title: "B" }]} suggestedId="s1" onAdd={() => {}} />,
+        added onAdd={() => {}} />,
     );
     const text = el.textContent!;
     expect(text).toContain("No marks set");
     expect(text).toContain("No answer yet");
     expect(text).toContain("Not used before");
-    expect(text).toContain("Added");
+    expect(text).toContain("On the paper");
     expect(text).not.toContain("Add to paper");
   });
 
-  it("is read-only without sections", () => {
+  it("is read-only without onAdd", () => {
     expect(html(<BankQuestionCard q={q()} />).textContent).not.toContain("Add to paper");
     expect(lacksAnswer({ answer: " ", kind: "short", options: null })).toBe(true);
   });
@@ -68,7 +69,7 @@ const item = (id: string, section_id: string, position: number, marks: number): 
 const noop = () => {};
 const ops: PaperOps = {
   editHeader: noop, renameSection: noop, updatePractical: noop, moveSection: noop, removeSection: noop, addSection: noop,
-  writeNew: noop, editItem: noop, moveItem: noop, moveItemToSection: noop, removeItem: noop,
+  openAdd: noop, editItem: noop, moveItem: noop, moveItemToSection: noop, removeItem: noop,
 };
 
 describe("PaperCanvas numbering", () => {

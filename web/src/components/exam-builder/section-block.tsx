@@ -3,7 +3,8 @@
 /**
  * One section of the paper: its title (renamed in place) with its total, its
  * numbered questions or — for the practical section — the hifdh table, and
- * the controls to move or remove it. Each question has a small toolbar that
+ * the controls to move or remove it. A question section ends with "Add a
+ * question", which opens the step-through drawer for it. Each question has a small toolbar that
  * appears on hover or focus (always shown on touch screens).
  */
 import { useState } from "react";
@@ -223,7 +224,7 @@ function PracticalTable({ section, locked, ops }: { section: Section; locked: bo
 }
 
 export function SectionBlock({
-  section, index, count, items, numbers, total, sections, ops, locked, showAnswers, flashId,
+  section, index, count, items, numbers, total, sections, ops, locked, showAnswers, flashId, targeted = false,
 }: {
   section: Section;
   index: number;
@@ -236,12 +237,21 @@ export function SectionBlock({
   locked: boolean;
   showAnswers: boolean;
   flashId: string | null;
+  /** The "Add a question" drawer is adding to this section. */
+  targeted?: boolean;
 }) {
   const [confirm, setConfirm] = useState(false);
   const practical = section.kind === "practical";
 
   return (
-    <section className="mt-6" aria-label={section.title}>
+    <section
+      id={`section-${section.id}`}
+      className={cn(
+        "mt-6 scroll-mt-24 rounded-md lg:scroll-mt-20",
+        targeted && "outline-2 outline-offset-[14px] outline-brand/70 outline-dashed",
+      )}
+      aria-label={section.title}
+    >
       <div className="-mx-3 flex flex-wrap items-center gap-2 rounded-md bg-[color-mix(in_oklab,var(--brand)_28%,var(--card))] px-3 py-2">
         <SectionTitle section={section} total={total} locked={locked} onRename={(t) => ops.renameSection(section.id, t)} />
         {!locked && (
@@ -269,7 +279,7 @@ export function SectionBlock({
         <>
           {items.length === 0 ? (
             <p className="py-4 font-sans text-sm text-muted-foreground">
-              {locked ? "No questions in this section." : "No questions here yet. Add them from the bank, or write one below."}
+              {locked ? "No questions in this section." : "No questions here yet."}
             </p>
           ) : (
             <ol className="mt-2 grid gap-1">
@@ -279,11 +289,18 @@ export function SectionBlock({
             </ol>
           )}
           {!locked && (
-            <div className="font-sans mt-1">
-              <Button variant="outline" size="sm" className="bg-white" onClick={() => ops.writeNew(section.id)}>
-                <Plus aria-hidden /> Write a new question
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              className={cn(
+                "font-sans mt-2 h-11 w-full border-dashed bg-white text-brand hover:bg-[color-mix(in_oklab,var(--brand)_8%,white)] hover:text-brand",
+                targeted && "border-solid border-brand/60 bg-[color-mix(in_oklab,var(--brand)_8%,white)]",
+              )}
+              onClick={() => ops.openAdd(section.id)}
+              data-add-section={section.id}
+              aria-label={`Add a question to ${section.title}`}
+            >
+              <Plus aria-hidden /> Add a question
+            </Button>
           )}
         </>
       )}

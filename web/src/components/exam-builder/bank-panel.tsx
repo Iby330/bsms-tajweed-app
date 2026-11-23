@@ -1,8 +1,9 @@
 "use client";
 
 /**
- * The question bank, browsed by topic: a video series opens to the rules
- * inside it, each rule to its questions. Standalone subjects (Seerah,
+ * The bank page's browser, by topic: a video series opens to the rules
+ * inside it, each rule to its questions. (The builder adds questions through
+ * its own step-through drawer, add-drawer.tsx.) Standalone subjects (Seerah,
  * A'daab, …) open straight to their questions. Search, marks, "Not used
  * before" and type narrow the whole tree at once, and the counts follow.
  *
@@ -17,18 +18,9 @@ import { formatMarks } from "@/lib/exam-builder/numbering";
 import { groupTopics } from "@/lib/exam-builder/topics";
 import type { BankQuestion, QuestionKind, Topic } from "@/lib/exam-builder/types";
 import { cn } from "@/lib/utils";
-import { BankQuestionCard, type SectionChoice } from "./bank-question-card";
+import { BankQuestionCard } from "./bank-question-card";
 
-export type BankAdd = {
-  /** bank question ids already on the paper */
-  addedIds: Set<string>;
-  sections: SectionChoice[];
-  suggest: (kind: QuestionKind) => string | null;
-  onAdd: (q: BankQuestion, sectionId: string) => void;
-  locked: boolean;
-};
-
-const pill = (on: boolean) =>
+export const pill = (on: boolean) =>
   cn(
     "inline-flex min-h-8 cursor-pointer items-center rounded-full border px-3 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
     on
@@ -75,14 +67,11 @@ function Fold({
 export function BankPanel({
   topics,
   questions,
-  add,
   reveal = null,
   className,
 }: {
   topics: Topic[];
   questions: BankQuestion[];
-  /** Omit for the read-only bank page. */
-  add?: BankAdd;
   /** A topic to open (with its series), e.g. where a just-written question went. */
   reveal?: string | null;
   className?: string;
@@ -148,15 +137,7 @@ export function BankPanel({
   const cards = (list: BankQuestion[]) => (
     <div className="grid gap-2 px-2 pt-1 pb-3">
       {list.map((q) => (
-        <BankQuestionCard
-          key={q.id}
-          q={q}
-          added={add?.addedIds.has(q.id)}
-          sections={add?.sections}
-          suggestedId={add?.suggest(q.kind)}
-          onAdd={add ? (sid) => add.onAdd(q, sid) : undefined}
-          locked={add?.locked}
-        />
+        <BankQuestionCard key={q.id} q={q} />
       ))}
     </div>
   );

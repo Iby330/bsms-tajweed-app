@@ -1,4 +1,4 @@
-import type { Practical, QuestionKind, Section, SectionKind } from "./types";
+import type { Practical, SectionKind } from "./types";
 
 /**
  * "EOT1 26/27": the stamp "Mark as final" adds to each bank question's
@@ -28,18 +28,3 @@ export const DEFAULT_NOTES: readonly string[] = [
   "Section B consists of short answer questions.",
   "Section C is the practical component and comprises a hifdh test.",
 ];
-
-/**
- * Where "Add" puts a question by default: the first question section (by
- * position) whose title mentions "multiple choice" for an mcq or "short
- * answer" for a short one; failing that the first question section; null when
- * the paper has none. Only a default: the teacher can pick any section.
- */
-export function suggestSection<S extends Pick<Section, "title" | "kind" | "position">>(
-  kind: QuestionKind,
-  sections: S[],
-): S | null {
-  const questions = sections.filter((s) => s.kind === "questions").sort((a, b) => a.position - b.position);
-  const want = kind === "mcq" ? "multiple choice" : "short answer";
-  return questions.find((s) => s.title.toLowerCase().includes(want)) ?? questions[0] ?? null;
-}

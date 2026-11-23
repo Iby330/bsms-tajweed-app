@@ -15,7 +15,7 @@ import { itemsIn, orderedSections, type Item, type PaperOps } from "./paper-stat
 import { SectionBlock } from "./section-block";
 
 export function PaperCanvas({
-  paper, sections, items, ops, locked, showAnswers, flashId, addingSection = null,
+  paper, sections, items, ops, locked, showAnswers, flashId, addingSection = null, targetId = null,
 }: {
   paper: Paper;
   sections: Section[];
@@ -26,6 +26,8 @@ export function PaperCanvas({
   flashId: string | null;
   /** A section being added: its button shows it is waiting for the server. */
   addingSection?: SectionKind | null;
+  /** The section the "Add a question" drawer is adding to. */
+  targetId?: string | null;
 }) {
   const ordered = orderedSections(sections);
   const numbers = numberItems(ordered, items);
@@ -33,8 +35,8 @@ export function PaperCanvas({
   const hasPractical = ordered.some((s) => s.kind === "practical");
 
   return (
-    <div className="exam-sheet mx-auto w-full max-w-[52rem] rounded-sm px-5 py-8 text-[15px] leading-relaxed shadow-[0_1px_3px_rgb(0_0_40/0.12),0_12px_32px_-12px_rgb(0_0_40/0.25)] ring-1 ring-black/5 sm:px-12 sm:py-12" data-testid="paper-sheet">
-      <header className="group/head relative">
+    <div className="exam-sheet mx-auto w-full max-w-[52rem] rounded-sm px-5 py-8 text-[15px] @md/paper:px-8 @xl/paper:px-12 leading-relaxed shadow-[0_1px_3px_rgb(0_0_40/0.12),0_12px_32px_-12px_rgb(0_0_40/0.25)] ring-1 ring-black/5 sm:py-12" data-testid="paper-sheet">
+      <header id="paper-front" className="group/head relative scroll-mt-24 lg:scroll-mt-20">
         {!locked && (
           <div className="font-sans absolute -top-4 right-0 sm:-top-6">
             <Button variant="outline" size="sm" className="bg-white" onClick={ops.editHeader}>
@@ -80,6 +82,7 @@ export function PaperCanvas({
           locked={locked}
           showAnswers={showAnswers}
           flashId={flashId}
+          targeted={targetId === s.id}
         />
       ))}
 

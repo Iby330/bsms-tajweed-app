@@ -18,8 +18,8 @@ export type PaperOps = {
   moveSection: (id: string, dir: "up" | "down") => void;
   removeSection: (id: string) => void;
   addSection: (kind: SectionKind) => void;
-  /** Open "Write a new question" for this section. */
-  writeNew: (sectionId: string) => void;
+  /** Open the "Add a question" drawer for this section. */
+  openAdd: (sectionId: string) => void;
   editItem: (id: string) => void;
   moveItem: (id: string, dir: "up" | "down") => void;
   moveItemToSection: (id: string, sectionId: string) => void;

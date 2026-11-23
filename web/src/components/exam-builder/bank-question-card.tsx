@@ -3,21 +3,17 @@
 /**
  * One question in the bank: its wording and pictures, the options with the
  * correct one marked, its marks, where it was found and which exams already
- * used it. In the builder it carries "Add to paper", which puts a copy in the
- * section that suits it (the multiple-choice section for a multiple choice),
- * with a menu to choose another. On the bank page it is read-only.
+ * used it. In the "Add a question" drawer it carries an Add button for the
+ * section the drawer is adding to; on the bank page it is read-only.
  */
 import { memo, useState } from "react";
-import { AlertTriangle, Check, ChevronDown, Plus } from "lucide-react";
+import { AlertTriangle, Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatMarks } from "@/lib/exam-builder/numbering";
 import type { BankQuestion } from "@/lib/exam-builder/types";
 import { cn } from "@/lib/utils";
-import { ActionItem, ActionMenu } from "./action-menu";
 import { OptionList, QuestionPrompt } from "./question-prompt";
 import { screenQuranSlot } from "./typeset-ayah";
-
-export type SectionChoice = { id: string; title: string };
 
 const chip = "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.7rem] font-semibold whitespace-nowrap";
 
@@ -31,24 +27,24 @@ export function lacksAnswer(q: Pick<BankQuestion, "answer" | "kind" | "options">
 function BankQuestionCardImpl({
   q,
   added = false,
-  sections,
-  suggestedId,
   onAdd,
+  addLabel = "Add to paper",
   locked = false,
+  topicLabel,
 }: {
   q: BankQuestion;
   /** The paper already holds a copy. */
   added?: boolean;
-  /** Question sections to offer; omit for the read-only bank page. */
-  sections?: SectionChoice[];
-  suggestedId?: string | null;
-  onAdd?: (sectionId: string) => void;
+  /** Put a copy on the paper; omit for the read-only bank page. */
+  onAdd?: () => void;
+  /** The Add button's words, e.g. "Add to Section A". */
+  addLabel?: string;
   /** The paper is final: adding is off. */
   locked?: boolean;
+  /** Where it sits in the bank ("Sifaat › Ra"), shown when the list mixes topics. */
+  topicLabel?: string;
 }) {
   const [whyOpen, setWhyOpen] = useState(false);
-  const canAdd = !!onAdd && !!sections?.length;
-  const target = sections?.find((s) => s.id === suggestedId) ?? sections?.[0];
   const sources = q.sources.map((s) => (s.number ? `${s.label} (${s.number})` : s.label));
 
   return (
@@ -59,6 +55,7 @@ function BankQuestionCardImpl({
       )}
       aria-label={`Question: ${q.prompt.slice(0, 80)}`}
     >
+      {topicLabel && <p className="-mb-1 text-xs font-semibold text-brand">{topicLabel}</p>}
       <div className="flex flex-wrap items-center gap-1.5">
         <span className={cn(chip, q.marks == null ? "bg-warn/15 text-warn" : "bg-brand/15 text-brand")}>
           {q.marks == null ? "No marks set" : `${formatMarks(q.marks)} ${q.marks === 1 ? "mark" : "marks"}`}
@@ -149,43 +146,15 @@ function BankQuestionCardImpl({
           )}
         </div>
 
-        {canAdd && target && (
+        {onAdd && (
           added ? (
-            <Button variant="outline" size="sm" disabled className="opacity-100 text-ok">
-              <Check aria-hidden /> Added
-            </Button>
+            <span className={cn(chip, "min-h-8 bg-ok/15 px-3 text-xs text-ok")}>
+              <Check className="size-3.5" aria-hidden /> On the paper
+            </span>
           ) : (
-            <div className="inline-flex shrink-0">
-              <Button
-                size="sm"
-                className="rounded-r-none"
-                disabled={locked}
-                onClick={() => onAdd!(target.id)}
-                title={`Adds it to ${target.title}`}
-              >
-                <Plus aria-hidden /> Add to paper
-              </Button>
-              <ActionMenu
-                label="Add it to…"
-                trigger={
-                  <Button
-                    size="icon-sm"
-                    className="rounded-l-none border-l border-tertiary-foreground/20"
-                    disabled={locked}
-                    aria-label="Choose the section to add it to"
-                  >
-                    <ChevronDown aria-hidden />
-                  </Button>
-                }
-              >
-                {sections!.map((s) => (
-                  <ActionItem key={s.id} onSelect={() => onAdd!(s.id)}>
-                    <span className="min-w-0 flex-1 truncate">{s.title}</span>
-                    {s.id === target.id && <span className="text-xs text-muted-foreground">suggested</span>}
-                  </ActionItem>
-                ))}
-              </ActionMenu>
-            </div>
+            <Button size="sm" className="shrink-0" disabled={locked} onClick={onAdd}>
+              <Plus aria-hidden /> {addLabel}
+            </Button>
           )
         )}
       </div>

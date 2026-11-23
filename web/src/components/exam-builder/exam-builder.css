@@ -12,6 +12,77 @@
   max-width: none;
 }
 
+/* The paper and its outline. On a computer the outline sits on the right;
+   while the "Add a question" drawer is open on the left, the whole builder
+   moves right just far enough to clear it (the drawer covers the app's menu
+   first), so the paper's right edge, where the marks are, stays in view. On
+   a narrower computer screen the outline then shrinks to a strip of section
+   letters and marks so the paper keeps a readable width. */
+.exam-ws,
+.exam-add {
+  --exam-drawer-w: 380px;
+}
+.exam-outline-strip {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .exam-ws {
+    transition: padding-left 0.2s ease-out;
+  }
+  .exam-ws[data-drawer="open"] {
+    padding-left: max(0px, calc(var(--exam-drawer-w) + 24px - var(--rail-w, 248px) - var(--gutter, 0px)));
+  }
+  .exam-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 15rem;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .exam-outline {
+    position: sticky;
+    top: 4.75rem;
+    max-height: calc(100dvh - 5.75rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .exam-add {
+    animation: exam-drawer-in 0.2s ease-out;
+  }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .exam-cols {
+    grid-template-columns: minmax(0, 1fr) 13rem;
+    gap: 1rem;
+  }
+}
+@media (min-width: 1024px) and (max-width: 1399px) {
+  .exam-ws[data-drawer="open"] .exam-cols {
+    grid-template-columns: minmax(0, 1fr) 3.5rem;
+    gap: 1rem;
+  }
+  .exam-ws[data-drawer="open"] .exam-outline-full {
+    display: none;
+  }
+  .exam-ws[data-drawer="open"] .exam-outline-strip {
+    display: block;
+  }
+}
+@keyframes exam-drawer-in {
+  from { transform: translateX(-24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .exam-ws { transition: none; }
+  .exam-add { animation: none; }
+}
+/* On a phone or tablet the drawer is the whole screen: the page under it
+   must not scroll along. */
+@media (max-width: 1023px) {
+  html:has(.exam-add) {
+    overflow: hidden;
+  }
+}
+
 /* The sheet is paper, so it stays paper in dark mode: white ground, navy ink.
    The tokens the sheet's own controls draw with are pinned to their navy
    LIGHT values here (copied from `:root[data-brand="navy"]` in globals.css),
