@@ -408,18 +408,21 @@ export type Database = {
           class_id: string
           course_id: string
           ordinal: number
+          term_id: number | null
           week_number: number
         }
         Insert: {
           class_id: string
           course_id: string
           ordinal: number
+          term_id?: number | null
           week_number: number
         }
         Update: {
           class_id?: string
           course_id?: string
           ordinal?: number
+          term_id?: number | null
           week_number?: number
         }
         Relationships: [
@@ -435,6 +438,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_course_items_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "terms"
             referencedColumns: ["id"]
           },
         ]

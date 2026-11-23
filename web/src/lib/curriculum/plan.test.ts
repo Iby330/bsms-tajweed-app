@@ -219,6 +219,34 @@ describe("planFromLessons under a class's own item weeks", () => {
   });
 });
 
+describe("planFromLessons with an item put in another term", () => {
+  /** Group 3 takes Ṣifāt in Term 2; its teacher puts Ṣifāt 3 in Term 1 week 8. */
+  const schedule: ClassSchedule = {
+    courses: [
+      { courseId: "GH", key: "ghunna", label: "Ghunna", termId: 1, position: 1 },
+      { courseId: "UK", key: "ummul_kitab", label: "Umm al-Kitāb", termId: 1, position: 2 },
+      { courseId: "SO", key: "sifaat_old", label: "Ṣifāt", termId: 2, position: 3 },
+    ],
+    firstUnlockByTerm: { 1: "2026-10-01T12:00:00Z", 2: "2027-01-07T13:00:00Z" },
+    itemWeeks: { SO: { 3: 8 } },
+    itemTerms: { SO: { 3: 1 } },
+  };
+  const plans = planFromLessons(ROWS, "Masjid Al-Umawi", tt, NOW, "teacher", schedule);
+  const slots = (term: number, i: number) => plans[term][i].lessons.map((l) => `${l.courseLabel} ${l.index}`);
+
+  it("plans it in the week of the term it is met in, after that week's own courses", () => {
+    expect(slots(1, 7)).toEqual(["Ghunna 8", "Umm al-Kitāb 8", "Ṣifāt 3"]);
+    expect(plans[1][7].lessons[2]).toMatchObject({ label: "tajweed lesson 3", href: "/teacher/lessons/tajweed-2-3", missing: false });
+  });
+
+  it("leaves it out of its course's own term", () => {
+    const term2 = plans[2].flatMap((w) => w.lessons.map((l) => `${l.courseLabel} ${l.index}`));
+    expect(term2).not.toContain("Ṣifāt 3");
+    expect(term2).toContain("Ṣifāt 2");
+    expect(slots(2, 2)).toEqual([]);
+  });
+});
+
 describe("lessonsOnSection", () => {
   const row = (weekId: string): LessonRow => ({
     id: `l-${weekId}`, title: "Ghunna lesson", series: "tajweed", position: 1, youtube_id: "x",

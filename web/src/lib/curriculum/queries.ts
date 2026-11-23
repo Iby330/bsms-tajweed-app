@@ -47,8 +47,9 @@ export async function getClassSchedule(
       .eq("class_id", classId)
       .order("term_id")
       .order("position"),
+    // term_id: 0153; applied before the deploy that reads it
     db.from("class_course_items")
-      .select("course_id, ordinal, week_number")
+      .select("course_id, ordinal, week_number, term_id")
       .eq("class_id", classId),
     classInfo(classId),
     getCachedWeeks(),

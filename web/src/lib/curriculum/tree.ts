@@ -139,6 +139,14 @@ export type ClassSchedule = {
    * takes several Ghunna, Mudūd and Ṣifāt items a week.
    */
   itemWeeks?: Record<string, Record<number, number>>;
+  /**
+   * Course id → item ordinal → term id, for the items this class meets in a
+   * term other than their course's (`class_course_items.term_id`, 0153, and an
+   * added course's rows past its earliest term). A teacher can put a Term 2
+   * course's video in Term 1 week 8; its week number in `itemWeeks` is then a
+   * week of THAT term. Absent: the course's own term, as before.
+   */
+  itemTerms?: Record<string, Record<number, number>>;
   /** Course id → item ordinal → that item's own dates (0108). */
   itemDates?: Record<string, Record<number, ItemDates>>;
   /** Course id → first held ordinal (`class_homework_holds`, 0090). Teachers
@@ -161,6 +169,22 @@ export function classItemWeek(
   return (courseId ? schedule.itemWeeks?.[courseId]?.[k] : undefined) ?? k;
 }
 
+/**
+ * The term a class meets item `ordinal` of a course in: its own term when the
+ * teacher put it in another one, else `termId`, the course's. The first column
+ * of `class_item_week` in the database (0153).
+ *
+ * Every date function below takes the COURSE's term and resolves the item's
+ * own here, so a caller that only knows which term the class takes the course
+ * in still gets the right week.
+ */
+export function classItemTerm(
+  schedule: ClassSchedule, termId: number, ordinal: number, courseId?: string | null,
+): number {
+  const k = Math.max(ordinal, 1);
+  return (courseId ? schedule.itemTerms?.[courseId]?.[k] : undefined) ?? termId;
+}
+
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
@@ -168,13 +192,14 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
  * `class_item_due_at` compute it: the week's own value, else past the term's
  * last week the latest value plus seven days per week of overshoot. Undefined
  * when the schedule carries no weeks at all, so the caller can fall back.
+ * `termId` is the course's; the week is read from the item's own term.
  */
 function itemWeekField(
   schedule: ClassSchedule, termId: number, ordinal: number,
   courseId: string | null | undefined, field: "unlock_at" | "due_at",
 ): string | null | undefined {
   if (!schedule.weeksByTerm) return undefined;
-  const weeks = schedule.weeksByTerm[termId] ?? [];
+  const weeks = schedule.weeksByTerm[classItemTerm(schedule, termId, ordinal, courseId)] ?? [];
   const w = classItemWeek(schedule, ordinal, courseId);
   const own = weeks.find((x) => x.number === w)?.[field];
   if (own) return new Date(Date.parse(own)).toISOString();
@@ -212,7 +237,7 @@ function calendarUnlockAt(
 ): string | null {
   const at = itemWeekField(schedule, termId, ordinal, courseId, "unlock_at");
   if (at !== undefined) return at;
-  const first = schedule.firstUnlockByTerm[termId];
+  const first = schedule.firstUnlockByTerm[classItemTerm(schedule, termId, ordinal, courseId)];
   if (!first) return null;
   const ms = Date.parse(first);
   if (Number.isNaN(ms)) return null;
@@ -265,7 +290,8 @@ export function defaultDueAt(
 /**
  * When item `ordinal` of a course opens for a class: its own date, else the
  * class default, else the week it is met in (its `class_course_items` week,
- * else week k), past the term's last week a week at a time.
+ * else week k, of its own term when the teacher put it in another, else the
+ * course's), past the term's last week a week at a time.
  *
  * The same rule as `class_item_unlock_at` in the database (0108). The two
  * MUST agree: this one decides what the screen draws, that one decides what
@@ -411,6 +437,13 @@ export type Module = {
   done: boolean;
   /** Hidden from the class until the teacher releases it (0108). */
   held?: boolean;
+  /**
+   * The term the class meets this item in, set ONLY when it is not the term
+   * its course sits under (0153): a Term 2 course's video the teacher put in
+   * Term 1 week 8 stays in its course, under Term 2, and says so here.
+   * `weekNumber` is then a week of this term.
+   */
+  termId?: number;
 };
 
 export type Course = {
@@ -635,8 +668,15 @@ export function buildTree(
               : null)
             ?? week.unlock_at;
           const held = !!(schedule && sched) && itemHeld(schedule, ordinal, sched.courseId);
+          // The term the class meets it in. The module stays in its course,
+          // under the course's term, whatever this says: a student's course
+          // page lists the course whole. Only the date and the sort follow it.
+          const itemTerm = schedule && sched
+            ? classItemTerm(schedule, sched.termId, ordinal, sched.courseId)
+            : t.id;
           return {
             ordinal,
+            itemTerm,
             module: {
               key: slot,
               weekId,
@@ -659,11 +699,16 @@ export function buildTree(
               redo: null,
               actionable: lessons.some((l) => l.youtube_id) || bucket.homework !== null,
               done: false,
+              ...(itemTerm !== t.id ? { termId: itemTerm } : {}),
             } satisfies Module,
           };
         })
-        // several items can share a class week; they keep their course order
-        .sort((a, b) => a.module.weekNumber - b.module.weekNumber || a.ordinal - b.ordinal)
+        // In the order the class meets them: by term, then week. Several items
+        // can share a class week; they keep their course order. Without the
+        // term, an item moved to Term 1 week 8 would sort among Term 2's
+        // week 8.
+        .sort((a, b) => a.itemTerm - b.itemTerm
+          || a.module.weekNumber - b.module.weekNumber || a.ordinal - b.ordinal)
         .map((x) => x.module);
 
       if (modules.length === 0) continue;
@@ -905,6 +950,9 @@ export function weekContent(
   };
 }
 
+/** How far back from the latest opening "this week" reaches; see below. */
+const CURRENT_WINDOW_MS = 6 * 24 * 60 * 60 * 1000;
+
 /**
  * The modules that opened most recently — "this week" for whoever this tree
  * was built for.
@@ -914,47 +962,53 @@ export function weekContent(
  * but its rows are filed against Term 3's weeks, so a week-id match finds
  * nothing for them and their current work silently disappears from Home.
  *
- * Returns every module sharing the latest unlocked date, because a week
- * carries more than one course — Term 3 week 1 has both Mudūd and Mabādi'.
+ * Returns every module that opened in the six days up to the latest opening,
+ * because a week carries more than one course — Term 3 week 1 has both Mudūd
+ * and Mabādi' — and because since 0108 a week's items need not open at one
+ * instant. It used to be only the modules sharing the latest date exactly, so
+ * the moment a teacher opened one item at its own time (Wednesday evening, a
+ * day before the Thursday batch, or after it) that one item became the whole
+ * of "this week" and the rest of the week vanished from Home.
+ *
+ * Six days, not seven: consecutive weeks open exactly seven days apart, and
+ * seven days less an hour across the spring clock change, and neither may
+ * pull last week back in. A week opened by hand less than six days before
+ * the next (week 1 of 2026/27 opened on a Friday night, week 2 the Thursday
+ * after) does stay in alongside it, until the week after that opens: the six
+ * days count back from the latest opening, not from now. Its cards are still
+ * the student's to do, so that errs on the side of showing work, but its
+ * homework rides on this week's cards rather than in the overdue box.
+ *
+ * Held modules are left out, and do not count as the latest opening either.
  */
 export function currentModules(terms: Term[], now: Date = new Date()): Module[] {
   const nowMs = now.getTime();
+  const all = terms.flatMap((t) => t.courses.flatMap((c) => c.modules));
   let latest = Number.NEGATIVE_INFINITY;
-  for (const t of terms) {
-    for (const c of t.courses) {
-      for (const m of c.modules) {
-        const at = Date.parse(m.unlockAt);
-        if (at <= nowMs && at > latest) latest = at;
-      }
-    }
+  for (const m of all) {
+    if (m.held) continue;
+    const at = Date.parse(m.unlockAt);
+    if (at <= nowMs && at > latest) latest = at;
   }
   if (latest === Number.NEGATIVE_INFINITY) {
     // Nothing has opened by the clock. For a real student that is the honest
     // answer and Home says the year has not started. A reader exempt from the
     // calendar (`profiles.unlock_all`) has every module marked unlocked while
     // its date is still months away, and showing them an empty week would
-    // defeat the flag — so fall back to the earliest module they can open.
+    // defeat the flag — so fall back to the earliest module they can open,
+    // and only the modules opening at that very instant.
     let earliest = Number.POSITIVE_INFINITY;
-    for (const t of terms) {
-      for (const c of t.courses) {
-        for (const m of c.modules) {
-          const at = Date.parse(m.unlockAt);
-          if (m.unlocked && at < earliest) earliest = at;
-        }
-      }
+    for (const m of all) {
+      const at = Date.parse(m.unlockAt);
+      if (m.unlocked && at < earliest) earliest = at;
     }
     if (earliest === Number.POSITIVE_INFINITY) return [];
-    latest = earliest;
+    return all.filter((m) => Date.parse(m.unlockAt) === earliest);
   }
-  const out: Module[] = [];
-  for (const t of terms) {
-    for (const c of t.courses) {
-      for (const m of c.modules) {
-        if (Date.parse(m.unlockAt) === latest) out.push(m);
-      }
-    }
-  }
-  return out;
+  return all.filter((m) => {
+    const at = Date.parse(m.unlockAt);
+    return !m.held && at <= latest && at > latest - CURRENT_WINDOW_MS;
+  });
 }
 
 /**

@@ -44,8 +44,10 @@ const json = async <T>(query: string) => ((await sql<{ j: T }[]>(`select coalesc
 
 async function main() {
   // Whether 0108 is in: before it, the new tables and columns do not exist.
-  const [{ applied }] = await sql<{ applied: boolean }[]>(
-    `select exists (select 1 from information_schema.tables where table_name = 'class_item_dates') applied`);
+  // And 0153, which gives an item of a taken course a term of its own.
+  const [{ applied, itemTerm }] = await sql<{ applied: boolean; itemTerm: boolean }[]>(
+    `select exists (select 1 from information_schema.tables where table_name = 'class_item_dates') applied,
+            exists (select 1 from information_schema.columns where table_name = 'class_course_items' and column_name = 'term_id') "itemTerm"`);
 
   const [classes, courses, items, weeks, sectionWeeks, ords] = await Promise.all([
     json<{ id: string; name: string; section: string; open_weekday: number | null; open_time: string | null; due_weekday: number | null; due_time: string | null; due_weeks_after: number | null }[]>(
@@ -53,7 +55,7 @@ async function main() {
               : `select id, name, section, null::int open_weekday, null open_time, null::int due_weekday, null due_time, 0 due_weeks_after from classes where section <> 'demo'`),
     json<{ class_id: string; course_id: string; term_id: number; position: number; due_days_after_unlock: number | null; key: string; label: string }[]>(
       `select cc.class_id, cc.course_id, cc.term_id, cc.position, cc.due_days_after_unlock, k.key, k.label from class_courses cc join courses k on k.id = cc.course_id`),
-    json<{ class_id: string; course_id: string; ordinal: number; week_number: number }[]>(`select class_id, course_id, ordinal, week_number from class_course_items`),
+    json<{ class_id: string; course_id: string; ordinal: number; week_number: number; term_id: number | null }[]>(`select class_id, course_id, ordinal, week_number, ${itemTerm ? "term_id" : "null::int term_id"} from class_course_items`),
     json<{ id: string; term_id: number; number: number; unlock_at: string; due_at: string | null }[]>(`select id, term_id, number, unlock_at, due_at from weeks`),
     json<{ section: string; week_id: string; unlock_at: string; due_at: string }[]>(`select section, week_id, unlock_at, due_at from section_weeks`),
     json<{ course_id: string; ordinal: number }[]>(

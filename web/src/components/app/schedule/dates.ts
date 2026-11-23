@@ -4,7 +4,7 @@
  * in UTC must read the same as the browser's.
  */
 import {
-  classItemWeek, dateSource, defaultDueAt, defaultUnlockAt, itemDates, itemHeld,
+  classItemTerm, classItemWeek, dateSource, defaultDueAt, defaultUnlockAt, itemDates, itemHeld,
   nextWeekdayAt, scheduledDueAt, scheduledUnlockAt, type ClassRule, type ClassSchedule, type WeekdayTime,
 } from "@/lib/curriculum/tree";
 
@@ -17,6 +17,14 @@ const partsFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hourCycle: "h2
 export const when = (iso: string | null | undefined) => (iso ? full.format(new Date(iso)).replace(" at ", ", ") : "");
 /** "15 Oct". */
 export const day = (iso: string) => short.format(new Date(iso));
+const weekdayShort = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short", day: "numeric", month: "short" });
+/** A class date ("2026-11-19") as "Thu 19 Nov", read at UK midday so no clock moves it a day. */
+export const classDay = (date: string) => weekdayShort.format(new Date(`${date}T12:00:00Z`));
+/** Today on the UK clock, "2026-11-22". */
+export function londonToday(nowIso: string): string {
+  const p = londonParts(Date.parse(nowIso));
+  return `${p.y}-${pad(p.mo)}-${pad(p.d)}`;
+}
 
 export function londonParts(ms: number) {
   const p = Object.fromEntries(partsFmt.formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
@@ -62,7 +70,11 @@ export function ruleToStore(section: string, open: WeekdayTime, due: WeekdayTime
 
 /** Where one item stands for the class. */
 export type ItemState = {
+  /** The term the class meets it in: its own when the teacher put it in another (0153). */
   termId: number;
+  /** The term its course sits in for the class. */
+  courseTermId: number;
+  /** A week of `termId`. */
   week: number;
   opens: string | null;
   due: string | null;
@@ -74,7 +86,8 @@ export type ItemState = {
 export function itemState(schedule: ClassSchedule, courseId: string, ordinal: number, hasHomework: boolean): ItemState {
   const sc = schedule.courses.find((c) => c.courseId === courseId)!;
   return {
-    termId: sc.termId,
+    termId: classItemTerm(schedule, sc.termId, ordinal, courseId),
+    courseTermId: sc.termId,
     week: classItemWeek(schedule, ordinal, courseId),
     opens: scheduledUnlockAt(schedule, sc.termId, ordinal, courseId),
     due: hasHomework ? scheduledDueAt(schedule, sc.termId, ordinal, courseId) : null,

@@ -2,8 +2,8 @@ import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { TERMS, termSessions, type TermId, type Timetable } from "@/lib/attendance/calendar";
 import { ruleName } from "@/lib/lessons/rule-name";
-import { COURSES, coursesForTerm, hasSyllabus } from "./syllabus";
-import { itemHeld, scheduledUnlockAt, type ClassSchedule } from "./tree";
+import { COURSES, coursesForTerm, hasSyllabus, type Course } from "./syllabus";
+import { classItemTerm, classItemWeek, itemHeld, scheduledUnlockAt, type ClassSchedule } from "./tree";
 import { getClassSchedule } from "./queries";
 import { sectionWeekRows, type SectionWeekRow } from "./section-weeks";
 import { getCachedSectionWeeks } from "@/lib/reference/cached";
@@ -13,7 +13,7 @@ import { getCachedSectionWeeks } from "@/lib/reference/cached";
  *
  * Week N of a term takes the items the class meets in week N: item N of each
  * course it studies, unless its schedule (`class_course_items`, 0044) puts an
- * item somewhere else. Group 1 meets several Ghunna, Mudūd and Ṣifāt items a
+ * item somewhere else, which since 0153 can be a week of another term. Group 1 meets several Ghunna, Mudūd and Ṣifāt items a
  * week, so one Monday can carry two items of one course and the next none.
  *
  * ── What a student is allowed to see ─────────────────────────────────────
@@ -160,9 +160,44 @@ export function planFromLessons(
   const nowMs = now.getTime();
   const plans: Record<number, PlannedWeek[]> = {};
 
+  /** One item of a course, as the plan names it and links it. */
+  const planned = (
+    label: string, all: LessonRow[], k: number,
+    sc: ClassSchedule["courses"][number] | undefined,
+  ): PlannedLesson => {
+    const lesson = all[k - 1];
+    const opensAt = lesson
+      ? (sc ? scheduledUnlockAt(schedule!, sc.termId, k, sc.courseId) : null)
+        ?? lesson.weeks!.unlock_at
+      : null;
+    const open = opensAt !== null && Date.parse(opensAt) <= nowMs
+      && !(sc && itemHeld(schedule!, k, sc.courseId));
+    const reachable = audience === "teacher" ? !!lesson : open;
+    const rule = lesson ? ruleName(lesson.title) : null;
+    return {
+      courseLabel: label,
+      index: k,
+      label: rule ?? `${label} ${k}`,
+      href: reachable && lesson?.youtube_id ? `${base}/${lesson.id}` : null,
+      missing: !lesson,
+    };
+  };
+
+  // Items the teacher put in a term other than their course's (0153): each is
+  // planned in the week of the term it is met in, after that week's own
+  // courses, and left out of its course's term. A course the class does not
+  // take (an added one) is not on the plan at all, and nor are its items.
+  const moved = (schedule?.courses ?? []).flatMap((sc) => {
+    if (sc.added) return [];
+    return Object.entries(schedule!.itemTerms?.[sc.courseId] ?? {})
+      .filter(([, t]) => t !== sc.termId)
+      .map(([k, t]) => ({ sc, k: Number(k), termId: t, week: classItemWeek(schedule!, Number(k), sc.courseId) }));
+  });
+
   for (const term of TERMS) {
     const courses = coursesForTerm(className, term.id);
-    if (courses.length === 0) continue;
+    const movedIn = moved.filter((m) => m.termId === term.id);
+    if (courses.length === 0 && movedIn.length === 0) continue;
 
     // Tajweed days only. The Monday lesson is the taught one; hifdh is
     // recitation, and has no video series behind it.
@@ -171,30 +206,25 @@ export function planFromLessons(
     plans[term.id] = mondays.map((date, i) => ({
       date,
       number: i + 1,
-      lessons: courses.flatMap((key) => {
-        const course = COURSES[key];
-        const all = course.source ? lessonsOf(course.source.series, course.source.termId) : [];
-        const sc = schedule?.courses.find((c) => c.key === key);
-        const listed = sc ? schedule!.itemWeeks?.[sc.courseId] : undefined;
-        return itemsInWeek(listed, all.length, i + 1).map((k): PlannedLesson => {
-          const lesson = all[k - 1];
-          const opensAt = lesson
-            ? (sc ? scheduledUnlockAt(schedule!, sc.termId, k, sc.courseId) : null)
-              ?? lesson.weeks!.unlock_at
-            : null;
-          const open = opensAt !== null && Date.parse(opensAt) <= nowMs
-            && !(sc && itemHeld(schedule!, k, sc.courseId));
-          const reachable = audience === "teacher" ? !!lesson : open;
-          const rule = lesson ? ruleName(lesson.title) : null;
-          return {
-            courseLabel: course.label,
-            index: k,
-            label: rule ?? `${course.label} ${k}`,
-            href: reachable && lesson?.youtube_id ? `${base}/${lesson.id}` : null,
-            missing: !lesson,
-          };
-        });
-      }),
+      lessons: [
+        ...courses.flatMap((key) => {
+          const course = COURSES[key];
+          const all = course.source ? lessonsOf(course.source.series, course.source.termId) : [];
+          const sc = schedule?.courses.find((c) => c.key === key);
+          const listed = sc ? schedule!.itemWeeks?.[sc.courseId] : undefined;
+          return itemsInWeek(listed, all.length, i + 1)
+            // met in another term: planned there instead
+            .filter((k) => !sc || classItemTerm(schedule!, sc.termId, k, sc.courseId) === sc.termId)
+            .map((k) => planned(course.label, all, k, sc));
+        }),
+        ...movedIn.filter((m) => m.week === i + 1)
+          .sort((a, b) => a.sc.position - b.sc.position || a.k - b.k)
+          .map(({ sc, k }) => {
+            const course = (COURSES as Readonly<Record<string, Course | undefined>>)[sc.key];
+            const all = course?.source ? lessonsOf(course.source.series, course.source.termId) : [];
+            return planned(course?.label ?? sc.label, all, k, sc);
+          }),
+      ],
     }));
   }
 

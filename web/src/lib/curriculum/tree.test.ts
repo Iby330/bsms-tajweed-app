@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
   buildTree, overlayProgress, findCourse, findCurrentModule, moduleTitle, scheduledUnlockAt, currentModules,
-  scheduledDueAt, classItemWeek, withClassDeadlines,
+  scheduledDueAt, classItemWeek, classItemTerm, defaultUnlockAt, withClassDeadlines,
   listHomework, bucketHomework, weekContent, homeHomework,
   type TermRow, type WeekRow, type LessonRow, type HomeworkRow,
-  type ClassSchedule,
+  type ClassSchedule, type Module, type Term,
 } from "./tree";
 
 /* ── moduleTitle — exercised against the REAL seed strings, because this is
@@ -973,12 +973,16 @@ describe("homeHomework", () => {
     expect(shown("2026-10-05T12:00:00Z")).toEqual([301]);
   });
 
-  it("keeps last week's homework on Home until its deadline once the next week opens", () => {
-    expect(shown("2026-10-08T17:00:00Z")).toEqual([201, 301]);
-  });
-
-  it("lets it go once the deadline passes, to the overdue box", () => {
-    expect(shown("2026-10-08T20:00:00Z")).toEqual([]);
+  // Week 1 opened by hand on the Friday night, under six days before week 2:
+  // it is still "this week" beside week 2 (currentModules' window is counted
+  // back from the latest opening), so HW 201 rides on its lesson's card and
+  // HW 301 keeps its own card, past its deadline too, until week 3 opens.
+  // Before the window only week 2 was current, and both came here as last
+  // week's until their deadline. The same fortnight a week apart, below,
+  // still does that.
+  it("keeps a week opened under six days before the next as this week, beside it", () => {
+    expect(shown("2026-10-08T17:00:00Z")).toEqual([301]);
+    expect(shown("2026-10-08T20:00:00Z")).toEqual([301]);
   });
 
   it("drops last week's homework once it is handed in", () => {
@@ -986,6 +990,30 @@ describe("homeHomework", () => {
     const tree = buildTree(rows, at);
     for (const c of tree[0].courses) for (const m of c.modules) if (m.homework?.number === 201) m.submission = "submitted";
     expect(homeHomework(tree, at).map((e) => e.homework.number)).toEqual([301]);
+  });
+
+  /** The same fortnight with week 1 opening a full week before week 2. */
+  describe("with the weeks a week apart", () => {
+    const apart = { ...rows, weeks: [{ ...weeks[0], unlock_at: "2026-10-01T12:00:00Z" }, weeks[1]] };
+    const shownApart = (now: string) => {
+      const at = new Date(now);
+      return homeHomework(buildTree(apart, at), at).map((e) => e.homework.number).sort();
+    };
+
+    it("keeps last week's homework on Home until its deadline once the next week opens", () => {
+      expect(shownApart("2026-10-08T17:00:00Z")).toEqual([201, 301]);
+    });
+
+    it("lets it go once the deadline passes, to the overdue box", () => {
+      expect(shownApart("2026-10-08T20:00:00Z")).toEqual([]);
+    });
+
+    it("drops last week's homework once it is handed in", () => {
+      const at = new Date("2026-10-08T17:00:00Z");
+      const tree = buildTree(apart, at);
+      for (const c of tree[0].courses) for (const m of c.modules) if (m.homework?.number === 201) m.submission = "submitted";
+      expect(homeHomework(tree, at).map((e) => e.homework.number)).toEqual([301]);
+    });
   });
 });
 
@@ -1023,5 +1051,169 @@ describe("scheduledDueAt for a course due days after it opens", () => {
 
   it("leaves every other course due with its week", () => {
     expect(scheduledDueAt(s, 1, 2, "GH")).toBe("2026-10-11T17:00:00.000Z");
+  });
+});
+
+/**
+ * An item met in a term other than its course's (0153): a Term 2 course's
+ * video the teacher put in Term 1 week 8. `itemTerms` says which term, and
+ * `itemWeeks` is then a week of that term.
+ */
+describe("an item in another term", () => {
+  const weeksByTerm = {
+    1: [
+      { number: 7, unlock_at: "2026-11-19T13:00:00Z", due_at: "2026-11-22T18:00:00Z" },
+      { number: 8, unlock_at: "2026-11-26T13:00:00Z", due_at: "2026-11-29T18:00:00Z" },
+    ],
+    2: [
+      { number: 1, unlock_at: "2027-01-07T13:00:00Z", due_at: "2027-01-10T18:00:00Z" },
+      { number: 2, unlock_at: "2027-01-14T13:00:00Z", due_at: "2027-01-17T18:00:00Z" },
+      { number: 3, unlock_at: "2027-01-21T13:00:00Z", due_at: "2027-01-24T18:00:00Z" },
+    ],
+  };
+  const moved: ClassSchedule = {
+    courses: [{ courseId: "SF", key: "sifaat", label: "Ṣifāt", termId: 2, position: 1 }],
+    firstUnlockByTerm: { 1: "2026-10-01T12:00:00Z", 2: "2027-01-07T13:00:00Z" },
+    weeksByTerm,
+    itemWeeks: { SF: { 3: 8 } },
+    itemTerms: { SF: { 3: 1 } },
+  };
+
+  it("is the item's own term, else the course's", () => {
+    expect(classItemTerm(moved, 2, 3, "SF")).toBe(1);
+    expect(classItemTerm(moved, 2, 2, "SF")).toBe(2);
+    expect(classItemTerm(moved, 2, 3, "XX")).toBe(2);
+    expect(classItemTerm(moved, 2, 3)).toBe(2);
+    expect(classItemTerm({ ...moved, itemTerms: { SF: { 1: 3 } } }, 2, 0, "SF")).toBe(3); // greatest(ordinal, 1)
+  });
+
+  it("opens and is due with that term's week, called with the course's term", () => {
+    expect(scheduledUnlockAt(moved, 2, 3, "SF")).toBe("2026-11-26T13:00:00.000Z");
+    expect(scheduledDueAt(moved, 2, 3, "SF")).toBe("2026-11-29T18:00:00.000Z");
+    // the rest of the course stays on its own term
+    expect(scheduledUnlockAt(moved, 2, 2, "SF")).toBe("2027-01-14T13:00:00.000Z");
+  });
+
+  it("follows the class default from that week", () => {
+    const ruled: ClassSchedule = { ...moved, rule: { open: { weekday: 5, time: "18:00" }, due: { weekday: 4, time: "20:15", weeksAfter: 0 } } };
+    // week 8 of Term 1 is due Sun 29 Nov; the Friday 18:00 after Sun 22 Nov is Fri 27 Nov
+    expect(scheduledUnlockAt(ruled, 2, 3, "SF")).toBe("2026-11-27T18:00:00.000Z");
+    expect(defaultUnlockAt(ruled, 2, 3, "SF")).toBe("2026-11-27T18:00:00.000Z");
+    // the first Thursday 20:15 after it
+    expect(scheduledDueAt(ruled, 2, 3, "SF")).toBe("2026-12-03T20:15:00.000Z");
+  });
+
+  it("runs on a week at a time past that term's last week", () => {
+    const late: ClassSchedule = { ...moved, itemWeeks: { SF: { 3: 10 } } };
+    expect(scheduledUnlockAt(late, 2, 3, "SF")).toBe("2026-12-10T13:00:00.000Z");
+    expect(scheduledDueAt(late, 2, 3, "SF")).toBe("2026-12-13T18:00:00.000Z");
+  });
+
+  it("counts from that term's first week without the weeks", () => {
+    const legacy: ClassSchedule = { ...moved, weeksByTerm: undefined };
+    expect(scheduledUnlockAt(legacy, 2, 3, "SF")).toBe("2026-11-19T12:00:00.000Z");
+  });
+
+  it("dates its homework by that week", () => {
+    const row: HomeworkRow = {
+      id: "h", week_id: "w23", course_id: "SF", ordinal: 3, number: 13, series: "tajweed",
+      title: "x", total_marks: 10, due_at: "2027-01-24T18:00:00Z", is_graded: true,
+    };
+    expect(withClassDeadlines([row], moved)[0].due_at).toBe("2026-11-29T18:00:00.000Z");
+  });
+
+  describe("buildTree", () => {
+    const terms: TermRow[] = [
+      { id: 1, starts_on: "2026-10-01", ends_on: "2026-12-10", exam_max: 89 },
+      { id: 2, starts_on: "2027-01-04", ends_on: "2027-03-25", exam_max: 93 },
+      { id: 3, starts_on: "2027-04-12", ends_on: "2027-06-24", exam_max: 98 },
+    ];
+    const weeks: WeekRow[] = weeksByTerm[2].map((w) => ({ id: `w2${w.number}`, term_id: 2, ...w }));
+    const lessons: LessonRow[] = [1, 2, 3].map((k) => ({
+      id: `s${k}`, week_id: `w2${k}`, course_id: "SF", ordinal: k, series: "tajweed",
+      title: `S${k}`, youtube_id: "x", position: 1,
+    }));
+    const rows = { terms, weeks, lessons, homeworks: [] };
+    const NOW = new Date("2026-11-27T12:00:00Z");
+
+    it("keeps the module in its course, under the course's term, and says which term it is met in", () => {
+      const tree = buildTree(rows, NOW, moved);
+      expect(tree.find((t) => t.id === 1)!.courses).toEqual([]);
+      const sf = tree.find((t) => t.id === 2)!.courses[0];
+      expect(sf.modules.map((m) => [m.lessons[0].id, m.termId, m.weekNumber, m.unlocked])).toEqual([
+        ["s3", 1, 8, true],
+        ["s1", undefined, 1, false],
+        ["s2", undefined, 2, false],
+      ]);
+      expect(sf.modules[0].unlockAt).toBe("2026-11-26T13:00:00.000Z");
+      expect("termId" in sf.modules[1]).toBe(false);
+    });
+
+    it("sorts by the term it is met in before the week", () => {
+      // item 1 put in Term 3 week 2: after the course's own Term 2 weeks
+      const later: ClassSchedule = {
+        ...moved, itemWeeks: { SF: { 1: 2 } }, itemTerms: { SF: { 1: 3 } },
+        weeksByTerm: { ...weeksByTerm, 3: [{ number: 2, unlock_at: "2027-04-22T12:00:00Z", due_at: "2027-04-25T17:00:00Z" }] },
+      };
+      const sf = buildTree(rows, NOW, later).find((t) => t.id === 2)!.courses[0];
+      expect(sf.modules.map((m) => [m.lessons[0].id, m.termId ?? 2, m.weekNumber])).toEqual([
+        ["s2", 2, 2],
+        ["s3", 2, 3],
+        ["s1", 3, 2],
+      ]);
+    });
+  });
+});
+
+describe("currentModules, a week's openings together", () => {
+  const mod = (key: string, unlockAt: string, held = false): Module => ({
+    key, weekId: key, weekNumber: 1, unlockAt, unlocked: !held, held, title: key,
+    lessons: [], homework: null, watched: false, submission: null, redo: null, actionable: true, done: false,
+  });
+  const tree = (...modules: Module[]): Term[] => [{
+    id: 1, startsOn: "2026-10-01", endsOn: "2027-07-01", examMax: 89, isCurrent: true,
+    courses: [{
+      termId: 1, series: "c", label: "c", blurb: "", modules, moduleCount: modules.length, unlockedCount: 0,
+      actionableCount: 0, doneCount: 0, hasHomework: false, opensAt: null, nextModule: null,
+    }],
+    moduleCount: modules.length, actionableCount: 0, doneCount: 0, weekCount: 0, lockedWeeks: [],
+  }];
+  const keys = (t: Term[], now: string) => currentModules(t, new Date(now)).map((m) => m.key);
+
+  it("is only the latest week when weeks open seven days apart", () => {
+    const t = tree(
+      mod("w1a", "2026-11-12T13:00:00Z"),
+      mod("w2a", "2026-11-19T13:00:00Z"), mod("w2b", "2026-11-19T13:00:00Z"),
+      mod("w3a", "2026-11-26T13:00:00Z"),
+    );
+    expect(keys(t, "2026-11-22T12:00:00Z")).toEqual(["w2a", "w2b"]);
+  });
+
+  it("is only the latest week across the spring change, seven days less an hour apart", () => {
+    // Thu 25 Mar 13:00 GMT, then Thu 1 Apr 13:00 BST
+    const t = tree(mod("before", "2027-03-25T13:00:00Z"), mod("after", "2027-04-01T12:00:00Z"));
+    expect(keys(t, "2027-04-02T12:00:00Z")).toEqual(["after"]);
+  });
+
+  it("keeps an item opened by hand a couple of days either side of the week's batch with it", () => {
+    const t = tree(
+      mod("last", "2026-11-12T13:00:00Z"),
+      mod("early", "2026-11-17T19:00:00Z"), // Tuesday evening, by hand
+      mod("batch", "2026-11-19T13:00:00Z"),
+      mod("late", "2026-11-21T13:00:00Z"), // Saturday, by hand
+    );
+    expect(keys(t, "2026-11-22T12:00:00Z")).toEqual(["early", "batch", "late"]);
+    // before the late one opens, the early one and the batch
+    expect(keys(t, "2026-11-20T12:00:00Z")).toEqual(["early", "batch"]);
+  });
+
+  it("leaves held modules out, and does not count one as the latest opening", () => {
+    const t = tree(mod("batch", "2026-11-13T13:00:00Z"), mod("held", "2026-11-21T13:00:00Z", true));
+    expect(keys(t, "2026-11-22T12:00:00Z")).toEqual(["batch"]);
+  });
+
+  it("falls back to the earliest unlocked instant only, before anything opens", () => {
+    const t = tree(mod("a", "2027-01-07T13:00:00Z"), mod("b", "2027-01-09T13:00:00Z"));
+    expect(keys(t, "2026-09-01T12:00:00Z")).toEqual(["a"]);
   });
 });

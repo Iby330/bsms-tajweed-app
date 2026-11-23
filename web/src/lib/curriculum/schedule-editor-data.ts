@@ -1,10 +1,10 @@
 import "server-only";
-import { supabaseServer } from "@/lib/supabase/server";
+import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { readAll } from "@/lib/supabase/read-all";
 import { TERMS, sessionDates, termIdFor, termSessions, timetableFor, type Section } from "@/lib/attendance/calendar";
 import { londonDate } from "@/lib/attendance/session";
 import { getClassSchedule } from "./queries";
-import { classItemWeek, itemDates, moduleTitle, type ClassSchedule } from "./tree";
+import { classItemTerm, classItemWeek, itemDates, moduleTitle, type ClassSchedule } from "./tree";
 
 /** One item of a class's schedule, as the teacher's schedule lists it. */
 export type EditorItem = {
@@ -20,19 +20,32 @@ export type EditorItem = {
   late: number;
 };
 
-/** An item that can be added to a week: from a course the class does not
- *  take, or one of its own taken out of its week. */
+/**
+ * One item of the programme the teacher could place in a week: every video
+ * and homework of every course, at (course, ordinal), including the ones
+ * already on this class's schedule, so the screen can move those too.
+ */
 export type LibraryItem = {
   courseId: string;
+  /** The course's key, for the schedule entry the screen draws before the server answers. */
+  courseKey: string;
   courseLabel: string;
+  coursePosition: number;
   ordinal: number;
   title: string;
   hasVideo: boolean;
   hwNumber: number | null;
-  /** The term it can go in, when its course already sits in one. */
-  termId: number | null;
-  /** The week it was removed from; null for an item never on the schedule. */
-  removedFrom: number | null;
+  /** Its lesson and homework rows, so a placed item can be listed at once. */
+  lessonId: string | null;
+  hwId: string | null;
+  /** The course's usual term in the programme catalogue, when the class takes it (its class_courses term); null otherwise. */
+  homeTermId: number | null;
+  /** Where it sits for this class now: null when it is not on the schedule. */
+  placed: { termId: number; week: number } | null;
+  /** True when the teacher removed it from its week (its own hold): off the schedule, waiting to be placed. */
+  removed: boolean;
+  /** A Resources course for this class. */
+  resource: boolean;
 };
 
 export type EditorWeek = { number: number; classDate: string | null };
@@ -45,8 +58,10 @@ export type EditorData = {
   schedule: ClassSchedule;
   items: EditorItem[];
   library: LibraryItem[];
-  /** Teacher id → name, for "changed by". */
+  /** Teacher id → name, for "changed by"; includes the reader. */
   names: Record<string, string>;
+  /** The reader's profile id: what a change made on this screen is set by. */
+  me: string | null;
   /** Each term's weeks, with the class's tajweed day for the label. */
   terms: { id: number; weeks: EditorWeek[] }[];
   currentTerm: number;
@@ -61,11 +76,12 @@ export type EditorData = {
  */
 export async function getScheduleEditorData(classId: string): Promise<EditorData | null> {
   const db = await supabaseServer();
-  const [schedule, { data: cls }, { count: students }] = await Promise.all([
+  const [schedule, { data: cls }, { count: students }, me] = await Promise.all([
     getClassSchedule(classId),
     db.from("classes").select("id, name, section").eq("id", classId).maybeSingle(),
     db.from("profiles").select("id", { count: "exact", head: true })
       .eq("class_id", classId).eq("role", "student").eq("is_active", true),
+    currentProfile(),
   ]);
   if (!schedule || !cls) return null;
 
@@ -130,25 +146,34 @@ export async function getScheduleEditorData(classId: string): Promise<EditorData
     };
   }).sort((a, b) => a.ordinal - b.ordinal);
 
-  // Everything else in the programme: items of courses this class does not take,
-  // and its own items removed from their week. The rest of a course the class
-  // takes is not offered; a Resources course is, and an item added from it
-  // becomes that week's work, with its deadline (0113)
-  const taken = new Set(schedule.courses.filter((c) => !c.added).map((c) => c.courseId));
+  // Everything in the programme, wherever it is: an item on the schedule can
+  // be moved to another week or term, one off it (never added, or removed from
+  // its week) put on. A Resources course is offered too, and an item placed
+  // from it becomes that week's work, with its deadline (0113)
   const resourceIds = new Set((resources ?? []).map((r) => r.course_id));
-  const added = new Set(mine.map((s) => keyOf(s.courseId, s.ordinal)));
   const courseById = new Map((courses ?? []).map((c) => [c.id, c]));
   const library: LibraryItem[] = [...byKey.values()]
-    .filter((s) => courseById.has(s.courseId) && (removed(s)
-      || (!taken.has(s.courseId) && !added.has(keyOf(s.courseId, s.ordinal)))))
-    .map((s) => ({
-      courseId: s.courseId, courseLabel: courseById.get(s.courseId)!.label + (resourceIds.has(s.courseId) ? " (Resources)" : ""), ordinal: s.ordinal,
-      title: moduleTitle(s.hw?.title ?? s.lesson?.title ?? "") || `${courseById.get(s.courseId)!.label} ${s.ordinal}`,
-      hasVideo: !!s.lesson?.youtube_id, hwNumber: s.hw?.number ?? null,
-      termId: scheduled.get(s.courseId)?.termId ?? null,
-      removedFrom: removed(s) ? classItemWeek(schedule, s.ordinal, s.courseId) : null,
-    }))
-    .sort((a, b) => (courseById.get(a.courseId)!.position - courseById.get(b.courseId)!.position) || a.ordinal - b.ordinal);
+    .filter((s) => courseById.has(s.courseId))
+    .map((s) => {
+      const course = courseById.get(s.courseId)!;
+      const sc = scheduled.get(s.courseId);
+      // an added course's other items are not on the schedule
+      const listed = !!sc && (!sc.ordinals || sc.ordinals.includes(s.ordinal));
+      const off = listed && removed(s);
+      return {
+        courseId: s.courseId, courseKey: course.key, courseLabel: course.label, coursePosition: course.position, ordinal: s.ordinal,
+        title: moduleTitle(s.hw?.title ?? s.lesson?.title ?? "") || `${course.label} ${s.ordinal}`,
+        hasVideo: !!s.lesson?.youtube_id, hwNumber: s.hw?.number ?? null,
+        lessonId: s.lesson?.id ?? null, hwId: s.hw?.id ?? null,
+        homeTermId: sc && !sc.added ? sc.termId : null,
+        placed: listed && !off
+          ? { termId: classItemTerm(schedule, sc!.termId, s.ordinal, s.courseId), week: classItemWeek(schedule, s.ordinal, s.courseId) }
+          : null,
+        removed: off,
+        resource: resourceIds.has(s.courseId),
+      };
+    })
+    .sort((a, b) => a.coursePosition - b.coursePosition || a.ordinal - b.ordinal);
 
   // who changed what
   const setters = [...new Set(Object.values(schedule.itemDates ?? {}).flatMap((m) => Object.values(m).map((d) => d.setBy)).filter((x): x is string => !!x))];
@@ -169,7 +194,11 @@ export async function getScheduleEditorData(classId: string): Promise<EditorData
   return {
     classId, className: cls.name, section: cls.section, students: students ?? 0,
     schedule, items, library,
-    names: Object.fromEntries((people ?? []).map((p) => [p.id, p.full_name])),
+    names: {
+      ...Object.fromEntries((people ?? []).map((p) => [p.id, p.full_name])),
+      ...(me ? { [me.id]: me.full_name } : {}),
+    },
+    me: me?.id ?? null,
     terms, currentTerm,
     classDays: [...sessionDates(timetable)],
     now: new Date().toISOString(),
