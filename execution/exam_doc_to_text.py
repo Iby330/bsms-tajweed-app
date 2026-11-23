@@ -26,6 +26,12 @@ Annotated-text conventions (doc.md):
   [IMG: images/f WxH]    an image, in reading order, pixel size read from the file
   [ ] / [x]              added in front of an image that is a small square checkbox
                          picture, by looking at its pixels (empty vs ticked)
+  [frame:#rrggbb]        an answer frame (Google HTML only). Before an [IMG]: that picture
+                         has a coloured CSS border. At the start of a line: a frame picture
+                         (an empty coloured square, usually stretched over an option) is
+                         anchored on that line, i.e. that option is framed. A frame picture
+                         alone on its line is written "[frame:#rrggbb option unknown: ...]":
+                         it floats, and the export does not say which option it covers.
   | a | b |              tables (cells' paragraphs joined with " <br> ")
   [text](url)            hyperlinks
 
@@ -379,7 +385,52 @@ def finish_inline(text: str, images: list) -> str:
     def sub(m):
         return images[int(m.group(1))]
 
-    return re.sub(r"\x00IMG(\d+)\x00", sub, text)
+    return place_frames(re.sub(r"\x00IMG(\d+)\x00", sub, text))
+
+
+# A frame picture's image token, replaced by place_frames once the line is known.
+FRAME_PIC = re.compile(r"\x01FRAME (#[0-9a-f]{6}) (\S+)\x01")
+EMPTY_MARKS = re.compile(r"\{/?(?:hl|color)(?::#[0-9a-f]{6})?\}|(?<!\\)\*\*|(?<![_\\])__(?!_)")
+
+
+def place_frames(text: str) -> str:
+    """A frame picture floats over an option, and the export only keeps the line it is
+    anchored on: put "[frame:#c]" at the front of that line, or, when the frame is alone
+    on its line, say the option is unknown instead of guessing."""
+    if "\x01FRAME" not in text:
+        return text
+    out = []
+    for ln in text.split("\n"):
+        frames = FRAME_PIC.findall(ln)
+        if not frames:
+            out.append(ln)
+            continue
+        rest = squash(FRAME_PIC.sub("", ln)).strip()
+        if EMPTY_MARKS.sub("", rest).strip():
+            out.append(" ".join(f"[frame:{c}]" for c, _ in frames) + " " + rest)
+        else:
+            out.append(" ".join(
+                f"[frame:{c} option unknown: the frame picture {p} is on a line of its own;"
+                " the export does not say which option it was drawn over]" for c, p in frames))
+    return "\n".join(out)
+
+
+BORDER_STYLES = ("solid", "dashed", "dotted", "double", "groove", "ridge", "inset", "outset")
+
+
+def css_border(st: dict):
+    """Colour of a visible `border` shorthand in a style dict, else None.
+    Google writes `border: 0.00px solid #000000` on every image wrapper; only a
+    non-zero width counts."""
+    v = (st.get("border") or "").lower()
+    if not v:
+        return None
+    w = re.search(r"(?<![\w#.])(\d*\.?\d+)(?:px|pt)?(?![\w.])", v)
+    width = float(w.group(1)) if w else 1.0
+    if width <= 0.1 or not any(re.search(rf"\b{s}\b", v) for s in BORDER_STYLES):
+        return None
+    m = re.search(r"#[0-9a-f]{6}\b|#[0-9a-f]{3}\b|rgba?\([^)]*\)|\b(?:%s)\b" % "|".join(NAMED), v)
+    return norm_color(m.group(0)) if m else "#000000"
 
 
 # --------------------------------------------------------------------------
@@ -586,8 +637,18 @@ class HtmlConverter:
             alt = f' alt="{alt}"' if alt else ""
             s = f"[IMG: images/{fname} {dims}{alt}]"
             cb = checkbox_state(data)
-            if cb:
+            if cb and cb.startswith("[box:"):
+                # an empty coloured square: a frame picture laid over an answer, not a
+                # checkbox; place_frames attaches it to the line it is anchored on
+                s = f"\x01FRAME {cb[5:-1]} images/{fname}\x01"
+            elif cb:
                 s = f"{cb} {s}"
+            # a coloured border set on the picture itself (Docs: Image options > border),
+            # written on the <span> Google wraps every picture in
+            wrap = node.parent if isinstance(node.parent, Node) and node.parent.tag == "span" else None
+            bcol = css_border(self.css.style_of(node)) or (css_border(self.css.style_of(wrap)) if wrap else None)
+            if bcol and not s.startswith("\x01"):
+                s = f"[frame:{bcol}] {s}"
             if fname not in self.used_images:
                 self.used_images.append(fname)
         images.append(s)
@@ -1428,7 +1489,7 @@ def kind_guess(fname: str, is_form: bool) -> str:
 
 MARKER_RE = re.compile(
     r"\{/?(?:hl|color)(?::#[0-9a-f]{6})?\}|(?<!\\)\*\*|(?<![_\\])__(?!_)"
-    r"|\[IMG: [^\]]*\]|\[(?: |x)\] |\[glyph:[^\]]*\] "
+    r"|\[IMG: [^\]]*\]|\[(?: |x)\] |\[glyph:[^\]]*\] |\[frame:[^\]]*\] ?"
 )
 
 
