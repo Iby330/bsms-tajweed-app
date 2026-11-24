@@ -5,7 +5,7 @@
  * route opens in a new tab, where "Save as PDF" is the browser's own),
  * download either as a Word file (/api/exam-builder/<id>/docx), and
  * mark the paper final — which stamps each bank question on it as used in
- * "<code> <season>" — or reopen it. On a published paper its owner (or an
+ * "<code> <season>" — or reopen it. On a draft (shared) its owner (or an
  * admin) can make it private again from here.
  */
 import { useState } from "react";
@@ -23,7 +23,7 @@ export function ExportMenu({
   /** questions on the paper that came from the bank (the ones that get stamped) */
   bankCount: number;
   onSetFinal: (final: boolean) => Promise<string | void>;
-  /** Shown on a published paper to its owner or an admin. */
+  /** Shown on a draft (shared paper) to its owner or an admin. */
   onMakePrivate?: () => void;
 }) {
   const [confirm, setConfirm] = useState<"final" | "reopen" | null>(null);
@@ -71,7 +71,7 @@ export function ExportMenu({
         {onMakePrivate && (
           <>
             <ActionSeparator />
-            <ActionHeading>Published</ActionHeading>
+            <ActionHeading>Shared</ActionHeading>
             <ActionItem onSelect={onMakePrivate}>
               <EyeOff /> Make private…
             </ActionItem>
@@ -100,7 +100,7 @@ export function ExportMenu({
         onConfirm={() => onSetFinal(false)}
       >
         <p>
-          It goes back to a draft that can be changed, and the <strong className="text-foreground">{label}</strong> stamp comes off
+          It goes back to {paper.shared ? "a draft every teacher can change" : "a private paper you can change"}, and the <strong className="text-foreground">{label}</strong> stamp comes off
           its bank questions until you mark it final again.
         </p>
       </ConfirmDialog>

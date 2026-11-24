@@ -17,7 +17,7 @@
  * screen from then on, so pictures don't reload and nothing jumps while a
  * teacher is working.
  *
- * A published paper (0155) can be open in two teachers' builders at once:
+ * A draft (a shared paper, 0155) can be open in two teachers' builders at once:
  * use-paper-pulse names the others in a strip under the top bar, and when
  * someone else changes the paper it is fetched again and swapped in, as soon
  * as this teacher is not mid-change (a save in flight, or an editor open).
@@ -73,7 +73,7 @@ export function Workspace({
   questions: BankQuestion[];
   /** The signed-in teacher: new pictures upload under new/<profileId>/. */
   profileId: string;
-  /** An admin can make anyone's published paper private again. */
+  /** An admin can make anyone's draft private again. */
   isAdmin?: boolean;
   /** The words of the typeset ayahs already on the paper, by snippetKey. */
   quranWords?: Record<string, SnippetWord[]>;
@@ -471,7 +471,7 @@ export function Workspace({
           </Button>
           {!paper.shared && !pulse.gone && (
             <Button variant="outline" size="lg" onClick={() => setPublishing("publish")} title="Let every teacher see and work on this paper">
-              <Users aria-hidden /> <span className="max-sm:hidden">Publish</span>
+              <Users aria-hidden /> <span className="max-sm:hidden">Share as draft</span>
             </Button>
           )}
           <ExportMenu
@@ -600,15 +600,15 @@ export function Workspace({
       <ConfirmDialog
         open={publishing === "publish"}
         onOpenChange={(o) => { if (!o) setPublishing(null); }}
-        title="Publish this paper to the other teachers?"
-        confirmLabel="Publish"
+        title="Share this paper with the other teachers as a draft?"
+        confirmLabel="Share as draft"
         onConfirm={() => setShared(true)}
       >
         <p>
           Every teacher will see <strong className="text-foreground">{paper.title}</strong> on their Exam Builder page and
           can change it, mark it final, reopen it or delete it. Two of you can have it open at once.
         </p>
-        <p>You can make it private again later from Print &amp; finish.</p>
+        <p>{mine ? "You" : "The teacher who made it"} can make it private again later from Print &amp; finish.</p>
       </ConfirmDialog>
       <ConfirmDialog
         open={publishing === "private"}

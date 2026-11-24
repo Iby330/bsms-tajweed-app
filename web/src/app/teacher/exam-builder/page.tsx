@@ -8,11 +8,11 @@ import { currentProfile } from "@/lib/supabase/server";
 export const metadata: Metadata = { title: "Exam Builder" };
 export const dynamic = "force-dynamic";
 
-/** My papers, the ones other teachers published, "New paper", and the ways into the bank. */
+/** My papers and the other teachers' drafts, "New paper", and the ways into the bank. */
 export default async function ExamBuilder() {
   const [papers, profile] = await Promise.all([loadMyPapers(), currentProfile()]);
   const finals = papers.filter((p) => p.status === "final").length;
-  const published = papers.filter((p) => p.shared && p.status !== "final").length;
+  const drafts = papers.filter((p) => p.shared && p.status !== "final").length;
 
   const link = "group inline-flex items-center gap-2 text-sm font-medium text-brand underline-offset-4 hover:underline";
 
@@ -27,7 +27,7 @@ export default async function ExamBuilder() {
         <div className="meta">
           <span className="label">
             {papers.length} {papers.length === 1 ? "paper" : "papers"}
-            {published > 0 && ` · ${published} published`}
+            {drafts > 0 && ` · ${drafts} ${drafts === 1 ? "draft" : "drafts"}`}
             {finals > 0 && ` · ${finals} final`}
           </span>
         </div>
