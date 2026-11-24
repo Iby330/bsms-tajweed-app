@@ -359,10 +359,12 @@
    "ref": {
     "surah": 109,
     "from_ayah": 1,
-    "to_ayah": 6
+    "to_ayah": 6,
+    "basmala": true
    },
-   "status": "owner_check",
+   "status": "safe",
    "look": [
+    "Owner's decision: typeset Al-Kafirun with the basmala above it, as the picture had it, so the madd count still works.",
     "Picture and typeset words differ: full Madani page crop with decorated green border, surah-title banner and basmala; the app's text has no banner/basmala.",
     "Check before using: the picture includes the basmala, and the keyed answer (12 madd asli) only works out if the basmala's two madd asli (ٱلرَّحْمَـٰنِ, ٱلرَّحِيمِ) are counted - by my count the surah alone gives about 10 when stopping at ayah ends. Typesetting 109:1-6 without the basmala may change the correct answer. old prompt_quran 109:1-6 is right for the surah text itself"
    ]
@@ -1349,10 +1351,12 @@
    "ref": {
     "surah": 95,
     "from_ayah": 1,
-    "to_ayah": 8
+    "to_ayah": 8,
+    "basmala": true
    },
-   "status": "owner_check",
+   "status": "safe",
    "look": [
+    "Owner's decision: typeset At-Tin with the basmala above it, as the picture had it, so the madd count still works.",
     "Picture and typeset words differ: Madani page crop with surah banner and basmala.",
     "Check before using: counting question (madd asli, keyed 23) over a picture that includes the basmala; if the teacher counted the basmala, typesetting 95:1-8 alone changes the answer. old prompt_quran 95:1-8 is right for the surah text itself"
    ]
@@ -2284,11 +2288,17 @@
    "ref": {
     "surah": 1,
     "from_ayah": 3,
-    "to_ayah": 3
+    "to_ayah": 3,
+    "circle": {
+     "word": 1,
+     "x": 0.3,
+     "w": 0.2
+    }
    },
-   "status": "emphasis",
+   "status": "safe",
    "look": [
-    "The picture circles one letter for the question. The typeset words cannot show that circle, so keep the picture unless the question is reworded.",
+    "Owner's decision: circle the ر of ٱلرَّحْمَـٰنِ again, over the typeset word.",
+    "The picture circles one letter for the question. The typeset words draw the circle again: check it sits on the same letter.",
     "Picture and typeset words differ: purple circle; without it the question is ambiguous because ٱلرَّحِيمِ also has a ر with shadda."
    ]
   }
@@ -2604,11 +2614,17 @@
    "ref": {
     "surah": 1,
     "from_ayah": 1,
-    "to_ayah": 1
+    "to_ayah": 1,
+    "circle": {
+     "word": 1,
+     "x": 0.18,
+     "w": 0.2
+    }
    },
-   "status": "emphasis",
+   "status": "safe",
    "look": [
-    "The picture circles one letter for the question. The typeset words cannot show that circle, so keep the picture unless the question is reworded.",
+    "Owner's decision: circle the س of بِسْمِ (the answer is the whistling letter). The picture's circle sat on the join of ب and س.",
+    "The picture circles one letter for the question. The typeset words draw the circle again: check it sits on the same letter.",
     "Picture and typeset words differ: purple circle (and stray teal mark)."
    ]
   }
@@ -3195,6 +3211,21 @@
    "look": []
   }
  },
+ "cf3d0466-5fd7-4869-a869-9af8e3d54236": {
+  "term": {
+   "images": [
+    "bank/b82e3af9e1fe570327597bfe7d1b37d4c1f1415e.png"
+   ],
+   "term": "ياء النداء",
+   "prompt": null,
+   "prompt_was": null,
+   "look": [
+    "Not the Qur'an: the picture was a slide title. The term is typed into the question instead, in the app's own Arabic lettering.",
+    "Owner's decision: the question already names ياء النداء, so the picture just stops showing.",
+    "Picture and typeset words differ: not Qur'an text at all: the grammatical term 'yaa an-nidaa' without harakat."
+   ]
+  }
+ },
  "cf45d85f-92ab-4ffd-9b3e-fc3a037b5551": {
   "prompt": {
    "images": [
@@ -3583,6 +3614,21 @@
    }
   }
  },
+ "e233902b-8af5-46a4-b9b4-11116db1a200": {
+  "term": {
+   "images": [
+    "bank/751434c7b8440c1f289add6561d525dcdd5c4380.png"
+   ],
+   "term": "هاء التنبيه",
+   "prompt": "What does هاء التنبيه mean?",
+   "prompt_was": "What does mean?",
+   "look": [
+    "Not the Qur'an: the picture was a slide title. The term is typed into the question instead, in the app's own Arabic lettering.",
+    "Owner's decision: the question read \"What does mean?\": the term هاء التنبيه is typed into it (the answer is \"The haa of alerting\").",
+    "Picture and typeset words differ: not Qur'an text: the grammatical term 'haa at-tanbeeh' without harakat."
+   ]
+  }
+ },
  "e299d1d0-8c6e-4de1-9a29-850fbf7ef8cc": {
   "prompt": {
    "images": [
@@ -3767,8 +3813,9 @@
      "from_word": 2,
      "to_word": 3
     },
-    "status": "owner_check",
+    "status": "safe",
     "look": [
+     "Owner's decision: typeset from 54:6 like the others. The question is about iqlaab, not stopping, so the stop sign in the typeset words does not matter.",
      "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them.",
      "Picture and typeset words differ: 54:6 in the the app's text carries a compulsory-stop sign ۘ after عَنْهُمْ which the picture does not show; 4:109:11-12 is the same two words without the sign.",
      "sibling options of f46332c3 are all from Surah al-Qamar (54:4, 54:5, 54:10, 54:11), so 54:6 is the likely source, but typesetting 54:6 adds a ۘ (stop) sign between the words that the picture omits - in a noon/meem-rules question that sign changes how the pair is read. Owner should choose 54:6 (with sign) or 4:109 (without)"

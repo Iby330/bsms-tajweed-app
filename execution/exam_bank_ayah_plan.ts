@@ -16,13 +16,18 @@
  * Writes
  *   - <mapping dir>/change-plan-ayahs.json + revert-plan-ayahs.json, in the
  *     format execution/exam_bank_apply_audit.ts applies (dry run by default).
- *     Only `swap: "safe"` pictures are planned. Pictures are never touched.
+ *     Safe pictures and the owner's decided ones (OWNER_DECISIONS) are planned.
+ *     Picture paths are kept, except the two slide titles that are not the
+ *     Qur'an, whose prompt_images are emptied; ayah-proposals.json keeps every
+ *     original path either way, so the picture stays viewable.
  *   - web/src/lib/exam-builder/ayah-proposals.json: per row and slot, the ref
  *     the owner's comparison page puts back after "Keep the picture", and why
  *     a slot needs a look. Safe and owner_check slots; owner_check is offered,
  *     never planned.
- * Prints the plan's counts and how many paper items (copies) still show a
- * picture where the bank will have a ref.
+ *   - <mapping dir>/change-plan-ayahs-papers.json + revert-plan-ayahs-papers.json:
+ *     the same changes for the papers' copies (exam_paper_items), only where a
+ *     copy's picture is still the bank's; edited copies are skipped and listed.
+ * Prints the counts of both plans.
  *
  * The pure logic is web/src/lib/exam-builder/ayah-plan.ts (tested there).
  *
@@ -38,13 +43,36 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { execSync } from "node:child_process";
-import { parseQuranRef } from "../web/src/lib/exam-builder/parse";
 import {
-  buildAyahPlan, buildProposals, endKeysNeeded, refText,
-  type CurrentRow, type EndPositions, type MappingLine, type Proposals,
+  buildAyahPlan, buildProposals, endKeysNeeded,
+  type CurrentRow, type EndPositions, type MappingLine, type OwnerDecisions, type Proposals,
 } from "../web/src/lib/exam-builder/ayah-plan";
 
 const PROJECT_REF = "ssqeakiutclbiwizrchh";
+
+/**
+ * The owner's calls on the 7 pictures the mapping could not clear (2026-11-24),
+ * by picture. With these every one of the 224 pictures is planned.
+ * Circles: centre `x` and width `w` as fractions of the word from its right
+ * edge, tuned against the source pictures (headless screenshots of the
+ * typeset word beside the picture).
+ */
+const OWNER_DECISIONS: OwnerDecisions = {
+  // Counting questions over a page crop that shows the basmala: typeset the surah WITH it.
+  "bank/a8a0b10989431542ba98e6c88b801ea50afc8de7.png": { safe: true, basmala: true, why: "typeset Al-Kafirun with the basmala above it, as the picture had it, so the madd count still works." },
+  "bank/3c0b9689c2ef12361ffbd9a76614d8a991f9984c.jpg": { safe: true, basmala: true, why: "typeset At-Tin with the basmala above it, as the picture had it, so the madd count still works." },
+  // An iqlaab question, not a waqf one: the stop sign the typeset words carry does not change it.
+  "bank/00384cd4dea7a9eaaa1572480ecc9e7be81087bb.png": { safe: true, why: "typeset from 54:6 like the others. The question is about iqlaab, not stopping, so the stop sign in the typeset words does not matter." },
+  // Hand-drawn circles round one letter, drawn again over the typeset word.
+  "bank/b096e76e8b4f7f13aded7751ecfa470016871474.png": { safe: true, circle: { word: 1, x: 0.3, w: 0.2 }, why: "circle the ر of ٱلرَّحْمَـٰنِ again, over the typeset word." },
+  "bank/6ad241c0a65d3ba6901f895a1a89f8a0b2a87aad.png": { safe: true, circle: { word: 1, x: 0.18, w: 0.2 }, why: "circle the س of بِسْمِ (the answer is the whistling letter). The picture's circle sat on the join of ب and س." },
+  // Slide titles, not the Qur'an: type the term into the question instead.
+  "bank/b82e3af9e1fe570327597bfe7d1b37d4c1f1415e.png": { term: "ياء النداء", why: "the question already names ياء النداء, so the picture just stops showing." },
+  "bank/751434c7b8440c1f289add6561d525dcdd5c4380.png": {
+    term: "هاء التنبيه", prompt: "What does هاء التنبيه mean?", promptWas: "What does mean?",
+    why: "the question read \"What does mean?\": the term هاء التنبيه is typed into it (the answer is \"The haa of alerting\").",
+  },
+};
 const here = dirname(resolve(process.argv[1] ?? "execution/exam_bank_ayah_plan.ts"));
 const repoRoot = join(here, "..");
 
@@ -109,46 +137,6 @@ async function select(token: string, query: string): Promise<Row[]> {
 const q = (s: string) => `'${s.replace(/'/g, "''")}'`;
 const uuids = (ids: string[]) => ids.map((id) => `${q(id)}::uuid`).join(", ");
 
-/**
- * Paper copies (exam_paper_items) of mapped rows, by what happens to them
- * once the new code is live. The plan never touches them.
- *  - keeps: a picture where the bank will have a ref; the copy has none, so
- *    it keeps showing the picture.
- *  - switches: the copy already carries a ref beside its picture, so it turns
- *    typeset as soon as the code is live; `differs` when that ref is not the
- *    one the bank will hold (too wide, or a slot the owner must decide on).
- */
-function paperItemsAffected(items: Row[], proposals: Proposals) {
-  const out: { paper: string; status: string; item: string; keeps: string[]; switches: string[] }[] = [];
-  const same = (a: unknown, b: unknown) => JSON.stringify(parseQuranRef(a)) === JSON.stringify(parseQuranRef(b));
-  for (const it of items) {
-    const p = proposals[String(it.bank_question_id)];
-    if (!p) continue;
-    const keeps: string[] = [];
-    const switches: string[] = [];
-    const images = (Array.isArray(it.prompt_images) ? it.prompt_images : []).filter(Boolean) as string[];
-    if (p.prompt && images.length > 0) {
-      if (!it.prompt_quran) {
-        if (p.prompt.status === "safe") keeps.push("prompt");
-      } else {
-        const ok = p.prompt.status === "safe" && same(it.prompt_quran, p.prompt.ref);
-        switches.push(ok ? "prompt" : `prompt (DIFFERS: copy has ${JSON.stringify(it.prompt_quran)}, bank: ${p.prompt.status} ${refText(p.prompt.ref)})`);
-      }
-    }
-    const opts = Array.isArray(it.options) ? (it.options as Row[]) : [];
-    opts.forEach((o, i) => {
-      const want = p.options?.[String(o.image)];
-      if (!want) return;
-      if (!o.quran) { if (want.status === "safe") keeps.push(`option ${i + 1}`); }
-      else switches.push(want.status === "safe" && same(o.quran, want.ref) ? `option ${i + 1}` : `option ${i + 1} (DIFFERS)`);
-    });
-    if (keeps.length || switches.length) {
-      out.push({ paper: `${it.paper_name || it.paper_title} (${String(it.paper_id).slice(0, 8)})`.trim(), status: String(it.paper_status), item: String(it.id), keeps, switches });
-    }
-  }
-  return out;
-}
-
 async function main() {
   const mappingPath = resolve(
     arg("--mapping") ?? join(mainCheckout() ?? repoRoot, "brainstorms/exam-ayah-typeset-2026-11-24/mapping.jsonl"),
@@ -167,7 +155,7 @@ async function main() {
     }
   }
 
-  const { proposals, skipped: notProposed } = buildProposals(lines, ends);
+  const { proposals, skipped: notProposed } = buildProposals(lines, ends, OWNER_DECISIONS);
   const ids = Object.keys(proposals);
   const rows: CurrentRow[] = [];
   for (let i = 0; i < ids.length; i += 200) {
@@ -186,14 +174,23 @@ async function main() {
   const proposalsPath = join(repoRoot, "web/src/lib/exam-builder/ayah-proposals.json");
   writeFileSync(proposalsPath, `${JSON.stringify(proposals, null, 1)}\n`);
 
-  const items = await select(
+  // Paper copies: the same changes, only where a copy's picture is still the bank's.
+  const itemRows = await select(
     token,
-    `select i.id, i.paper_id, i.bank_question_id, i.prompt_images, i.prompt_quran, i.options,
-            p.status as paper_status, p.name as paper_name, p.title as paper_title
+    `select i.id, i.bank_question_id, i.prompt, i.prompt_images, i.prompt_quran, i.options,
+            p.status as paper_status, coalesce(nullif(p.name, ''), p.title) as paper_label, p.id as paper_id
        from exam_paper_items i join exam_papers p on p.id = i.paper_id
-      where i.bank_question_id in (${uuids(ids)})`,
+      where i.bank_question_id in (${uuids(ids)})
+      order by p.id, i.position, i.id`,
   );
-  const affected = paperItemsAffected(items, proposals);
+  const items: CurrentRow[] = itemRows.map((r) => ({
+    id: String(r.id), bank_question_id: String(r.bank_question_id), prompt: String(r.prompt ?? ""), archived: false,
+    label: `${r.paper_label} [${r.paper_status}, ${String(r.paper_id).slice(0, 8)}]`,
+    prompt_images: r.prompt_images as string[] | null, prompt_quran: r.prompt_quran, options: r.options,
+  }));
+  const papers = buildAyahPlan(proposals, items, today, "mapping.jsonl + live exam_paper_items", "exam_paper_items", "change-plan-ayahs-papers.json");
+  writeFileSync(join(outDir, "change-plan-ayahs-papers.json"), JSON.stringify(papers.plan, null, 1));
+  writeFileSync(join(outDir, "revert-plan-ayahs-papers.json"), JSON.stringify(papers.revert, null, 1));
 
   const slots = (p: Proposals, status: string) =>
     Object.values(p).reduce((n, r) => n + (r.prompt?.status === status ? 1 : 0) + Object.values(r.options ?? {}).filter((o) => o.status === status).length, 0);
@@ -204,7 +201,7 @@ async function main() {
   console.log(
     `plan: ${plan.entries.length} entries, ${plan.entries.reduce((n, e) => n + e.ops.length, 0)} ops ` +
       `(${stats.promptSet} prompts newly set, ${stats.promptReplaced} prompt refs replaced, ${stats.optionSlots} option slots, ` +
-      `${stats.archivedRows} archived rows, ${stats.alreadySet} slots already set, ${stats.keptPictures} existing refs cleared to keep a picture, ` +
+      `${stats.archivedRows} archived rows, ${stats.terms} slide titles typed as terms, ${stats.alreadySet} slots already set, ${stats.keptPictures} existing refs cleared to keep a picture, ` +
       `${stats.movedOptions} options found at a new place)`,
   );
   for (const e of plan.entries) {
@@ -213,14 +210,17 @@ async function main() {
   }
   console.log(`skipped while planning (${skipped.length}):`);
   for (const s of skipped) console.log(`  ${s.row_id.slice(0, 8)} ${s.slot}: ${s.reason}`);
-  const keeps = affected.filter((a) => a.keeps.length);
-  const switches = affected.filter((a) => a.switches.length);
-  console.log(`paper items (copies) of mapped rows: ${affected.length} in ${new Set(affected.map((a) => a.paper)).size} papers`);
-  console.log(`  ${keeps.length} keep a picture where the bank will have a ref (the plan does not touch copies):`);
-  for (const a of keeps) console.log(`    [${a.status}] ${a.paper} item ${a.item.slice(0, 8)}: ${a.keeps.join(", ")}`);
-  console.log(`  ${switches.length} already carry a ref beside the picture, so turn typeset once the code is live:`);
-  for (const a of switches) console.log(`    [${a.status}] ${a.paper} item ${a.item.slice(0, 8)}: ${a.switches.join(", ")}`);
-  console.log(`wrote ${join(outDir, "change-plan-ayahs.json")}\n      ${join(outDir, "revert-plan-ayahs.json")}\n      ${proposalsPath}`);
+  console.log(
+    `paper copies: ${items.length} items copied from mapped rows, in ${new Set(items.map((i) => i.label)).size} papers; ` +
+      `plan ${papers.plan.entries.length} entries, ${papers.plan.entries.reduce((n, e) => n + e.ops.length, 0)} ops ` +
+      `(${papers.stats.promptSet} prompts newly set, ${papers.stats.promptReplaced} prompt refs replaced, ${papers.stats.optionSlots} option slots, ` +
+      `${papers.stats.terms} terms, ${papers.stats.alreadySet} slots already set)`,
+  );
+  for (const e of papers.plan.entries) for (const o of e.ops) if (o.field === "prompt_quran" && o.old) console.log(`  ${e.entry_id} ${e.question}: ${o.reason}`);
+  console.log(`  skipped, the copy edited (${papers.skipped.length}):`);
+  for (const s of papers.skipped) console.log(`    item ${s.row_id.slice(0, 8)} ${s.slot}: ${s.reason}`);
+  for (const f of ["change-plan-ayahs.json", "revert-plan-ayahs.json", "change-plan-ayahs-papers.json", "revert-plan-ayahs-papers.json"]) console.log(`wrote ${join(outDir, f)}`);
+  console.log(`wrote ${proposalsPath}`);
 }
 
 main().catch((e) => {

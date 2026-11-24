@@ -18,7 +18,7 @@
  * Relative imports only: tsx runs the execution script outside Next.
  */
 import { parseQuranRef } from "./parse";
-import type { QuranRef } from "./types";
+import type { QuranCircle, QuranRef } from "./types";
 
 export type MappingRef = {
   surah: number;
@@ -54,8 +54,23 @@ export type SlotProposal = {
 
 export type OptionProposal = SlotProposal & { /** 1-based, as the mapping found it. */ number: number };
 
+/**
+ * A picture that is not the Qur'an at all (a slide title): the term goes into
+ * the question's wording and the picture stops showing. `prompt` is the new
+ * wording, or null when the wording already has the term.
+ */
+export type TermProposal = {
+  images: string[];
+  term: string;
+  prompt: string | null;
+  /** The wording `prompt` replaces; any other wording lacking the term is someone's edit, and is skipped. */
+  prompt_was: string | null;
+  look: string[];
+};
+
 export type RowProposals = {
   prompt?: SlotProposal;
+  term?: TermProposal;
   /** By the option's picture path. */
   options?: Record<string, OptionProposal>;
 };
@@ -64,6 +79,24 @@ export type Proposals = Record<string, RowProposals>;
 
 export type Skip = { row_id: string; slot: string; images: string[]; reason: string };
 
+/**
+ * The owner's call on a picture the mapping could not clear by itself, by
+ * picture path: plan it after all (`safe`), with the basmala above or a
+ * circle round a letter; or, for a picture that is not the Qur'an, the term
+ * to type instead (`term`, and `prompt` to use when the wording lacks it).
+ */
+export type OwnerDecision = {
+  safe?: true;
+  basmala?: true;
+  circle?: QuranCircle;
+  term?: string;
+  prompt?: string;
+  promptWas?: string;
+  /** What the owner decided, in plain English, shown on the comparison page. */
+  why: string;
+};
+export type OwnerDecisions = Record<string, OwnerDecision>;
+
 /** "54:3" → the word_position of that ayah's end marker. */
 export type EndPositions = Record<string, number>;
 
@@ -71,7 +104,10 @@ export const LOOK_UNSURE =
   "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them.";
 
 export const LOOK_EMPHASIS =
-  "The picture circles one letter for the question. The typeset words cannot show that circle, so keep the picture unless the question is reworded.";
+  "The picture circles one letter for the question. The typeset words draw the circle again: check it sits on the same letter.";
+
+export const LOOK_TERM =
+  "Not the Qur'an: the picture was a slide title. The term is typed into the question instead, in the app's own Arabic lettering.";
 
 /** The mapping's notes, made readable for a teacher: no dashes, no "DB". */
 const plain = (s: string) =>
@@ -97,8 +133,9 @@ export function endKeysNeeded(lines: MappingLine[]): string[] {
   return [...new Set(keys)];
 }
 
-function lookFor(lines: MappingLine[]): string[] {
+function lookFor(lines: MappingLine[], decisions: OwnerDecisions): string[] {
   const out: string[] = [];
+  for (const l of lines) if (decisions[l.image]) out.push(`Owner's decision: ${decisions[l.image].why}`);
   if (lines.some((l) => l.match === "unsure")) out.push(LOOK_UNSURE);
   if (lines.some((l) => l.swap === "needs_emphasis")) out.push(LOOK_EMPHASIS);
   for (const l of lines) if (l.differs_from_db.trim()) out.push(`Picture and typeset words differ: ${plain(l.differs_from_db)}.`.replace(/\.\.$/, "."));
@@ -126,7 +163,11 @@ function joinRefs(refs: QuranRef[]): QuranRef | null {
 const PROPOSABLE = new Set(["safe", "owner_check", "needs_emphasis"]);
 
 /** Per row and slot, the ref to set (safe) or to offer the owner (owner_check). */
-export function buildProposals(lines: MappingLine[], ends: EndPositions): { proposals: Proposals; skipped: Skip[] } {
+export function buildProposals(
+  lines: MappingLine[],
+  ends: EndPositions,
+  decisions: OwnerDecisions = {},
+): { proposals: Proposals; skipped: Skip[] } {
   const groups = new Map<string, { row: string; where: string; lines: MappingLine[] }>();
   for (const l of lines) {
     for (const u of l.used_by) {
@@ -142,16 +183,30 @@ export function buildProposals(lines: MappingLine[], ends: EndPositions): { prop
   for (const g of groups.values()) {
     const images = g.lines.map((l) => l.image);
     const skip = (reason: string) => skipped.push({ row_id: g.row, slot: g.where, images, reason });
+    const decided = g.lines.map((l) => decisions[l.image]).filter(Boolean);
+    const term = decided.find((d) => d.term);
+    if (term && g.where === "prompt" && g.lines.length === 1) {
+      (proposals[g.row] ??= {}).term = {
+        images, term: term.term!, prompt: term.prompt ?? null, prompt_was: term.promptWas ?? null, look: [LOOK_TERM, ...lookFor(g.lines, decisions)],
+      };
+      continue;
+    }
     const bad = g.lines.find((l) => !PROPOSABLE.has(l.swap) || !l.ref);
     if (bad) { skip(`swap: ${bad.swap}${bad.ref ? "" : ", no ref"}`); continue; }
     const refs = g.lines.map((l) => proposalRef(l, ends));
     if (refs.some((r) => !r)) { skip("ref not valid"); continue; }
-    const ref = refs.length === 1 ? refs[0] : joinRefs(refs as QuranRef[]);
-    if (!ref) { skip("pictures do not make one running range"); continue; }
-    const status: ProposalStatus = g.lines.some((l) => l.swap === "needs_emphasis")
-      ? "emphasis"
-      : g.lines.some((l) => l.swap === "owner_check") ? "owner_check" : "safe";
-    const proposal: SlotProposal = { images, ref, status, look: lookFor(g.lines) };
+    const joined = refs.length === 1 ? refs[0] : joinRefs(refs as QuranRef[]);
+    if (!joined) { skip("pictures do not make one running range"); continue; }
+    const ref: QuranRef = { ...joined };
+    for (const d of decided) {
+      if (d.basmala) ref.basmala = true;
+      if (d.circle) ref.circle = { ...d.circle };
+    }
+    const cleared = g.lines.every((l) => l.swap === "safe" || decisions[l.image]?.safe);
+    const status: ProposalStatus = cleared
+      ? "safe"
+      : g.lines.some((l) => l.swap === "needs_emphasis") ? "emphasis" : "owner_check";
+    const proposal: SlotProposal = { images, ref, status, look: lookFor(g.lines, decisions) };
     const row = (proposals[g.row] ??= {});
     const option = /^option (\d+)$/.exec(g.where);
     if (g.where === "prompt") {
@@ -170,6 +225,10 @@ export function buildProposals(lines: MappingLine[], ends: EndPositions): { prop
 
 export type CurrentRow = {
   id: string;
+  /** For a paper item: the bank row it was copied from (its proposals' key). */
+  bank_question_id?: string | null;
+  /** For a paper item: which paper, for the report. */
+  label?: string;
   prompt: string;
   archived: boolean;
   prompt_images: string[] | null;
@@ -177,12 +236,21 @@ export type CurrentRow = {
   options: unknown;
 };
 
-export type PlanOp = { entry_id: string; row_id: string; field: "prompt_quran" | "options"; old: unknown; new: unknown; reason: string };
+export type PlanOp = {
+  entry_id: string;
+  row_id: string;
+  field: "prompt_quran" | "options" | "prompt" | "prompt_images";
+  old: unknown;
+  new: unknown;
+  reason: string;
+};
 export type PlanEntry = { entry_id: string; bucket: string; question: string; ops: PlanOp[] };
+export type PlanTable = "exam_bank_questions" | "exam_paper_items";
+
 export type Plan = {
   generated_at: string;
   based_on: string;
-  table: "exam_bank_questions";
+  table: PlanTable;
   apply_with: string;
   kind: "forward" | "revert";
   reverts?: string;
@@ -199,6 +267,8 @@ export type PlanStats = {
   /** Options found by picture at a different place than the mapping's number. */
   movedOptions: number;
   alreadySet: number;
+  /** Slide-title pictures replaced by the term typed into the question. */
+  terms: number;
   /** Slots the owner must decide on whose existing ref is cleared, so the picture keeps showing. */
   keptPictures: number;
 };
@@ -228,21 +298,56 @@ export function buildAyahPlan(
   rows: CurrentRow[],
   generatedAt: string,
   basedOn = "mapping.jsonl + live rows",
+  /**
+   * exam_paper_items: each row is a paper's COPY of a bank row, keyed to its
+   * proposals by `bank_question_id`. A slot is planned only where the copy's
+   * picture is still the bank's (a teacher may have edited it); the rest are
+   * skipped and reported. Rows not mapped are ignored.
+   */
+  table: PlanTable = "exam_bank_questions",
+  fileName = "change-plan-ayahs.json",
 ): { plan: Plan; revert: Plan; skipped: Skip[]; stats: PlanStats } {
+  const items = table === "exam_paper_items";
   const skipped: Skip[] = [];
   const entries: PlanEntry[] = [];
-  const stats: PlanStats = { rows: 0, archivedRows: 0, promptSet: 0, promptReplaced: 0, optionSlots: 0, movedOptions: 0, alreadySet: 0, keptPictures: 0 };
+  const stats: PlanStats = { rows: 0, archivedRows: 0, promptSet: 0, promptReplaced: 0, optionSlots: 0, movedOptions: 0, alreadySet: 0, keptPictures: 0, terms: 0 };
   const byId = new Map(rows.map((r) => [r.id, r]));
-
-  for (const [rowId, p] of Object.entries(proposals)) {
-    const row = byId.get(rowId);
-    if (!row) {
+  if (!items) {
+    for (const [rowId, p] of Object.entries(proposals)) {
+      if (byId.has(rowId)) continue;
       const all = [...(p.prompt ? [p.prompt] : []), ...Object.values(p.options ?? {})].filter((s) => s.status === "safe");
       for (const s of all) skipped.push({ row_id: rowId, slot: "row", images: s.images, reason: "row not in the bank any more" });
-      continue;
     }
-    const id = `T${String(entries.length + 1).padStart(3, "0")}`;
+  }
+  const edited = items ? " (the copy was edited: its picture is not the bank's)" : "";
+
+  for (const row of rows) {
+    const rowId = row.id;
+    const p = proposals[items ? (row.bank_question_id ?? "") : rowId];
+    if (!p) continue;
+    const id = `${items ? "P" : "T"}${String(entries.length + 1).padStart(3, "0")}`;
     const ops: PlanOp[] = [];
+
+    if (p.term) {
+      const want = p.term;
+      const now = (row.prompt_images ?? []).filter(Boolean);
+      if (now.length === 0) {
+        stats.alreadySet++;
+      } else if (canon([...now].sort()) !== canon([...want.images].sort())) {
+        skipped.push({ row_id: rowId, slot: "prompt", images: want.images, reason: `prompt pictures changed since the mapping (now ${now.length})${edited}` });
+      } else if (!row.prompt.includes(want.term) && (!want.prompt || row.prompt.trim() !== want.prompt_was)) {
+        skipped.push({ row_id: rowId, slot: "prompt", images: want.images, reason: `the wording lacks ${want.term} and is not the wording the decision replaces${edited}` });
+      } else {
+        stats.terms++;
+        if (!row.prompt.includes(want.term)) {
+          ops.push({ entry_id: id, row_id: rowId, field: "prompt", old: row.prompt, new: want.prompt, reason: `type the term ${want.term} into the question` });
+        }
+        ops.push({
+          entry_id: id, row_id: rowId, field: "prompt_images", old: row.prompt_images, new: [],
+          reason: `the picture was a slide title, not the Qur'an: the question shows the typed term ${want.term}`,
+        });
+      }
+    }
 
     if (p.prompt) {
       const want = p.prompt;
@@ -250,7 +355,7 @@ export function buildAyahPlan(
       const was = parseQuranRef(row.prompt_quran);
       if (canon(now) !== canon(want.images)) {
         if (want.status === "safe") {
-          skipped.push({ row_id: rowId, slot: "prompt", images: want.images, reason: `prompt pictures changed since the mapping (now ${now.length})` });
+          skipped.push({ row_id: rowId, slot: "prompt", images: want.images, reason: `prompt pictures changed since the mapping (now ${now.length})${edited}` });
         }
       } else if (want.status !== "safe") {
         // A ref now wins over the picture: a slot the owner must decide on
@@ -283,7 +388,7 @@ export function buildAyahPlan(
         const at = next ? next.map((o, i) => (o && o.image === path ? i : -1)).filter((i) => i >= 0) : [];
         if (!next || at.length === 0) {
           if (want.status === "safe") {
-            skipped.push({ row_id: rowId, slot: `option ${want.number}`, images: [path], reason: "no option has the picture any more" });
+            skipped.push({ row_id: rowId, slot: `option ${want.number}`, images: [path], reason: `no option has the picture any more${edited}` });
           }
           continue;
         }
@@ -313,10 +418,11 @@ export function buildAyahPlan(
     stats.rows++;
     if (row.archived) stats.archivedRows++;
     const words = row.prompt.replace(/\s+/g, " ").trim();
+    const tag = items ? `item ${rowId.slice(0, 8)} of bank ${String(row.bank_question_id).slice(0, 8)}${row.label ? `, ${row.label}` : ""}` : rowId.slice(0, 8);
     entries.push({
       entry_id: id,
-      bucket: row.archived ? "ayah_typeset_archived" : "ayah_typeset",
-      question: `${words.length > 70 ? `${words.slice(0, 70)}…` : words} [${rowId.slice(0, 8)}]`,
+      bucket: items ? "ayah_typeset_paper_copy" : row.archived ? "ayah_typeset_archived" : "ayah_typeset",
+      question: `${words.length > 70 ? `${words.slice(0, 70)}…` : words} [${tag}]`,
       ops,
     });
   }
@@ -324,14 +430,14 @@ export function buildAyahPlan(
   const head = {
     generated_at: generatedAt,
     based_on: basedOn,
-    table: "exam_bank_questions" as const,
+    table,
     apply_with: "npx tsx execution/exam_bank_apply_audit.ts <this file> [--apply]",
   };
   const plan: Plan = { ...head, kind: "forward", entries, skipped };
   const revert: Plan = {
     ...head,
     kind: "revert",
-    reverts: "change-plan-ayahs.json",
+    reverts: fileName,
     skipped: [],
     entries: [...entries].reverse().map((e) => ({
       ...e,

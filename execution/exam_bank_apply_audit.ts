@@ -13,8 +13,11 @@
  * shape with old/new swapped and the entries reversed):
  *   { kind: "forward" | "revert", entries: [ { entry_id, bucket, question,
  *       ops: [ { entry_id, row_id, field, old, new, reason } ] } ], skipped: [...] }
- * Only `exam_bank_questions` is written, and only the fields in FIELDS below.
- * It never inserts or deletes a row and never touches exam_paper_items.
+ * The plan's `table` (default exam_bank_questions) is written, and only the
+ * fields TABLES allows for it: exam_bank_questions, or exam_paper_items (a
+ * paper's copies, for the typeset-ayah plan: prompt, prompt_images,
+ * prompt_quran, options only).
+ * It never inserts or deletes a row, and touches no table the plan does not name.
  *
  * Safety
  *   - Dry run unless --apply. A dry run reads the live rows and prints, per entry,
@@ -50,10 +53,9 @@ import { basename, dirname, join, resolve } from "node:path";
 import { execSync } from "node:child_process";
 
 const PROJECT_REF = "ssqeakiutclbiwizrchh";
-const TABLE = "exam_bank_questions";
 
 type FieldType = "text" | "jsonb" | "textarr" | "bool" | "numeric";
-const FIELDS: Record<string, FieldType> = {
+const BANK_FIELDS: Record<string, FieldType> = {
   prompt: "text",
   options: "jsonb",
   // The ayah typeset under a question (exam_bank_ayah_plan.ts); an option's ref rides in `options`.
@@ -65,11 +67,22 @@ const FIELDS: Record<string, FieldType> = {
   used_in: "textarr",
   archived: "bool",
   review_note: "text",
+  prompt_images: "textarr",
 };
+
+/** The tables a plan may name, and the fields each may write. Nothing else. */
+const TABLES: Record<string, Record<string, FieldType>> = {
+  exam_bank_questions: BANK_FIELDS,
+  exam_paper_items: { prompt: "text", prompt_images: "textarr", prompt_quran: "jsonb", options: "jsonb" },
+};
+
+// Set once the plan is read (main): the table it names and that table's fields.
+let TABLE = "exam_bank_questions";
+let FIELDS: Record<string, FieldType> = BANK_FIELDS;
 
 type Op = { entry_id: string; row_id: string; field: string; old: unknown; new: unknown; reason: string };
 type Entry = { entry_id: string; bucket: string; question: string; ops: Op[] };
-type Plan = { kind: "forward" | "revert"; entries: Entry[] };
+type Plan = { kind: "forward" | "revert"; table?: string; entries: Entry[] };
 type Row = Record<string, unknown> & { id: string };
 type Result = { entry_id: string; question: string; status: "applied" | "would-apply" | "already" | "conflict" | "error"; detail?: string[] };
 
@@ -255,6 +268,13 @@ select (select ok from ok) as ok, ${perRow.map((_, i) => `(select count(*) from 
 async function main() {
   const { planPath, apply, only, envPath } = parseArgs();
   const plan: Plan = JSON.parse(readFileSync(planPath, "utf8"));
+  const table = plan.table ?? "exam_bank_questions";
+  if (!(table in TABLES)) {
+    console.error(`plan.table ${table} is not one this script may write (${Object.keys(TABLES).join(", ")}); nothing read or written.`);
+    process.exit(1);
+  }
+  TABLE = table;
+  FIELDS = TABLES[table];
   const problems = checkPlan(plan);
   if (problems.length) {
     console.error(`plan failed ${problems.length} check(s); nothing read or written:\n  ${problems.join("\n  ")}`);
@@ -264,7 +284,7 @@ async function main() {
   if (only) for (const id of only) if (!plan.entries.some((e) => e.entry_id === id)) console.warn(`--only ${id}: not in the plan`);
   const token = findToken(envPath);
   const tag = apply ? "" : "[dry-run] ";
-  console.log(`${tag}${basename(planPath)} (${plan.kind}): ${entries.length} entries, ${entries.reduce((s, e) => s + e.ops.length, 0)} ops`);
+  console.log(`${tag}${basename(planPath)} (${plan.kind}, ${TABLE}): ${entries.length} entries, ${entries.reduce((s, e) => s + e.ops.length, 0)} ops`);
 
   // Read every row the plan touches, with every field it touches.
   const ids = [...new Set(entries.flatMap((e) => e.ops.map((o) => o.row_id)))];

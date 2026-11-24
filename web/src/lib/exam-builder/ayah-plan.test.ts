@@ -158,3 +158,60 @@ describe("buildAyahPlan", () => {
     expect(done.skipped[0].reason).toMatch(/no option has the picture/);
   });
 });
+
+describe("the owner's decisions", () => {
+  const ROW_T = "dddddddd-0000-4000-8000-000000000004";
+  const ROW_U = "eeeeeeee-0000-4000-8000-000000000005";
+  const decided: MappingLine[] = [
+    line({ image: "bank/c.png", used_by: [{ row_id: ROW_C, where: "prompt" }], swap: "needs_emphasis", ref: { surah: 1, from_ayah: 3, to_ayah: 3, from_word: null, to_word: null } }),
+    line({ image: "bank/k.png", used_by: [{ row_id: ROW_A, where: "prompt" }], swap: "owner_check", ref: { surah: 109, from_ayah: 1, to_ayah: 6, from_word: null, to_word: null } }),
+    line({ image: "bank/t.png", used_by: [{ row_id: ROW_T, where: "prompt" }], swap: "keep_picture", match: "not_quran", ref: null }),
+    line({ image: "bank/u.png", used_by: [{ row_id: ROW_U, where: "prompt" }], swap: "keep_picture", match: "not_quran", ref: null }),
+  ];
+  const decisions = {
+    "bank/c.png": { safe: true as const, circle: { word: 1, x: 0.3, w: 0.2 }, why: "circle the ر" },
+    "bank/k.png": { safe: true as const, basmala: true as const, why: "with the basmala" },
+    "bank/t.png": { term: "هاء التنبيه", prompt: "What does هاء التنبيه mean?", promptWas: "What does mean?", why: "type the term" },
+    "bank/u.png": { term: "ياء النداء", why: "type the term" },
+  };
+  const { proposals } = buildProposals(decided, {}, decisions);
+
+  it("plans a circled letter and a surah with its basmala, the reasons kept to look at", () => {
+    expect(proposals[ROW_C].prompt).toMatchObject({ status: "safe", ref: { surah: 1, from_ayah: 3, to_ayah: 3, circle: { word: 1, x: 0.3, w: 0.2 } } });
+    expect(proposals[ROW_C].prompt!.look.join(" ")).toMatch(/Owner's decision: circle the ر/);
+    expect(proposals[ROW_A].prompt).toMatchObject({ status: "safe", ref: { surah: 109, from_ayah: 1, to_ayah: 6, basmala: true } });
+  });
+
+  it("types a slide title's term into the question and stops showing its picture", () => {
+    const { plan, revert, stats } = buildAyahPlan(proposals, [
+      { id: ROW_T, prompt: "What does mean?", archived: false, prompt_images: ["bank/t.png"], prompt_quran: null, options: null },
+      { id: ROW_U, prompt: "What does ياء النداء mean?", archived: false, prompt_images: ["bank/u.png"], prompt_quran: null, options: null },
+    ], "2026-11-24");
+    const t = plan.entries.find((e) => e.ops[0].row_id === ROW_T)!.ops;
+    expect(t.map((o) => [o.field, o.new])).toEqual([["prompt", "What does هاء التنبيه mean?"], ["prompt_images", []]]);
+    const u = plan.entries.find((e) => e.ops[0].row_id === ROW_U)!.ops;
+    expect(u.map((o) => [o.field, o.old, o.new])).toEqual([["prompt_images", ["bank/u.png"], []]]);
+    expect(stats.terms).toBe(2);
+    // The revert plan puts the picture back.
+    const back = revert.entries.flatMap((e) => e.ops).find((o) => o.row_id === ROW_U)!;
+    expect(back.new).toEqual(["bank/u.png"]);
+  });
+
+  it("gives a paper's copy the same changes only where its picture is still the bank's", () => {
+    const ITEM_1 = "11111111-0000-4000-8000-000000000001";
+    const ITEM_2 = "22222222-0000-4000-8000-000000000002";
+    const ITEM_3 = "33333333-0000-4000-8000-000000000003";
+    const { plan, skipped } = buildAyahPlan(proposals, [
+      { id: ITEM_1, bank_question_id: ROW_C, prompt: "Circled?", archived: false, prompt_images: ["bank/c.png"], prompt_quran: null, options: null },
+      { id: ITEM_2, bank_question_id: ROW_C, prompt: "Circled?", archived: false, prompt_images: ["new/teacher/mine.png"], prompt_quran: null, options: null },
+      { id: ITEM_3, bank_question_id: ROW_T, prompt: "Explain this term", archived: false, prompt_images: ["bank/t.png"], prompt_quran: null, options: null },
+      { id: "44444444-0000-4000-8000-000000000004", bank_question_id: null, prompt: "Written on the paper", archived: false, prompt_images: [], prompt_quran: null, options: null },
+    ], "2026-11-24", "x", "exam_paper_items", "change-plan-ayahs-papers.json");
+    expect(plan.table).toBe("exam_paper_items");
+    expect(plan.entries).toHaveLength(1);
+    expect(plan.entries[0].entry_id).toBe("P001");
+    expect(plan.entries[0].ops[0]).toMatchObject({ row_id: ITEM_1, field: "prompt_quran", new: { surah: 1, from_ayah: 3, to_ayah: 3, circle: { word: 1, x: 0.3, w: 0.2 } } });
+    expect(skipped.map((s) => s.row_id)).toEqual([ITEM_2, ITEM_3]);
+    expect(skipped[0].reason).toMatch(/copy was edited/);
+  });
+});
