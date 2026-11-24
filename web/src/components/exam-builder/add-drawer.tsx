@@ -445,20 +445,18 @@ export function AddDrawer({
       </div>
 
       <div ref={listRef} className="exam-tree flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto overscroll-contain bg-background p-3 lg:p-3.5">
-        {body}
         {!locked && (
-          <div className="mt-2 grid gap-2 rounded-xl border border-dashed border-line p-3 text-sm">
-            <p className="text-muted-foreground">Not in the bank?</p>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" className="h-10 lg:h-8" onClick={() => onWriteNew(writeKind, writeTopic)}>
-                <PenLine aria-hidden /> Write a new question
-              </Button>
-              <Button variant="ghost" className="h-10 lg:h-8" onClick={() => onAddBlank(writeKind)}>
-                <FilePlus2 aria-hidden /> Add a blank {kindWord(writeKind)} question
-              </Button>
-            </div>
+          <div className="flex flex-wrap items-center gap-x-1 gap-y-1 text-xs">
+            <span className="mr-1 text-muted-foreground">Not in the bank?</span>
+            <Button variant="outline" size="sm" className="h-9 px-2.5 text-xs lg:h-7" onClick={() => onWriteNew(writeKind, writeTopic)}>
+              <PenLine aria-hidden /> Write a new question
+            </Button>
+            <Button variant="ghost" size="sm" className="h-9 px-2.5 text-xs lg:h-7" onClick={() => onAddBlank(writeKind)}>
+              <FilePlus2 aria-hidden /> Add a blank {kindWord(writeKind)} question
+            </Button>
           </div>
         )}
+        {body}
       </div>
 
       <div className="flex items-center gap-3 border-t border-line bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_14px_rgb(0_0_60/0.06)]">
