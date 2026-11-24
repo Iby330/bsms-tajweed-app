@@ -16,8 +16,22 @@ export type ReviewStatus = "clean" | "check" | "approved";
 export type PaperStatus = "draft" | "final";
 export type SectionKind = "questions" | "practical";
 
-/** One multiple-choice option. `image` is a path in the exam-questions bucket. */
-export type McqOption = { text: string; image: string | null; correct: boolean };
+/**
+ * One multiple-choice option. `image` is a path in the exam-questions bucket.
+ * `quran`, when set, names the Qur'an words the option shows: they are typeset
+ * from the mushaf data in place of the picture, which stays stored as the
+ * fallback. Absent (not null) when the option has no ref.
+ */
+export type McqOption = { text: string; image: string | null; correct: boolean; quran?: QuranRef | null };
+
+/**
+ * A hand-drawn circle round one letter, as the source picture had it. A QCF
+ * word is one glyph, so it is placed by fractions of that word's box: `x` is
+ * the circle's centre and `w` its width, both measured from the word's RIGHT
+ * edge (the text runs right to left). `word` is the word_position in the
+ * ref's first ayah.
+ */
+export type QuranCircle = { word: number; x: number; w: number };
 
 /** An ayah range to typeset from `quran_words` instead of a picture. */
 export type QuranRef = {
@@ -26,6 +40,9 @@ export type QuranRef = {
   to_ayah: number;
   from_word?: number;
   to_word?: number;
+  /** Set the surah's basmala above the words, as the mushaf reader does (it is not an ayah in quran_words). */
+  basmala?: boolean;
+  circle?: QuranCircle;
 };
 
 /** One place a bank question was found: `{label: "EOT2 25/26", kind: "exam", number: "A12"}`. */
@@ -53,7 +70,7 @@ export type BankQuestion = Omit<BankRow, "kind" | "options" | "prompt_quran" | "
   prompt_quran: QuranRef | null;
   sources: SourceRef[];
   review_status: ReviewStatus;
-  /** storage path → signed URL, for prompt_images and option images */
+  /** storage path → signed URL: prompt_images, option images, and the originals a typeset swap kept (ayah-proposals) */
   imageUrls: Record<string, string>;
 };
 

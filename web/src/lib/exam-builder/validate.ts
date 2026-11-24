@@ -192,7 +192,13 @@ function cleanOptions(v: unknown): Clean<McqOption[] | null> {
       image = o.image;
     }
     if (o.correct !== undefined && typeof o.correct !== "boolean") return fail("The options are not in the right shape.");
-    out.push({ text, image, correct: o.correct === true });
+    const option: McqOption = { text, image, correct: o.correct === true };
+    if (o.quran !== undefined && o.quran !== null) {
+      const quran = parseQuranRef(o.quran);
+      if (!quran) return fail("An option's ayah reference is not a surah from 1 to 114 with an ayah range that runs forwards.");
+      option.quran = quran;
+    }
+    out.push(option);
   }
   return { ok: true, patch: out };
 }
@@ -201,7 +207,7 @@ function cleanOptions(v: unknown): Clean<McqOption[] | null> {
  * An edit to a question on a paper. Prompt: non-empty, at most 4000
  * characters. Answer: blank → null. Marks: 0.5–100 in halves. Answer lines:
  * whole, 0–30. Options: at most 10, each at most 500 characters, pictures from
- * our bucket. Typeset ayah: surah 1–114, from ≤ to. Pictures: `bank/…` or
+ * our bucket, an optional typeset ref each. Typeset ayah: surah 1–114, from ≤ to. Pictures: `bank/…` or
  * `new/…` paths, at most 10.
  */
 export function cleanItemPatch(input: unknown): Clean<ItemPatch> {

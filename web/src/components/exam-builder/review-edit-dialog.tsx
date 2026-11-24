@@ -7,6 +7,7 @@
  */
 import { useState, useTransition } from "react";
 import { Plus, Trash2, X } from "lucide-react";
+import { optionFilled } from "@/lib/exam-builder/bank-validate";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -64,7 +65,7 @@ export function ReviewEditDialog({ question: q, topics, onClose, onSaved }: Prop
     const m = marks.trim();
     const marksValue = m === "" ? null : Number(m);
     if (marksValue !== null && !Number.isFinite(marksValue)) { setError("Marks must be a number, or blank."); return; }
-    const opts = kind === "mcq" ? options.filter((o) => o.text.trim() || o.image) : null;
+    const opts = kind === "mcq" ? options.filter(optionFilled) : null;
 
     const patch: BankPatch = { review_status: keepFlagged ? "check" : "approved" };
     if (topicId !== q.topic_id) patch.topic_id = topicId;

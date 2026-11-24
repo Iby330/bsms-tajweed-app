@@ -12,6 +12,7 @@
  */
 import { useMemo, useRef, useState, useTransition } from "react";
 import { ImagePlus, ImageOff, Loader2, Plus, X } from "lucide-react";
+import { optionFilled } from "@/lib/exam-builder/bank-validate";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -114,7 +115,7 @@ function Form({
     if (!marks.trim() || !Number.isFinite(m) || m < 0.5 || m > 100 || !Number.isInteger(m * 2)) {
       next.marks = "Marks must be between 0.5 and 100, in halves.";
     }
-    const filled = options.filter((o) => o.text.trim() || o.image);
+    const filled = options.filter(optionFilled);
     if (kind === "mcq" && filled.length < 2) next.options = "Fill in at least two options.";
     const read = arabic === "typeset" ? readDraft(draft) : null;
     if (read && !read.ok) next.ayah = read.error;

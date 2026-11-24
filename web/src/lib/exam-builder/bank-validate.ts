@@ -99,14 +99,19 @@ export function cleanBankPatch(input: unknown): Clean<BankPatch> {
   return { ok: true, patch };
 }
 
+/** An option with something in it: text, a picture, or Qur'an words to typeset. */
+export function optionFilled(o: McqOption): boolean {
+  return !!(o.text.trim() || o.image || o.quran);
+}
+
 /**
  * Why a question would not work as multiple choice once the edit is applied,
  * or null. A multiple-choice question needs at least two options with
- * something in them (text or a picture).
+ * something in them (text, a picture or Qur'an words to typeset).
  */
 export function mcqProblem(kind: QuestionKind, options: McqOption[] | null | undefined): string | null {
   if (kind !== "mcq") return null;
-  const filled = (options ?? []).filter((o) => o.text.trim() || o.image);
+  const filled = (options ?? []).filter(optionFilled);
   if (filled.length < 2) return "A multiple-choice question needs at least two options.";
   return null;
 }

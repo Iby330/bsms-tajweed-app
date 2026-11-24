@@ -10,7 +10,7 @@
  */
 import type { Database } from "@/lib/database.types";
 import type {
-  BankQuestion, McqOption, Paper, PaperItem, PaperStatus, Practical, QuestionKind, QuranRef,
+  BankQuestion, McqOption, Paper, PaperItem, PaperStatus, Practical, QuestionKind, QuranCircle, QuranRef,
   ReviewStatus, Section, SectionKind, SourceRef,
 } from "./types";
 
@@ -42,10 +42,12 @@ export function parseSectionKind(v: unknown): SectionKind {
 }
 
 /**
- * `[{text, image, correct}]`, or null. An option may leave out `image` (→ null)
- * and `correct` (→ false), and a picture-only option may leave out `text`
- * (→ ""). Anything else wrong in any option, or a value that is not an array,
- * makes the whole list null: half a list of options is not a question.
+ * `[{text, image, correct, quran?}]`, or null. An option may leave out `image`
+ * (→ null) and `correct` (→ false), and a picture-only option may leave out
+ * `text` (→ ""). Anything else wrong in any option, or a value that is not an
+ * array, makes the whole list null: half a list of options is not a question.
+ * A malformed `quran` ref is dropped, not the option: without it the option
+ * simply shows its picture.
  */
 export function parseOptions(v: unknown): McqOption[] | null {
   if (!Array.isArray(v)) return null;
@@ -59,21 +61,25 @@ export function parseOptions(v: unknown): McqOption[] | null {
     }
     let text: string;
     if (typeof o.text === "string") text = o.text;
-    else if (o.text === undefined && image !== null) text = "";
+    else if (o.text === undefined && (image !== null || isObject(o.quran))) text = "";
     else return null;
     if (o.correct !== undefined && typeof o.correct !== "boolean") return null;
-    out.push({ text, image, correct: o.correct === true });
+    const option: McqOption = { text, image, correct: o.correct === true };
+    const quran = parseQuranRef(o.quran);
+    if (quran) option.quran = quran;
+    out.push(option);
   }
   return out;
 }
 
 /**
- * `{surah, from_ayah, to_ayah, from_word?, to_word?}` with surah 1–114 and a
- * forward range, or null.
+ * `{surah, from_ayah, to_ayah, from_word?, to_word?, basmala?, circle?}` with
+ * surah 1–114 and a forward range, or null. `basmala` is kept only when true;
+ * a malformed `circle` is dropped (the words still show, uncircled).
  */
 export function parseQuranRef(v: unknown): QuranRef | null {
   if (!isObject(v)) return null;
-  const { surah, from_ayah, to_ayah, from_word, to_word } = v;
+  const { surah, from_ayah, to_ayah, from_word, to_word, basmala, circle } = v;
   if (!isPosInt(surah) || surah > 114) return null;
   if (!isPosInt(from_ayah) || !isPosInt(to_ayah) || from_ayah > to_ayah) return null;
   const ref: QuranRef = { surah, from_ayah, to_ayah };
@@ -85,7 +91,20 @@ export function parseQuranRef(v: unknown): QuranRef | null {
     if (!isPosInt(to_word)) return null;
     ref.to_word = to_word;
   }
+  if (basmala === true) ref.basmala = true;
+  const c = parseCircle(circle);
+  if (c) ref.circle = c;
   return ref;
+}
+
+const isFraction = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n) && n > 0 && n <= 1;
+
+/** `{word, x, w}`: a word position, and the circle's centre and width as fractions of that word. */
+export function parseCircle(v: unknown): QuranCircle | null {
+  if (!isObject(v)) return null;
+  const { word, x, w } = v;
+  if (!isPosInt(word) || !isFraction(x) || !isFraction(w)) return null;
+  return { word, x, w };
 }
 
 const SOURCE_KINDS: readonly SourceRef["kind"][] = ["exam", "bank", "mark_scheme", "form"];

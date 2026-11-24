@@ -54,7 +54,7 @@ export function cleanNewQuestion(input: unknown): Clean<NewQuestion> {
 
   const kind = input.kind;
   const options = kind === "mcq" && Array.isArray(input.options)
-    ? (input.options as McqOption[]).filter((o) => isObject(o) && ((typeof o.text === "string" && o.text.trim()) || o.image))
+    ? (input.options as McqOption[]).filter((o) => isObject(o) && ((typeof o.text === "string" && o.text.trim()) || o.image || isObject(o.quran)))
     : null;
 
   const item = cleanItemPatch({
