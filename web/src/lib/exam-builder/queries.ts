@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { supabaseServer } from "@/lib/supabase/server";
+import { originalPaths } from "./ayah-proposals";
 import { collectImagePaths, signExamImages } from "./images";
 import { paperTotal } from "./numbering";
 import { toBankQuestion, toPaper, toPaperItem, toSection, type BankRow } from "./parse";
@@ -23,6 +24,11 @@ const PAGE = 1000;
 
 /** `ownerName`: the teacher who made it, for a published paper shown to the others. */
 export type PaperSummary = Paper & { itemCount: number; totalMarks: number; ownerName: string | null };
+/**
+ * `imageUrls` signs the item's own pictures AND its bank row's original
+ * pictures (ayah-proposals), so a picture typeset away, or a slide title
+ * replaced by its typed term, can still be looked at ("See the original").
+ */
 export type PaperItemWithImages = PaperItem & { imageUrls: Record<string, string> };
 export type LoadedPaper = {
   paper: Paper;
@@ -59,7 +65,8 @@ async function bankRows(includeArchived: boolean): Promise<BankRow[]> {
 /** Rows → BankQuestions, signing every picture in the set in one pass. */
 async function withImages(rows: BankRow[]): Promise<BankQuestion[]> {
   const questions = rows.map((r) => toBankQuestion(r));
-  const paths = questions.map(collectImagePaths);
+  // Its own pictures and the originals a typeset swap kept (ayah-proposals).
+  const paths = questions.map((q) => [...new Set([...collectImagePaths(q), ...originalPaths(q.id)])]);
   const urls = await signExamImages(paths.flat());
   return questions.map((q, i) => ({ ...q, imageUrls: pick(urls, paths[i]) }));
 }
@@ -149,7 +156,7 @@ export const loadPaper = cache(async (paperId: string): Promise<LoadedPaper | nu
       || a.position - b.position);
 
   const bankIds = [...new Set(items.flatMap((i) => (i.bank_question_id ? [i.bank_question_id] : [])))];
-  const paths = items.map(collectImagePaths);
+  const paths = items.map((i) => [...new Set([...collectImagePaths(i), ...originalPaths(i.bank_question_id)])]);
   const [urls, usedRes] = await Promise.all([
     signExamImages(paths.flat()),
     bankIds.length

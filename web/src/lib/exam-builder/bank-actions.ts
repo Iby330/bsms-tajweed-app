@@ -19,6 +19,8 @@ import { revalidatePath } from "next/cache";
 import type { Database } from "@/lib/database.types";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import { requireTeacher } from "@/lib/teacher/guards";
+import { AYAH_PROPOSALS } from "./ayah-proposals";
+import { slotChoice, type SlotKey, type SlotUpdate } from "./ayah-review";
 import { cleanBankPatch, mcqProblem, type BankPatch } from "./bank-validate";
 import { parseKind, parseOptions } from "./parse";
 import type { Result } from "./types";
@@ -114,4 +116,30 @@ export async function archiveBankQuestion(id: string, archived: boolean): Promis
   if (!ok.ok) return ok;
   const db = await supabaseServer();
   return write(db, id, { archived });
+}
+
+/**
+ * The owner's comparison page: one slot of a bank question back to its
+ * picture (`use: false`, clears the ref) or to the typeset words (`use:
+ * true`, restores the ref proposed in ayah-proposals.json). Reads the row as
+ * it is now, so only that slot moves. Papers keep their own copies.
+ */
+export async function setAyahSlot(id: string, key: SlotKey, use: boolean): Promise<Result<{ update: SlotUpdate }>> {
+  if (!isUuid(id)) return fail(NO_QUESTION);
+  if (typeof use !== "boolean" || typeof key !== "string" || !(key === "prompt" || key === "term" || key.startsWith("option:"))) {
+    return fail("That isn't a part of the question.");
+  }
+  const ok = await admin();
+  if (!ok.ok) return ok;
+  const db = await supabaseServer();
+  const { data: row, error } = await db
+    .from("exam_bank_questions").select("id, prompt_images, prompt_quran, options").eq("id", id).maybeSingle();
+  if (error) return dbFail(error);
+  if (!row) return fail(NO_QUESTION);
+  const choice = slotChoice(row, key, use, AYAH_PROPOSALS, id);
+  if (!choice.ok) return choice;
+  const written = await write(db, id, choice.update as BankUpdate);
+  if (!written.ok) return written;
+  revalidatePath(`${PATH}/review/ayahs`);
+  return { ok: true, update: choice.update };
 }

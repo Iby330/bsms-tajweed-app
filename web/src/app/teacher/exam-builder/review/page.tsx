@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReviewTable } from "@/components/exam-builder/review-table";
 import { loadBankForReview } from "@/lib/exam-builder/queries";
@@ -25,6 +26,11 @@ export default async function ReviewBank() {
           Approve keeps the question exactly as it is. Edit fixes it, and saving approves it too.
           Bin hides it from teachers; you can bring it back from “Binned”.
           Papers teachers have already built hold their own copies, so nothing here changes them.
+        </p>
+        <p className="text-sm">
+          <Link href="/teacher/exam-builder/review/ayahs" className="font-medium text-brand underline-offset-4 hover:underline">
+            Check the typeset Qur&apos;an words against their pictures
+          </Link>
         </p>
       </header>
       <ReviewTable initial={questions} topics={topics} />
