@@ -301,6 +301,22 @@ export function moved<T extends Positioned>(rows: T[], id: string, dir: "up" | "
 }
 
 /**
+ * The rows in position order with `id` taken out and put back at index `to`
+ * (0-based, clamped to the ends), or null when it is not there or would not
+ * move. A drag on the paper drops a question this way.
+ */
+export function placed<T extends Positioned>(rows: T[], id: string, to: number): T[] | null {
+  const list = [...rows].sort((a, b) => a.position - b.position);
+  const i = list.findIndex((r) => r.id === id);
+  if (i < 0 || !Number.isInteger(to)) return null;
+  const j = Math.min(Math.max(to, 0), list.length - 1);
+  if (i === j) return null;
+  const [row] = list.splice(i, 1);
+  list.splice(j, 0, row);
+  return list;
+}
+
+/**
  * The position writes that make `ordered` read 1..n: only the rows whose
  * position is not already right.
  */

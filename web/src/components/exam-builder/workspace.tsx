@@ -246,6 +246,7 @@ export function Workspace({
     openAdd,
     editItem: (id) => setEditingId(id),
     moveItem: (id, dir) => commit((s) => L.moveItemLocal(s, id, dir), () => A.moveItem(id, dir)),
+    placeItem: (id, to) => commit((s) => L.placeItemLocal(s, id, to), () => A.placeItem(id, to)),
     moveItemToSection: (id, sectionId) =>
       commit((s) => L.moveItemToSectionLocal(s, id, sectionId), () => A.moveItemToSection(id, sectionId), () => flash(id)),
     removeItem: (id) => commit((s) => L.removeItemLocal(s, id), () => A.removeItem(id)),

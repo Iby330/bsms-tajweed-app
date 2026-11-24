@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import {
   addBlankItem, addItemFromBank, addSection, createPaper, deletePaper, moveItem, moveItemToSection, moveSection,
+  placeItem,
   removeItem, removeSection, setPaperFinal, updateItem, updatePaper, updateSection,
 } from "./actions";
 import { DEFAULT_NOTES, DEFAULT_SECTIONS } from "./labels";
@@ -224,6 +225,7 @@ describe("a final paper", () => {
     await expect(updateItem(ITEM, { marks: 2 })).resolves.toEqual(FINAL);
     await expect(removeItem(ITEM)).resolves.toEqual(FINAL);
     await expect(moveItem(ITEM_2, "up")).resolves.toEqual(FINAL);
+    await expect(placeItem(ITEM, 2)).resolves.toEqual(FINAL);
     await expect(moveItemToSection(ITEM, SEC_B)).resolves.toEqual(FINAL);
     await expect(deletePaper(PAPER)).resolves.toEqual({ ok: false, error: "Reopen the paper before deleting it." });
     expect(writes(calls)).toEqual([]);
@@ -449,6 +451,21 @@ describe("moving and removing questions", () => {
   it("moveItem at the top is a no-op", async () => {
     const calls = as(TEACHER, paperWorld());
     await expect(moveItem(ITEM, "up")).resolves.toEqual({ ok: true });
+    expect(writes(calls)).toEqual([]);
+  });
+
+  it("placeItem drops a question at an index and renumbers the section", async () => {
+    const calls = as(TEACHER, paperWorld());
+    await expect(placeItem(ITEM, 2)).resolves.toEqual({ ok: true });
+    expect(contentUpdates(calls)).toEqual([[ITEM_2, { position: 1 }], [ITEM_3, { position: 2 }], [ITEM, { position: 3 }]]);
+    expectTouched(calls);
+  });
+
+  it("placeItem where it already is writes nothing, and a bad index is refused", async () => {
+    const calls = as(TEACHER, paperWorld());
+    await expect(placeItem(ITEM_2, 1)).resolves.toEqual({ ok: true });
+    await expect(placeItem(ITEM, -1)).resolves.toMatchObject({ ok: false });
+    await expect(placeItem(ITEM, 0.5)).resolves.toMatchObject({ ok: false });
     expect(writes(calls)).toEqual([]);
   });
 

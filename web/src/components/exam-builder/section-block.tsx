@@ -5,11 +5,13 @@
  * numbered questions or — for the practical section — the hifdh table, and
  * the controls to move or remove it. A question section ends with "Add a
  * question", which opens the step-through drawer for it. Each question has a small toolbar that
- * appears on hover or focus (always shown on touch screens).
+ * appears on hover or focus (always shown on touch screens). A question can be
+ * dragged up or down within its section (by its grip on touch), or moved with
+ * the arrows.
  */
 import { useState } from "react";
 import {
-  ArrowDown, ArrowUp, FolderInput, Pencil, Plus, Trash2,
+  ArrowDown, ArrowUp, FolderInput, GripVertical, Pencil, Plus, Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatMarks, marksLabel } from "@/lib/exam-builder/numbering";
@@ -20,6 +22,7 @@ import { ConfirmDialog } from "./confirm-dialog";
 import type { Item, PaperOps } from "./paper-state";
 import { OptionList, QuestionPrompt } from "./question-prompt";
 import { screenQuranSlot } from "./typeset-ayah";
+import { useDragSort } from "./use-drag-sort";
 
 const isTemp = (id: string) => id.startsWith("temp-");
 
@@ -60,12 +63,15 @@ function SectionTitle({ section, total, locked, onRename }: {
 }
 
 function ItemRow({
-  item, number, sections, ops, locked, showAnswers, flash,
+  item, number, sections, ops, locked, showAnswers, flash, onDragStart,
 }: {
   item: Item; number: number; sections: Section[]; ops: PaperOps; locked: boolean;
   showAnswers: boolean; flash: boolean;
+  /** Set when the question can be dragged to a new place in its section. */
+  onDragStart?: (e: React.PointerEvent<HTMLElement>) => void;
 }) {
   const temp = isTemp(item.id);
+  const draggable = !locked && !temp && !!onDragStart;
   const others = sections.filter((s) => s.kind === "questions" && s.id !== item.section_id);
   const lines = item.kind === "short" ? item.answer_lines : 0;
   const shown = Math.min(lines, 3);
@@ -74,8 +80,13 @@ function ItemRow({
   return (
     <li
       id={`item-${item.id}`}
+      data-drag-id={item.id}
+      onPointerDown={draggable ? onDragStart : undefined}
+      onDragStart={draggable ? (e) => e.preventDefault() : undefined}
       className={cn(
         "group/item relative -mx-3 rounded-md px-3 py-3 transition-colors hover:bg-[#2f4fd0]/[0.04] focus-within:bg-[#2f4fd0]/[0.04]",
+        draggable && "[@media(hover:hover)]:cursor-grab",
+        "data-[dragging]:z-20 data-[dragging]:bg-card data-[dragging]:shadow-lg data-[dragging]:ring-1 data-[dragging]:ring-brand/30",
         flash && "exam-flash",
         temp && "opacity-60",
       )}
@@ -121,6 +132,16 @@ function ItemRow({
             "[@media(hover:none)]:static [@media(hover:none)]:mt-2 [@media(hover:none)]:ml-9 [@media(hover:none)]:w-fit [@media(hover:none)]:opacity-100",
           )}
         >
+          {draggable && (
+            <span
+              data-drag-handle
+              aria-hidden
+              title="Drag to move"
+              className="flex size-7 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground [&_svg]:size-4"
+            >
+              <GripVertical />
+            </span>
+          )}
           <Button variant="ghost" size="sm" onClick={() => ops.editItem(item.id)} aria-label={`Edit ${label}`}>
             <Pencil aria-hidden /> Edit
           </Button>
@@ -242,6 +263,7 @@ export function SectionBlock({
 }) {
   const [confirm, setConfirm] = useState(false);
   const practical = section.kind === "practical";
+  const drag = useDragSort(ops.placeItem);
 
   return (
     <section
@@ -284,7 +306,11 @@ export function SectionBlock({
           ) : (
             <ol className="mt-2 grid gap-1">
               {items.map((it) => (
-                <ItemRow key={it.id} item={it} number={numbers[it.id] ?? 0} sections={sections} ops={ops} locked={locked} showAnswers={showAnswers} flash={flashId === it.id} />
+                <ItemRow
+                  key={it.id} item={it} number={numbers[it.id] ?? 0} sections={sections} ops={ops} locked={locked}
+                  showAnswers={showAnswers} flash={flashId === it.id}
+                  onDragStart={items.length > 1 ? (e) => drag.onPointerDown(e, it.id) : undefined}
+                />
               ))}
             </ol>
           )}

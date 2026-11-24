@@ -35,7 +35,7 @@ import { DEFAULT_NOTES, DEFAULT_SECTIONS } from "./labels";
 import { toPaperItem, toSection } from "./parse";
 import type { McqOption, PaperItem, Practical, QuestionKind, Result, Section, SectionKind } from "./types";
 import {
-  answerLinesFor, cleanItemPatch, cleanPaperPatch, cleanSectionPatch, isNameOnly, isUuid, moved, renumbered,
+  answerLinesFor, cleanItemPatch, cleanPaperPatch, cleanSectionPatch, isNameOnly, isUuid, moved, placed, renumbered,
   type PaperPatch,
 } from "./validate";
 
@@ -510,6 +510,26 @@ export async function moveItem(id: string, dir: "up" | "down"): Promise<Result> 
   const { data: all, error } = await itemsOf(db, found.item.section_id);
   if (error) return dbFail(error);
   const order = moved(all ?? [], id, dir);
+  if (!order) return { ok: true };
+  const written = await writePositions(db, "exam_paper_items", order);
+  if (!written.ok) return written;
+  await touchPaper(db, found.item.paper_id);
+  return { ok: true };
+}
+
+/** Put a question at index `to` (0-based) within its own section: where a drag dropped it. */
+export async function placeItem(id: string, to: number): Promise<Result> {
+  if (!isUuid(id)) return fail(NO_ITEM);
+  if (!Number.isInteger(to) || to < 0) return fail("Where should it go?");
+  const me = await teacher();
+  if (!me.ok) return me;
+  const db = await supabaseServer();
+  const found = await editableItem(db, id);
+  if (!found.ok) return found;
+
+  const { data: all, error } = await itemsOf(db, found.item.section_id);
+  if (error) return dbFail(error);
+  const order = placed(all ?? [], id, to);
   if (!order) return { ok: true };
   const written = await writePositions(db, "exam_paper_items", order);
   if (!written.ok) return written;

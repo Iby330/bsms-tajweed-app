@@ -6,6 +6,7 @@
  */
 import type { PaperItemWithImages } from "@/lib/exam-builder/queries";
 import type { Paper, Practical, Section, SectionKind } from "@/lib/exam-builder/types";
+import { placed } from "@/lib/exam-builder/validate";
 
 export type Item = PaperItemWithImages;
 export type PaperState = { paper: Paper; sections: Section[]; items: Item[] };
@@ -22,6 +23,8 @@ export type PaperOps = {
   openAdd: (sectionId: string) => void;
   editItem: (id: string) => void;
   moveItem: (id: string, dir: "up" | "down") => void;
+  /** Put a question at index `to` (0-based) in its own section: where a drag dropped it. */
+  placeItem: (id: string, to: number) => void;
   moveItemToSection: (id: string, sectionId: string) => void;
   removeItem: (id: string) => void;
 };
@@ -59,6 +62,15 @@ export function moveItemLocal(s: PaperState, id: string, dir: "up" | "down"): Pa
   const order = swap(itemsIn(s.items, item.section_id), id, dir);
   if (!order) return s;
   return { ...s, items: s.items.map((i) => (order.has(i.id) ? { ...i, position: order.get(i.id)! } : i)) };
+}
+
+export function placeItemLocal(s: PaperState, id: string, to: number): PaperState {
+  const item = s.items.find((i) => i.id === id);
+  if (!item) return s;
+  const order = placed(itemsIn(s.items, item.section_id), id, to);
+  if (!order) return s;
+  const pos = new Map(order.map((r, n) => [r.id, n + 1]));
+  return { ...s, items: s.items.map((i) => (pos.has(i.id) ? { ...i, position: pos.get(i.id)! } : i)) };
 }
 
 export function moveItemToSectionLocal(s: PaperState, id: string, sectionId: string): PaperState {

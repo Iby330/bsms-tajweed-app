@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  answerLinesFor, cleanItemPatch, cleanPaperPatch, cleanSectionPatch, isImagePath, isUuid, isValidMarks, moved,
+  answerLinesFor, cleanItemPatch, cleanPaperPatch, cleanSectionPatch, isImagePath, isUuid, isValidMarks, moved, placed,
   renumbered,
 } from "./validate";
 
@@ -185,6 +185,20 @@ describe("moved and renumbered", () => {
     expect(moved(rows, "a", "up")).toBeNull();
     expect(moved(rows, "c", "down")).toBeNull();
     expect(moved(rows, "z", "up")).toBeNull();
+  });
+
+  it("placed lifts a row out and drops it at an index, clamped to the ends", () => {
+    expect(placed(rows, "a", 2)?.map((r) => r.id)).toEqual(["b", "c", "a"]);
+    expect(placed(rows, "c", 0)?.map((r) => r.id)).toEqual(["c", "a", "b"]);
+    expect(placed(rows, "a", 1)?.map((r) => r.id)).toEqual(["b", "a", "c"]);
+    expect(placed(rows, "a", 99)?.map((r) => r.id)).toEqual(["b", "c", "a"]);
+    expect(placed(rows, "c", -4)?.map((r) => r.id)).toEqual(["c", "a", "b"]);
+  });
+
+  it("placed is null when nothing moves, the id is unknown or the index is not whole", () => {
+    expect(placed(rows, "b", 1)).toBeNull();
+    expect(placed(rows, "z", 0)).toBeNull();
+    expect(placed(rows, "a", 1.5)).toBeNull();
   });
 
   it("writes only the positions that are wrong", () => {
