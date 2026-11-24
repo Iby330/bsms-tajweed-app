@@ -60,6 +60,19 @@
  *    block to record the outcome, and ends with `raise exception` carrying
  *    the collected results so everything rolls back (see the partial-commit
  *    gotcha in LEARNINGS.md).
+ *    The final raise MUST sit in the OUTER block, never inside an EXCEPTION
+ *    handler: a handler only runs when something fails, so on the happy path
+ *    the block falls through and COMMITS (2026-11-24: two test exam papers
+ *    landed on live). Shape:
+ *      do $$ declare r text := ''; begin
+ *        perform set_config(…);                          -- role / claims / seat
+ *        begin <write>; r := r||'A ok;';
+ *        exception when others then r := r||'A refused: '||sqlerrm||';'; end;
+ *        -- …one inner begin/exception/end per write…
+ *        raise exception 'RESULT:%', r;                  -- outer: ALWAYS rolls back
+ *      end $$;
+ *    Then confirm with a separate read-only --probe (`select count(*) …`
+ *    on the rows the test wrote) that nothing was left behind.
  */
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { basename, resolve } from "node:path";
