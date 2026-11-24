@@ -359,14 +359,12 @@
    "ref": {
     "surah": 109,
     "from_ayah": 1,
-    "to_ayah": 6,
-    "basmala": true
+    "to_ayah": 6
    },
    "status": "safe",
    "look": [
-    "Owner's decision: typeset Al-Kafirun with the basmala above it, as the picture had it, so the madd count still works.",
-    "Picture and typeset words differ: full Madani page crop with decorated green border, surah-title banner and basmala; the app's text has no banner/basmala.",
-    "Check before using: the picture includes the basmala, and the keyed answer (12 madd asli) only works out if the basmala's two madd asli (ٱلرَّحْمَـٰنِ, ٱلرَّحِيمِ) are counted - by my count the surah alone gives about 10 when stopping at ayah ends. Typesetting 109:1-6 without the basmala may change the correct answer. old prompt_quran 109:1-6 is right for the surah text itself"
+    "Owner's decision: typeset Al-Kafirun without the basmala. The mark scheme's 12 madd asli is the surah's six ayahs alone.",
+    "Picture and typeset words differ: full Madani page crop with decorated green border, surah-title banner and basmala; the app's text has no banner/basmala."
    ]
   }
  },
@@ -1351,14 +1349,12 @@
    "ref": {
     "surah": 95,
     "from_ayah": 1,
-    "to_ayah": 8,
-    "basmala": true
+    "to_ayah": 8
    },
    "status": "safe",
    "look": [
-    "Owner's decision: typeset At-Tin with the basmala above it, as the picture had it, so the madd count still works.",
-    "Picture and typeset words differ: Madani page crop with surah banner and basmala.",
-    "Check before using: counting question (madd asli, keyed 23) over a picture that includes the basmala; if the teacher counted the basmala, typesetting 95:1-8 alone changes the answer. old prompt_quran 95:1-8 is right for the surah text itself"
+    "Owner's decision: typeset At-Tin without the basmala. The key of 23 fits the eight ayahs alone if the madd in ءَامَنُوا۟ and the alif of ٱللَّهُ are counted; without those two it is 21.",
+    "Picture and typeset words differ: Madani page crop with surah banner and basmala."
    ]
   }
  },
