@@ -1,5 +1,6 @@
 import { buildPaperDocx, readImageSize, type DocxImage } from "@/lib/exam-builder/docx";
 import { collectImagePaths } from "@/lib/exam-builder/images";
+import { namedTitle } from "@/lib/exam-builder/labels";
 import { loadPaper } from "@/lib/exam-builder/queries";
 import type { Paper } from "@/lib/exam-builder/types";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
@@ -96,14 +97,15 @@ async function downloadImages(paths: string[]): Promise<Record<string, DocxImage
 
 /**
  * `EOT1-26-27-paper.docx` / `EOT1-26-27-mark-scheme.docx` for the plain
- * `filename`, from the paper's code and season (else its title); the full
- * title, as the print view names its PDF, for `filename*`.
+ * `filename`, from the paper's code and season (else its title), with the
+ * paper's name when it has one (`EOT1-26-27-Advanced-paper.docx`); the full
+ * title and name, as the print view names its PDF, for `filename*`.
  */
 function fileNames(paper: Paper, scheme: boolean): { ascii: string; full: string } {
   const tag = [paper.code.trim(), paper.season.trim()].filter(Boolean).join(" ");
-  const stem = asciiSlug(tag) || asciiSlug(paper.title) || "exam";
+  const stem = [asciiSlug(tag) || asciiSlug(paper.title) || "exam", asciiSlug(paper.name)].filter(Boolean).join("-");
   const suffix = scheme ? "mark-scheme" : "paper";
-  const full = [paper.title.trim() || "Exam paper", tag, scheme ? "Mark scheme" : "Paper"]
+  const full = [namedTitle(paper), tag, scheme ? "Mark scheme" : "Paper"]
     .filter(Boolean)
     .join(" — ")
     // No path separators or characters Windows refuses in a file name.

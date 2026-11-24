@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { MixedText } from "@/components/app/mixed-text";
 import { OptionList, QuestionPrompt } from "@/components/exam-builder/question-prompt";
 import { QuranSnippet } from "@/components/exam-builder/quran-snippet";
+import { namedTitle } from "@/lib/exam-builder/labels";
 import { formatMarks, marksLabel, numberItems, paperTotal, sectionTotal } from "@/lib/exam-builder/numbering";
 import { loadPaper, type PaperItemWithImages } from "@/lib/exam-builder/queries";
 import { loadQuranSnippets } from "@/lib/exam-builder/quran";
@@ -20,13 +21,14 @@ type Props = {
 const isScheme = (sp: { [key: string]: string | string[] | undefined }) => sp.scheme === "1";
 
 /**
- * "End Of Term 2 Exam — EOT2 25/26 — Mark scheme": the browser offers the
- * document title as the PDF's file name. `absolute` keeps the app's
+ * "End Of Term 2 Exam - Advanced — EOT2 25/26 — Mark scheme": the browser
+ * offers the document title as the PDF's file name. The paper's name is here
+ * (when it has one) and never on the printed page. `absolute` keeps the app's
  * " · BSMS Tajweed" suffix off it.
  */
 function documentTitle(paper: Paper, scheme: boolean): string {
   const tag = [paper.code.trim(), paper.season.trim()].filter(Boolean).join(" ");
-  return [paper.title.trim() || "Exam paper", tag, scheme ? "Mark scheme" : ""].filter(Boolean).join(" — ");
+  return [namedTitle(paper), tag, scheme ? "Mark scheme" : ""].filter(Boolean).join(" — ");
 }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {

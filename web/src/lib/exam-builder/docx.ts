@@ -35,6 +35,7 @@ import {
 } from "docx";
 import { splitRuns } from "@/components/app/mixed-text";
 import { seatDaggerAlif } from "@/lib/quran/text";
+import { namedTitle } from "./labels";
 import { formatMarks, marksLabel, numberItems, paperTotal, sectionTotal } from "./numbering";
 import type { McqOption, Paper, PaperItem, QuranRef, Section } from "./types";
 
@@ -636,7 +637,8 @@ export async function buildPaperDocx(input: PaperDocxInput): Promise<Uint8Array>
 
   const doc = new Document({
     creator: "BSMS Tajweed",
-    title: [paper.title.trim() || "Exam paper", scheme ? "Mark scheme" : ""].filter(Boolean).join(" — "),
+    // The file's own title: the paper's name rides along here, never on the page.
+    title: [namedTitle(paper), scheme ? "Mark scheme" : ""].filter(Boolean).join(" — "),
     styles: {
       default: {
         document: {

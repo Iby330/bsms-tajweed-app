@@ -975,6 +975,7 @@ export type Database = {
           duration_label: string
           finalised_at: string | null
           id: string
+          name: string
           notes: string[]
           owner_id: string
           season: string
@@ -989,6 +990,7 @@ export type Database = {
           duration_label?: string
           finalised_at?: string | null
           id?: string
+          name?: string
           notes?: string[]
           owner_id: string
           season?: string
@@ -1003,6 +1005,7 @@ export type Database = {
           duration_label?: string
           finalised_at?: string | null
           id?: string
+          name?: string
           notes?: string[]
           owner_id?: string
           season?: string

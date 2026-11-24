@@ -1,7 +1,8 @@
 "use client";
 
 /**
- * The paper's header: title, date line, duration, code and season (which
+ * The paper's header: its name (the teacher's own label, never printed),
+ * title, date line, duration, code and season (which
  * together make the "used in" stamp, e.g. EOT1 26/27) and the numbered notes.
  * Saves through the workspace, which updates the sheet at once and reports
  * any refusal back here.
@@ -15,9 +16,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { usedLabel } from "@/lib/exam-builder/labels";
+import { PAPER_LIMITS } from "@/lib/exam-builder/validate";
 import type { Paper, Result } from "@/lib/exam-builder/types";
 
-type Patch = Partial<Pick<Paper, "title" | "date_label" | "duration_label" | "code" | "season" | "notes">>;
+type Patch = Partial<Pick<Paper, "name" | "title" | "date_label" | "duration_label" | "code" | "season" | "notes">>;
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -30,6 +32,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 }
 
 function Form({ paper, onSave, onDone }: { paper: Paper; onSave: (p: Patch) => Promise<Result>; onDone: () => void }) {
+  const [name, setName] = useState(paper.name);
   const [title, setTitle] = useState(paper.title);
   const [date, setDate] = useState(paper.date_label);
   const [duration, setDuration] = useState(paper.duration_label);
@@ -53,6 +56,7 @@ function Form({ paper, onSave, onDone }: { paper: Paper; onSave: (p: Patch) => P
     start(async () => {
       setError(null);
       const patch: Patch = {};
+      if (name.trim() !== paper.name) patch.name = name;
       if (title !== paper.title) patch.title = title;
       if (date !== paper.date_label) patch.date_label = date;
       if (duration !== paper.duration_label) patch.duration_label = duration;
@@ -70,10 +74,13 @@ function Form({ paper, onSave, onDone }: { paper: Paper; onSave: (p: Patch) => P
     <>
       <DialogHeader>
         <DialogTitle>Paper details</DialogTitle>
-        <DialogDescription>What prints at the top of the paper.</DialogDescription>
+        <DialogDescription>Its name, and what prints at the top of the paper.</DialogDescription>
       </DialogHeader>
       <div className="grid gap-4">
-        <Field label="Title">
+        <Field label="Paper name" hint="For you, to tell papers apart. It is not printed. For example: Advanced">
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Untitled paper" maxLength={PAPER_LIMITS.name} />
+        </Field>
+        <Field label="Title" hint="Printed at the top of the paper.">
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="End Of Term 1 Exam" />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">

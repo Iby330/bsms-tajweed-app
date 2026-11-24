@@ -42,6 +42,7 @@ import { ItemEditor, type ItemPatch } from "./item-editor";
 import { NewQuestionForm, type NewQuestionInput } from "./new-question-form";
 import { PaperCanvas } from "./paper-canvas";
 import { PaperHeaderForm } from "./paper-header-form";
+import { PaperNameField } from "./paper-name-field";
 import { StatusChip } from "./paper-list";
 import { OutlineStrip, PaperOutline } from "./paper-outline";
 import * as L from "./paper-state";
@@ -309,6 +310,10 @@ export function Workspace({
   const saveHeader = (patch: Partial<Paper>) =>
     commitAwait((s) => L.updatePaperLocal(s, patch), () => A.updatePaper(paper.id, patch));
 
+  /** The paper's name, from the field in the top bar. Allowed on a final paper too. */
+  const saveName = (name: string) =>
+    commitAwait((s) => L.updatePaperLocal(s, { name }), () => A.updatePaper(paper.id, { name }));
+
   const setFinal = async (final: boolean): Promise<string | void> => {
     if (final) closeAdd();
     const res = await commitAwait(
@@ -363,10 +368,14 @@ export function Workspace({
           </Link>
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-2">
-              <h1 className="truncate text-base font-semibold sm:text-lg">{paper.title}</h1>
+              {/* The teacher's own name for the paper, renamed in place; the printed title is below. */}
+              <h1 className="min-w-0">
+                <PaperNameField name={paper.name} onSave={saveName} inputClassName="text-base sm:text-lg" />
+              </h1>
               <StatusChip final={locked} className="shrink-0" />
             </div>
             <p className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground" aria-live="polite">
+              <span className="min-w-0 truncate" title="The title printed on the paper">{paper.title}</span>
               <span className="font-mono tracking-[0.08em] uppercase">{paper.code} · {paper.season}</span>
               <span><b className="font-semibold text-foreground tabular-nums">{questionCount}</b> {questionCount === 1 ? "question" : "questions"}</span>
               <span><b className="font-semibold text-foreground tabular-nums">{formatMarks(total)}</b> marks</span>

@@ -9,7 +9,19 @@ export function usedLabel(code: string, season: string): string {
   return `${code.trim()} ${season.trim()}`;
 }
 
-export type DefaultSection = { title: string; kind: SectionKind; practical: Practical | null };
+/**
+ * "End Of Term 1 Exam - Advanced": the printed title with the paper's name
+ * after it, for download file names and the print view's document title, so
+ * several papers for one exam download as different files. Never printed on
+ * the paper itself.
+ */
+export function namedTitle(paper: { title: string; name: string }): string {
+  const title = paper.title.trim() || "Exam paper";
+  const name = paper.name.trim();
+  return name ? `${title} - ${name}` : title;
+}
+
+export type DefaultSection ={ title: string; kind: SectionKind; practical: Practical | null };
 
 /** A new paper's sections, as on last year's EOT2 25/26. All can be renamed, moved or removed. */
 export const DEFAULT_SECTIONS: readonly DefaultSection[] = [

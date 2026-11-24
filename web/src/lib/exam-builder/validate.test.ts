@@ -45,6 +45,14 @@ describe("cleanPaperPatch", () => {
     expect(cleanPaperPatch({ notes: [1] })).toMatchObject({ ok: false });
   });
 
+  it("trims the paper name, allows it blank and refuses one over 60 characters", () => {
+    expect(cleanPaperPatch({ name: "  Advanced " })).toEqual({ ok: true, patch: { name: "Advanced" } });
+    expect(cleanPaperPatch({ name: "   " })).toEqual({ ok: true, patch: { name: "" } });
+    expect(cleanPaperPatch({ name: "x".repeat(60) })).toEqual({ ok: true, patch: { name: "x".repeat(60) } });
+    expect(cleanPaperPatch({ name: "x".repeat(61) })).toEqual({ ok: false, error: "The paper name can be at most 60 characters." });
+    expect(cleanPaperPatch({ name: 5 })).toEqual({ ok: false, error: "The paper name must be text." });
+  });
+
   it("refuses wrong types and empty patches", () => {
     expect(cleanPaperPatch({ title: 5 })).toMatchObject({ ok: false });
     expect(cleanPaperPatch({})).toEqual({ ok: false, error: "Nothing to change." });

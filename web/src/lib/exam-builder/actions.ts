@@ -33,9 +33,10 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { requireTeacher } from "@/lib/teacher/guards";
 import { DEFAULT_NOTES, DEFAULT_SECTIONS } from "./labels";
 import { toPaperItem, toSection } from "./parse";
-import type { McqOption, Paper, PaperItem, Practical, QuestionKind, Result, Section, SectionKind } from "./types";
+import type { McqOption, PaperItem, Practical, QuestionKind, Result, Section, SectionKind } from "./types";
 import {
-  answerLinesFor, cleanItemPatch, cleanPaperPatch, cleanSectionPatch, isUuid, moved, renumbered,
+  answerLinesFor, cleanItemPatch, cleanPaperPatch, cleanSectionPatch, isNameOnly, isUuid, moved, renumbered,
+  type PaperPatch,
 } from "./validate";
 
 type Db = Awaited<ReturnType<typeof supabaseServer>>;
@@ -192,10 +193,15 @@ export async function createPaper(): Promise<Result<{ id: string }>> {
   return { ok: true, id: data.id };
 }
 
-/** Change the header: title, date, duration, code, season, notes. */
+/**
+ * Change the header: name, title, date, duration, code, season, notes. A
+ * final paper refuses all of it except a change to the name alone: the name
+ * is the teacher's own label ("Advanced"), not printed and not part of the
+ * "used in" stamp.
+ */
 export async function updatePaper(
   id: string,
-  patch: Partial<Pick<Paper, "title" | "date_label" | "duration_label" | "code" | "season" | "notes">>,
+  patch: PaperPatch,
 ): Promise<Result> {
   if (!isUuid(id)) return fail(NO_PAPER);
   const clean = cleanPaperPatch(patch);
@@ -204,7 +210,7 @@ export async function updatePaper(
   if (!me.ok) return me;
   const db = await supabaseServer();
   const paper = await draftPaper(db, id);
-  if (!paper.ok) return paper;
+  if (!paper.ok && !(paper.error === FINAL && isNameOnly(clean.patch))) return paper;
 
   const { error } = await db
     .from("exam_papers").update({ ...clean.patch, updated_at: new Date().toISOString() }).eq("id", id);

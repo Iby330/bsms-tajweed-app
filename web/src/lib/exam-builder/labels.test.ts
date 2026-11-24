@@ -1,10 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_NOTES, DEFAULT_SECTIONS, usedLabel } from "./labels";
+import { DEFAULT_NOTES, DEFAULT_SECTIONS, namedTitle, usedLabel } from "./labels";
 
 describe("usedLabel", () => {
   it("is the code and the season, as the database stamps it", () => {
     expect(usedLabel("EOT1", "26/27")).toBe("EOT1 26/27");
     expect(usedLabel(" EOY ", " 25/26 ")).toBe("EOY 25/26");
+  });
+});
+
+describe("namedTitle", () => {
+  it("is the printed title with the paper's name after it, for file names", () => {
+    expect(namedTitle({ title: "End Of Term 1 Exam", name: "Advanced" })).toBe("End Of Term 1 Exam - Advanced");
+    expect(namedTitle({ title: " End Of Term 1 Exam ", name: "  " })).toBe("End Of Term 1 Exam");
+    expect(namedTitle({ title: "", name: "Lower" })).toBe("Exam paper - Lower");
+    expect(namedTitle({ title: " ", name: "" })).toBe("Exam paper");
   });
 });
 

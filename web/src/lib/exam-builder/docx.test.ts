@@ -9,6 +9,7 @@ const paper = {
   id: PAPER_ID,
   owner_id: "00000000-0000-4000-8000-0000000000aa",
   title: "End Of Term 1 Exam",
+  name: "Advanced",
   date_label: "December 2026",
   duration_label: "90 mins",
   code: "EOT1",
@@ -102,6 +103,14 @@ describe("buildPaperDocx", () => {
     expect(t).toContain("Order - before/after");
     // The marks sit on a right tab stop at the text width (178mm).
     expect(xml).toMatch(/<w:tab w:val="right" w:pos="10091"\/>/);
+  });
+
+  it("keeps the paper's name off the page and puts it in the file's own title", async () => {
+    const { xml, files } = await documentXml(false);
+    expect(text(xml)).not.toContain("Advanced");
+    expect(strFromU8(files["docProps/core.xml"])).toContain("End Of Term 1 Exam - Advanced");
+    const scheme = await documentXml(true);
+    expect(text(scheme.xml)).not.toContain("Advanced");
   });
 
   it("carries no answers on the paper", async () => {

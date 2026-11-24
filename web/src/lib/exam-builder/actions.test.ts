@@ -199,6 +199,14 @@ describe("updatePaper", () => {
   it("says when the paper isn't visible", async () => {
     as(TEACHER, paperWorld());
     await expect(updatePaper(OTHER_PAPER, { title: "T" })).resolves.toMatchObject({ ok: false, error: expect.stringMatching(/isn't yours/) });
+    await expect(updatePaper(OTHER_PAPER, { name: "Advanced" })).resolves.toMatchObject({ ok: false, error: expect.stringMatching(/isn't yours/) });
+  });
+
+  it("renames a draft, and a blank name clears it", async () => {
+    const calls = as(TEACHER, paperWorld());
+    await expect(updatePaper(PAPER, { name: "  " })).resolves.toEqual({ ok: true });
+    const up = calls.find((c) => c.table === "exam_papers" && c.op === "update")!;
+    expect(up.args[0]).toMatchObject({ name: "" });
   });
 });
 
@@ -220,6 +228,24 @@ describe("a final paper", () => {
     await expect(deletePaper(PAPER)).resolves.toEqual({ ok: false, error: "Reopen the paper before deleting it." });
     expect(writes(calls)).toEqual([]);
     expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("can still be renamed: a name-only change goes through, anything with it is refused", async () => {
+    const calls = as(TEACHER, paperWorld({ status: "final" }));
+    await expect(updatePaper(PAPER, { name: " Advanced " })).resolves.toEqual({ ok: true });
+    const up = calls.find((c) => c.table === "exam_papers" && c.op === "update")!;
+    expect(Object.keys(up.args[0] as object).sort()).toEqual(["name", "updated_at"]);
+    expect(up.args[0]).toMatchObject({ name: "Advanced" });
+    expect(has(up, "eq", "id", PAPER)).toBe(true);
+
+    const before = writes(calls).length;
+    await expect(updatePaper(PAPER, { name: "Lower", title: "T" })).resolves.toEqual({
+      ok: false, error: "Reopen the paper to change it.",
+    });
+    await expect(updatePaper(PAPER, { name: "Lower", notes: [] })).resolves.toEqual({
+      ok: false, error: "Reopen the paper to change it.",
+    });
+    expect(writes(calls)).toHaveLength(before);
   });
 
   it("can still be reopened", async () => {

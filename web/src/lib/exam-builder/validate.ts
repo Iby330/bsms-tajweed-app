@@ -22,9 +22,21 @@ const isObject = (v: unknown): v is Record<string, unknown> =>
 
 // ── papers ─────────────────────────────────────────────────────────────────
 
-export type PaperPatch = Partial<Pick<Paper, "title" | "date_label" | "duration_label" | "code" | "season" | "notes">>;
+export type PaperPatch = Partial<
+  Pick<Paper, "name" | "title" | "date_label" | "duration_label" | "code" | "season" | "notes">
+>;
 
-export const PAPER_LIMITS = { title: 200, short: 60, notes: 12, noteLength: 400 } as const;
+export const PAPER_LIMITS = { name: 60, title: 200, short: 60, notes: 12, noteLength: 400 } as const;
+
+/**
+ * True when the patch changes only the paper's name. The name is for the
+ * teacher (it is never printed and is not part of the "used in" stamp), so
+ * this is the one change a final paper still takes.
+ */
+export function isNameOnly(patch: PaperPatch): boolean {
+  const keys = Object.keys(patch);
+  return keys.length === 1 && keys[0] === "name";
+}
 
 const PAPER_SHORT_FIELDS = ["date_label", "duration_label", "code", "season"] as const;
 const SHORT_FIELD_NAMES: Record<(typeof PAPER_SHORT_FIELDS)[number], string> = {
@@ -36,13 +48,21 @@ const SHORT_FIELD_NAMES: Record<(typeof PAPER_SHORT_FIELDS)[number], string> = {
 
 /**
  * A paper header edit, trimmed and checked. Keys it does not know are
- * dropped. The title, code and season cannot be blank (the code and season
+ * dropped. The name (the teacher's own label, "Advanced", never printed) may
+ * be blank and is at most 60 characters. The title, code and season cannot be blank (the code and season
  * make the "EOT1 26/27" stamp); the date and duration can. Notes are trimmed
  * and blank lines dropped. Too long is refused, not cut short.
  */
 export function cleanPaperPatch(input: unknown): Clean<PaperPatch> {
   if (!isObject(input)) return fail("Nothing to change.");
   const patch: PaperPatch = {};
+
+  if (input.name !== undefined) {
+    if (typeof input.name !== "string") return fail("The paper name must be text.");
+    const name = input.name.trim();
+    if (name.length > PAPER_LIMITS.name) return fail(`The paper name can be at most ${PAPER_LIMITS.name} characters.`);
+    patch.name = name;
+  }
 
   if (input.title !== undefined) {
     if (typeof input.title !== "string") return fail("The title must be text.");

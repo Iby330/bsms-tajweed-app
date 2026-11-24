@@ -122,7 +122,7 @@ describe("row mappers", () => {
 
   it("toPaper and toPaperItem narrow status, kind, options and the ayah", () => {
     const paper: PaperRow = {
-      id: "p", owner_id: "o", title: "T", date_label: "", duration_label: "", code: "EOT1", season: "26/27",
+      id: "p", owner_id: "o", title: "T", name: "", date_label: "", duration_label: "", code: "EOT1", season: "26/27",
       notes: ["a"], status: "final", finalised_at: null, created_at: "", updated_at: "",
     };
     expect(toPaper(paper).status).toBe("final");

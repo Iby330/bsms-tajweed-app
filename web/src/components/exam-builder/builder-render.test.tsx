@@ -53,7 +53,7 @@ describe("BankQuestionCard", () => {
 });
 
 const paper: Paper = {
-  id: "p", owner_id: "o", title: "End Of Term 1 Exam", date_label: "November 2026", duration_label: "90 mins",
+  id: "p", owner_id: "o", title: "End Of Term 1 Exam", name: "Advanced", date_label: "November 2026", duration_label: "90 mins",
   code: "EOT1", season: "26/27", notes: ["Read carefully."], status: "draft", finalised_at: null,
   created_at: "", updated_at: "",
 };
@@ -81,6 +81,9 @@ describe("PaperCanvas numbering", () => {
     expect(el.querySelector("[data-testid=paper-total]")!.textContent).toBe("13.5");
     expect(el.textContent).toContain("(3 marks)");
     expect(el.textContent).toContain("(1.5 marks)");
+    // The paper's name is the teacher's label, not part of the printed sheet.
+    expect(el.querySelector("[data-testid=paper-title]")!.textContent).toBe("End Of Term 1 Exam");
+    expect(el.textContent).not.toContain("Advanced");
   });
 
   it("closes up positions when an item moves or goes", () => {

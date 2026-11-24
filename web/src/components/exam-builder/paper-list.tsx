@@ -2,20 +2,23 @@
 
 /**
  * The teacher's papers, newest change first, and "New paper". A paper is a
- * card that opens the builder; a draft can be deleted from here (a final
- * paper has to be reopened first, which the builder does).
+ * card that opens the builder. Its heading is the paper's name, renamed in
+ * place (final papers too), with the printed title under it. A draft can be
+ * deleted from here (a final paper has to be reopened first, which the
+ * builder does).
  */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { FileText, Lock, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { createPaper, deletePaper } from "@/lib/exam-builder/actions";
+import { createPaper, deletePaper, updatePaper } from "@/lib/exam-builder/actions";
 import { usedLabel } from "@/lib/exam-builder/labels";
 import { formatMarks } from "@/lib/exam-builder/numbering";
 import type { PaperSummary } from "@/lib/exam-builder/queries";
 import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "./confirm-dialog";
+import { PaperNameField } from "./paper-name-field";
 
 function edited(at: string): string {
   const d = new Date(at);
@@ -70,6 +73,16 @@ export function PaperList({ papers }: { papers: PaperSummary[] }) {
   const [gone, setGone] = useState<Set<string>>(() => new Set());
   const list = papers.filter((p) => !gone.has(p.id));
   const [deleting, setDeleting] = useState<PaperSummary | null>(null);
+  // Names changed here, until the server's list catches up on the next visit.
+  const [renamed, setRenamed] = useState<Record<string, string>>({});
+  const nameOf = (p: PaperSummary) => renamed[p.id] ?? p.name;
+  /** How a paper is called in labels: its name, else its printed title. */
+  const called = (p: PaperSummary) => nameOf(p) || p.title;
+  const rename = async (id: string, name: string) => {
+    const res = await updatePaper(id, { name });
+    if (res.ok) setRenamed((r) => ({ ...r, [id]: name }));
+    return res;
+  };
 
   if (list.length === 0) {
     return (
@@ -107,14 +120,24 @@ export function PaperList({ papers }: { papers: PaperSummary[] }) {
                   Its bank questions are stamped <b className="font-semibold text-ok">{usedLabel(p.code, p.season)}</b>
                 </p>
               )}
-              <h2 className="text-lg leading-snug font-semibold text-balance">
+              <div className="grid gap-0.5">
+                {/* Above the card-wide link, so a click on the name edits it instead of opening the paper. */}
+                <h2 className="relative z-10 min-w-0">
+                  <PaperNameField
+                    name={nameOf(p)}
+                    onSave={(name) => rename(p.id, name)}
+                    inputClassName="text-lg leading-snug"
+                  />
+                </h2>
                 <Link
                   href={`/teacher/exam-builder/${p.id}`}
-                  className="rounded-sm outline-none after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:ring-2 focus-visible:ring-ring underline-offset-4"
+                  className="w-fit rounded-sm text-sm text-muted-foreground outline-none after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:ring-2 focus-visible:ring-ring underline-offset-4"
                 >
+                  <span className="sr-only">Open </span>
                   {p.title}
+                  {nameOf(p) && <span className="sr-only"> ({nameOf(p)})</span>}
                 </Link>
-              </h2>
+              </div>
               <dl className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
                 <div>
                   <dt className="sr-only">Questions</dt>
@@ -141,7 +164,7 @@ export function PaperList({ papers }: { papers: PaperSummary[] }) {
                   disabled={final}
                   title={final ? "Reopen the paper before deleting it" : undefined}
                   onClick={() => setDeleting(p)}
-                  aria-label={`Delete ${p.title}`}
+                  aria-label={`Delete ${called(p)}`}
                 >
                   <Trash2 aria-hidden /> Delete
                 </Button>
@@ -167,7 +190,7 @@ export function PaperList({ papers }: { papers: PaperSummary[] }) {
         }}
       >
         <p>
-          <strong className="text-foreground">{deleting?.title}</strong> and the {deleting?.itemCount ?? 0}{" "}
+          <strong className="text-foreground">{deleting ? called(deleting) : ""}</strong> and the {deleting?.itemCount ?? 0}{" "}
           {deleting?.itemCount === 1 ? "question" : "questions"} on it will be gone for good. The question bank is
           not touched.
         </p>
