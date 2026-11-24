@@ -122,6 +122,9 @@ export function OptionList({
   renderQuran?: RenderQuran;
   variant: Variant;
 }) {
+  // Beside options set in Arabic, a plain one ("None of the above") is small
+  // and light enough to read as a note under them: give it their weight.
+  const amongArabic = options.some((o) => o.quran || o.image);
   return (
     <ul className="exam-q-options space-y-1.5" data-variant={variant}>
       {options.map((o, i) => {
@@ -131,7 +134,10 @@ export function OptionList({
           <li key={i} className={ticked ? "flex items-start gap-2 font-bold" : "flex items-start gap-2"}>
             <TickBox ticked={ticked} />
             <span className="min-w-0 flex-1 space-y-1">
-              {o.text ? <MixedText text={o.text} variant="quran" className="block" /> : null}
+              {o.text ? (
+                <MixedText text={o.text} variant="quran"
+                  className={amongArabic && !o.quran && !o.image ? "exam-q-option-plain block text-[1.15em] font-bold" : "block"} />
+              ) : null}
               {o.quran && renderQuran ? <span className="exam-q-option-quran block">{renderQuran(o.quran, picture, "option")}</span> : picture}
               {ticked ? <span className="sr-only"> (correct answer)</span> : null}
             </span>

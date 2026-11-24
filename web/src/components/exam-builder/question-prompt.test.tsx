@@ -96,6 +96,18 @@ describe("OptionList", () => {
     expect(items[1].querySelector("img")?.getAttribute("src")).toBe("https://x/b");
   });
 
+  it("gives a plain option the weight of the Arabic ones beside it, and leaves an all-text list alone", () => {
+    const mixed = html(
+      <OptionList options={[...pictured, { text: "None of the above", image: null, correct: false }]} imageUrls={urls}
+        showCorrect={false} variant="print" renderQuran={(_r, f) => f} />,
+    );
+    const plain = mixed.querySelectorAll(".exam-q-option-plain");
+    expect(plain).toHaveLength(1);
+    expect(plain[0].textContent).toBe("None of the above");
+    const text = html(<OptionList options={options} imageUrls={{}} showCorrect={false} variant="print" />);
+    expect(text.querySelector(".exam-q-option-plain")).toBeNull();
+  });
+
   it("falls back to the option's picture when the words are not there", () => {
     const el = html(<OptionList options={pictured} imageUrls={urls} showCorrect={false} variant="print" renderQuran={(_r, f) => f} />);
     expect(el.querySelectorAll("img")).toHaveLength(2);
