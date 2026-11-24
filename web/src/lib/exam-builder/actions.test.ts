@@ -8,7 +8,7 @@ import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 import {
   addBlankItem, addItemFromBank, addSection, createPaper, deletePaper, moveItem, moveItemToSection, moveSection,
   placeItem,
-  removeItem, removeSection, setPaperFinal, updateItem, updatePaper, updateSection,
+  removeItem, removeSection, setPaperFinal, setPaperShared, updateItem, updatePaper, updateSection,
 } from "./actions";
 import { DEFAULT_NOTES, DEFAULT_SECTIONS } from "./labels";
 
@@ -61,7 +61,7 @@ const contentUpdates = (calls: Call[]) =>
 function expectTouched(calls: Call[], paperId = PAPER) {
   const touches = calls.filter((c) => c.table === "exam_papers" && c.op === "update");
   expect(touches).toHaveLength(1);
-  expect(Object.keys(touches[0].args[0] as object)).toEqual(["updated_at"]);
+  expect(Object.keys(touches[0].args[0] as object)).toEqual(["updated_at", "updated_by"]);
   expect(typeof (touches[0].args[0] as { updated_at: unknown }).updated_at).toBe("string");
   expect(has(touches[0], "eq", "id", paperId)).toBe(true);
   expect(writes(calls).at(-1)).toBe(touches[0]);
@@ -199,8 +199,8 @@ describe("updatePaper", () => {
 
   it("says when the paper isn't visible", async () => {
     as(TEACHER, paperWorld());
-    await expect(updatePaper(OTHER_PAPER, { title: "T" })).resolves.toMatchObject({ ok: false, error: expect.stringMatching(/isn't yours/) });
-    await expect(updatePaper(OTHER_PAPER, { name: "Advanced" })).resolves.toMatchObject({ ok: false, error: expect.stringMatching(/isn't yours/) });
+    await expect(updatePaper(OTHER_PAPER, { title: "T" })).resolves.toMatchObject({ ok: false, error: expect.stringMatching(/private to another teacher/) });
+    await expect(updatePaper(OTHER_PAPER, { name: "Advanced" })).resolves.toMatchObject({ ok: false, error: expect.stringMatching(/private to another teacher/) });
   });
 
   it("renames a draft, and a blank name clears it", async () => {
@@ -236,7 +236,7 @@ describe("a final paper", () => {
     const calls = as(TEACHER, paperWorld({ status: "final" }));
     await expect(updatePaper(PAPER, { name: " Advanced " })).resolves.toEqual({ ok: true });
     const up = calls.find((c) => c.table === "exam_papers" && c.op === "update")!;
-    expect(Object.keys(up.args[0] as object).sort()).toEqual(["name", "updated_at"]);
+    expect(Object.keys(up.args[0] as object).sort()).toEqual(["name", "updated_at", "updated_by"]);
     expect(up.args[0]).toMatchObject({ name: "Advanced" });
     expect(has(up, "eq", "id", PAPER)).toBe(true);
 
@@ -262,6 +262,42 @@ describe("setPaperFinal", () => {
     as(TEACHER, () => ({ error: { message: "Not your paper." } }));
     await expect(setPaperFinal(PAPER, true)).resolves.toEqual({ ok: false, error: "Not your paper." });
     expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe("setPaperShared", () => {
+  const OWNER = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+  const world = (owner: string) => (c: Call): Reply => {
+    if (c.table === "exam_papers" && c.op === "select") return { data: { id: PAPER, owner_id: owner } };
+    if (c.table === "exam_papers" && c.op === "update") return { data: [{ id: PAPER }] };
+    return {};
+  };
+
+  it("publishes anyone's paper they can see, stamping when and by whom", async () => {
+    const calls = as(TEACHER, world(OWNER));
+    await expect(setPaperShared(PAPER, true)).resolves.toEqual({ ok: true });
+    const update = calls.find((c) => c.op === "update")!;
+    expect(update.args[0]).toMatchObject({ shared: true, updated_by: ME });
+    expect(typeof (update.args[0] as { published_at: unknown }).published_at).toBe("string");
+  });
+
+  it("lets only the owner or an admin make it private again", async () => {
+    let calls = as(TEACHER, world(OWNER));
+    await expect(setPaperShared(PAPER, false)).resolves.toMatchObject({ ok: false, error: expect.stringMatching(/Only the teacher who made/) });
+    expect(calls.some((c) => c.op === "update")).toBe(false);
+
+    calls = as(TEACHER, world(ME));
+    await expect(setPaperShared(PAPER, false)).resolves.toEqual({ ok: true });
+    expect(calls.find((c) => c.op === "update")!.args[0]).toMatchObject({ shared: false, published_at: null });
+
+    as({ ...TEACHER, is_admin: true }, world(OWNER));
+    await expect(setPaperShared(PAPER, false)).resolves.toEqual({ ok: true });
+  });
+
+  it("says when the paper isn't there", async () => {
+    as(TEACHER, () => ({ data: null }));
+    await expect(setPaperShared(PAPER, true)).resolves.toMatchObject({ ok: false, error: expect.stringMatching(/isn't there/) });
+    await expect(setPaperShared("nope", true)).resolves.toMatchObject({ ok: false });
   });
 });
 

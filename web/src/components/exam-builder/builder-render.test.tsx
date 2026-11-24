@@ -54,7 +54,7 @@ describe("BankQuestionCard", () => {
 
 const paper: Paper = {
   id: "p", owner_id: "o", title: "End Of Term 1 Exam", name: "Advanced", date_label: "November 2026", duration_label: "90 mins",
-  code: "EOT1", season: "26/27", notes: ["Read carefully."], status: "draft", finalised_at: null,
+  code: "EOT1", season: "26/27", notes: ["Read carefully."], status: "draft", finalised_at: null, shared: false, published_at: null, updated_by: null,
   created_at: "", updated_at: "",
 };
 const sections: Section[] = [

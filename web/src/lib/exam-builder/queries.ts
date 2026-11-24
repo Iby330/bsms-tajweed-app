@@ -10,8 +10,9 @@ import { isUuid } from "./validate";
 /**
  * Exam Builder loaders. Every read goes through the caller's own client, so
  * row level security decides what comes back: teachers read the bank, a
- * paper is visible to its owner and to admins. A failed read throws (to the
- * nearest error boundary); a paper the caller cannot see is null.
+ * paper is visible to its owner and to admins, and to every teacher once
+ * published. A failed read throws (to the nearest error boundary); a paper
+ * the caller cannot see is null.
  *
  * Wrapped in `cache()` so a layout and a page asking for the same thing in one
  * render share one round trip.
@@ -20,7 +21,8 @@ import { isUuid } from "./validate";
 /** PostgREST's max-rows on this project. */
 const PAGE = 1000;
 
-export type PaperSummary = Paper & { itemCount: number; totalMarks: number };
+/** `ownerName`: the teacher who made it, for a published paper shown to the others. */
+export type PaperSummary = Paper & { itemCount: number; totalMarks: number; ownerName: string | null };
 export type PaperItemWithImages = PaperItem & { imageUrls: Record<string, string> };
 export type LoadedPaper = {
   paper: Paper;
@@ -92,23 +94,29 @@ export const loadBankForReview = cache(async (): Promise<{ topics: Topic[]; ques
 });
 
 /**
- * The caller's papers (an admin's: everyone's), most recently changed first,
- * each with its question count and its total as "Max Marks" would print it.
+ * The caller's papers, every published paper, and (for an admin) everyone's
+ * private ones too, most recently changed first, each with its question count,
+ * its total as "Max Marks" would print it, and who made it.
  */
 export const loadMyPapers = cache(async (): Promise<PaperSummary[]> => {
   const db = await supabaseServer();
   const { data, error } = await db
     .from("exam_papers")
-    .select("*, exam_paper_sections(id, kind, practical), exam_paper_items(section_id, marks)")
+    .select("*, owner:profiles!exam_papers_owner_id_fkey(full_name), exam_paper_sections(id, kind, practical), exam_paper_items(section_id, marks)")
     .order("updated_at", { ascending: false })
     .order("created_at", { ascending: false });
   if (error) throw new Error(`Couldn't load your papers: ${error.message}`);
-  return (data ?? []).map(({ exam_paper_sections, exam_paper_items, ...row }) => {
+  return (data ?? []).map(({ exam_paper_sections, exam_paper_items, owner, ...row }) => {
     const sections = (exam_paper_sections ?? []).map((s) =>
       toSection({ ...s, paper_id: row.id, position: 0, title: "" }),
     );
     const items = exam_paper_items ?? [];
-    return { ...toPaper(row), itemCount: items.length, totalMarks: paperTotal(sections, items) };
+    return {
+      ...toPaper(row),
+      itemCount: items.length,
+      totalMarks: paperTotal(sections, items),
+      ownerName: owner?.full_name ?? null,
+    };
   });
 });
 

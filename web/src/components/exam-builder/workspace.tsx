@@ -17,6 +17,12 @@
  * screen from then on, so pictures don't reload and nothing jumps while a
  * teacher is working.
  *
+ * A published paper (0155) can be open in two teachers' builders at once:
+ * use-paper-pulse names the others in a strip under the top bar, and when
+ * someone else changes the paper it is fetched again and swapped in, as soon
+ * as this teacher is not mid-change (a save in flight, or an editor open).
+ * The same question changed by both: the last save wins.
+ *
  * "Write a new question" (in the drawer) opens a dialog; the question goes
  * into the bank and onto the paper (or onto the paper only, when kept out of
  * the bank), and is in the drawer's lists at once under its topic.
@@ -24,10 +30,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { ArrowLeft, Check, Eye, EyeOff, ListTree, Loader2, Lock, LockOpen } from "lucide-react";
+import { ArrowLeft, Check, Eye, EyeOff, ListTree, Loader2, Lock, LockOpen, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import * as A from "@/lib/exam-builder/actions";
+import { reloadPaper } from "@/lib/exam-builder/live-actions";
 import { addBankQuestion, addCustomItem } from "@/lib/exam-builder/new-question-actions";
 import { freshView, guessSectionKind, type DrawerView } from "@/lib/exam-builder/drawer";
 import { usedLabel } from "@/lib/exam-builder/labels";
@@ -36,6 +43,7 @@ import type { LoadedPaper } from "@/lib/exam-builder/queries";
 import type { SnippetWord } from "@/lib/exam-builder/quran-lines";
 import type { BankQuestion, Paper, QuestionKind, Result, SectionKind, Topic } from "@/lib/exam-builder/types";
 import { AddDrawer } from "./add-drawer";
+import { ConfirmDialog } from "./confirm-dialog";
 import { ExportMenu } from "./export-menu";
 import { useFitPictures } from "./fit-pictures";
 import { ItemEditor, type ItemPatch } from "./item-editor";
@@ -46,6 +54,7 @@ import { PaperNameField } from "./paper-name-field";
 import { StatusChip } from "./paper-list";
 import { OutlineStrip, PaperOutline } from "./paper-outline";
 import * as L from "./paper-state";
+import { usePaperPulse } from "./use-paper-pulse";
 import { primeQuranWords } from "./use-quran-words";
 import "./exam-builder.css";
 
@@ -56,6 +65,7 @@ export function Workspace({
   topics,
   questions: initialQuestions,
   profileId,
+  isAdmin = false,
   quranWords,
 }: {
   initial: LoadedPaper;
@@ -63,6 +73,8 @@ export function Workspace({
   questions: BankQuestion[];
   /** The signed-in teacher: new pictures upload under new/<profileId>/. */
   profileId: string;
+  /** An admin can make anyone's published paper private again. */
+  isAdmin?: boolean;
   /** The words of the typeset ayahs already on the paper, by snippetKey. */
   quranWords?: Record<string, SnippetWord[]>;
 }) {
@@ -72,7 +84,11 @@ export function Workspace({
     paper: initial.paper, sections: initial.sections, items: initial.items,
   }));
   const ref = useRef(state);
+  // Counts this teacher's own changes, so a reload that started before one
+  // is thrown away instead of overwriting it.
+  const editSeq = useRef(0);
   const setState = useCallback((fn: (s: State) => State) => {
+    editSeq.current += 1;
     setStateRaw((s) => {
       const n = fn(s);
       ref.current = n;
@@ -107,9 +123,58 @@ export function Workspace({
   const [drawer, setDrawer] = useState<{ sectionId: string; resumed: boolean; added: number } | null>(null);
   const [views, setViews] = useState<Record<string, DrawerView>>({});
   const opener = useRef<HTMLElement | null>(null);
+  const [publishing, setPublishing] = useState<"publish" | "private" | null>(null);
+
+  // ── another teacher on the paper ──
+  const busy = pending || editingId !== null || headerOpen || writing !== null;
+  const busyRef = useRef(busy);
+  const wantReload = useRef(false);
+  const reloading = useRef(false);
+  const markSeenRef = useRef<(at: string) => void>(() => {});
+  const reload = useCallback(async () => {
+    if (reloading.current) return;
+    // Mid-change, or mid-drag (use-drag-sort marks the row): not now. The
+    // drop's save, or the next pulse, brings it round again.
+    if (busyRef.current || document.querySelector("[data-dragging]")) {
+      wantReload.current = true;
+      return;
+    }
+    reloading.current = true;
+    wantReload.current = false;
+    const seq = editSeq.current;
+    try {
+      const res = await reloadPaper(state.paper.id);
+      if (!res.ok || !res.paper) return; // gone: the pulse says so
+      if (seq !== editSeq.current || busyRef.current || document.querySelector("[data-dragging]")) {
+        wantReload.current = true; // changed here meanwhile: next time
+        return;
+      }
+      const before = ref.current;
+      const next = L.adoptRemote(before, res.paper);
+      ref.current = next;
+      setStateRaw(next);
+      markSeenRef.current(res.paper.paper.updated_at);
+      if (before.paper.status !== next.paper.status) {
+        stampUsed(next.paper.status === "final", next.paper, next.items);
+      }
+    } catch {
+      wantReload.current = true;
+    } finally {
+      reloading.current = false;
+    }
+  }, [state.paper.id]);
+  const pulse = usePaperPulse({ paperId: state.paper.id, meId: profileId, updatedAt: initial.paper.updated_at, onStale: reload });
+  useEffect(() => {
+    markSeenRef.current = pulse.markSeen;
+  }, [pulse.markSeen]);
+  useEffect(() => {
+    busyRef.current = busy;
+    if (!busy && wantReload.current) void reload();
+  }, [busy, reload]);
 
   const { paper, sections, items } = state;
-  const locked = paper.status === "final";
+  const locked = paper.status === "final" || pulse.gone;
+  const mine = paper.owner_id === profileId;
 
   /** Show the change now, send it, undo it if the server says no. */
   const commit = useCallback(
@@ -315,16 +380,10 @@ export function Workspace({
   const saveName = (name: string) =>
     commitAwait((s) => L.updatePaperLocal(s, { name }), () => A.updatePaper(paper.id, { name }));
 
-  const setFinal = async (final: boolean): Promise<string | void> => {
-    if (final) closeAdd();
-    const res = await commitAwait(
-      (s) => L.updatePaperLocal(s, { status: final ? "final" : "draft" }),
-      () => A.setPaperFinal(paper.id, final),
-    );
-    if (!res.ok) return res.error;
-    // Keep the bank's "used in" chips honest without a reload.
-    const label = usedLabel(paper.code, paper.season);
-    const onPaper = new Set(items.flatMap((i) => (i.bank_question_id ? [i.bank_question_id] : [])));
+  /** Keep the bank's "used in" chips honest without a reload. */
+  function stampUsed(final: boolean, p: Paper, onIt: L.Item[]) {
+    const label = usedLabel(p.code, p.season);
+    const onPaper = new Set(onIt.flatMap((i) => (i.bank_question_id ? [i.bank_question_id] : [])));
     setQuestions((qs) =>
       qs.map((q) => {
         if (!onPaper.has(q.id)) return q;
@@ -334,6 +393,24 @@ export function Workspace({
         return q;
       }),
     );
+  }
+
+  const setFinal = async (final: boolean): Promise<string | void> => {
+    if (final) closeAdd();
+    const res = await commitAwait(
+      (s) => L.updatePaperLocal(s, { status: final ? "final" : "draft" }),
+      () => A.setPaperFinal(paper.id, final),
+    );
+    if (!res.ok) return res.error;
+    stampUsed(final, paper, items);
+  };
+
+  const setShared = async (shared: boolean): Promise<string | void> => {
+    const res = await commitAwait(
+      (s) => L.updatePaperLocal(s, { shared }),
+      () => A.setPaperShared(paper.id, shared),
+    );
+    if (!res.ok) return res.error;
   };
 
   const ordered = L.orderedSections(sections);
@@ -373,7 +450,7 @@ export function Workspace({
               <h1 className="min-w-0">
                 <PaperNameField name={paper.name} onSave={saveName} inputClassName="text-base sm:text-lg" />
               </h1>
-              <StatusChip final={locked} className="shrink-0" />
+              <StatusChip final={paper.status === "final"} shared={paper.shared} className="shrink-0" />
             </div>
             <p className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground" aria-live="polite">
               <span className="min-w-0 truncate" title="The title printed on the paper">{paper.title}</span>
@@ -392,12 +469,39 @@ export function Workspace({
           >
             {showAnswers ? <EyeOff aria-hidden /> : <Eye aria-hidden />} {showAnswers ? "Hide answers" : "Show answers"}
           </Button>
-          <ExportMenu paper={paper} bankCount={addedIds.size} onSetFinal={setFinal} />
+          {!paper.shared && !pulse.gone && (
+            <Button variant="outline" size="lg" onClick={() => setPublishing("publish")} title="Let every teacher see and work on this paper">
+              <Users aria-hidden /> <span className="max-sm:hidden">Publish</span>
+            </Button>
+          )}
+          <ExportMenu
+            paper={paper}
+            bankCount={addedIds.size}
+            onSetFinal={setFinal}
+            onMakePrivate={paper.shared && (mine || isAdmin) ? () => setPublishing("private") : undefined}
+          />
         </div>
         {error && <p className="pb-2 text-xs text-danger" role="alert">{error}</p>}
       </div>
 
-      {locked && (
+      {pulse.gone ? (
+        <div className="mt-4 rounded-lg bg-danger/15 px-4 py-3 text-sm font-medium text-danger" role="alert">
+          This paper has been deleted, or made private by the teacher who made it. Nothing more can be saved here.{" "}
+          <Link href="/teacher/exam-builder" className="underline underline-offset-4">Back to the papers</Link>
+        </div>
+      ) : pulse.others.length > 0 && (
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-brand/15 px-4 py-3 text-sm" role="status">
+          <span className="inline-flex items-center gap-2 font-medium text-brand">
+            <Users className="size-4" aria-hidden /> {names(pulse.others.map((o) => o.name))}{" "}
+            {pulse.others.length === 1 ? "is" : "are"} also on this paper.
+          </span>
+          <span className="text-muted-foreground">
+            Their changes show here within a few seconds. If you both change the same question, the last save counts.
+          </span>
+        </div>
+      )}
+
+      {paper.status === "final" && (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-ok/15 px-4 py-3 text-sm">
           <span className="inline-flex items-center gap-2 font-medium text-ok">
             <Lock className="size-4" aria-hidden /> This paper is final. Its bank questions are stamped {usedLabel(paper.code, paper.season)}.
@@ -424,7 +528,7 @@ export function Workspace({
             addingSection={addingSection}
             targetId={target?.id ?? null}
           />
-          {locked && (
+          {paper.status === "final" && !pulse.gone && (
             <div className="mt-6 flex justify-center">
               <Button variant="outline" onClick={() => setFinal(false).then((e) => { if (e) setError(e); })}>
                 <LockOpen aria-hidden /> Reopen for editing
@@ -492,6 +596,38 @@ export function Workspace({
       />
       <ItemEditor item={editing} onOpenChange={(o) => { if (!o) setEditingId(null); }} onSave={saveItem} />
       <PaperHeaderForm open={headerOpen} onOpenChange={setHeaderOpen} paper={paper} onSave={saveHeader} />
+
+      <ConfirmDialog
+        open={publishing === "publish"}
+        onOpenChange={(o) => { if (!o) setPublishing(null); }}
+        title="Publish this paper to the other teachers?"
+        confirmLabel="Publish"
+        onConfirm={() => setShared(true)}
+      >
+        <p>
+          Every teacher will see <strong className="text-foreground">{paper.title}</strong> on their Exam Builder page and
+          can change it, mark it final, reopen it or delete it. Two of you can have it open at once.
+        </p>
+        <p>You can make it private again later from Print &amp; finish.</p>
+      </ConfirmDialog>
+      <ConfirmDialog
+        open={publishing === "private"}
+        onOpenChange={(o) => { if (!o) setPublishing(null); }}
+        title="Make this paper private?"
+        confirmLabel="Make private"
+        onConfirm={() => setShared(false)}
+      >
+        <p>
+          The other teachers will stop seeing it, and anyone who has it open will be told it has gone. Only{" "}
+          {mine ? "you" : "the teacher who made it"} and the admins can open it then.
+        </p>
+      </ConfirmDialog>
     </div>
   );
+}
+
+/** "Aisha", "Aisha and Bilal", "Aisha, Bilal and Omar". */
+function names(list: string[]): string {
+  if (list.length <= 1) return list[0] ?? "";
+  return `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}`;
 }

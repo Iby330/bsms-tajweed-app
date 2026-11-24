@@ -126,3 +126,21 @@ export function addSectionLocal(s: PaperState, section: Section): PaperState {
 export function updatePaperLocal(s: PaperState, patch: Partial<Paper>): PaperState {
   return { ...s, paper: { ...s.paper, ...patch } };
 }
+
+/**
+ * Another teacher's changes, fetched fresh (use-paper-pulse): the server's
+ * paper replaces the screen's, but a picture already on screen keeps its
+ * signed URL, so it doesn't load again just because it was signed anew.
+ */
+export function adoptRemote(s: PaperState, fresh: PaperState): PaperState {
+  const urls = new Map<string, string>();
+  for (const i of s.items) for (const [path, url] of Object.entries(i.imageUrls)) urls.set(path, url);
+  return {
+    paper: fresh.paper,
+    sections: fresh.sections,
+    items: fresh.items.map((i) => ({
+      ...i,
+      imageUrls: Object.fromEntries(Object.entries(i.imageUrls).map(([path, url]) => [path, urls.get(path) ?? url])),
+    })),
+  };
+}

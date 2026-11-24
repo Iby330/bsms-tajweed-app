@@ -967,6 +967,39 @@ export type Database = {
           },
         ]
       }
+      exam_paper_presence: {
+        Row: {
+          paper_id: string
+          profile_id: string
+          seen_at: string
+        }
+        Insert: {
+          paper_id: string
+          profile_id: string
+          seen_at?: string
+        }
+        Update: {
+          paper_id?: string
+          profile_id?: string
+          seen_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_paper_presence_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "exam_papers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_paper_presence_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exam_papers: {
         Row: {
           code: string
@@ -978,10 +1011,13 @@ export type Database = {
           name: string
           notes: string[]
           owner_id: string
+          published_at: string | null
           season: string
+          shared: boolean
           status: string
           title: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           code?: string
@@ -993,10 +1029,13 @@ export type Database = {
           name?: string
           notes?: string[]
           owner_id: string
+          published_at?: string | null
           season?: string
+          shared?: boolean
           status?: string
           title?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           code?: string
@@ -1008,15 +1047,25 @@ export type Database = {
           name?: string
           notes?: string[]
           owner_id?: string
+          published_at?: string | null
           season?: string
+          shared?: boolean
           status?: string
           title?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "exam_papers_owner_id_fkey"
             columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_papers_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

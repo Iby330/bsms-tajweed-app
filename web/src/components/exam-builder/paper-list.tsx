@@ -1,16 +1,17 @@
 "use client";
 
 /**
- * The teacher's papers, newest change first, and "New paper". A paper is a
- * card that opens the builder. Its heading is the paper's name, renamed in
- * place (final papers too), with the printed title under it. A draft can be
- * deleted from here (a final paper has to be reopened first, which the
- * builder does).
+ * The teacher's papers, newest change first, and "New paper", then the
+ * papers other teachers have published (anyone can work on those), and for
+ * an admin everyone else's private ones. A paper is a card that opens the
+ * builder. Its heading is the paper's name, renamed in place (final papers
+ * too), with the printed title under it. A draft can be deleted from here
+ * (a final paper has to be reopened first, which the builder does).
  */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { FileText, Lock, Plus, Trash2 } from "lucide-react";
+import { FileText, Lock, Plus, Trash2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createPaper, deletePaper, updatePaper } from "@/lib/exam-builder/actions";
 import { usedLabel } from "@/lib/exam-builder/labels";
@@ -28,13 +29,21 @@ function edited(at: string): string {
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: days > 300 ? "numeric" : undefined });
 }
 
-export function StatusChip({ final, className }: { final: boolean; className?: string }) {
-  return final ? (
-    <span className={cn("inline-flex items-center gap-1 rounded-full bg-ok/15 px-2.5 py-0.5 text-xs font-semibold text-ok", className)}>
-      <Lock className="size-3" aria-hidden /> Final
+/** Final (locked), Published (every teacher can work on it), or Draft (private). */
+export function StatusChip({ final, shared = false, className }: { final: boolean; shared?: boolean; className?: string }) {
+  if (final) {
+    return (
+      <span className={cn("inline-flex items-center gap-1 rounded-full bg-ok/15 px-2.5 py-0.5 text-xs font-semibold text-ok", className)}>
+        <Lock className="size-3" aria-hidden /> Final
+      </span>
+    );
+  }
+  return shared ? (
+    <span className={cn("inline-flex items-center gap-1 rounded-full bg-brand/15 px-2.5 py-0.5 text-xs font-semibold text-brand", className)}>
+      <Users className="size-3" aria-hidden /> Published
     </span>
   ) : (
-    <span className={cn("inline-flex items-center rounded-full bg-brand/15 px-2.5 py-0.5 text-xs font-semibold text-brand", className)}>
+    <span className={cn("inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground", className)}>
       Draft
     </span>
   );
@@ -66,7 +75,7 @@ export function NewPaperButton({ size = "lg", label = "New paper" }: { size?: "l
   );
 }
 
-export function PaperList({ papers }: { papers: PaperSummary[] }) {
+export function PaperList({ papers, meId }: { papers: PaperSummary[]; meId: string }) {
   const router = useRouter();
   // Deleted ones are hidden at once; the rest always follow the server's list,
   // so a refresh (after edits in the builder) shows the new counts.
@@ -102,77 +111,97 @@ export function PaperList({ papers }: { papers: PaperSummary[] }) {
     );
   }
 
+  const groups = [
+    { key: "mine", title: "Your papers", papers: list.filter((p) => p.owner_id === meId) },
+    { key: "shared", title: "Published by other teachers", papers: list.filter((p) => p.owner_id !== meId && p.shared) },
+    { key: "private", title: "Other teachers' private papers (you see these as an admin)", papers: list.filter((p) => p.owner_id !== meId && !p.shared) },
+  ].filter((g) => g.papers.length > 0);
+  const headed = groups.length > 1 || groups[0]?.key !== "mine";
+
   return (
     <>
-      <ul className="grid gap-px border border-line bg-line sm:grid-cols-2 sm:[&>li:last-child:nth-child(odd)]:col-span-2">
-        {list.map((p) => {
-          const final = p.status === "final";
-          return (
-            <li key={p.id} className="group relative flex flex-col gap-3 bg-card p-5 transition-colors hover:bg-[color-mix(in_oklab,var(--foreground)_3%,var(--card))]">
-              <div className="flex items-start justify-between gap-3">
-                <span className="font-mono text-[0.7rem] tracking-[0.12em] text-ink-3 uppercase">
-                  {p.code} · {p.season}
-                </span>
-                <StatusChip final={final} />
-              </div>
-              {final && (
-                <p className="-mt-1 text-xs text-muted-foreground">
-                  Its bank questions are stamped <b className="font-semibold text-ok">{usedLabel(p.code, p.season)}</b>
-                </p>
-              )}
-              <div className="grid gap-0.5">
-                {/* Above the card-wide link, so a click on the name edits it instead of opening the paper. */}
-                <h2 className="relative z-10 min-w-0">
-                  <PaperNameField
-                    name={nameOf(p)}
-                    onSave={(name) => rename(p.id, name)}
-                    inputClassName="text-lg leading-snug"
-                  />
-                </h2>
-                <Link
-                  href={`/teacher/exam-builder/${p.id}`}
-                  className="w-fit rounded-sm text-sm text-muted-foreground outline-none after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:ring-2 focus-visible:ring-ring underline-offset-4"
-                >
-                  <span className="sr-only">Open </span>
-                  {p.title}
-                  {nameOf(p) && <span className="sr-only"> ({nameOf(p)})</span>}
-                </Link>
-              </div>
-              <dl className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
-                <div>
-                  <dt className="sr-only">Questions</dt>
-                  <dd><b className="font-semibold text-foreground tabular-nums">{p.itemCount}</b> {p.itemCount === 1 ? "question" : "questions"}</dd>
-                </div>
-                <div>
-                  <dt className="sr-only">Total marks</dt>
-                  <dd><b className="font-semibold text-foreground tabular-nums">{formatMarks(p.totalMarks)}</b> marks</dd>
-                </div>
-                {p.date_label && (
-                  <div>
-                    <dt className="sr-only">Date</dt>
-                    <dd>{p.date_label}</dd>
-                  </div>
-                )}
-              </dl>
-              <div className="mt-auto flex items-center justify-between gap-3 pt-1">
-                <span className="text-xs text-muted-foreground">Edited {edited(p.updated_at)}</span>
-                {/* Above the card-wide link, so it stays its own target. */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="relative z-10 text-muted-foreground hover:text-danger"
-                  disabled={final}
-                  title={final ? "Reopen the paper before deleting it" : undefined}
-                  onClick={() => setDeleting(p)}
-                  aria-label={`Delete ${called(p)}`}
-                >
-                  <Trash2 aria-hidden /> Delete
-                </Button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="grid gap-8">
+        {groups.map((g) => (
+          <section key={g.key} aria-labelledby={headed ? `papers-${g.key}` : undefined} className="grid gap-3">
+            {headed && <h2 id={`papers-${g.key}`} className="label">{g.title}</h2>}
+            <ul className="grid gap-px border border-line bg-line sm:grid-cols-2 sm:[&>li:last-child:nth-child(odd)]:col-span-2">
+              {g.papers.map((p) => {
+                const final = p.status === "final";
+                const theirs = p.owner_id !== meId;
+                return (
+                  <li key={p.id} className="group relative flex flex-col gap-3 bg-card p-5 transition-colors hover:bg-[color-mix(in_oklab,var(--foreground)_3%,var(--card))]">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="font-mono text-[0.7rem] tracking-[0.12em] text-ink-3 uppercase">
+                        {p.code} · {p.season}
+                      </span>
+                      <StatusChip final={final} shared={p.shared} />
+                    </div>
+                    {final && (
+                      <p className="-mt-1 text-xs text-muted-foreground">
+                        Its bank questions are stamped <b className="font-semibold text-ok">{usedLabel(p.code, p.season)}</b>
+                      </p>
+                    )}
+                    <div className="grid gap-0.5">
+                      {/* Above the card-wide link, so a click on the name edits it instead of opening the paper. */}
+                      <h2 className="relative z-10 min-w-0">
+                        <PaperNameField
+                          name={nameOf(p)}
+                          onSave={(name) => rename(p.id, name)}
+                          inputClassName="text-lg leading-snug"
+                        />
+                      </h2>
+                      <Link
+                        href={`/teacher/exam-builder/${p.id}`}
+                        className="w-fit rounded-sm text-sm text-muted-foreground outline-none after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:ring-2 focus-visible:ring-ring underline-offset-4"
+                      >
+                        <span className="sr-only">Open </span>
+                        {p.title}
+                        {nameOf(p) && <span className="sr-only"> ({nameOf(p)})</span>}
+                      </Link>
+                    </div>
+                    {theirs && (
+                      <p className="-mt-1.5 text-sm text-muted-foreground">
+                        by <span className="font-medium text-foreground">{p.ownerName ?? "another teacher"}</span>
+                      </p>
+                    )}
+                    <dl className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
+                      <div>
+                        <dt className="sr-only">Questions</dt>
+                        <dd><b className="font-semibold text-foreground tabular-nums">{p.itemCount}</b> {p.itemCount === 1 ? "question" : "questions"}</dd>
+                      </div>
+                      <div>
+                        <dt className="sr-only">Total marks</dt>
+                        <dd><b className="font-semibold text-foreground tabular-nums">{formatMarks(p.totalMarks)}</b> marks</dd>
+                      </div>
+                      {p.date_label && (
+                        <div>
+                          <dt className="sr-only">Date</dt>
+                          <dd>{p.date_label}</dd>
+                        </div>
+                      )}
+                    </dl>
+                    <div className="mt-auto flex items-center justify-between gap-3 pt-1">
+                      <span className="text-xs text-muted-foreground">Edited {edited(p.updated_at)}</span>
+                      {/* Above the card-wide link, so it stays its own target. */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="relative z-10 text-muted-foreground hover:text-danger"
+                        disabled={final}
+                        title={final ? "Reopen the paper before deleting it" : undefined}
+                        onClick={() => setDeleting(p)}
+                        aria-label={`Delete ${called(p)}`}
+                      >
+                        <Trash2 aria-hidden /> Delete
+                      </Button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
+      </div>
 
       <ConfirmDialog
         open={deleting !== null}
@@ -191,8 +220,8 @@ export function PaperList({ papers }: { papers: PaperSummary[] }) {
       >
         <p>
           <strong className="text-foreground">{deleting ? called(deleting) : ""}</strong> and the {deleting?.itemCount ?? 0}{" "}
-          {deleting?.itemCount === 1 ? "question" : "questions"} on it will be gone for good. The question bank is
-          not touched.
+          {deleting?.itemCount === 1 ? "question" : "questions"} on it will be gone for good
+          {deleting?.shared ? ", for every teacher" : ""}. The question bank is not touched.
         </p>
       </ConfirmDialog>
     </>

@@ -6,9 +6,10 @@
  *
  * Each action checks its ids are uuids, that the caller is a teacher, and —
  * for anything that changes a paper's content — that the paper is still a
- * draft ("Reopen the paper to change it."). Row level security (0152) checks
- * again that the paper is the caller's own or the caller is an admin, so a
- * paper the caller may not touch reads as "not found".
+ * draft ("Reopen the paper to change it."). Row level security (0152, 0155)
+ * checks again that the paper is the caller's own, or published (then any
+ * teacher may change it), or the caller is an admin, so a paper the caller
+ * may not touch reads as "not found".
  *
  * Expected failures come back as `{ ok: false, error }`, never as a throw, so
  * the workspace can show them inline.
@@ -44,7 +45,7 @@ type Fail = { ok: false; error: string };
 
 const PATH = "/teacher/exam-builder";
 const FINAL = "Reopen the paper to change it.";
-const NO_PAPER = "That paper isn't there, or isn't yours.";
+const NO_PAPER = "That paper isn't there any more, or it's private to another teacher.";
 const NO_SECTION = "That section isn't on this paper.";
 const NO_ITEM = "That question isn't there, or isn't yours.";
 
@@ -58,7 +59,7 @@ function revalidateList() {
 /** A database refusal in words a teacher can act on. */
 function dbFail(error: { message: string; code?: string }): Fail {
   if (error.code === "42501" || /row-level security/i.test(error.message)) {
-    return fail("You can only change your own papers.");
+    return fail("You can only change your own papers, or ones another teacher has published.");
   }
   return fail(error.message);
 }
@@ -88,9 +89,9 @@ async function draftPaper(db: Db, paperId: string): Promise<{ ok: true } | Fail>
  * after the change itself has gone in; if the stamp fails the change still
  * stands, so the result is ignored.
  */
-async function touchPaper(db: Db, paperId: string): Promise<void> {
+async function touchPaper(db: Db, paperId: string, by: string): Promise<void> {
   try {
-    await db.from("exam_papers").update({ updated_at: new Date().toISOString() }).eq("id", paperId);
+    await db.from("exam_papers").update({ updated_at: new Date().toISOString(), updated_by: by }).eq("id", paperId);
   } catch {
     // Only the "Edited" time is lost.
   }
@@ -213,7 +214,7 @@ export async function updatePaper(
   if (!paper.ok && !(paper.error === FINAL && isNameOnly(clean.patch))) return paper;
 
   const { error } = await db
-    .from("exam_papers").update({ ...clean.patch, updated_at: new Date().toISOString() }).eq("id", id);
+    .from("exam_papers").update({ ...clean.patch, updated_at: new Date().toISOString(), updated_by: me.id }).eq("id", id);
   if (error) return dbFail(error);
   return { ok: true };
 }
@@ -249,6 +250,38 @@ export async function setPaperFinal(id: string, final: boolean): Promise<Result<
   return { ok: true, label: typeof data === "string" ? data : "" };
 }
 
+/**
+ * Publish the paper to every teacher (they can then edit it, mark it final,
+ * reopen or delete it), or make it private again. Only the owner or an admin
+ * can make it private: RLS refuses anyone else (0155), this says why first.
+ */
+export async function setPaperShared(id: string, shared: boolean): Promise<Result> {
+  if (!isUuid(id)) return fail(NO_PAPER);
+  if (typeof shared !== "boolean") return fail("Published or not?");
+  let me: Awaited<ReturnType<typeof requireTeacher>>;
+  try {
+    me = await requireTeacher();
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Teachers only.");
+  }
+  const db = await supabaseServer();
+  const { data: row, error: readErr } = await db.from("exam_papers").select("id, owner_id").eq("id", id).maybeSingle();
+  if (readErr) return dbFail(readErr);
+  if (!row) return fail(NO_PAPER);
+  if (!shared && row.owner_id !== me.id && !me.is_admin) {
+    return fail("Only the teacher who made this paper can make it private again.");
+  }
+  const now = new Date().toISOString();
+  const { data, error } = await db
+    .from("exam_papers")
+    .update({ shared, published_at: shared ? now : null, updated_at: now, updated_by: me.id })
+    .eq("id", id)
+    .select("id");
+  if (error) return dbFail(error);
+  if (!data?.length) return fail(NO_PAPER);
+  return { ok: true };
+}
+
 // ── sections ───────────────────────────────────────────────────────────────
 
 /** A new section at the end of the paper: "New section", or a practical table. */
@@ -282,7 +315,7 @@ export async function addSection(paperId: string, kind: SectionKind): Promise<Re
     .single();
   if (error) return dbFail(error);
   if (!data) return fail("The section wasn't added.");
-  await touchPaper(db, paperId);
+  await touchPaper(db, paperId, me.id);
   return { ok: true, section: toSection(data) };
 }
 
@@ -299,7 +332,7 @@ export async function updateSection(id: string, patch: { title?: string; practic
 
   const { error } = await db.from("exam_paper_sections").update(clean.patch).eq("id", id);
   if (error) return dbFail(error);
-  await touchPaper(db, found.section.paper_id);
+  await touchPaper(db, found.section.paper_id, me.id);
   return { ok: true };
 }
 
@@ -318,7 +351,7 @@ export async function removeSection(id: string): Promise<Result> {
   if (restErr) return dbFail(restErr);
   const written = await writePositions(db, "exam_paper_sections", rest ?? []);
   if (!written.ok) return written;
-  await touchPaper(db, found.section.paper_id);
+  await touchPaper(db, found.section.paper_id, me.id);
   return { ok: true };
 }
 
@@ -338,7 +371,7 @@ export async function moveSection(id: string, dir: "up" | "down"): Promise<Resul
   if (!order) return { ok: true };
   const written = await writePositions(db, "exam_paper_sections", order);
   if (!written.ok) return written;
-  await touchPaper(db, found.section.paper_id);
+  await touchPaper(db, found.section.paper_id, me.id);
   return { ok: true };
 }
 
@@ -403,7 +436,7 @@ export async function addItemFromBank(
     .single();
   if (error) return dbFail(error);
   if (!data) return fail("The question wasn't added.");
-  await touchPaper(db, paperId);
+  await touchPaper(db, paperId, me.id);
   return { ok: true, item: toPaperItem(data) };
 }
 
@@ -446,7 +479,7 @@ export async function addBlankItem(
     .single();
   if (error) return dbFail(error);
   if (!data) return fail("The question wasn't added.");
-  await touchPaper(db, paperId);
+  await touchPaper(db, paperId, me.id);
   return { ok: true, item: toPaperItem(data) };
 }
 
@@ -474,7 +507,7 @@ export async function updateItem(
   }
   const { error } = await db.from("exam_paper_items").update(update).eq("id", id);
   if (error) return dbFail(error);
-  await touchPaper(db, found.item.paper_id);
+  await touchPaper(db, found.item.paper_id, me.id);
   return { ok: true };
 }
 
@@ -493,7 +526,7 @@ export async function removeItem(id: string): Promise<Result> {
   if (restErr) return dbFail(restErr);
   const written = await writePositions(db, "exam_paper_items", rest ?? []);
   if (!written.ok) return written;
-  await touchPaper(db, found.item.paper_id);
+  await touchPaper(db, found.item.paper_id, me.id);
   return { ok: true };
 }
 
@@ -513,7 +546,7 @@ export async function moveItem(id: string, dir: "up" | "down"): Promise<Result> 
   if (!order) return { ok: true };
   const written = await writePositions(db, "exam_paper_items", order);
   if (!written.ok) return written;
-  await touchPaper(db, found.item.paper_id);
+  await touchPaper(db, found.item.paper_id, me.id);
   return { ok: true };
 }
 
@@ -533,7 +566,7 @@ export async function placeItem(id: string, to: number): Promise<Result> {
   if (!order) return { ok: true };
   const written = await writePositions(db, "exam_paper_items", order);
   if (!written.ok) return written;
-  await touchPaper(db, found.item.paper_id);
+  await touchPaper(db, found.item.paper_id, me.id);
   return { ok: true };
 }
 
@@ -563,6 +596,6 @@ export async function moveItemToSection(id: string, sectionId: string): Promise<
     const written = await writePositions(db, "exam_paper_items", rows ?? []);
     if (!written.ok) return written;
   }
-  await touchPaper(db, found.item.paper_id);
+  await touchPaper(db, found.item.paper_id, me.id);
   return { ok: true };
 }

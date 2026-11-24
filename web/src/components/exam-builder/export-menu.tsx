@@ -5,10 +5,11 @@
  * route opens in a new tab, where "Save as PDF" is the browser's own),
  * download either as a Word file (/api/exam-builder/<id>/docx), and
  * mark the paper final — which stamps each bank question on it as used in
- * "<code> <season>" — or reopen it.
+ * "<code> <season>" — or reopen it. On a published paper its owner (or an
+ * admin) can make it private again from here.
  */
 import { useState } from "react";
-import { ChevronDown, FileCheck2, FileDown, LockOpen, Printer, ScrollText } from "lucide-react";
+import { ChevronDown, EyeOff, FileCheck2, FileDown, LockOpen, Printer, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usedLabel } from "@/lib/exam-builder/labels";
 import type { Paper } from "@/lib/exam-builder/types";
@@ -16,12 +17,14 @@ import { ActionDownload, ActionHeading, ActionItem, ActionLink, ActionMenu, Acti
 import { ConfirmDialog } from "./confirm-dialog";
 
 export function ExportMenu({
-  paper, bankCount, onSetFinal,
+  paper, bankCount, onSetFinal, onMakePrivate,
 }: {
   paper: Paper;
   /** questions on the paper that came from the bank (the ones that get stamped) */
   bankCount: number;
   onSetFinal: (final: boolean) => Promise<string | void>;
+  /** Shown on a published paper to its owner or an admin. */
+  onMakePrivate?: () => void;
 }) {
   const [confirm, setConfirm] = useState<"final" | "reopen" | null>(null);
   const final = paper.status === "final";
@@ -65,6 +68,15 @@ export function ExportMenu({
             <FileCheck2 /> Mark as final…
           </ActionItem>
         )}
+        {onMakePrivate && (
+          <>
+            <ActionSeparator />
+            <ActionHeading>Published</ActionHeading>
+            <ActionItem onSelect={onMakePrivate}>
+              <EyeOff /> Make private…
+            </ActionItem>
+          </>
+        )}
       </ActionMenu>
 
       <ConfirmDialog
@@ -77,7 +89,7 @@ export function ExportMenu({
         <p>
           The {bankCount} {bankCount === 1 ? "question" : "questions"} on it from the bank will be stamped{" "}
           <strong className="text-foreground">{label}</strong>, so teachers can see they have been used. The paper is then
-          locked. You can reopen it later, which takes the stamp off again.
+          locked{paper.shared ? " for every teacher" : ""}. It can be reopened later, which takes the stamp off again.
         </p>
       </ConfirmDialog>
       <ConfirmDialog
@@ -88,7 +100,7 @@ export function ExportMenu({
         onConfirm={() => onSetFinal(false)}
       >
         <p>
-          It goes back to a draft you can change, and the <strong className="text-foreground">{label}</strong> stamp comes off
+          It goes back to a draft that can be changed, and the <strong className="text-foreground">{label}</strong> stamp comes off
           its bank questions until you mark it final again.
         </p>
       </ConfirmDialog>
