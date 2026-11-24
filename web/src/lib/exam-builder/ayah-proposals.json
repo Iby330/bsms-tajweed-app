@@ -1,0 +1,3947 @@
+{
+ "0061c7aa-8896-4219-bebc-79d62ec80731": {
+  "prompt": {
+   "images": [
+    "bank/bea95f39c9fa57a6582c7c1ee84050c34ddbb7d1.png"
+   ],
+   "ref": {
+    "surah": 33,
+    "from_ayah": 47,
+    "to_ayah": 47
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: picture has no end-of-ayah marker."
+   ]
+  }
+ },
+ "033b9aa0-f7f3-4405-9d13-623bf2bb8510": {
+  "options": {
+   "bank/150d5d264bd173824b330df3491b1e919a314163.png": {
+    "images": [
+     "bank/150d5d264bd173824b330df3491b1e919a314163.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 27,
+     "to_ayah": 27,
+     "from_word": 5,
+     "to_word": 6
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 1
+   },
+   "bank/b151c544f31d6d5b705b0a5869b17e6196e82497.png": {
+    "images": [
+     "bank/b151c544f31d6d5b705b0a5869b17e6196e82497.png"
+    ],
+    "ref": {
+     "surah": 41,
+     "from_ayah": 8,
+     "to_ayah": 8,
+     "from_word": 7,
+     "to_word": 8
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 2
+   },
+   "bank/c7607f0fce66f6018b12ed01ae1e920a85f7af56.png": {
+    "images": [
+     "bank/c7607f0fce66f6018b12ed01ae1e920a85f7af56.png"
+    ],
+    "ref": {
+     "surah": 96,
+     "from_ayah": 15,
+     "to_ayah": 15,
+     "from_word": 5,
+     "to_word": 6
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/c5754fe5d231e99a70b76823724b04f4e9b5a11d.png": {
+    "images": [
+     "bank/c5754fe5d231e99a70b76823724b04f4e9b5a11d.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 3,
+     "to_ayah": 3,
+     "from_word": 8,
+     "to_word": 8
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/aa3ee64b18796b0976b35b3bdd6b117ba6d8b4c6.png": {
+    "images": [
+     "bank/aa3ee64b18796b0976b35b3bdd6b117ba6d8b4c6.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 20,
+     "to_ayah": 20,
+     "from_word": 24,
+     "to_word": 25
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them.",
+     "Picture and typeset words differ: the app's text mid-ayah form is قَدِيرٌۭ (low-meem mark)."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "05a26a72-59be-4321-ac55-c08855d46ec1": {
+  "prompt": {
+   "images": [
+    "bank/0dab9457d3fd260c61b18cd15a9f0bc85eb1bfcc.png"
+   ],
+   "ref": {
+    "surah": 71,
+    "from_ayah": 11,
+    "to_ayah": 11
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "05deb996-293a-4701-9da4-e4f2c72a63ad": {
+  "prompt": {
+   "images": [
+    "bank/d1c3cbb27519d5462cb234bb6c87a6a66f44c3f0.png"
+   ],
+   "ref": {
+    "surah": 27,
+    "from_ayah": 15,
+    "to_ayah": 15,
+    "from_word": 6,
+    "to_word": 8
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "06ab45b5-5e33-4d4b-9da6-38d785e693a1": {
+  "prompt": {
+   "images": [
+    "bank/911e1e22eb04bdfe6fc8bcdc76ae220bf8a4f181.png"
+   ],
+   "ref": {
+    "surah": 67,
+    "from_ayah": 26,
+    "to_ayah": 26
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "09b1e3d6-f5fe-4ec4-8204-7f45ca347545": {
+  "prompt": {
+   "images": [
+    "bank/045db284c104f2e03bb9e544ec09379c6655ccda.png"
+   ],
+   "ref": {
+    "surah": 95,
+    "from_ayah": 4,
+    "to_ayah": 5
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: picture shows the ayah-4 marker between the ayahs but no marker after ayah 5."
+   ]
+  }
+ },
+ "0ace6792-d02b-4a28-ab02-c21256772feb": {
+  "prompt": {
+   "images": [
+    "bank/408816bfc6fd9e149c75887d3003e644273aa9ae.png"
+   ],
+   "ref": {
+    "surah": 69,
+    "from_ayah": 3,
+    "to_ayah": 3,
+    "from_word": 2,
+    "to_word": 2
+   },
+   "status": "safe",
+   "look": [
+    "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+   ]
+  }
+ },
+ "12e25636-9ef2-4bef-a1b0-d1f3ffebd054": {
+  "prompt": {
+   "images": [
+    "bank/1c346c896b56256eacae2c2b4b0a815d1265d3cd.png"
+   ],
+   "ref": {
+    "surah": 91,
+    "from_ayah": 14,
+    "to_ayah": 14
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "13139316-ccca-437c-96fa-d07d99107109": {
+  "prompt": {
+   "images": [
+    "bank/11b573198fd0a496e29019a27bc3b038bf3380dd.jpg"
+   ],
+   "ref": {
+    "surah": 105,
+    "from_ayah": 1,
+    "to_ayah": 5
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: picture is a full Madani mushaf page crop with green decorated surah-title banner and the basmala line; the app's text range has neither (basmala is not an ayah of 105)."
+   ]
+  }
+ },
+ "13b0be0b-e486-4579-ae21-37c54c3dfe28": {
+  "options": {
+   "bank/76343748eedf09ecba151c1bd78a0b544c2eadbc.png": {
+    "images": [
+     "bank/76343748eedf09ecba151c1bd78a0b544c2eadbc.png"
+    ],
+    "ref": {
+     "surah": 82,
+     "from_ayah": 5,
+     "to_ayah": 5
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/b659708f8db2251209d1d0ff92ec32173173ef78.png": {
+    "images": [
+     "bank/b659708f8db2251209d1d0ff92ec32173173ef78.png"
+    ],
+    "ref": {
+     "surah": 82,
+     "from_ayah": 11,
+     "to_ayah": 11
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/dd2500a73cdb0fe4f7a530a5d09a97c300abcdca.png": {
+    "images": [
+     "bank/dd2500a73cdb0fe4f7a530a5d09a97c300abcdca.png"
+    ],
+    "ref": {
+     "surah": 82,
+     "from_ayah": 19,
+     "to_ayah": 19
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/70c348e498d168f03f1b277f3f0e304b0df94519.png": {
+    "images": [
+     "bank/70c348e498d168f03f1b277f3f0e304b0df94519.png"
+    ],
+    "ref": {
+     "surah": 64,
+     "from_ayah": 14,
+     "to_ayah": 14,
+     "from_word": 15,
+     "to_word": 19
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   },
+   "bank/e6f16b79a6be04be4bd08da7c27712be32a0db72.png": {
+    "images": [
+     "bank/e6f16b79a6be04be4bd08da7c27712be32a0db72.png"
+    ],
+    "ref": {
+     "surah": 83,
+     "from_ayah": 5,
+     "to_ayah": 5
+    },
+    "status": "safe",
+    "look": [],
+    "number": 5
+   }
+  }
+ },
+ "d5930eb6-0844-4f31-9fe2-d447f97b9f11": {
+  "options": {
+   "bank/76343748eedf09ecba151c1bd78a0b544c2eadbc.png": {
+    "images": [
+     "bank/76343748eedf09ecba151c1bd78a0b544c2eadbc.png"
+    ],
+    "ref": {
+     "surah": 82,
+     "from_ayah": 5,
+     "to_ayah": 5
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/b659708f8db2251209d1d0ff92ec32173173ef78.png": {
+    "images": [
+     "bank/b659708f8db2251209d1d0ff92ec32173173ef78.png"
+    ],
+    "ref": {
+     "surah": 82,
+     "from_ayah": 11,
+     "to_ayah": 11
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/dd2500a73cdb0fe4f7a530a5d09a97c300abcdca.png": {
+    "images": [
+     "bank/dd2500a73cdb0fe4f7a530a5d09a97c300abcdca.png"
+    ],
+    "ref": {
+     "surah": 82,
+     "from_ayah": 19,
+     "to_ayah": 19
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/e6f16b79a6be04be4bd08da7c27712be32a0db72.png": {
+    "images": [
+     "bank/e6f16b79a6be04be4bd08da7c27712be32a0db72.png"
+    ],
+    "ref": {
+     "surah": 83,
+     "from_ayah": 5,
+     "to_ayah": 5
+    },
+    "status": "safe",
+    "look": [],
+    "number": 5
+   },
+   "bank/4127a622dd204e92d9bad0d45efcf8e92b072d8d.png": {
+    "images": [
+     "bank/4127a622dd204e92d9bad0d45efcf8e92b072d8d.png"
+    ],
+    "ref": {
+     "surah": 83,
+     "from_ayah": 1,
+     "to_ayah": 1
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   }
+  }
+ },
+ "1401daec-6e91-47f6-8197-18caf4610b6a": {
+  "prompt": {
+   "images": [
+    "bank/a8a0b10989431542ba98e6c88b801ea50afc8de7.png"
+   ],
+   "ref": {
+    "surah": 109,
+    "from_ayah": 1,
+    "to_ayah": 6
+   },
+   "status": "owner_check",
+   "look": [
+    "Picture and typeset words differ: full Madani page crop with decorated green border, surah-title banner and basmala; the app's text has no banner/basmala.",
+    "Check before using: the picture includes the basmala, and the keyed answer (12 madd asli) only works out if the basmala's two madd asli (ٱلرَّحْمَـٰنِ, ٱلرَّحِيمِ) are counted - by my count the surah alone gives about 10 when stopping at ayah ends. Typesetting 109:1-6 without the basmala may change the correct answer. old prompt_quran 109:1-6 is right for the surah text itself"
+   ]
+  }
+ },
+ "16cc91ea-d89b-4ead-a5f6-7194cea304fd": {
+  "prompt": {
+   "images": [
+    "bank/bee29cb5d1cc01992207f649641f0002e8f6601d.png"
+   ],
+   "ref": {
+    "surah": 99,
+    "from_ayah": 1,
+    "to_ayah": 8
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: Madani page crop with surah banner and basmala; small low-resolution picture."
+   ]
+  }
+ },
+ "1920c6dc-1174-4798-928b-75bb511a264e": {
+  "prompt": {
+   "images": [
+    "bank/d0038795499874b12405d0f5518cc39e006d3451.png"
+   ],
+   "ref": {
+    "surah": 102,
+    "from_ayah": 1,
+    "to_ayah": 8
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: Madani page crop with surah banner, basmala and page number ٦٠٠."
+   ]
+  }
+ },
+ "1b33d3c4-9372-4bcf-afb8-2cccf062f2e6": {
+  "options": {
+   "bank/32aee2a6eb0e6b4f777a9d3ce863b4c41f67dcd1.png": {
+    "images": [
+     "bank/32aee2a6eb0e6b4f777a9d3ce863b4c41f67dcd1.png"
+    ],
+    "ref": {
+     "surah": 87,
+     "from_ayah": 5,
+     "to_ayah": 5
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/7b5b288b0541065c3a6f96d5a4a42386598b72ab.png": {
+    "images": [
+     "bank/7b5b288b0541065c3a6f96d5a4a42386598b72ab.png"
+    ],
+    "ref": {
+     "surah": 87,
+     "from_ayah": 9,
+     "to_ayah": 9
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/ddac3e8322fd5ea9952608d6a1297b4557bde879.png": {
+    "images": [
+     "bank/ddac3e8322fd5ea9952608d6a1297b4557bde879.png"
+    ],
+    "ref": {
+     "surah": 88,
+     "from_ayah": 6,
+     "to_ayah": 6
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   },
+   "bank/7ad0d55807823fe655d7cee2d1df4b18f6becc4d.png": {
+    "images": [
+     "bank/7ad0d55807823fe655d7cee2d1df4b18f6becc4d.png"
+    ],
+    "ref": {
+     "surah": 88,
+     "from_ayah": 14,
+     "to_ayah": 14
+    },
+    "status": "safe",
+    "look": [],
+    "number": 5
+   },
+   "bank/b62f0b5f14387c27bc84f35aaed0ca0a82291e24.png": {
+    "images": [
+     "bank/b62f0b5f14387c27bc84f35aaed0ca0a82291e24.png"
+    ],
+    "ref": {
+     "surah": 72,
+     "from_ayah": 9,
+     "to_ayah": 9
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   }
+  }
+ },
+ "7f818c13-ed62-4b44-9d0d-65e5faf031d7": {
+  "options": {
+   "bank/32aee2a6eb0e6b4f777a9d3ce863b4c41f67dcd1.png": {
+    "images": [
+     "bank/32aee2a6eb0e6b4f777a9d3ce863b4c41f67dcd1.png"
+    ],
+    "ref": {
+     "surah": 87,
+     "from_ayah": 5,
+     "to_ayah": 5
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/7b5b288b0541065c3a6f96d5a4a42386598b72ab.png": {
+    "images": [
+     "bank/7b5b288b0541065c3a6f96d5a4a42386598b72ab.png"
+    ],
+    "ref": {
+     "surah": 87,
+     "from_ayah": 9,
+     "to_ayah": 9
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/ddac3e8322fd5ea9952608d6a1297b4557bde879.png": {
+    "images": [
+     "bank/ddac3e8322fd5ea9952608d6a1297b4557bde879.png"
+    ],
+    "ref": {
+     "surah": 88,
+     "from_ayah": 6,
+     "to_ayah": 6
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   },
+   "bank/7ad0d55807823fe655d7cee2d1df4b18f6becc4d.png": {
+    "images": [
+     "bank/7ad0d55807823fe655d7cee2d1df4b18f6becc4d.png"
+    ],
+    "ref": {
+     "surah": 88,
+     "from_ayah": 14,
+     "to_ayah": 14
+    },
+    "status": "safe",
+    "look": [],
+    "number": 5
+   },
+   "bank/513d37a1713a91cc79d442bbbef7bcccc88730a0.png": {
+    "images": [
+     "bank/513d37a1713a91cc79d442bbbef7bcccc88730a0.png"
+    ],
+    "ref": {
+     "surah": 81,
+     "from_ayah": 28,
+     "to_ayah": 28
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   }
+  }
+ },
+ "1ee2d8d6-884a-4dd6-92e6-9e99e9124d62": {
+  "prompt": {
+   "images": [
+    "bank/3c1b38721824abcee8b8209e75202424f85be823.png"
+   ],
+   "ref": {
+    "surah": 97,
+    "from_ayah": 3,
+    "to_ayah": 3
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "1ee39ce4-2141-4112-9009-f10e00042651": {
+  "prompt": {
+   "images": [
+    "bank/b62f0b5f14387c27bc84f35aaed0ca0a82291e24.png"
+   ],
+   "ref": {
+    "surah": 72,
+    "from_ayah": 9,
+    "to_ayah": 9
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "1fb6cb91-cf8b-4619-9e1d-7a7742d620b5": {
+  "options": {
+   "bank/0cf8810d771668607c2137c0d5e393e874afed60.png": {
+    "images": [
+     "bank/0cf8810d771668607c2137c0d5e393e874afed60.png"
+    ],
+    "ref": {
+     "surah": 69,
+     "from_ayah": 3,
+     "to_ayah": 3,
+     "from_word": 1,
+     "to_word": 2
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 1
+   },
+   "bank/666a98c5f56272f9b849713d57c9eebe4d29dd4c.png": {
+    "images": [
+     "bank/666a98c5f56272f9b849713d57c9eebe4d29dd4c.png"
+    ],
+    "ref": {
+     "surah": 1,
+     "from_ayah": 7,
+     "to_ayah": 7,
+     "from_word": 9,
+     "to_word": 9
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 2
+   },
+   "bank/a822f80886744a2186830819291dd3bdab1252f7.png": {
+    "images": [
+     "bank/a822f80886744a2186830819291dd3bdab1252f7.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 31,
+     "to_ayah": 31,
+     "from_word": 8,
+     "to_word": 8
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 3
+   },
+   "bank/3f7a4d65eccd59104a0ee76c300321fc5223cf98.png": {
+    "images": [
+     "bank/3f7a4d65eccd59104a0ee76c300321fc5223cf98.png"
+    ],
+    "ref": {
+     "surah": 15,
+     "from_ayah": 85,
+     "to_ayah": 85,
+     "from_word": 6,
+     "to_word": 7
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/04510c9f686b319c8a07d000174bb14bfad93bf5.png": {
+    "images": [
+     "bank/04510c9f686b319c8a07d000174bb14bfad93bf5.png"
+    ],
+    "ref": {
+     "surah": 46,
+     "from_ayah": 5,
+     "to_ayah": 5,
+     "from_word": 17,
+     "to_word": 17
+    },
+    "status": "safe",
+    "look": [],
+    "number": 5
+   }
+  }
+ },
+ "930c950d-b162-4eb4-bdf1-710dbe6a840f": {
+  "options": {
+   "bank/666a98c5f56272f9b849713d57c9eebe4d29dd4c.png": {
+    "images": [
+     "bank/666a98c5f56272f9b849713d57c9eebe4d29dd4c.png"
+    ],
+    "ref": {
+     "surah": 1,
+     "from_ayah": 7,
+     "to_ayah": 7,
+     "from_word": 9,
+     "to_word": 9
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 5
+   },
+   "bank/5a8a46e14fe1110a70f8bdf11daf7f5d36e36e7f.png": {
+    "images": [
+     "bank/5a8a46e14fe1110a70f8bdf11daf7f5d36e36e7f.png"
+    ],
+    "ref": {
+     "surah": 36,
+     "from_ayah": 1,
+     "to_ayah": 1,
+     "from_word": 1,
+     "to_word": 1
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/5c90c2cd1dc50f6bf5888543a805528c857c1768.png": {
+    "images": [
+     "bank/5c90c2cd1dc50f6bf5888543a805528c857c1768.png"
+    ],
+    "ref": {
+     "surah": 16,
+     "from_ayah": 39,
+     "to_ayah": 39,
+     "from_word": 8,
+     "to_word": 9
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 2
+   },
+   "bank/bde24231736582055f982328057c1f8daf7bbadd.png": {
+    "images": [
+     "bank/bde24231736582055f982328057c1f8daf7bbadd.png"
+    ],
+    "ref": {
+     "surah": 26,
+     "from_ayah": 1,
+     "to_ayah": 1,
+     "from_word": 1,
+     "to_word": 1
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 3
+   },
+   "bank/117994211512681ca31ced49eedce645694eeb09.png": {
+    "images": [
+     "bank/117994211512681ca31ced49eedce645694eeb09.png"
+    ],
+    "ref": {
+     "surah": 37,
+     "from_ayah": 1,
+     "to_ayah": 1,
+     "from_word": 1,
+     "to_word": 1
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   }
+  }
+ },
+ "203c39d1-26d2-4af2-918f-0d7f5f78fc34": {
+  "prompt": {
+   "images": [
+    "bank/72eeb054aac30746fabc7737c3fe9622886fa1e9.jpg"
+   ],
+   "ref": {
+    "surah": 32,
+    "from_ayah": 3,
+    "to_ayah": 3,
+    "from_word": 3,
+    "to_word": 3
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "205b9e23-6240-4f71-8857-6b1cab64ff13": {
+  "options": {
+   "bank/fce1cd4144560d4cb4403fde54d60fc5d4e1fde6.png": {
+    "images": [
+     "bank/fce1cd4144560d4cb4403fde54d60fc5d4e1fde6.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 1,
+     "to_ayah": 1,
+     "from_word": 3,
+     "to_word": 4
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/7a73b9d10fafa8714c88eac95a3c51deb0dfe70e.png": {
+    "images": [
+     "bank/7a73b9d10fafa8714c88eac95a3c51deb0dfe70e.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 14,
+     "to_ayah": 14,
+     "from_word": 3,
+     "to_word": 4
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/eaf982484ab60764e6061a52e60a85a1a66c8558.png": {
+    "images": [
+     "bank/eaf982484ab60764e6061a52e60a85a1a66c8558.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 15,
+     "to_ayah": 15,
+     "from_word": 2,
+     "to_word": 2
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/16ab1edd411d80a79d11d44305078a3b2026f0b4.png": {
+    "images": [
+     "bank/16ab1edd411d80a79d11d44305078a3b2026f0b4.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 15,
+     "to_ayah": 15,
+     "from_word": 5,
+     "to_word": 6
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/aae39998d5e79851d5c3743219a0501f0700b31c.png": {
+    "images": [
+     "bank/aae39998d5e79851d5c3743219a0501f0700b31c.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 18,
+     "to_ayah": 18,
+     "from_word": 2,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "Picture and typeset words differ: picture is cropped at the left edge (the ف of فَكَيْفَ partly cut)."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "22e901c8-9469-4aec-94a5-e2610869dff5": {
+  "prompt": {
+   "images": [
+    "bank/7eb74c42f816c1879272bb851ca6e391e751371d.png"
+   ],
+   "ref": {
+    "surah": 90,
+    "from_ayah": 20,
+    "to_ayah": 20
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: small meem in colour; the app's text has the same ۢ mark uncoloured."
+   ]
+  }
+ },
+ "24295b46-0739-4327-af55-370fa6759a6b": {
+  "prompt": {
+   "images": [
+    "bank/3de109cf8a3e6763b26aa31bbf5d49e1ed3b16fb.png"
+   ],
+   "ref": {
+    "surah": 96,
+    "from_ayah": 10,
+    "to_ayah": 10
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "246fa77f-cee9-45fd-bf16-9036fed6282d": {
+  "options": {
+   "bank/3212db27fecbd060e07dd5020d227f3560e43dca.jpg": {
+    "images": [
+     "bank/3212db27fecbd060e07dd5020d227f3560e43dca.jpg"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 3,
+     "to_ayah": 3,
+     "from_word": 6,
+     "to_word": 7
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/1f7f0d1eff05522ae6443de1b38996085f556a12.jpg": {
+    "images": [
+     "bank/1f7f0d1eff05522ae6443de1b38996085f556a12.jpg"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 5,
+     "to_ayah": 5,
+     "from_word": 5,
+     "to_word": 6
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/e2626db88f5df5b4394be21811eae161a65535e9.jpg": {
+    "images": [
+     "bank/e2626db88f5df5b4394be21811eae161a65535e9.jpg"
+    ],
+    "ref": {
+     "surah": 3,
+     "from_ayah": 34,
+     "to_ayah": 34,
+     "from_word": 1,
+     "to_word": 1
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/444f5a7912fb53be3b8cacedf5954bdc8b434fe5.jpg": {
+    "images": [
+     "bank/444f5a7912fb53be3b8cacedf5954bdc8b434fe5.jpg"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 49,
+     "to_ayah": 49,
+     "from_word": 5,
+     "to_word": 5
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/684a030a886319f442def5b32a0a42eae7a606b9.jpg": {
+    "images": [
+     "bank/684a030a886319f442def5b32a0a42eae7a606b9.jpg"
+    ],
+    "ref": {
+     "surah": 64,
+     "from_ayah": 1,
+     "to_ayah": 1,
+     "from_word": 17,
+     "to_word": 18
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "28e6ec0b-c51a-450d-9300-5087bb331428": {
+  "options": {
+   "bank/eeccdc9dbfed38d6388a17420a67073ffeddae9f.png": {
+    "images": [
+     "bank/eeccdc9dbfed38d6388a17420a67073ffeddae9f.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 27,
+     "to_ayah": 27,
+     "from_word": 5,
+     "to_word": 6
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 1
+   },
+   "bank/255d41cee6cfe69d7c4eb8d8eb9090c756434427.png": {
+    "images": [
+     "bank/255d41cee6cfe69d7c4eb8d8eb9090c756434427.png"
+    ],
+    "ref": {
+     "surah": 41,
+     "from_ayah": 8,
+     "to_ayah": 8,
+     "from_word": 7,
+     "to_word": 8
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 2
+   },
+   "bank/f684e9460f8acea3d5be4542152878b1326f1fa7.png": {
+    "images": [
+     "bank/f684e9460f8acea3d5be4542152878b1326f1fa7.png"
+    ],
+    "ref": {
+     "surah": 96,
+     "from_ayah": 15,
+     "to_ayah": 15,
+     "from_word": 5,
+     "to_word": 6
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/de9d72f52b21b735e664a0f941e9be0e215c3961.png": {
+    "images": [
+     "bank/de9d72f52b21b735e664a0f941e9be0e215c3961.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 3,
+     "to_ayah": 3,
+     "from_word": 8,
+     "to_word": 8
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/370cf287719243e249fc3b8e7503fc14f0fb0319.png": {
+    "images": [
+     "bank/370cf287719243e249fc3b8e7503fc14f0fb0319.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 20,
+     "to_ayah": 20,
+     "from_word": 24,
+     "to_word": 25
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them.",
+     "Picture and typeset words differ: the app's text mid-ayah form is قَدِيرٌۭ (with low-meem mark); picture shows ordinary tanween with no ayah marker."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "30c36371-d98b-44be-8b60-6c26cba67978": {
+  "options": {
+   "bank/255d41cee6cfe69d7c4eb8d8eb9090c756434427.png": {
+    "images": [
+     "bank/255d41cee6cfe69d7c4eb8d8eb9090c756434427.png"
+    ],
+    "ref": {
+     "surah": 41,
+     "from_ayah": 8,
+     "to_ayah": 8,
+     "from_word": 7,
+     "to_word": 8
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 3
+   },
+   "bank/cfb260d8ec39af2a758ea08eda32100037ebb058.png": {
+    "images": [
+     "bank/cfb260d8ec39af2a758ea08eda32100037ebb058.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 90,
+     "to_ayah": 90,
+     "from_word": 17,
+     "to_word": 18
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 1
+   },
+   "bank/cb6f6684a7c2eca78085d8aac26faf215f860b6e.png": {
+    "images": [
+     "bank/cb6f6684a7c2eca78085d8aac26faf215f860b6e.png"
+    ],
+    "ref": {
+     "surah": 10,
+     "from_ayah": 12,
+     "to_ayah": 12,
+     "from_word": 3,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 2
+   },
+   "bank/546f745aa6ce04082d8275a3ce1655ffe1092c5e.png": {
+    "images": [
+     "bank/546f745aa6ce04082d8275a3ce1655ffe1092c5e.png"
+    ],
+    "ref": {
+     "surah": 95,
+     "from_ayah": 7,
+     "to_ayah": 7,
+     "from_word": 2,
+     "to_word": 2
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   },
+   "bank/fd37cad35595c8af776517c3a52a3ccfb1e4a933.png": {
+    "images": [
+     "bank/fd37cad35595c8af776517c3a52a3ccfb1e4a933.png"
+    ],
+    "ref": {
+     "surah": 95,
+     "from_ayah": 8,
+     "to_ayah": 8,
+     "from_word": 3,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [],
+    "number": 5
+   }
+  }
+ },
+ "64e1d729-fb17-4c8a-b07c-0261487068e9": {
+  "options": {
+   "bank/de9d72f52b21b735e664a0f941e9be0e215c3961.png": {
+    "images": [
+     "bank/de9d72f52b21b735e664a0f941e9be0e215c3961.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 3,
+     "to_ayah": 3,
+     "from_word": 8,
+     "to_word": 8
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 3
+   },
+   "bank/5ab07b9d595aa47ff21c69c5391d6ff9601d4808.png": {
+    "images": [
+     "bank/5ab07b9d595aa47ff21c69c5391d6ff9601d4808.png"
+    ],
+    "ref": {
+     "surah": 1,
+     "from_ayah": 7,
+     "to_ayah": 7,
+     "from_word": 3,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 1
+   },
+   "bank/4d38db3840b583ad0373106bda846f9f54777377.png": {
+    "images": [
+     "bank/4d38db3840b583ad0373106bda846f9f54777377.png"
+    ],
+    "ref": {
+     "surah": 1,
+     "from_ayah": 7,
+     "to_ayah": 7,
+     "from_word": 4,
+     "to_word": 4
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 2
+   },
+   "bank/2d06635530972a2913efd570af1784f0ec397f6c.png": {
+    "images": [
+     "bank/2d06635530972a2913efd570af1784f0ec397f6c.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 6,
+     "to_ayah": 6,
+     "from_word": 4,
+     "to_word": 5
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/baf4120623dde129db8eb575023871f9b6e47105.png": {
+    "images": [
+     "bank/baf4120623dde129db8eb575023871f9b6e47105.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 120,
+     "to_ayah": 120,
+     "from_word": 3,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "313054db-9834-4107-9c54-061cb1500450": {
+  "options": {
+   "bank/bbec373f13c8587ea3e3e22a47178e3cf5d56ef7.png": {
+    "images": [
+     "bank/bbec373f13c8587ea3e3e22a47178e3cf5d56ef7.png"
+    ],
+    "ref": {
+     "surah": 37,
+     "from_ayah": 1,
+     "to_ayah": 1,
+     "from_word": 1,
+     "to_word": 1
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/c5d3ab6faf0d1b9ccfdbc17db2d336094bb82465.png": {
+    "images": [
+     "bank/c5d3ab6faf0d1b9ccfdbc17db2d336094bb82465.png"
+    ],
+    "ref": {
+     "surah": 1,
+     "from_ayah": 7,
+     "to_ayah": 7,
+     "from_word": 9,
+     "to_word": 9
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 2
+   },
+   "bank/f758ed812a31ce3dd21c4f6c7656369a671f1b1c.png": {
+    "images": [
+     "bank/f758ed812a31ce3dd21c4f6c7656369a671f1b1c.png"
+    ],
+    "ref": {
+     "surah": 26,
+     "from_ayah": 1,
+     "to_ayah": 1,
+     "from_word": 1,
+     "to_word": 1
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 3
+   },
+   "bank/22d21e7e62a1eeb2086d2a20e16cdf188e521cd9.png": {
+    "images": [
+     "bank/22d21e7e62a1eeb2086d2a20e16cdf188e521cd9.png"
+    ],
+    "ref": {
+     "surah": 16,
+     "from_ayah": 39,
+     "to_ayah": 39,
+     "from_word": 8,
+     "to_word": 9
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/3e4c66c9eaa5feeb5546ae9248c319038c577744.png": {
+    "images": [
+     "bank/3e4c66c9eaa5feeb5546ae9248c319038c577744.png"
+    ],
+    "ref": {
+     "surah": 36,
+     "from_ayah": 1,
+     "to_ayah": 1,
+     "from_word": 1,
+     "to_word": 1
+    },
+    "status": "safe",
+    "look": [],
+    "number": 5
+   }
+  }
+ },
+ "32c5e9f1-acde-4a72-9dc6-63bf3c9005dc": {
+  "prompt": {
+   "images": [
+    "bank/4fe886b68235dcb465c1d67b24babac8f68d33f9.png"
+   ],
+   "ref": {
+    "surah": 67,
+    "from_ayah": 25,
+    "to_ayah": 25
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "32fc9a79-d3e4-4932-bf61-6055041baafb": {
+  "prompt": {
+   "images": [
+    "bank/9ef1ae13da18ca217169f71e76a90670acb0d573.png"
+   ],
+   "ref": {
+    "surah": 106,
+    "from_ayah": 1,
+    "to_ayah": 4
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: Madani page crop with running header (juz and surah names), surah banner and basmala."
+   ]
+  }
+ },
+ "35584a90-eae7-4b15-b4fa-dea4bb532064": {
+  "prompt": {
+   "images": [
+    "bank/839d0c0388cee37f403e8ec4d876e3e60ef6b032.png"
+   ],
+   "ref": {
+    "surah": 105,
+    "from_ayah": 4,
+    "to_ayah": 4
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "39ed0a09-adad-46d5-bd22-1a91d748af7d": {
+  "prompt": {
+   "images": [
+    "bank/3c0b9689c2ef12361ffbd9a76614d8a991f9984c.jpg"
+   ],
+   "ref": {
+    "surah": 95,
+    "from_ayah": 1,
+    "to_ayah": 8
+   },
+   "status": "owner_check",
+   "look": [
+    "Picture and typeset words differ: Madani page crop with surah banner and basmala.",
+    "Check before using: counting question (madd asli, keyed 23) over a picture that includes the basmala; if the teacher counted the basmala, typesetting 95:1-8 alone changes the answer. old prompt_quran 95:1-8 is right for the surah text itself"
+   ]
+  }
+ },
+ "3f539717-001c-4302-aef4-fbcbfc62f6cc": {
+  "prompt": {
+   "images": [
+    "bank/a351491510ec305181a83a6c53084d91c9ee015d.jpg"
+   ],
+   "ref": {
+    "surah": 81,
+    "from_ayah": 29,
+    "to_ayah": 29
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "408abef3-a010-400d-982c-953457799b01": {
+  "prompt": {
+   "images": [
+    "bank/db13eba9d2ccc0bd72802b6b2c8154665ea21826.png"
+   ],
+   "ref": {
+    "surah": 2,
+    "from_ayah": 17,
+    "to_ayah": 17,
+    "from_word": 3,
+    "to_word": 3
+   },
+   "status": "safe",
+   "look": [
+    "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+   ]
+  }
+ },
+ "4369f631-780c-4f4b-9288-72ee3d21c2ee": {
+  "prompt": {
+   "images": [
+    "bank/8550f808fe14cc3f5074ff08aa24f31ad128f8fb.png"
+   ],
+   "ref": {
+    "surah": 104,
+    "from_ayah": 7,
+    "to_ayah": 7
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "447b705b-640d-466e-bb85-72ac88e15766": {
+  "prompt": {
+   "images": [
+    "bank/cbd207cce98c95baa5f998de00c3556da1e1516c.png"
+   ],
+   "ref": {
+    "surah": 89,
+    "from_ayah": 14,
+    "to_ayah": 14,
+    "from_word": 3,
+    "to_word": 3
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "44b329c3-3140-4667-9ea5-9f252c4dd57c": {
+  "prompt": {
+   "images": [
+    "bank/b48eef0d56f643e15022ed8f335150c57574240d.png"
+   ],
+   "ref": {
+    "surah": 113,
+    "from_ayah": 1,
+    "to_ayah": 5
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: Madani page crop with green border, surah banner and basmala."
+   ]
+  }
+ },
+ "466b01c4-c998-45e2-b953-ad20f727fd73": {
+  "prompt": {
+   "images": [
+    "bank/471c372d63da2b9fddb24a9f8b553ee7f01a4e2a.png"
+   ],
+   "ref": {
+    "surah": 96,
+    "from_ayah": 14,
+    "to_ayah": 14
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "472ba5db-e8f6-4d55-8236-c2fa4ebd59b6": {
+  "prompt": {
+   "images": [
+    "bank/9d360b3c030a4a58ca2f6f576f87677828c98a18.png"
+   ],
+   "ref": {
+    "surah": 4,
+    "from_ayah": 143,
+    "to_ayah": 143
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: picture has a ج pause sign after the second هَـٰٓؤُلَآءِ; the the app's text text has no waqf sign there."
+   ]
+  }
+ },
+ "49074f4b-5d68-4ec4-af5d-cd1709d59f79": {
+  "prompt": {
+   "images": [
+    "bank/badc5bcdddf068217390fe1875f3427ed49c6e51.png"
+   ],
+   "ref": {
+    "surah": 15,
+    "from_ayah": 26,
+    "to_ayah": 26,
+    "from_word": 2,
+    "to_word": 2
+   },
+   "status": "safe",
+   "look": [
+    "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+   ]
+  }
+ },
+ "4932e921-805f-428a-950f-f301cef578b4": {
+  "prompt": {
+   "images": [
+    "bank/0d82e657a62c22af798ba952797fd1c4e59fbb05.png"
+   ],
+   "ref": {
+    "surah": 109,
+    "from_ayah": 1,
+    "to_ayah": 6
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: plain text of the surah (no banner, no basmala)."
+   ]
+  }
+ },
+ "4ba206df-0b7b-4f8b-bc9f-5dfe0d63746c": {
+  "prompt": {
+   "images": [
+    "bank/3c8348678df90036b6eace0de01a4cca07cef873.png"
+   ],
+   "ref": {
+    "surah": 105,
+    "from_ayah": 1,
+    "to_ayah": 5
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: Madani page crop with green border, banner, basmala, plus decorative doodles (stars, heart, swirl) outside the border."
+   ]
+  }
+ },
+ "4bca825d-55e6-4e0f-a06a-bc78c05140c8": {
+  "prompt": {
+   "images": [
+    "bank/36104b77bf16002e29bb5ce326d002603d55cee1.png"
+   ],
+   "ref": {
+    "surah": 96,
+    "from_ayah": 14,
+    "to_ayah": 14
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "4f003b6d-6c1e-4284-974c-329bbf7d66af": {
+  "options": {
+   "bank/eaeeb8fcb8d8f6f40943938ff29eaa77ef92baa5.png": {
+    "images": [
+     "bank/eaeeb8fcb8d8f6f40943938ff29eaa77ef92baa5.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 90,
+     "to_ayah": 90,
+     "from_word": 17,
+     "to_word": 18
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 1
+   },
+   "bank/2c80c51fd47eb12381cc3c387edfe83256d4160b.png": {
+    "images": [
+     "bank/2c80c51fd47eb12381cc3c387edfe83256d4160b.png"
+    ],
+    "ref": {
+     "surah": 10,
+     "from_ayah": 12,
+     "to_ayah": 12,
+     "from_word": 3,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 2
+   },
+   "bank/df263350f7e7c44b5a229977dcde905393d21e08.png": {
+    "images": [
+     "bank/df263350f7e7c44b5a229977dcde905393d21e08.png"
+    ],
+    "ref": {
+     "surah": 95,
+     "from_ayah": 7,
+     "to_ayah": 7,
+     "from_word": 2,
+     "to_word": 2
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   },
+   "bank/0084972bff4a321fdd344a111468489669c0f2a7.png": {
+    "images": [
+     "bank/0084972bff4a321fdd344a111468489669c0f2a7.png"
+    ],
+    "ref": {
+     "surah": 95,
+     "from_ayah": 8,
+     "to_ayah": 8,
+     "from_word": 3,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [],
+    "number": 5
+   },
+   "bank/b151c544f31d6d5b705b0a5869b17e6196e82497.png": {
+    "images": [
+     "bank/b151c544f31d6d5b705b0a5869b17e6196e82497.png"
+    ],
+    "ref": {
+     "surah": 41,
+     "from_ayah": 8,
+     "to_ayah": 8,
+     "from_word": 7,
+     "to_word": 8
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 3
+   }
+  }
+ },
+ "83f73b9c-d1e6-41d9-b780-6a86e297bb84": {
+  "options": {
+   "bank/2c80c51fd47eb12381cc3c387edfe83256d4160b.png": {
+    "images": [
+     "bank/2c80c51fd47eb12381cc3c387edfe83256d4160b.png"
+    ],
+    "ref": {
+     "surah": 10,
+     "from_ayah": 12,
+     "to_ayah": 12,
+     "from_word": 3,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 2
+   },
+   "bank/7ec63cc6050961bb9384823fb3e6a630f94ae087.png": {
+    "images": [
+     "bank/7ec63cc6050961bb9384823fb3e6a630f94ae087.png"
+    ],
+    "ref": {
+     "surah": 14,
+     "from_ayah": 8,
+     "to_ayah": 8,
+     "from_word": 5,
+     "to_word": 5
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 1
+   },
+   "bank/fbfea3323d0637f48ca97b8e6648deaa37813de6.png": {
+    "images": [
+     "bank/fbfea3323d0637f48ca97b8e6648deaa37813de6.png"
+    ],
+    "ref": {
+     "surah": 14,
+     "from_ayah": 8,
+     "to_ayah": 8,
+     "from_word": 12,
+     "to_word": 13
+    },
+    "status": "safe",
+    "look": [
+     "Picture and typeset words differ: picture has no ayah-8 marker."
+    ],
+    "number": 3
+   },
+   "bank/02ccaf181fd00c001dd5e985d8616ac586b89d4b.png": {
+    "images": [
+     "bank/02ccaf181fd00c001dd5e985d8616ac586b89d4b.png"
+    ],
+    "ref": {
+     "surah": 14,
+     "from_ayah": 8,
+     "to_ayah": 8,
+     "from_word": 3,
+     "to_word": 4
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   },
+   "bank/13fb664c2dd3d24d161a8dfbd379ddbcdfb46ff3.png": {
+    "images": [
+     "bank/13fb664c2dd3d24d161a8dfbd379ddbcdfb46ff3.png"
+    ],
+    "ref": {
+     "surah": 14,
+     "from_ayah": 16,
+     "to_ayah": 16,
+     "from_word": 1,
+     "to_word": 2
+    },
+    "status": "safe",
+    "look": [
+     "Picture and typeset words differ: picture is cropped tightly at the left edge (the small ya after هِ is partly cut)."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "501b4c75-4336-4b5f-b7d7-1a29092d8a01": {
+  "prompt": {
+   "images": [
+    "bank/291a98bd898847e3571ce20530a9645e923596b5.jpg"
+   ],
+   "ref": {
+    "surah": 3,
+    "from_ayah": 186,
+    "to_ayah": 186,
+    "from_word": 24,
+    "to_word": 24
+   },
+   "status": "safe",
+   "look": [
+    "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+   ]
+  }
+ },
+ "50664a9c-b728-45cf-9c89-277ad3579e6e": {
+  "prompt": {
+   "images": [
+    "bank/05b57ef2ff497ea94f22db74af34fb6fabe497e3.png"
+   ],
+   "ref": {
+    "surah": 86,
+    "from_ayah": 2,
+    "to_ayah": 2
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "50f77a9f-4646-492d-9525-327560d00bec": {
+  "prompt": {
+   "images": [
+    "bank/83418acc600eea67b2cbc652df7db847dc9e982e.png"
+   ],
+   "ref": {
+    "surah": 96,
+    "from_ayah": 10,
+    "to_ayah": 10
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "51cac1c6-343d-43b2-8599-d27a8ed8db15": {
+  "prompt": {
+   "images": [
+    "bank/560c21faa4e5eec8c5a16137c05609f98be6c870.png"
+   ],
+   "ref": {
+    "surah": 68,
+    "from_ayah": 11,
+    "to_ayah": 11
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "52b67136-58ba-4e39-8ced-0498d09ee7c9": {
+  "prompt": {
+   "images": [
+    "bank/a9662731c2357492427310d3f06683f4b026a2ec.jpg"
+   ],
+   "ref": {
+    "surah": 103,
+    "from_ayah": 2,
+    "to_ayah": 2,
+    "from_word": 4,
+    "to_word": 5
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "5327d204-f8f2-4582-a3da-2045b6cfd5f7": {
+  "prompt": {
+   "images": [
+    "bank/48f40f555d498380775ea6dc5230189b2a81ee8d.png"
+   ],
+   "ref": {
+    "surah": 99,
+    "from_ayah": 7,
+    "to_ayah": 7
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "5444c6fa-4217-457d-a7d2-3e3307b216f5": {
+  "prompt": {
+   "images": [
+    "bank/66ed159a3d969ea8d660fd4366252a72a394d671.png"
+   ],
+   "ref": {
+    "surah": 106,
+    "from_ayah": 4,
+    "to_ayah": 4
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "5a5fa7da-9fa7-4f48-8c40-b8fe6af7a6c7": {
+  "options": {
+   "bank/247bffe0f184d6e9e7e834ea66140f9218f06ac4.png": {
+    "images": [
+     "bank/247bffe0f184d6e9e7e834ea66140f9218f06ac4.png"
+    ],
+    "ref": {
+     "surah": 14,
+     "from_ayah": 7,
+     "to_ayah": 7,
+     "from_word": 4,
+     "to_word": 5
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/18a51186c7678ef4e9059d554ad4e2e98dfefc5e.png": {
+    "images": [
+     "bank/18a51186c7678ef4e9059d554ad4e2e98dfefc5e.png"
+    ],
+    "ref": {
+     "surah": 22,
+     "from_ayah": 25,
+     "to_ayah": 25,
+     "from_word": 23,
+     "to_word": 24
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 3
+   },
+   "bank/6a3c4c15f7406719bcd3d06a0ec8be4fbd5c3c70.png": {
+    "images": [
+     "bank/6a3c4c15f7406719bcd3d06a0ec8be4fbd5c3c70.png"
+    ],
+    "ref": {
+     "surah": 6,
+     "from_ayah": 92,
+     "to_ayah": 92,
+     "from_word": 3,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/e78a3fa743851b0dd4630dbed4dcc0ea7e6787c4.png": {
+    "images": [
+     "bank/e78a3fa743851b0dd4630dbed4dcc0ea7e6787c4.png"
+    ],
+    "ref": {
+     "surah": 14,
+     "from_ayah": 3,
+     "to_ayah": 3,
+     "from_word": 15,
+     "to_word": 16
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 5
+   },
+   "bank/692679cb58e4f022ddecdefc43ceafca78194254.png": {
+    "images": [
+     "bank/692679cb58e4f022ddecdefc43ceafca78194254.png"
+    ],
+    "ref": {
+     "surah": 1,
+     "from_ayah": 7,
+     "to_ayah": 7,
+     "from_word": 4,
+     "to_word": 4
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 2
+   }
+  }
+ },
+ "5b37a9da-9b7f-4bba-a0bf-63e8ac2d1a40": {
+  "prompt": {
+   "images": [
+    "bank/47d4eeb161a263be8741e749c054b2e83e5693f6.png"
+   ],
+   "ref": {
+    "surah": 96,
+    "from_ayah": 7,
+    "to_ayah": 7,
+    "from_word": 3,
+    "to_word": 3
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "5b8a7010-73bb-4c7f-9548-36ed2c3b64db": {
+  "prompt": {
+   "images": [
+    "bank/2a2dddaa8e7da48919d2b5a4a84e91b01c992b46.png"
+   ],
+   "ref": {
+    "surah": 106,
+    "from_ayah": 1,
+    "to_ayah": 4
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: plain text, no banner or basmala."
+   ]
+  }
+ },
+ "660bfbd2-e24d-4045-8e19-b66719aebe4d": {
+  "prompt": {
+   "images": [
+    "bank/ad88820f1b02a2363f3270049db1a48b454025c4.png"
+   ],
+   "ref": {
+    "surah": 96,
+    "from_ayah": 10,
+    "to_ayah": 10
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "fc5407f1-d4e4-4b6d-b096-c91a33bc92c7": {
+  "prompt": {
+   "images": [
+    "bank/ad88820f1b02a2363f3270049db1a48b454025c4.png"
+   ],
+   "ref": {
+    "surah": 96,
+    "from_ayah": 10,
+    "to_ayah": 10
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "6bb271a5-639a-46a6-8147-9b416acea377": {
+  "options": {
+   "bank/14257564f4f614f5c92f6481c827eb6543ac719f.png": {
+    "images": [
+     "bank/14257564f4f614f5c92f6481c827eb6543ac719f.png"
+    ],
+    "ref": {
+     "surah": 19,
+     "from_ayah": 14,
+     "to_ayah": 14
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/83e9c194ee6e1489f21ed35648de7742784466ae.png": {
+    "images": [
+     "bank/83e9c194ee6e1489f21ed35648de7742784466ae.png"
+    ],
+    "ref": {
+     "surah": 81,
+     "from_ayah": 2,
+     "to_ayah": 2
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/dea1b194007e064522e03ef4d570c90ecc82acea.png": {
+    "images": [
+     "bank/dea1b194007e064522e03ef4d570c90ecc82acea.png"
+    ],
+    "ref": {
+     "surah": 77,
+     "from_ayah": 50,
+     "to_ayah": 50
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/e49b29b6f936cf04ab418e7cc2a4abe3ec7d7436.png": {
+    "images": [
+     "bank/e49b29b6f936cf04ab418e7cc2a4abe3ec7d7436.png"
+    ],
+    "ref": {
+     "surah": 73,
+     "from_ayah": 7,
+     "to_ayah": 7
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   },
+   "bank/cbee3272d5fb74ff3715723bf1f5c6c0d50509ba.png": {
+    "images": [
+     "bank/cbee3272d5fb74ff3715723bf1f5c6c0d50509ba.png"
+    ],
+    "ref": {
+     "surah": 77,
+     "from_ayah": 47,
+     "to_ayah": 47
+    },
+    "status": "safe",
+    "look": [],
+    "number": 5
+   }
+  }
+ },
+ "6c4fd53c-7eda-462a-811e-d43db4c97118": {
+  "prompt": {
+   "images": [
+    "bank/62cd09598b1dcf77b068dc849a026e5f6d3bdc38.jpg"
+   ],
+   "ref": {
+    "surah": 3,
+    "from_ayah": 137,
+    "to_ayah": 137,
+    "from_word": 12,
+    "to_word": 12
+   },
+   "status": "safe",
+   "look": [
+    "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+   ]
+  }
+ },
+ "6e9bb137-8530-4841-b386-8a5214aafad0": {
+  "options": {
+   "bank/b86b49d52964bf4b4d4dd3350265e3c6b18f26fe.png": {
+    "images": [
+     "bank/b86b49d52964bf4b4d4dd3350265e3c6b18f26fe.png"
+    ],
+    "ref": {
+     "surah": 1,
+     "from_ayah": 7,
+     "to_ayah": 7,
+     "from_word": 3,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 1
+   },
+   "bank/692679cb58e4f022ddecdefc43ceafca78194254.png": {
+    "images": [
+     "bank/692679cb58e4f022ddecdefc43ceafca78194254.png"
+    ],
+    "ref": {
+     "surah": 1,
+     "from_ayah": 7,
+     "to_ayah": 7,
+     "from_word": 4,
+     "to_word": 4
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 2
+   },
+   "bank/750a7a17a4584aadff7218ab9945f848d23e1602.png": {
+    "images": [
+     "bank/750a7a17a4584aadff7218ab9945f848d23e1602.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 6,
+     "to_ayah": 6,
+     "from_word": 4,
+     "to_word": 5
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/4732a3ecbf19715b7800cb0bd02aca10c32d0a87.png": {
+    "images": [
+     "bank/4732a3ecbf19715b7800cb0bd02aca10c32d0a87.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 120,
+     "to_ayah": 120,
+     "from_word": 3,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 5
+   },
+   "bank/c5754fe5d231e99a70b76823724b04f4e9b5a11d.png": {
+    "images": [
+     "bank/c5754fe5d231e99a70b76823724b04f4e9b5a11d.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 3,
+     "to_ayah": 3,
+     "from_word": 8,
+     "to_word": 8
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 3
+   }
+  }
+ },
+ "6f104bda-9996-449e-89b5-77c5331f25e9": {
+  "prompt": {
+   "images": [
+    "bank/f60065b232635be0f97f4f44d7277aa19349b5a8.png"
+   ],
+   "ref": {
+    "surah": 88,
+    "from_ayah": 8,
+    "to_ayah": 8
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "75f38dbc-feac-4aad-821f-a9bf54b8cdf3": {
+  "prompt": {
+   "images": [
+    "bank/83af97ecc295509002a9d849d579d17a20f3bcbf.jpg"
+   ],
+   "ref": {
+    "surah": 31,
+    "from_ayah": 19,
+    "to_ayah": 19
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: picture has a ج pause sign after صَوْتِكَ that the the app's text text lacks; picture has no ayah-end marker."
+   ]
+  }
+ },
+ "75f9cc7b-39c5-440e-9d72-8ea617d1cf9e": {
+  "options": {
+   "bank/01aa2fd4abca80e2421ba0cd29a3d4b39b3d2e2e.png": {
+    "images": [
+     "bank/01aa2fd4abca80e2421ba0cd29a3d4b39b3d2e2e.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 3,
+     "to_ayah": 3,
+     "from_word": 6,
+     "to_word": 7
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/f833e752eb54aa7aea53d4d7ac8d92455d8aa5a1.png": {
+    "images": [
+     "bank/f833e752eb54aa7aea53d4d7ac8d92455d8aa5a1.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 5,
+     "to_ayah": 5,
+     "from_word": 5,
+     "to_word": 6
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/e063027170cc16658f91fda70f45d0db67a1d5f6.png": {
+    "images": [
+     "bank/e063027170cc16658f91fda70f45d0db67a1d5f6.png"
+    ],
+    "ref": {
+     "surah": 66,
+     "from_ayah": 6,
+     "to_ayah": 6,
+     "from_word": 10,
+     "to_word": 10
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 3
+   },
+   "bank/1f0f2d559794f584e5243fb0164482da69f14c46.png": {
+    "images": [
+     "bank/1f0f2d559794f584e5243fb0164482da69f14c46.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 49,
+     "to_ayah": 49,
+     "from_word": 5,
+     "to_word": 5
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/47c8d92b0b871d24687d0d8a78f7945e902e4b5d.png": {
+    "images": [
+     "bank/47c8d92b0b871d24687d0d8a78f7945e902e4b5d.png"
+    ],
+    "ref": {
+     "surah": 64,
+     "from_ayah": 1,
+     "to_ayah": 1,
+     "from_word": 17,
+     "to_word": 18
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "7717a906-920e-4b8f-95b4-cffea44072cc": {
+  "prompt": {
+   "images": [
+    "bank/bfb1fe57ecdabdfe4c29bdf3ce7762a7b28e21c6.png"
+   ],
+   "ref": {
+    "surah": 90,
+    "from_ayah": 4,
+    "to_ayah": 4
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "78109d56-6fde-4834-852d-c9d35bf98d4a": {
+  "prompt": {
+   "images": [
+    "bank/55e4dc0eabd5d259c414752cb4d17ba0ce91f1b0.png"
+   ],
+   "ref": {
+    "surah": 53,
+    "from_ayah": 45,
+    "to_ayah": 45,
+    "from_word": 4,
+    "to_word": 4
+   },
+   "status": "safe",
+   "look": [
+    "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+   ]
+  }
+ },
+ "7b0618ed-e4a2-4df0-966a-66015628abd1": {
+  "prompt": {
+   "images": [
+    "bank/b096e76e8b4f7f13aded7751ecfa470016871474.png"
+   ],
+   "ref": {
+    "surah": 1,
+    "from_ayah": 3,
+    "to_ayah": 3
+   },
+   "status": "emphasis",
+   "look": [
+    "The picture circles one letter for the question. The typeset words cannot show that circle, so keep the picture unless the question is reworded.",
+    "Picture and typeset words differ: purple circle; without it the question is ambiguous because ٱلرَّحِيمِ also has a ر with shadda."
+   ]
+  }
+ },
+ "7b1ad69e-ada8-4ff6-9999-bdbd1d2e7bc3": {
+  "prompt": {
+   "images": [
+    "bank/97aadfc8039f34d3458a89c43657b701a8579896.png"
+   ],
+   "ref": {
+    "surah": 67,
+    "from_ayah": 27,
+    "to_ayah": 27
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "7d54e0ef-c5b5-48f9-9eed-3d762fa74bb4": {
+  "prompt": {
+   "images": [
+    "bank/55295d7f8476085657c621ffdf02a6e20ab2e487.png"
+   ],
+   "ref": {
+    "surah": 2,
+    "from_ayah": 156,
+    "to_ayah": 156
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "7e925b88-e08d-465b-b0f5-e6616a2c93e0": {
+  "prompt": {
+   "images": [
+    "bank/2d7cca1e4c6f9e3cc8dcc0943e29a156c7c75d1e.jpg"
+   ],
+   "ref": {
+    "surah": 86,
+    "from_ayah": 1,
+    "to_ayah": 17
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: Madani page crop with running header, banner and basmala."
+   ]
+  }
+ },
+ "8405f006-1b78-40d6-a577-87eb5955448a": {
+  "prompt": {
+   "images": [
+    "bank/b176da393cd2d05664cf9985cde7d5239a253cb1.png"
+   ],
+   "ref": {
+    "surah": 69,
+    "from_ayah": 3,
+    "to_ayah": 3,
+    "from_word": 2,
+    "to_word": 2
+   },
+   "status": "safe",
+   "look": [
+    "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+   ]
+  }
+ },
+ "8535dd5e-9538-497f-a4a5-b615ecacf525": {
+  "prompt": {
+   "images": [
+    "bank/325406f97fb4b0bcf54ca3257c5b98b46bca87cc.png"
+   ],
+   "ref": {
+    "surah": 37,
+    "from_ayah": 1,
+    "to_ayah": 2
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "86dae8f7-0ee2-4f0b-af20-feee11a8d944": {
+  "options": {
+   "bank/cacf68e4fa12eacb45701b77d428c531c624ba49.png": {
+    "images": [
+     "bank/cacf68e4fa12eacb45701b77d428c531c624ba49.png"
+    ],
+    "ref": {
+     "surah": 83,
+     "from_ayah": 10,
+     "to_ayah": 10
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/115de428ee90d3555695201ccef4f0b45919f9e2.png": {
+    "images": [
+     "bank/115de428ee90d3555695201ccef4f0b45919f9e2.png"
+    ],
+    "ref": {
+     "surah": 83,
+     "from_ayah": 15,
+     "to_ayah": 15
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/d498742e54ed43c8ffb5c66264d6378c05aa47e3.png": {
+    "images": [
+     "bank/d498742e54ed43c8ffb5c66264d6378c05aa47e3.png"
+    ],
+    "ref": {
+     "surah": 83,
+     "from_ayah": 19,
+     "to_ayah": 19
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/68c76533321d7ff895dd2ff5d6a469095dbcea4b.png": {
+    "images": [
+     "bank/68c76533321d7ff895dd2ff5d6a469095dbcea4b.png"
+    ],
+    "ref": {
+     "surah": 83,
+     "from_ayah": 27,
+     "to_ayah": 27
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   },
+   "bank/bf4392435adbce9121cea7f2e515fa808c5f98f5.png": {
+    "images": [
+     "bank/bf4392435adbce9121cea7f2e515fa808c5f98f5.png"
+    ],
+    "ref": {
+     "surah": 84,
+     "from_ayah": 8,
+     "to_ayah": 8
+    },
+    "status": "safe",
+    "look": [],
+    "number": 5
+   }
+  }
+ },
+ "89680681-d9e3-49cc-96fc-3ca5a46b5074": {
+  "options": {
+   "bank/122d97e78b757dbd33ef37e946d70777a4575836.png": {
+    "images": [
+     "bank/122d97e78b757dbd33ef37e946d70777a4575836.png"
+    ],
+    "ref": {
+     "surah": 73,
+     "from_ayah": 2,
+     "to_ayah": 2
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/fc7b740f1b8eec908de8c8dc6dff23bef7d44848.png": {
+    "images": [
+     "bank/fc7b740f1b8eec908de8c8dc6dff23bef7d44848.png"
+    ],
+    "ref": {
+     "surah": 81,
+     "from_ayah": 9,
+     "to_ayah": 9
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/71b259136740a2f913359fb9856a201cdbf44f49.png": {
+    "images": [
+     "bank/71b259136740a2f913359fb9856a201cdbf44f49.png"
+    ],
+    "ref": {
+     "surah": 74,
+     "from_ayah": 2,
+     "to_ayah": 2
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/4aa162365057e0bbb87ac67bcfef9c21137a8923.png": {
+    "images": [
+     "bank/4aa162365057e0bbb87ac67bcfef9c21137a8923.png"
+    ],
+    "ref": {
+     "surah": 74,
+     "from_ayah": 8,
+     "to_ayah": 8
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   },
+   "bank/dc0ea9e7aafe154337eb24612a4a36003f0b00dc.png": {
+    "images": [
+     "bank/dc0ea9e7aafe154337eb24612a4a36003f0b00dc.png"
+    ],
+    "ref": {
+     "surah": 74,
+     "from_ayah": 11,
+     "to_ayah": 11
+    },
+    "status": "safe",
+    "look": [],
+    "number": 5
+   }
+  }
+ },
+ "8ac3a376-c1ba-4ef4-980b-32665fadcc67": {
+  "prompt": {
+   "images": [
+    "bank/a9f02502bfc1da18edddec3540f7774c0ad39224.png",
+    "bank/d64da4db2d090343c6eb0d72afd824b8dee34b51.png"
+   ],
+   "ref": {
+    "surah": 104,
+    "from_ayah": 1,
+    "to_ayah": 2
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "8af2ddbd-a6c2-4165-aaa8-021ab47a1740": {
+  "prompt": {
+   "images": [
+    "bank/a8275e75a99911e75c55d4f7157ad0b078984bed.png"
+   ],
+   "ref": {
+    "surah": 86,
+    "from_ayah": 17,
+    "to_ayah": 17
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "8c1bb47c-81e8-4575-9aa8-de3ccb6b61bd": {
+  "prompt": {
+   "images": [
+    "bank/342ace3559268794ea272633c2a5d207f9bbd598.png"
+   ],
+   "ref": {
+    "surah": 2,
+    "from_ayah": 159,
+    "to_ayah": 159
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: picture shows a small لا waqf sign over ٱلْكِتَـٰبِ that the the app's text text lacks."
+   ]
+  }
+ },
+ "8d116d22-17a6-4fba-92ac-4857a31e6628": {
+  "options": {
+   "bank/ca6c44649e8abc456975e53801b010005d4022eb.png": {
+    "images": [
+     "bank/ca6c44649e8abc456975e53801b010005d4022eb.png"
+    ],
+    "ref": {
+     "surah": 75,
+     "from_ayah": 13,
+     "to_ayah": 13
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/7a4e4c4aa71bc972e95f1909472b78b807711c43.png": {
+    "images": [
+     "bank/7a4e4c4aa71bc972e95f1909472b78b807711c43.png"
+    ],
+    "ref": {
+     "surah": 75,
+     "from_ayah": 14,
+     "to_ayah": 14
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   }
+  }
+ },
+ "8d95685c-c4f1-485b-8392-4d84cba07010": {
+  "prompt": {
+   "images": [
+    "bank/0455abaa6e4bc54f9482b5be2fa6ee7b9583b789.png"
+   ],
+   "ref": {
+    "surah": 91,
+    "from_ayah": 14,
+    "to_ayah": 14
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "95a5f263-fc4e-4c53-af93-e0ab3e81b835": {
+  "prompt": {
+   "images": [
+    "bank/6ad241c0a65d3ba6901f895a1a89f8a0b2a87aad.png"
+   ],
+   "ref": {
+    "surah": 1,
+    "from_ayah": 1,
+    "to_ayah": 1
+   },
+   "status": "emphasis",
+   "look": [
+    "The picture circles one letter for the question. The typeset words cannot show that circle, so keep the picture unless the question is reworded.",
+    "Picture and typeset words differ: purple circle (and stray teal mark)."
+   ]
+  }
+ },
+ "979b421f-67c4-4446-b1ed-f7304c197d59": {
+  "prompt": {
+   "images": [
+    "bank/a6510b5f79e50a1b1e1ea76ea4e6ccdd6e947cbb.png"
+   ],
+   "ref": {
+    "surah": 97,
+    "from_ayah": 1,
+    "to_ayah": 5
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: Madani page crop with green border, banner and basmala."
+   ]
+  }
+ },
+ "980df89f-ca63-4e94-a422-230dd7d77f7f": {
+  "options": {
+   "bank/cccb354153dac37335f32c80097e79040744a884.jpg": {
+    "images": [
+     "bank/cccb354153dac37335f32c80097e79040744a884.jpg"
+    ],
+    "ref": {
+     "surah": 87,
+     "from_ayah": 2,
+     "to_ayah": 2
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/f69743de221c22d71b75251a437ae16a3fa54b88.jpg": {
+    "images": [
+     "bank/f69743de221c22d71b75251a437ae16a3fa54b88.jpg"
+    ],
+    "ref": {
+     "surah": 82,
+     "from_ayah": 11,
+     "to_ayah": 11
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/10d2249fe3e040cc29dbe8e2ee3a952c7c84db44.jpg": {
+    "images": [
+     "bank/10d2249fe3e040cc29dbe8e2ee3a952c7c84db44.jpg"
+    ],
+    "ref": {
+     "surah": 89,
+     "from_ayah": 5,
+     "to_ayah": 5
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/9f514959b6c67f974f4dc6a657de81c56b44bdcc.jpg": {
+    "images": [
+     "bank/9f514959b6c67f974f4dc6a657de81c56b44bdcc.jpg"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 50,
+     "to_ayah": 50
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   },
+   "bank/8e034547e9737ab03f26400306c5f7dbb5f997bb.jpg": {
+    "images": [
+     "bank/8e034547e9737ab03f26400306c5f7dbb5f997bb.jpg"
+    ],
+    "ref": {
+     "surah": 87,
+     "from_ayah": 5,
+     "to_ayah": 5
+    },
+    "status": "safe",
+    "look": [],
+    "number": 5
+   }
+  }
+ },
+ "9930907f-1b43-4f3f-b79a-577eeaa90063": {
+  "prompt": {
+   "images": [
+    "bank/66861cd0008df437bbbe8d4034a01a560bd329f2.png"
+   ],
+   "ref": {
+    "surah": 68,
+    "from_ayah": 11,
+    "to_ayah": 11
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: no ayah-end marker in picture; a sliver of the next line is visible at the bottom edge."
+   ]
+  }
+ },
+ "9b53b547-63dd-43d5-b09d-8e7166cae6e9": {
+  "prompt": {
+   "images": [
+    "bank/aec7cb4480deb75c743b8d47203c1092d066abad.png"
+   ],
+   "ref": {
+    "surah": 70,
+    "from_ayah": 1,
+    "to_ayah": 1
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "ee20fa89-270e-41de-9f1b-f432eef7eaea": {
+  "prompt": {
+   "images": [
+    "bank/aec7cb4480deb75c743b8d47203c1092d066abad.png"
+   ],
+   "ref": {
+    "surah": 70,
+    "from_ayah": 1,
+    "to_ayah": 1
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "9e25b6c4-057b-499c-abe1-337d0426c258": {
+  "prompt": {
+   "images": [
+    "bank/d6f8054b73df5bc33de04fb89f460171efa12d6e.png"
+   ],
+   "ref": {
+    "surah": 89,
+    "from_ayah": 28,
+    "to_ayah": 28,
+    "from_word": 1,
+    "to_word": 1
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "a2318774-066e-4768-9bdc-57e3f2534837": {
+  "prompt": {
+   "images": [
+    "bank/2abf9dab48c2f1794102f54429b9171a96f32bcd.png"
+   ],
+   "ref": {
+    "surah": 96,
+    "from_ayah": 16,
+    "to_ayah": 16,
+    "from_word": 3,
+    "to_word": 3
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: picture shows the bare word without the ayah-16 marker."
+   ]
+  }
+ },
+ "a2898b4c-13d1-4f59-9e04-5e58e276707b": {
+  "prompt": {
+   "images": [
+    "bank/2a58b5a8d19b6dd26ae56f39c2ee09219995c86a.png"
+   ],
+   "ref": {
+    "surah": 77,
+    "from_ayah": 14,
+    "to_ayah": 14
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "a473b4e1-da2b-433d-ab43-689658f6ac94": {
+  "options": {
+   "bank/d317c6067d9df71e64b3c04440c003067f102b73.png": {
+    "images": [
+     "bank/d317c6067d9df71e64b3c04440c003067f102b73.png"
+    ],
+    "ref": {
+     "surah": 73,
+     "from_ayah": 18,
+     "to_ayah": 18
+    },
+    "status": "safe",
+    "look": [
+     "Picture and typeset words differ: picture has a ج pause sign after بِهِۦ that the the app's text text lacks."
+    ],
+    "number": 1
+   },
+   "bank/0cf846c5007eb096cc78ae4a33c0795e71bf4575.png": {
+    "images": [
+     "bank/0cf846c5007eb096cc78ae4a33c0795e71bf4575.png"
+    ],
+    "ref": {
+     "surah": 74,
+     "from_ayah": 39,
+     "to_ayah": 39
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/d96d399ec91c0cc65cf1090dee510593c9db0feb.png": {
+    "images": [
+     "bank/d96d399ec91c0cc65cf1090dee510593c9db0feb.png"
+    ],
+    "ref": {
+     "surah": 74,
+     "from_ayah": 40,
+     "to_ayah": 40
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/034ed92440f253296ad5d9e467577706df2472db.png": {
+    "images": [
+     "bank/034ed92440f253296ad5d9e467577706df2472db.png"
+    ],
+    "ref": {
+     "surah": 74,
+     "from_ayah": 38,
+     "to_ayah": 38
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   },
+   "bank/2e6e5e3cf1ec1391513edcc378540a53e9357898.png": {
+    "images": [
+     "bank/2e6e5e3cf1ec1391513edcc378540a53e9357898.png"
+    ],
+    "ref": {
+     "surah": 74,
+     "from_ayah": 41,
+     "to_ayah": 41
+    },
+    "status": "safe",
+    "look": [],
+    "number": 5
+   }
+  }
+ },
+ "b1d7d345-8eca-457a-b654-01ecc7711924": {
+  "options": {
+   "bank/88b06bdfb5f6719e14885e995acedbebd11ed5a1.png": {
+    "images": [
+     "bank/88b06bdfb5f6719e14885e995acedbebd11ed5a1.png"
+    ],
+    "ref": {
+     "surah": 14,
+     "from_ayah": 21,
+     "to_ayah": 21,
+     "from_word": 33,
+     "to_word": 34
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 1
+   },
+   "bank/7a73b9d10fafa8714c88eac95a3c51deb0dfe70e.png": {
+    "images": [
+     "bank/7a73b9d10fafa8714c88eac95a3c51deb0dfe70e.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 14,
+     "to_ayah": 14,
+     "from_word": 3,
+     "to_word": 4
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/eaf982484ab60764e6061a52e60a85a1a66c8558.png": {
+    "images": [
+     "bank/eaf982484ab60764e6061a52e60a85a1a66c8558.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 15,
+     "to_ayah": 15,
+     "from_word": 2,
+     "to_word": 2
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/16ab1edd411d80a79d11d44305078a3b2026f0b4.png": {
+    "images": [
+     "bank/16ab1edd411d80a79d11d44305078a3b2026f0b4.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 15,
+     "to_ayah": 15,
+     "from_word": 5,
+     "to_word": 6
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/aae39998d5e79851d5c3743219a0501f0700b31c.png": {
+    "images": [
+     "bank/aae39998d5e79851d5c3743219a0501f0700b31c.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 18,
+     "to_ayah": 18,
+     "from_word": 2,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "Picture and typeset words differ: picture is cropped at the left edge (the ف of فَكَيْفَ partly cut)."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "b77141f6-dacc-4dbf-8716-466fbd57e40a": {
+  "prompt": {
+   "images": [
+    "bank/1bcf55d789e2ac14a45f612265ac638bae25e2c8.png"
+   ],
+   "ref": {
+    "surah": 104,
+    "from_ayah": 1,
+    "to_ayah": 9
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: Madani page crop with banner and basmala."
+   ]
+  }
+ },
+ "b8856e42-3249-4ac5-84a7-5f9b1014fc73": {
+  "prompt": {
+   "images": [
+    "bank/7071053d0a41a74eec7a7cb25b9ec0567d229498.png"
+   ],
+   "ref": {
+    "surah": 74,
+    "from_ayah": 50,
+    "to_ayah": 50
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "cbce0190-9925-4dee-ac6f-2686030f8a26": {
+  "prompt": {
+   "images": [
+    "bank/7071053d0a41a74eec7a7cb25b9ec0567d229498.png"
+   ],
+   "ref": {
+    "surah": 74,
+    "from_ayah": 50,
+    "to_ayah": 50
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "f000cc69-2687-4a9f-97f8-7eea7c6ee1f2": {
+  "prompt": {
+   "images": [
+    "bank/7071053d0a41a74eec7a7cb25b9ec0567d229498.png"
+   ],
+   "ref": {
+    "surah": 74,
+    "from_ayah": 50,
+    "to_ayah": 50
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "bb325ab8-668a-4815-b4dc-a92a8d276226": {
+  "prompt": {
+   "images": [
+    "bank/02d3b3861f53bd6c94a306f536dfbe5b33915696.png"
+   ],
+   "ref": {
+    "surah": 90,
+    "from_ayah": 20,
+    "to_ayah": 20
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "bc01a6af-6926-4bbd-993b-829b6589836b": {
+  "prompt": {
+   "images": [
+    "bank/abee5fcb4286177e4603dcabc9f44b4c582ab10a.png"
+   ],
+   "ref": {
+    "surah": 114,
+    "from_ayah": 1,
+    "to_ayah": 6
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: Madani page crop with border, banner and basmala."
+   ]
+  }
+ },
+ "bd3a1bb2-6e58-4779-ad9b-fc3f50b4a0f1": {
+  "prompt": {
+   "images": [
+    "bank/634a59b282e25c7b36455a283593a4bb427c9b6b.png"
+   ],
+   "ref": {
+    "surah": 98,
+    "from_ayah": 6,
+    "to_ayah": 6
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: picture has a ج pause sign over فِيهَآ that the the app's text text lacks; ayah-end marker is cut off (only a sliver at bottom right)."
+   ]
+  }
+ },
+ "be596ed6-fddd-47d2-8e96-1b17e5be3837": {
+  "prompt": {
+   "images": [
+    "bank/0a62dbd67e800faf283e8c0a724d41af92198ac3.png"
+   ],
+   "ref": {
+    "surah": 71,
+    "from_ayah": 9,
+    "to_ayah": 9
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "c02c2d6f-e22c-42a4-8e46-4f2704c02865": {
+  "options": {
+   "bank/a4f1b0dc514757ca3e148e7cba047bb9e222e9aa.png": {
+    "images": [
+     "bank/a4f1b0dc514757ca3e148e7cba047bb9e222e9aa.png"
+    ],
+    "ref": {
+     "surah": 78,
+     "from_ayah": 13,
+     "to_ayah": 13,
+     "from_word": 2,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "Picture and typeset words differ: a sliver of the ayah-13 marker is visible at the left edge."
+    ],
+    "number": 1
+   },
+   "bank/cfd729822bb788f4242fad15685a02565683f2e6.png": {
+    "images": [
+     "bank/cfd729822bb788f4242fad15685a02565683f2e6.png"
+    ],
+    "ref": {
+     "surah": 78,
+     "from_ayah": 29,
+     "to_ayah": 29,
+     "from_word": 2,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 2
+   },
+   "bank/67b15886fd5d55977a16661b6f54fcac7eec5a34.png": {
+    "images": [
+     "bank/67b15886fd5d55977a16661b6f54fcac7eec5a34.png"
+    ],
+    "ref": {
+     "surah": 78,
+     "from_ayah": 34,
+     "to_ayah": 34,
+     "from_word": 1,
+     "to_word": 2
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/581f4dec03d6de833a01e6344d579deacc416afa.png": {
+    "images": [
+     "bank/581f4dec03d6de833a01e6344d579deacc416afa.png"
+    ],
+    "ref": {
+     "surah": 79,
+     "from_ayah": 13,
+     "to_ayah": 13,
+     "from_word": 3,
+     "to_word": 4
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/912df332c6f72e308cf653c2ed189d950c1ece47.png": {
+    "images": [
+     "bank/912df332c6f72e308cf653c2ed189d950c1ece47.png"
+    ],
+    "ref": {
+     "surah": 81,
+     "from_ayah": 27,
+     "to_ayah": 27,
+     "from_word": 4,
+     "to_word": 5
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "c3f47c97-7b71-45c8-8bb0-43b3bd201d29": {
+  "prompt": {
+   "images": [
+    "bank/a89795d320a3ab90771baa4b0c2094b881b071e9.png"
+   ],
+   "ref": {
+    "surah": 53,
+    "from_ayah": 23,
+    "to_ayah": 23
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: picture has a ج sign after سُلْطَـٰنٍ and a صلى sign after ٱلْأَنفُسُ that the the app's text text lacks."
+   ]
+  }
+ },
+ "cb08d0d4-eab8-4a4e-a890-bc288146f024": {
+  "prompt": {
+   "images": [
+    "bank/6b7178109c29cc885baf5c17122cb833e9380253.png"
+   ],
+   "ref": {
+    "surah": 99,
+    "from_ayah": 7,
+    "to_ayah": 7
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "ccd76a57-cd2f-405c-88c4-dca24ce61d1f": {
+  "prompt": {
+   "images": [
+    "bank/ae073b1a471b8c27c75be34956e11779d7f65cb0.png"
+   ],
+   "ref": {
+    "surah": 80,
+    "from_ayah": 5,
+    "to_ayah": 5
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "cf45d85f-92ab-4ffd-9b3e-fc3a037b5551": {
+  "prompt": {
+   "images": [
+    "bank/886609e9eb029e32b47ed16236fbdcf53eaf1dd8.png"
+   ],
+   "ref": {
+    "surah": 95,
+    "from_ayah": 1,
+    "to_ayah": 8
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: Madani page crop with banner and basmala."
+   ]
+  }
+ },
+ "d1fa085b-9bfb-4d4b-92b6-12f600f23d5c": {
+  "options": {
+   "bank/e8e17772b40d8dd591a841d0c204e888f2989dd5.png": {
+    "images": [
+     "bank/e8e17772b40d8dd591a841d0c204e888f2989dd5.png"
+    ],
+    "ref": {
+     "surah": 56,
+     "from_ayah": 3,
+     "to_ayah": 3
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/12da8e31849b82c95e19a190b1f4b35b04d09f04.png": {
+    "images": [
+     "bank/12da8e31849b82c95e19a190b1f4b35b04d09f04.png"
+    ],
+    "ref": {
+     "surah": 56,
+     "from_ayah": 6,
+     "to_ayah": 6,
+     "from_word": 2,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/a2e0efac803fe2c4a78499b5a65928026df955aa.png": {
+    "images": [
+     "bank/a2e0efac803fe2c4a78499b5a65928026df955aa.png"
+    ],
+    "ref": {
+     "surah": 56,
+     "from_ayah": 13,
+     "to_ayah": 13,
+     "from_word": 1,
+     "to_word": 2
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 3
+   },
+   "bank/e20863be6f60bc83eb593eaf771a2916c656ae45.png": {
+    "images": [
+     "bank/e20863be6f60bc83eb593eaf771a2916c656ae45.png"
+    ],
+    "ref": {
+     "surah": 80,
+     "from_ayah": 13,
+     "to_ayah": 13
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   },
+   "bank/5c22e694dcb1566668f8796b698f7c2972f69e58.png": {
+    "images": [
+     "bank/5c22e694dcb1566668f8796b698f7c2972f69e58.png"
+    ],
+    "ref": {
+     "surah": 80,
+     "from_ayah": 16,
+     "to_ayah": 16
+    },
+    "status": "safe",
+    "look": [
+     "Picture and typeset words differ: picture is cropped at the left edge (end of بَرَرَةٍ cut)."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "d4264d44-40d5-4716-ac75-19367068562d": {
+  "prompt": {
+   "images": [
+    "bank/30888c8099655b01e67d46f03f08b20c3c006311.png"
+   ],
+   "ref": {
+    "surah": 80,
+    "from_ayah": 24,
+    "to_ayah": 24,
+    "from_word": 1,
+    "to_word": 1
+   },
+   "status": "safe",
+   "look": [
+    "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+   ]
+  }
+ },
+ "d550748d-5d61-4585-9dff-760757abf62b": {
+  "prompt": {
+   "images": [
+    "bank/ae40e7f9e83dcc038554c86aaba21eae01442ba3.png"
+   ],
+   "ref": {
+    "surah": 53,
+    "from_ayah": 23,
+    "to_ayah": 23
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: picture has ج after سُلْطَـٰنٍ and صلى after ٱلْأَنفُسُ that the the app's text text lacks."
+   ]
+  }
+ },
+ "d66710e1-4900-4ab6-a527-558605f38e36": {
+  "prompt": {
+   "images": [
+    "bank/1cbd1d26b0a1b9d191c2a8c412918eb0270fa21f.png"
+   ],
+   "ref": {
+    "surah": 2,
+    "from_ayah": 154,
+    "to_ayah": 154
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: picture has a ج sign after أَمْوَٰتٌۢ that the the app's text text lacks."
+   ]
+  }
+ },
+ "8b607d78-c108-42b2-a54d-3a498d0de6c3": {
+  "prompt": {
+   "images": [
+    "bank/1cbd1d26b0a1b9d191c2a8c412918eb0270fa21f.png"
+   ],
+   "ref": {
+    "surah": 2,
+    "from_ayah": 154,
+    "to_ayah": 154
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: picture has a ج sign after أَمْوَٰتٌۢ that the the app's text text lacks."
+   ]
+  }
+ },
+ "d8d2a114-a5b8-4966-bc5f-09bb7ce69af1": {
+  "prompt": {
+   "images": [
+    "bank/9276f2d341691630ad946c5b820db9f2997a05b9.png"
+   ],
+   "ref": {
+    "surah": 68,
+    "from_ayah": 2,
+    "to_ayah": 2
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: no ayah marker; a sliver of the next line shows at the bottom edge."
+   ]
+  }
+ },
+ "d99db4ac-9919-45ca-8929-a09d770de360": {
+  "prompt": {
+   "images": [
+    "bank/1f15b7823c12977710ea143c77c96dbfcf48fe60.png"
+   ],
+   "ref": {
+    "surah": 98,
+    "from_ayah": 7,
+    "to_ayah": 7
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "de9c32c4-59ae-4d2d-9a1a-19a66c00e2bc": {
+  "options": {
+   "bank/86cb35ce2b2f7459beab9c78b2d93ff37160f026.jpg": {
+    "images": [
+     "bank/86cb35ce2b2f7459beab9c78b2d93ff37160f026.jpg"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 164,
+     "to_ayah": 164,
+     "from_word": 22,
+     "to_word": 23
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 1
+   },
+   "bank/b151c544f31d6d5b705b0a5869b17e6196e82497.png": {
+    "images": [
+     "bank/b151c544f31d6d5b705b0a5869b17e6196e82497.png"
+    ],
+    "ref": {
+     "surah": 41,
+     "from_ayah": 8,
+     "to_ayah": 8,
+     "from_word": 7,
+     "to_word": 8
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 2
+   },
+   "bank/c7607f0fce66f6018b12ed01ae1e920a85f7af56.png": {
+    "images": [
+     "bank/c7607f0fce66f6018b12ed01ae1e920a85f7af56.png"
+    ],
+    "ref": {
+     "surah": 96,
+     "from_ayah": 15,
+     "to_ayah": 15,
+     "from_word": 5,
+     "to_word": 6
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/c5754fe5d231e99a70b76823724b04f4e9b5a11d.png": {
+    "images": [
+     "bank/c5754fe5d231e99a70b76823724b04f4e9b5a11d.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 3,
+     "to_ayah": 3,
+     "from_word": 8,
+     "to_word": 8
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/aa3ee64b18796b0976b35b3bdd6b117ba6d8b4c6.png": {
+    "images": [
+     "bank/aa3ee64b18796b0976b35b3bdd6b117ba6d8b4c6.png"
+    ],
+    "ref": {
+     "surah": 2,
+     "from_ayah": 20,
+     "to_ayah": 20,
+     "from_word": 24,
+     "to_word": 25
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them.",
+     "Picture and typeset words differ: the app's text mid-ayah form is قَدِيرٌۭ (low-meem mark)."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "dec2fced-bf11-4103-a0ee-2248ad4db764": {
+  "prompt": {
+   "images": [
+    "bank/d60d65964933d19c51a8c6e91c17524235c64d47.png"
+   ],
+   "ref": {
+    "surah": 93,
+    "from_ayah": 7,
+    "to_ayah": 7
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "df1e3818-2092-4432-9ca6-4fb7ed7e2caf": {
+  "prompt": {
+   "images": [
+    "bank/26290d1a6a2eb3b060774312849ebf8831f0dc93.png"
+   ],
+   "ref": {
+    "surah": 81,
+    "from_ayah": 29,
+    "to_ayah": 29
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "e20da39a-5280-4762-9ba7-0ef606bbc412": {
+  "options": {
+   "bank/d244d9de43a105c85124f39ef4f7ad853fa3c68d.png": {
+    "images": [
+     "bank/d244d9de43a105c85124f39ef4f7ad853fa3c68d.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 1,
+     "to_ayah": 1,
+     "from_word": 3,
+     "to_word": 4
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/1bc332a6936f1f592ee8039cd9f23cbc9e3ded39.png": {
+    "images": [
+     "bank/1bc332a6936f1f592ee8039cd9f23cbc9e3ded39.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 14,
+     "to_ayah": 14,
+     "from_word": 3,
+     "to_word": 4
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/8adb3ecd01ada945cc0f5675a30805e1ccc40a50.png": {
+    "images": [
+     "bank/8adb3ecd01ada945cc0f5675a30805e1ccc40a50.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 15,
+     "to_ayah": 15,
+     "from_word": 2,
+     "to_word": 2
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/ff033164ae417a2cf3a1204aca5b2b2694a860bb.png": {
+    "images": [
+     "bank/ff033164ae417a2cf3a1204aca5b2b2694a860bb.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 15,
+     "to_ayah": 15,
+     "from_word": 5,
+     "to_word": 6
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/c0d04536da6168f99fdbcb3ca986dc43971e807c.png": {
+    "images": [
+     "bank/c0d04536da6168f99fdbcb3ca986dc43971e807c.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 18,
+     "to_ayah": 18,
+     "from_word": 2,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "Picture and typeset words differ: picture cropped at the left edge."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "e299d1d0-8c6e-4de1-9a29-850fbf7ef8cc": {
+  "prompt": {
+   "images": [
+    "bank/03a0bf5a56de25e1a98b6a8844cbc6471e73ef5c.png",
+    "bank/4a05f99c88c600065cf47b23681204acbfb93ff4.png"
+   ],
+   "ref": {
+    "surah": 90,
+    "from_ayah": 1,
+    "to_ayah": 20
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: top of Madani page 595 with running header (juz and surah names).",
+    "Picture and typeset words differ: Madani page 594 with banner, basmala, margin hizb marker (ربع الحزب ٦٠) and page number."
+   ]
+  }
+ },
+ "e7d578f6-3f54-4690-b19e-5b75227bf644": {
+  "options": {
+   "bank/51afa559d4cd34e936e105afe9a496a42eff3307.png": {
+    "images": [
+     "bank/51afa559d4cd34e936e105afe9a496a42eff3307.png"
+    ],
+    "ref": {
+     "surah": 55,
+     "from_ayah": 14,
+     "to_ayah": 14
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/b909b71318363093289d707690a324807a62e29d.png": {
+    "images": [
+     "bank/b909b71318363093289d707690a324807a62e29d.png"
+    ],
+    "ref": {
+     "surah": 55,
+     "from_ayah": 12,
+     "to_ayah": 12
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/873b690069b068904af5943dd4a30f9af85b40e4.png": {
+    "images": [
+     "bank/873b690069b068904af5943dd4a30f9af85b40e4.png"
+    ],
+    "ref": {
+     "surah": 50,
+     "from_ayah": 14,
+     "to_ayah": 14
+    },
+    "status": "safe",
+    "look": [
+     "Picture and typeset words differ: picture has a ج pause sign after تُبَّعٍ that the the app's text lacks; no ayah-end marker in the picture."
+    ],
+    "number": 3
+   },
+   "bank/1b5b1eeb692a4478717d88babe053f9e3a132f1d.png": {
+    "images": [
+     "bank/1b5b1eeb692a4478717d88babe053f9e3a132f1d.png"
+    ],
+    "ref": {
+     "surah": 50,
+     "from_ayah": 18,
+     "to_ayah": 18
+    },
+    "status": "safe",
+    "look": [],
+    "number": 4
+   },
+   "bank/d1e65ced20c8757603dc3f1c0332bae94ce0348c.png": {
+    "images": [
+     "bank/d1e65ced20c8757603dc3f1c0332bae94ce0348c.png"
+    ],
+    "ref": {
+     "surah": 50,
+     "from_ayah": 20,
+     "to_ayah": 20
+    },
+    "status": "safe",
+    "look": [
+     "Picture and typeset words differ: picture has a ج pause sign after ٱلصُّورِ that the the app's text lacks."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "e9c54aa2-3557-48c3-a8a3-9b1b3dc299bf": {
+  "prompt": {
+   "images": [
+    "bank/88b4d820e86a010a46ea283064f26ff6357eb68f.png"
+   ],
+   "ref": {
+    "surah": 96,
+    "from_ayah": 19,
+    "to_ayah": 19,
+    "from_word": 3,
+    "to_word": 3
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: in the low-res picture the two dots of the ت look merged into one, so it can be misread as ن."
+   ]
+  }
+ },
+ "f30b8eb7-add7-44f5-b40e-9174458e0648": {
+  "prompt": {
+   "images": [
+    "bank/d47df45593f16002913ef5aea2e44663c4e0132d.jpg"
+   ],
+   "ref": {
+    "surah": 23,
+    "from_ayah": 14,
+    "to_ayah": 14
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: picture has a ج pause sign after ءَاخَرَ that the the app's text lacks."
+   ]
+  }
+ },
+ "f3ab7564-dc3f-4681-9e9b-8e8c04a4d7a9": {
+  "prompt": {
+   "images": [
+    "bank/138fa29c736fc4ff942067422f448290df129b41.jpg"
+   ],
+   "ref": {
+    "surah": 56,
+    "from_ayah": 82,
+    "to_ayah": 82
+   },
+   "status": "safe",
+   "look": [
+    "Picture and typeset words differ: blurry crop; ayah marker cut off at the left edge (number not visible) and a sliver of the previous marker at the right."
+   ]
+  }
+ },
+ "f46332c3-e628-49d7-9bbb-53387029a8aa": {
+  "options": {
+   "bank/91811f1c7ad6ec5f16347d6fa40b1b480a8e74bc.png": {
+    "images": [
+     "bank/91811f1c7ad6ec5f16347d6fa40b1b480a8e74bc.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 5,
+     "to_ayah": 5,
+     "from_word": 1,
+     "to_word": 2
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/eac19e070b5e9c9cbdb88fd9e680d53e4151ca52.png": {
+    "images": [
+     "bank/eac19e070b5e9c9cbdb88fd9e680d53e4151ca52.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 4,
+     "to_ayah": 4,
+     "from_word": 4,
+     "to_word": 4
+    },
+    "status": "safe",
+    "look": [],
+    "number": 2
+   },
+   "bank/00384cd4dea7a9eaaa1572480ecc9e7be81087bb.png": {
+    "images": [
+     "bank/00384cd4dea7a9eaaa1572480ecc9e7be81087bb.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 6,
+     "to_ayah": 6,
+     "from_word": 2,
+     "to_word": 3
+    },
+    "status": "owner_check",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them.",
+     "Picture and typeset words differ: 54:6 in the the app's text carries a compulsory-stop sign ۘ after عَنْهُمْ which the picture does not show; 4:109:11-12 is the same two words without the sign.",
+     "sibling options of f46332c3 are all from Surah al-Qamar (54:4, 54:5, 54:10, 54:11), so 54:6 is the likely source, but typesetting 54:6 adds a ۘ (stop) sign between the words that the picture omits - in a noon/meem-rules question that sign changes how the pair is read. Owner should choose 54:6 (with sign) or 4:109 (without)"
+    ],
+    "number": 3
+   },
+   "bank/303213be1fe72c06f0854058bf7bc7750a924ad3.png": {
+    "images": [
+     "bank/303213be1fe72c06f0854058bf7bc7750a924ad3.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 10,
+     "to_ayah": 10,
+     "from_word": 1,
+     "to_word": 2
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/713acca407de9660669b11722a7598fa18f52c67.png": {
+    "images": [
+     "bank/713acca407de9660669b11722a7598fa18f52c67.png"
+    ],
+    "ref": {
+     "surah": 54,
+     "from_ayah": 11,
+     "to_ayah": 11,
+     "from_word": 2,
+     "to_word": 2
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them.",
+     "Picture and typeset words differ: a fragment of another line is visible at the bottom edge."
+    ],
+    "number": 5
+   }
+  }
+ },
+ "f5585518-209e-42fe-aa45-34a389e0d03f": {
+  "prompt": {
+   "images": [
+    "bank/86755e2094620e6f462ba5ab8e53cb6e2a668b0d.png"
+   ],
+   "ref": {
+    "surah": 96,
+    "from_ayah": 16,
+    "to_ayah": 16,
+    "from_word": 2,
+    "to_word": 4
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "f9a8625b-12a7-43ef-9ed3-086027922e04": {
+  "prompt": {
+   "images": [
+    "bank/e0a9ff9e6c28eb82f9df271ba4fe01eb8a9a6297.jpg"
+   ],
+   "ref": {
+    "surah": 2,
+    "from_ayah": 278,
+    "to_ayah": 278,
+    "from_word": 3,
+    "to_word": 4
+   },
+   "status": "safe",
+   "look": [
+    "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+   ]
+  }
+ },
+ "fbf6c43a-e0fa-4419-83c7-a8620ee67c93": {
+  "prompt": {
+   "images": [
+    "bank/79c7e1f9dcee72b8d52ea77d701ad321e6430418.png"
+   ],
+   "ref": {
+    "surah": 2,
+    "from_ayah": 156,
+    "to_ayah": 156
+   },
+   "status": "safe",
+   "look": []
+  }
+ },
+ "fccc47f5-3319-4293-a011-64e462529c0b": {
+  "options": {
+   "bank/11e4af855e2d8c5fa598e2095775ed3851ed1c30.png": {
+    "images": [
+     "bank/11e4af855e2d8c5fa598e2095775ed3851ed1c30.png"
+    ],
+    "ref": {
+     "surah": 78,
+     "from_ayah": 13,
+     "to_ayah": 13,
+     "from_word": 2,
+     "to_word": 4
+    },
+    "status": "safe",
+    "look": [],
+    "number": 1
+   },
+   "bank/d12649c9fbf2b1d9968b445b19336571cc8973b5.png": {
+    "images": [
+     "bank/d12649c9fbf2b1d9968b445b19336571cc8973b5.png"
+    ],
+    "ref": {
+     "surah": 78,
+     "from_ayah": 29,
+     "to_ayah": 29,
+     "from_word": 2,
+     "to_word": 3
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them.",
+     "Picture and typeset words differ: picture cropped at the left edge (end of أَحْصَيْنَـٰهُ cut)."
+    ],
+    "number": 2
+   },
+   "bank/eff5bf3278c8bb04e2c8ee6ced3b84587c98d4c4.png": {
+    "images": [
+     "bank/eff5bf3278c8bb04e2c8ee6ced3b84587c98d4c4.png"
+    ],
+    "ref": {
+     "surah": 78,
+     "from_ayah": 34,
+     "to_ayah": 34
+    },
+    "status": "safe",
+    "look": [],
+    "number": 3
+   },
+   "bank/d75414439621a622995c6697bf1eb22fdb6f7244.png": {
+    "images": [
+     "bank/d75414439621a622995c6697bf1eb22fdb6f7244.png"
+    ],
+    "ref": {
+     "surah": 79,
+     "from_ayah": 13,
+     "to_ayah": 13,
+     "from_word": 3,
+     "to_word": 4
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 4
+   },
+   "bank/a90110030af626b8f8e3ef35adf1f5d25c28f49b.png": {
+    "images": [
+     "bank/a90110030af626b8f8e3ef35adf1f5d25c28f49b.png"
+    ],
+    "ref": {
+     "surah": 81,
+     "from_ayah": 27,
+     "to_ayah": 27,
+     "from_word": 4,
+     "to_word": 5
+    },
+    "status": "safe",
+    "look": [
+     "These words are found in more than one place in the Qur'an. The picture does not say which, so no surah or ayah number is shown with them."
+    ],
+    "number": 5
+   }
+  }
+ }
+}

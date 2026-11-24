@@ -56,6 +56,8 @@ type FieldType = "text" | "jsonb" | "textarr" | "bool" | "numeric";
 const FIELDS: Record<string, FieldType> = {
   prompt: "text",
   options: "jsonb",
+  // The ayah typeset under a question (exam_bank_ayah_plan.ts); an option's ref rides in `options`.
+  prompt_quran: "jsonb",
   select_many: "bool",
   answer: "text",
   marks: "numeric",
