@@ -21,7 +21,7 @@ import { ActionItem, ActionMenu } from "./action-menu";
 import { ConfirmDialog } from "./confirm-dialog";
 import type { Item, PaperOps } from "./paper-state";
 import { OptionList, QuestionPrompt } from "./question-prompt";
-import { screenQuranSlot } from "./typeset-ayah";
+import { screenQuran } from "./typeset-ayah";
 import { useDragSort } from "./use-drag-sort";
 
 const isTemp = (id: string) => id.startsWith("temp-");
@@ -94,7 +94,7 @@ function ItemRow({
       <div className="flex items-start gap-2">
         <span className="w-7 shrink-0 font-bold tabular-nums">{number}.</span>
         <div className="min-w-0 flex-1 font-bold">
-          <QuestionPrompt prompt={item.prompt} images={item.prompt_images} imageUrls={item.imageUrls} quran={item.prompt_quran} quranSlot={screenQuranSlot(item)} variant="screen" />
+          <QuestionPrompt prompt={item.prompt} images={item.prompt_images} imageUrls={item.imageUrls} quran={item.prompt_quran} renderQuran={screenQuran} variant="screen" />
         </div>
         <span className="shrink-0 pl-2 tabular-nums">{marksLabel(item.marks)}</span>
       </div>
@@ -102,7 +102,7 @@ function ItemRow({
       {item.kind === "mcq" && item.options && item.options.length > 0 && (
         <div className="mt-2 pl-9">
           {item.select_many && <p className="mb-1 text-sm italic">(Select all that apply)</p>}
-          <OptionList options={item.options} imageUrls={item.imageUrls} showCorrect={showAnswers} variant="screen" />
+          <OptionList options={item.options} imageUrls={item.imageUrls} showCorrect={showAnswers} renderQuran={screenQuran} variant="screen" />
         </div>
       )}
 

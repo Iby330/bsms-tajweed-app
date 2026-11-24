@@ -1,5 +1,8 @@
 import { seatDaggerAlif } from "@/lib/quran/text";
 
+/** The basmala as text, for a screen reader or where the `bismillah` font cannot go (a Word file). */
+export const BASMALA = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
+
 /** One word of the seeded Uthmani text, positioned in the Madani mushaf. */
 export type QuranWord = {
   surah: number;

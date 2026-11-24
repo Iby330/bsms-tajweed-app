@@ -26,6 +26,18 @@ const HONORIFIC = /\uFDFA/;
 
 export type Run = { ar: boolean; text: string };
 
+/** Harakat, sukun, shadda, dagger alif and the Qur'anic annotation marks. */
+const VOWELLED = /[\u064B-\u0652\u0670\u06D6-\u06ED]/;
+
+/**
+ * The face an Arabic run takes under `variant="auto"`: vowelled Arabic is
+ * Qur'an (`ar-quran`, Uthmanic Hafs); a bare term such as ياء النداء is a
+ * name, set in the UI's Arabic face (`ar-ui`). Exported for tests.
+ */
+export function autoArabicClass(text: string): "ar-quran" | "ar-ui" {
+  return VOWELLED.test(text) ? "ar-quran" : "ar-ui";
+}
+
 /** Split into alternating Arabic / non-Arabic runs. Exported for tests. */
 export function splitRuns(text: string): Run[] {
   const runs: Run[] = [];
@@ -68,11 +80,14 @@ export function MixedText({
   className,
 }: {
   text: string;
-  /** "quran" for question prompts carrying verses; "ui" for answers/labels */
-  variant?: "ui" | "quran";
+  /**
+   * "quran" for question prompts carrying verses; "ui" for answers/labels;
+   * "auto" per run: vowelled Arabic as Qur'an, a bare term in the UI face.
+   */
+  variant?: "ui" | "quran" | "auto";
   className?: string;
 }) {
-  const arClass = variant === "quran" ? "ar-quran" : "ar-ui";
+  const classFor = (run: string) => (variant === "auto" ? autoArabicClass(run) : variant === "quran" ? "ar-quran" : "ar-ui");
 
   // Line breaks in the source are meaningful and HTML throws them away.
   // A question written as "What rule is involved in this ayah?\nوَجَنَّٰتٍ
@@ -105,7 +120,7 @@ export function MixedText({
                   key={i}
                   dir="rtl"
                   lang="ar"
-                  className={inlineMix ? `${arClass} ar-inline` : arClass}
+                  className={inlineMix ? `${classFor(run.text)} ar-inline` : classFor(run.text)}
                 >
                   {seatDaggerAlif(run.text)}
                 </span>

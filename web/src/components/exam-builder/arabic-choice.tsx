@@ -59,7 +59,7 @@ export function AyahPreview({ quran }: { quran: QuranRef | null }) {
   const state = useQuranWords(quran);
   let body: React.ReactNode;
   if (!quran) body = null;
-  else if (state.status === "ready" && state.words.length > 0) body = <QuranSnippet words={state.words} variant="screen" />;
+  else if (state.status === "ready" && state.words.length > 0) body = <QuranSnippet words={state.words} variant="screen" basmala={quran.basmala} circle={quran.circle} />;
   else if (state.status === "ready") body = <p className="text-xs text-danger" role="alert">That range has no text. Check the surah and ayah numbers.</p>;
   else if (state.status === "failed") body = <p className="text-xs text-danger" role="alert">The text could not be loaded. Check the connection and try again.</p>;
   else body = <p className="text-xs text-muted-foreground" aria-live="polite">Loading the ayah…</p>;

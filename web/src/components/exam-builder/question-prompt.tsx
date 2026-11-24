@@ -8,15 +8,26 @@
  * A path with no URL shows a small "Picture missing" on screen and nothing in
  * print, so a broken image never reaches a student's paper.
  *
+ * Typeset wins: when the prompt (`quran`) or an option (`option.quran`) names
+ * Qur'an words and a `renderQuran` is given, the words are typeset in place of
+ * the picture. The picture is handed to `renderQuran` as the fallback, shown
+ * only if the words cannot be had. Screen and print pass their own renderer
+ * (typeset-ayah's `screenQuran`, the print page's server-loaded words).
+ * Part of an ayah never gets a "(Surah, ayah)" label: see `refLabel`.
+ *
  * The `exam-q-*` class names are hooks for the print stylesheet.
  */
 import type { ReactNode } from "react";
 import { MixedText } from "@/components/app/mixed-text";
+import { refLabel } from "@/lib/exam-builder/quran-lines";
 import type { McqOption, QuranRef } from "@/lib/exam-builder/types";
 
 type Variant = "screen" | "print";
 
 const ALT = "Arabic text for this question";
+
+/** Typesets `ref` where the picture would be, or returns `fallback` (the picture) when it cannot. */
+export type RenderQuran = (ref: QuranRef, fallback: ReactNode, where: "prompt" | "option") => ReactNode;
 
 function Picture({ path, url, variant }: { path: string; url: string | undefined; variant: Variant }) {
   if (!url) {
@@ -45,47 +56,41 @@ function Picture({ path, url, variant }: { path: string; url: string | undefined
   );
 }
 
-function ayahRange(q: QuranRef): string {
-  return q.from_ayah === q.to_ayah
-    ? `Surah ${q.surah}, ayah ${q.from_ayah}`
-    : `Surah ${q.surah}, ayat ${q.from_ayah}–${q.to_ayah}`;
-}
-
 export function QuestionPrompt({
   prompt,
   images,
   imageUrls,
   quran,
-  quranSlot,
+  renderQuran,
   variant,
 }: {
   prompt: string;
   images: string[];
   imageUrls: Record<string, string>;
   quran?: QuranRef | null;
-  /** The typeset ayah (quran-snippet), shown in place of the pictures when given. */
-  quranSlot?: ReactNode;
+  /** Typesets `quran` in place of the pictures; without it the pictures show. */
+  renderQuran?: RenderQuran;
   variant: Variant;
 }) {
   const pictures = images.filter(Boolean);
+  const label = quran ? refLabel(quran) : null;
+  const fallback =
+    pictures.length > 0 ? (
+      <div className="exam-q-images flex flex-col items-start gap-2">
+        {pictures.map((path, i) => (
+          <Picture key={`${path}-${i}`} path={path} url={imageUrls[path]} variant={variant} />
+        ))}
+      </div>
+    ) : label ? (
+      <p className={variant === "screen" ? "exam-q-ref text-xs text-muted-foreground" : "exam-q-ref text-sm"}>({label})</p>
+    ) : null;
   return (
     <div className="exam-q-prompt space-y-2" data-variant={variant}>
       <p className="whitespace-pre-line">
-        <MixedText text={prompt} variant="quran" />
+        {/* "auto": an ayah typed into the question is Qur'an; a bare term ("What does ياء النداء mean?") is not. */}
+        <MixedText text={prompt} variant="auto" />
       </p>
-      {quranSlot ? (
-        <div className="exam-q-quran">{quranSlot}</div>
-      ) : pictures.length > 0 ? (
-        <div className="exam-q-images flex flex-col items-start gap-2">
-          {pictures.map((path, i) => (
-            <Picture key={`${path}-${i}`} path={path} url={imageUrls[path]} variant={variant} />
-          ))}
-        </div>
-      ) : quran ? (
-        <p className={variant === "screen" ? "exam-q-ref text-xs text-muted-foreground" : "exam-q-ref text-sm"}>
-          ({ayahRange(quran)})
-        </p>
-      ) : null}
+      {quran && renderQuran ? <div className="exam-q-quran">{renderQuran(quran, fallback, "prompt")}</div> : fallback}
     </div>
   );
 }
@@ -106,24 +111,28 @@ export function OptionList({
   options,
   imageUrls,
   showCorrect,
+  renderQuran,
   variant,
 }: {
   options: McqOption[];
   imageUrls: Record<string, string>;
   /** Mark scheme: tick and embolden the correct option(s). */
   showCorrect: boolean;
+  /** Typesets an option's `quran` in place of its picture. */
+  renderQuran?: RenderQuran;
   variant: Variant;
 }) {
   return (
     <ul className="exam-q-options space-y-1.5" data-variant={variant}>
       {options.map((o, i) => {
         const ticked = showCorrect && o.correct;
+        const picture = o.image ? <Picture path={o.image} url={imageUrls[o.image]} variant={variant} /> : null;
         return (
           <li key={i} className={ticked ? "flex items-start gap-2 font-bold" : "flex items-start gap-2"}>
             <TickBox ticked={ticked} />
             <span className="min-w-0 flex-1 space-y-1">
               {o.text ? <MixedText text={o.text} variant="quran" className="block" /> : null}
-              {o.image ? <Picture path={o.image} url={imageUrls[o.image]} variant={variant} /> : null}
+              {o.quran && renderQuran ? <span className="exam-q-option-quran block">{renderQuran(o.quran, picture, "option")}</span> : picture}
               {ticked ? <span className="sr-only"> (correct answer)</span> : null}
             </span>
           </li>

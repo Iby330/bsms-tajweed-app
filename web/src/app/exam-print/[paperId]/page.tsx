@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MixedText } from "@/components/app/mixed-text";
-import { OptionList, QuestionPrompt } from "@/components/exam-builder/question-prompt";
+import { OptionList, QuestionPrompt, type RenderQuran } from "@/components/exam-builder/question-prompt";
 import { QuranSnippet } from "@/components/exam-builder/quran-snippet";
 import { namedTitle } from "@/lib/exam-builder/labels";
 import { formatMarks, marksLabel, numberItems, paperTotal, sectionTotal } from "@/lib/exam-builder/numbering";
 import { loadPaper, type PaperItemWithImages } from "@/lib/exam-builder/queries";
 import { loadQuranSnippets } from "@/lib/exam-builder/quran";
-import { snippetKey, type SnippetWord } from "@/lib/exam-builder/quran-lines";
+import { questionRefs, snippetKey, type SnippetWord } from "@/lib/exam-builder/quran-lines";
 import type { Paper, Section } from "@/lib/exam-builder/types";
 import { PrintToolbar } from "./print-toolbar";
 
@@ -61,9 +61,10 @@ export default async function ExamPrintPage({ params, searchParams }: Props) {
   const { paper, sections, items } = loaded;
   const numbers = numberItems(sections, items);
   const notes = paper.notes.map((n) => n.trim()).filter(Boolean);
-  // An ayah typeset from the mushaf data stands in for a picture only when the
-  // item has none: where there are pictures, the pictures win (for now).
-  const typeset = await loadQuranSnippets(items.filter(wantsTypeset).map((i) => i.prompt_quran));
+  // Qur'an words named by a ref (the prompt's or an option's) are typeset in
+  // place of the picture; the picture prints only if the words cannot be had.
+  const typeset = await loadQuranSnippets(items.flatMap(questionRefs));
+  const renderQuran = printQuran(typeset);
 
   return (
     <>
@@ -110,7 +111,7 @@ export default async function ExamPrintPage({ params, searchParams }: Props) {
                       item={item}
                       number={numbers[item.id]}
                       scheme={scheme}
-                      quranWords={wantsTypeset(item) ? typeset[snippetKey(item.prompt_quran!)] : undefined}
+                      renderQuran={renderQuran}
                     />
                   ))
               )}
@@ -122,24 +123,29 @@ export default async function ExamPrintPage({ params, searchParams }: Props) {
   );
 }
 
-/** An item to typeset: it names an ayah and carries no picture of it. */
-const wantsTypeset = (item: PaperItemWithImages) =>
-  !!item.prompt_quran && item.prompt_images.filter(Boolean).length === 0;
+/** The printed `renderQuran`: the server-loaded words, or the fallback (the picture) without them. */
+function printQuran(words: Record<string, SnippetWord[]>): RenderQuran {
+  return function PrintQuran(ref, fallback, where) {
+    const got = words[snippetKey(ref)];
+    if (!got?.length) return fallback;
+    return <QuranSnippet words={got} variant="print" size={where === "option" ? "option" : "passage"} basmala={ref.basmala} circle={ref.circle} />;
+  };
+}
 
 function Question({
   item,
   number,
   scheme,
-  quranWords,
+  renderQuran,
 }: {
   item: PaperItemWithImages;
   number: number | undefined;
   scheme: boolean;
-  /** The ayah's words, when it is typeset; without them the prompt keeps its "(Surah N, ayah M)". */
-  quranWords?: SnippetWord[];
+  renderQuran: RenderQuran;
 }) {
   const options = item.kind === "mcq" ? (item.options ?? []) : [];
-  const pictureOptions = options.length > 0 && options.every((o) => o.image && !o.text.trim());
+  // Options that are only Arabic, a picture or typeset words, sit in a row as the pictures did.
+  const pictureOptions = options.length > 0 && options.every((o) => (o.image || o.quran) && !o.text.trim());
   const answer = scheme ? (item.answer ?? "").trim() : "";
   const needsAnswer = scheme && (item.kind === "mcq" ? !options.some((o) => o.correct) : !answer);
 
@@ -152,7 +158,7 @@ function Question({
           images={item.prompt_images}
           imageUrls={item.imageUrls}
           quran={item.prompt_quran}
-          quranSlot={quranWords?.length ? <QuranSnippet words={quranWords} variant="print" /> : undefined}
+          renderQuran={renderQuran}
           variant="print"
         />
         <span className="ep-q-marks">{marksLabel(item.marks)}</span>
@@ -160,7 +166,7 @@ function Question({
 
       {options.length > 0 ? (
         <div className={pictureOptions ? "ep-options ep-options--pictures" : "ep-options"}>
-          <OptionList options={options} imageUrls={item.imageUrls} showCorrect={scheme} variant="print" />
+          <OptionList options={options} imageUrls={item.imageUrls} showCorrect={scheme} renderQuran={renderQuran} variant="print" />
         </div>
       ) : null}
 

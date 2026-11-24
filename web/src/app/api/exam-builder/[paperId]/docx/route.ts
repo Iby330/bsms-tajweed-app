@@ -2,6 +2,8 @@ import { buildPaperDocx, readImageSize, type DocxImage } from "@/lib/exam-builde
 import { collectImagePaths } from "@/lib/exam-builder/images";
 import { namedTitle } from "@/lib/exam-builder/labels";
 import { loadPaper } from "@/lib/exam-builder/queries";
+import { loadQuranSnippets } from "@/lib/exam-builder/quran";
+import { questionRefs, readableText } from "@/lib/exam-builder/quran-lines";
 import type { Paper } from "@/lib/exam-builder/types";
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
 
@@ -51,11 +53,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ pape
   const { paper, sections, items } = loaded;
 
   const paths = [...new Set(items.flatMap(collectImagePaths))];
-  const images = await downloadImages(paths);
+  // The Qur'an words named by refs, as text; a range that fails to load
+  // prints its picture instead (docx.ts).
+  const [images, snippets] = await Promise.all([
+    downloadImages(paths),
+    loadQuranSnippets(items.flatMap(questionRefs)).catch(() => ({})),
+  ]);
+  const quranText = Object.fromEntries(Object.entries(snippets).map(([key, words]) => [key, readableText(words)]));
 
   let bytes: Uint8Array;
   try {
-    bytes = await buildPaperDocx({ paper, sections, items, images, scheme });
+    bytes = await buildPaperDocx({ paper, sections, items, images, scheme, quranText });
   } catch {
     return Response.json({ error: "Couldn't build the Word file." }, { status: 500 });
   }

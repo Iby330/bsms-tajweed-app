@@ -8,9 +8,9 @@
  * printed line, each line in its page's QCF v1 font, drawn from `code_v1`
  * glyphs, every ayah closed by the page font's own numbered rosette.
  */
-import { pageFont } from "@/lib/homework/tap-words";
+import { arabicNumber, pageFont } from "@/lib/homework/tap-words";
 import type { QuranWord } from "@/lib/quran/mushaf";
-import type { QuranRef } from "./types";
+import type { McqOption, QuranRef } from "./types";
 
 export type SnippetWord = QuranWord;
 
@@ -21,6 +21,17 @@ export function snippetKey(ref: QuranRef): string {
   const base = `${ref.surah}:${ref.from_ayah}-${ref.to_ayah}`;
   if (ref.from_word == null && ref.to_word == null) return base;
   return `${base}@${ref.from_word ?? ""}-${ref.to_word ?? ""}`;
+}
+
+/** The ref `snippetKey` wrote, or null for anything else (the batch route's input). */
+export function parseSnippetKey(key: string): QuranRef | null {
+  const m = /^(\d+):(\d+)-(\d+)(?:@(\d*)-(\d*))?$/.exec(key);
+  if (!m) return null;
+  const ref: QuranRef = { surah: Number(m[1]), from_ayah: Number(m[2]), to_ayah: Number(m[3]) };
+  if (m[4]) ref.from_word = Number(m[4]);
+  if (m[5]) ref.to_word = Number(m[5]);
+  if (m[4] === "" && m[5] === "") return null;
+  return isQuranRef(ref) ? ref : null;
 }
 
 const posInt = (n: unknown): n is number => typeof n === "number" && Number.isInteger(n) && n >= 1;
@@ -38,18 +49,29 @@ export function isQuranRef(ref: unknown): ref is QuranRef {
   return true;
 }
 
-/** One query per surah: the smallest ayah range covering every ref in it. */
+/** Ayat this close in one surah are read in one query; further apart, in two. */
+const SPAN_GAP = 10;
+
+/**
+ * The ayah ranges to read: per surah, refs within `SPAN_GAP` ayat of each
+ * other share one query. A bank view can hold options from Al-Baqarah 27 and
+ * 255; one span across them would read some 5,000 words for a dozen.
+ */
 export function ayahSpans(refs: QuranRef[]): { surah: number; from: number; to: number }[] {
-  const by = new Map<number, { surah: number; from: number; to: number }>();
-  for (const r of refs) {
-    const s = by.get(r.surah);
-    if (!s) by.set(r.surah, { surah: r.surah, from: r.from_ayah, to: r.to_ayah });
-    else {
-      s.from = Math.min(s.from, r.from_ayah);
-      s.to = Math.max(s.to, r.to_ayah);
-    }
+  const out: { surah: number; from: number; to: number }[] = [];
+  const sorted = [...refs].sort((a, b) => a.surah - b.surah || a.from_ayah - b.from_ayah);
+  for (const r of sorted) {
+    const last = out[out.length - 1];
+    if (last && last.surah === r.surah && r.from_ayah <= last.to + SPAN_GAP) last.to = Math.max(last.to, r.to_ayah);
+    else out.push({ surah: r.surah, from: r.from_ayah, to: r.to_ayah });
   }
-  return [...by.values()];
+  return out;
+}
+
+/** Every ref a question shows: its prompt's, then its options', invalid ones left out. */
+export function questionRefs(q: { prompt_quran: QuranRef | null; options: McqOption[] | null }): QuranRef[] {
+  const refs: unknown[] = [q.prompt_quran, ...(q.options ?? []).map((o) => o.quran)];
+  return refs.filter(isQuranRef);
 }
 
 const byReading = (a: SnippetWord, b: SnippetWord) => a.ayah - b.ayah || a.position - b.position;
@@ -145,6 +167,26 @@ export function flowingAyahs(words: SnippetWord[]): { ayah: number; text: string
     else last.text = last.text ? `${last.text} ${decomposeMadda(w.text)}` : decomposeMadda(w.text);
   }
   return out.filter((a) => a.text || a.ended);
+}
+
+/**
+ * The label a ref may print, "(Surah 103, ayat 1–3)", or null for part of an
+ * ayah. Most word ranges in the bank are short phrases found in several
+ * places; the ref names one of them, so a label could name the wrong one.
+ */
+export function refLabel(ref: QuranRef): string | null {
+  return ref.from_word == null && ref.to_word == null ? snippetLabel(ref) : null;
+}
+
+/** The words start after an ayah's first word, or stop short of its end marker. */
+export function isPartialRange(words: SnippetWord[]): boolean {
+  if (words.length === 0) return false;
+  return words[0].position !== 1 || !words[words.length - 1].isEnd;
+}
+
+/** The words as one line of text, each ended ayah closed by ﴿n﴾: what a screen reader hears and a Word file prints. */
+export function readableText(words: SnippetWord[]): string {
+  return flowingAyahs(words).map((a) => (a.ended ? `${a.text} ﴿${arabicNumber(a.ayah)}﴾` : a.text)).join(" ");
 }
 
 /** "Surah 31, ayah 19" / "Surah 104, ayat 1–2" — the snippet's accessible name. */

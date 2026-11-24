@@ -13,7 +13,7 @@ import { formatMarks } from "@/lib/exam-builder/numbering";
 import type { BankQuestion } from "@/lib/exam-builder/types";
 import { cn } from "@/lib/utils";
 import { OptionList, QuestionPrompt } from "./question-prompt";
-import { screenQuranSlot } from "./typeset-ayah";
+import { screenQuran } from "./typeset-ayah";
 
 const chip = "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.7rem] font-semibold whitespace-nowrap";
 
@@ -89,14 +89,14 @@ function BankQuestionCardImpl({
           images={q.prompt_images}
           imageUrls={q.imageUrls}
           quran={q.prompt_quran}
-          quranSlot={screenQuranSlot(q)}
+          renderQuran={screenQuran}
           variant="screen"
         />
       </div>
 
       {q.kind === "mcq" && q.options && q.options.length > 0 && (
         <div className="text-sm">
-          <OptionList options={q.options} imageUrls={q.imageUrls} showCorrect variant="screen" />
+          <OptionList options={q.options} imageUrls={q.imageUrls} showCorrect renderQuran={screenQuran} variant="screen" />
         </div>
       )}
 

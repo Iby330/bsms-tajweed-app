@@ -344,8 +344,19 @@ html:has(.exam-print) body::after {
   line-height: 1;
 }
 /* Options with Arabic in them: give the box the line the letter sits on. */
-.exam-print .ep-options .exam-q-options > li:has(.ar-quran) .exam-q-box {
+.exam-print .ep-options .exam-q-options > li:has(.ar-quran) .exam-q-box,
+.exam-print .ep-options .exam-q-options > li:has(.quran-snippet--option) .exam-q-box {
   margin-top: 1.6mm;
+}
+/* An option's typeset words: the size of the option text, set in its own
+   line box so the tick box lines up with them as with a picture. */
+.exam-print .ep-options .quran-snippet--option {
+  break-inside: avoid;
+}
+/* A circle round a letter is the question's point: print its ink as drawn. */
+.exam-print .quran-circle {
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
 }
 .exam-print .ep-options .exam-q-options .ar-quran {
   line-height: 1.35;

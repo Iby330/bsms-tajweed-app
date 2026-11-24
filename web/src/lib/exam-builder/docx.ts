@@ -9,6 +9,15 @@
  * With `scheme: false` nothing here reads an option's `correct` flag or an
  * item's `answer`: the paper's file carries no answers at all.
  *
+ * Qur'an words named by a ref (a prompt's `prompt_quran`, an option's
+ * `quran`) are set as Arabic text in place of the picture, from `quranText`
+ * (the route loads it from the mushaf data, keyed by `snippetKey`): Word has
+ * no QCF page fonts, so it is the Uthmani text in the Arabic face, the way
+ * Arabic typed into a question already prints here. The picture stays the
+ * fallback when the text is missing. A circled letter keeps its picture: Word
+ * cannot draw a circle over one letter of the text (with no picture, the
+ * circled word is underlined instead). Part of an ayah never gets a label.
+ *
  * Kept to what Word, Google Docs and Pages all open the same way: plain
  * paragraphs with tab stops and borders, inline pictures, and tables with an
  * explicit column grid. No Word numbering, no floating shapes.
@@ -34,7 +43,9 @@ import {
   type ParagraphChild,
 } from "docx";
 import { splitRuns } from "@/components/app/mixed-text";
+import { BASMALA } from "@/lib/quran/mushaf";
 import { seatDaggerAlif } from "@/lib/quran/text";
+import { refLabel, snippetKey } from "./quran-lines";
 import { namedTitle } from "./labels";
 import { formatMarks, marksLabel, numberItems, paperTotal, sectionTotal } from "./numbering";
 import type { McqOption, Paper, PaperItem, QuranRef, Section } from "./types";
@@ -48,7 +59,34 @@ export type PaperDocxInput = {
   /** storage path → the picture's bytes and pixel size. A path not here prints "[picture missing]". */
   images: Record<string, DocxImage>;
   scheme: boolean;
+  /** snippetKey(ref) → the words as text (readableText). A ref not here prints its picture. */
+  quranText?: Record<string, string>;
 };
+
+/** Qur'an words as runs: right to left, Arabic face, `size` pt; the circled word (if any) underlined. */
+function quranRuns(text: string, ref: QuranRef, size: number): TextRun[] {
+  const words = text.split(" ");
+  const circled = ref.circle ? ref.circle.word - (ref.from_word ?? 1) : -1;
+  const run = (t: string, underline = false) =>
+    new TextRun({
+      text: t,
+      rightToLeft: true,
+      font: { ascii: ARABIC, hAnsi: ARABIC, cs: ARABIC },
+      size: PT(size),
+      bold: false,
+      language: { bidirectional: "ar-SA" },
+      ...(underline ? { underline: {} } : {}),
+    });
+  if (circled < 0 || circled >= words.length) return [run(text)];
+  return words.flatMap((w, i) => [...(i > 0 ? [run(" ")] : []), run(w, i === circled)]);
+}
+
+/** The ref's text when it should print as text: not when a circle needs the picture that has one. */
+function quranTextFor(ref: QuranRef | null | undefined, picture: boolean, quranText: Record<string, string> | undefined): string | null {
+  if (!ref || !quranText) return null;
+  if (ref.circle && picture) return null;
+  return quranText[snippetKey(ref)] ?? null;
+}
 
 // ── measures ─────────────────────────────────────────────────────────────
 
@@ -255,11 +293,6 @@ function sectionHeading(section: Section, total: number): string {
   return ENDS_WITH_MARKS.test(title) ? title : `${title} (${formatMarks(total)} marks)`;
 }
 
-function ayahRange(q: QuranRef): string {
-  return q.from_ayah === q.to_ayah
-    ? `Surah ${q.surah}, ayah ${q.from_ayah}`
-    : `Surah ${q.surah}, ayat ${q.from_ayah}–${q.to_ayah}`;
-}
 
 function header(paper: Paper, total: number, scheme: boolean): Paragraph[] {
   const out: Paragraph[] = [
@@ -338,6 +371,7 @@ function questionHead(
   number: number | undefined,
   images: Record<string, DocxImage>,
   firstInSection: boolean,
+  quranText: Record<string, string> | undefined,
 ): Paragraph[] {
   const promptLines = lines(item.prompt);
   const first = promptLines[0] ?? "";
@@ -374,7 +408,22 @@ function questionHead(
   }
 
   const pictures = item.prompt_images.filter(Boolean);
-  if (pictures.length > 0) {
+  const words = quranTextFor(item.prompt_quran, pictures.length > 0, quranText);
+  const label = item.prompt_quran ? refLabel(item.prompt_quran) : null;
+  if (words && item.prompt_quran) {
+    const ar = (children: TextRun[], keepNext: boolean) =>
+      new Paragraph({
+        keepNext,
+        keepLines: true,
+        bidirectional: true,
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 80 },
+        indent: { left: tw(NUM_MM) },
+        children,
+      });
+    if (item.prompt_quran.basmala) out.push(ar(quranRuns(BASMALA, { ...item.prompt_quran, circle: undefined }, 18), true));
+    out.push(ar(quranRuns(words, item.prompt_quran, 18), true));
+  } else if (pictures.length > 0) {
     for (const path of pictures) {
       out.push(
         new Paragraph({
@@ -385,13 +434,13 @@ function questionHead(
         }),
       );
     }
-  } else if (item.prompt_quran) {
+  } else if (label) {
     out.push(
       new Paragraph({
         keepNext: true,
         spacing: { before: 80 },
         indent: { left: tw(NUM_MM) },
-        children: [new TextRun({ text: `(${ayahRange(item.prompt_quran)})`, italics: true, size: PT(11) })],
+        children: [new TextRun({ text: `(${label})`, italics: true, size: PT(11) })],
       }),
     );
   }
@@ -409,6 +458,7 @@ function optionParagraphs(
   ticked: (o: McqOption) => boolean,
   /** Something (the answer box) follows that the last option should stay with. */
   keepLast: boolean,
+  quranText: Record<string, string> | undefined,
 ): Paragraph[] {
   const out: Paragraph[] = [];
   const left = tw(INDENT_MM + NUM_MM + BOX_MM);
@@ -416,6 +466,12 @@ function optionParagraphs(
     const last = i === options.length - 1 && !keepLast;
     const on = ticked(o);
     const text = o.text.trim();
+    const words = quranTextFor(o.quran, Boolean(o.image), quranText);
+    // The option's Arabic: its typeset words, else its picture.
+    const arabic: ParagraphChild | null = words && o.quran
+      ? null
+      : o.image ? pictureRun(o.image, images, { maxWidthMm: TEXT_W_MM - NUM_MM - INDENT_MM - BOX_MM, option: true }) : null;
+    const arabicRuns: ParagraphChild[] = words && o.quran ? quranRuns(words, o.quran, 16) : arabic ? [arabic] : [];
     const correctBox = on
       ? {
           border: { top: line(10), bottom: line(10), left: line(10), right: line(10) },
@@ -433,17 +489,17 @@ function optionParagraphs(
       out.push(
         new Paragraph({
           ...base,
-          keepNext: !last || Boolean(o.image),
+          keepNext: !last || arabicRuns.length > 0,
           children: [...box, ...textRuns(text.replace(/\s*\n\s*/g, " "), { bold: on })],
         }),
       );
-      if (o.image) {
+      if (arabicRuns.length > 0) {
         out.push(
           new Paragraph({
             keepNext: !last,
             indent: { left },
             spacing: { before: 20 },
-            children: [pictureRun(o.image, images, { maxWidthMm: TEXT_W_MM - NUM_MM - INDENT_MM - BOX_MM, option: true })],
+            children: arabicRuns,
           }),
         );
       }
@@ -452,12 +508,7 @@ function optionParagraphs(
         new Paragraph({
           ...base,
           keepNext: !last,
-          children: [
-            ...box,
-            o.image
-              ? pictureRun(o.image, images, { maxWidthMm: TEXT_W_MM - NUM_MM - INDENT_MM - BOX_MM, option: true })
-              : new TextRun(""),
-          ],
+          children: [...box, ...(arabicRuns.length > 0 ? arabicRuns : [new TextRun("")])],
         }),
       );
     }
@@ -529,15 +580,16 @@ function question(
   images: Record<string, DocxImage>,
   scheme: boolean,
   firstInSection: boolean,
+  quranText: Record<string, string> | undefined,
 ): (Paragraph | Table)[] {
-  const out: (Paragraph | Table)[] = questionHead(item, number, images, firstInSection);
+  const out: (Paragraph | Table)[] = questionHead(item, number, images, firstInSection, quranText);
   const options = item.kind === "mcq" ? (item.options ?? []) : [];
 
   if (scheme) {
     // Only on the mark scheme are `correct` and `answer` read at all.
     const answer = (item.answer ?? "").trim();
     const noCorrect = item.kind === "mcq" && !options.some((o) => o.correct);
-    if (options.length > 0) out.push(...optionParagraphs(options, images, (o) => o.correct, true));
+    if (options.length > 0) out.push(...optionParagraphs(options, images, (o) => o.correct, true, quranText));
     if (noCorrect) out.push(answerNeeded("Answer needed: no option is marked correct."));
     // An MCQ's written answer (a reason, a breakdown) shows too, as on the printed scheme.
     if (answer) out.push(gap(true), answerBox(answer));
@@ -547,7 +599,7 @@ function question(
   }
 
   if (options.length > 0) {
-    out.push(...optionParagraphs(options, images, () => false, false));
+    out.push(...optionParagraphs(options, images, () => false, false, quranText));
   } else if (item.kind === "short" && item.answer_lines > 0) {
     out.push(...writingLines(item.answer_lines));
   } else {
@@ -610,7 +662,7 @@ function practical(section: Section): (Paragraph | Table)[] {
 
 /** Builds the .docx. `scheme` adds the answers; without it there are none in the file. */
 export async function buildPaperDocx(input: PaperDocxInput): Promise<Uint8Array> {
-  const { paper, sections, items, images, scheme } = input;
+  const { paper, sections, items, images, scheme, quranText } = input;
   const numbers = numberItems(sections, items);
   const ordered = [...items].sort((a, b) => a.position - b.position);
 
@@ -631,7 +683,7 @@ export async function buildPaperDocx(input: PaperDocxInput): Promise<Uint8Array>
     }
     const mine = ordered.filter((i) => i.section_id === section.id);
     mine.forEach((item, n) => {
-      body.push(...question(item, numbers[item.id], images, scheme, n === 0));
+      body.push(...question(item, numbers[item.id], images, scheme, n === 0, quranText));
     });
   });
 

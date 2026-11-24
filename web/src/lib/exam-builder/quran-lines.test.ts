@@ -10,6 +10,10 @@ import {
   setLines,
   sliceRef,
   snippetKey,
+  isPartialRange,
+  parseSnippetKey,
+  questionRefs,
+  refLabel,
   snippetLabel,
   snippetLines,
   snippetPages,
@@ -185,5 +189,66 @@ describe("snippetLabel", () => {
   it("says the surah and the ayah or ayat", () => {
     expect(snippetLabel({ surah: 31, from_ayah: 19, to_ayah: 19 })).toBe("Surah 31, ayah 19");
     expect(snippetLabel({ surah: 104, from_ayah: 1, to_ayah: 2 })).toBe("Surah 104, ayat 1–2");
+  });
+});
+
+describe("refLabel", () => {
+  it("names a whole ayah or ayat, and nothing for part of an ayah", () => {
+    expect(refLabel({ surah: 104, from_ayah: 1, to_ayah: 2 })).toBe("Surah 104, ayat 1–2");
+    // 61 mapped phrases are found in several places: a label could name the wrong one.
+    expect(refLabel({ surah: 2, from_ayah: 27, to_ayah: 27, from_word: 5, to_word: 6 })).toBeNull();
+    expect(refLabel({ surah: 2, from_ayah: 27, to_ayah: 27, to_word: 3 })).toBeNull();
+  });
+});
+
+describe("isPartialRange", () => {
+  it("is partial when it starts after the first word or stops before the ayah's marker", () => {
+    expect(isPartialRange([w(3, 1, 1, 1), w(3, 2, 1, 1), w(3, 3, 1, 1, true)])).toBe(false);
+    expect(isPartialRange(PASSAGE)).toBe(false);
+    // From the sixth word to the marker: the rosette shows, but it is still part of an ayah.
+    expect(isPartialRange([w(3, 6, 1, 1), w(3, 7, 1, 1, true)])).toBe(true);
+    expect(isPartialRange([w(27, 5, 1, 1), w(27, 6, 1, 1)])).toBe(true);
+  });
+});
+
+describe("parseSnippetKey", () => {
+  it("reads back every key snippetKey writes", () => {
+    const refs = [
+      { surah: 31, from_ayah: 19, to_ayah: 19 },
+      { surah: 104, from_ayah: 1, to_ayah: 2, from_word: 2, to_word: 3 },
+      { surah: 2, from_ayah: 27, to_ayah: 27, to_word: 4 },
+      { surah: 2, from_ayah: 27, to_ayah: 27, from_word: 4 },
+    ];
+    for (const r of refs) expect(parseSnippetKey(snippetKey(r))).toEqual(r);
+    expect(parseSnippetKey("nonsense")).toBeNull();
+    expect(parseSnippetKey("200:1-1")).toBeNull();
+  });
+});
+
+describe("questionRefs", () => {
+  it("collects the prompt's ref and every option's", () => {
+    const opt = { surah: 2, from_ayah: 27, to_ayah: 27, from_word: 5, to_word: 6 };
+    expect(
+      questionRefs({
+        prompt_quran: { surah: 31, from_ayah: 19, to_ayah: 19 },
+        options: [{ text: "", image: "bank/a.png", correct: false, quran: opt }, { text: "B", image: null, correct: true }],
+      }),
+    ).toEqual([{ surah: 31, from_ayah: 19, to_ayah: 19 }, opt]);
+    expect(questionRefs({ prompt_quran: null, options: null })).toEqual([]);
+  });
+});
+
+describe("ayahSpans across a long surah", () => {
+  it("asks for nearby ayat together and far ones apart", () => {
+    expect(
+      ayahSpans([
+        { surah: 2, from_ayah: 27, to_ayah: 27 },
+        { surah: 2, from_ayah: 255, to_ayah: 255 },
+        { surah: 2, from_ayah: 30, to_ayah: 31 },
+      ]),
+    ).toEqual([
+      { surah: 2, from: 27, to: 31 },
+      { surah: 2, from: 255, to: 255 },
+    ]);
   });
 });

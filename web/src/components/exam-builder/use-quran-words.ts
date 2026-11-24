@@ -6,6 +6,10 @@
  * bank and in the editor is fetched once, and two cards asking at the same
  * moment share one request (`GET /api/exam-builder/quran`).
  *
+ * Requests are batched: every ref asked for in one render (a bank view's
+ * cards, a question's five options) waits one tick and goes in ONE request
+ * (`?ref=…&ref=…`, at most `BATCH` a request), not one each.
+ *
  * The paper page loads the words for the questions already on the paper on
  * the server and hands them to `primeQuranWords`, so those render with the
  * page and nothing waits; only an ayah added or typed in later is fetched.
@@ -44,25 +48,42 @@ export function primeQuranWords(byKey: Record<string, SnippetWord[]> | undefined
   }
 }
 
+/** Refs a request carries; the route takes up to 60. */
+const BATCH = 40;
+const queued = new Map<string, QuranRef>();
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+async function fetchBatch(keys: string[]) {
+  const q = new URLSearchParams();
+  for (const k of keys) q.append("ref", k);
+  try {
+    const res = await fetch(`/api/exam-builder/quran?${q}`);
+    if (!res.ok) throw new Error(String(res.status));
+    const byKey = (await res.json()) as Record<string, SnippetWord[]>;
+    // A key left out is a range with no words: an answer, not a failure.
+    for (const k of keys) store.set(k, { status: "ready", words: Array.isArray(byKey[k]) ? byKey[k] : [] });
+  } catch {
+    for (const k of keys) store.set(k, FAILED);
+  }
+  notify();
+}
+
+function flush() {
+  flushTimer = null;
+  const keys = [...queued.keys()];
+  queued.clear();
+  for (let i = 0; i < keys.length; i += BATCH) void fetchBatch(keys.slice(i, i + BATCH));
+}
+
 function load(ref: QuranRef) {
   const key = snippetKey(ref);
   const now = store.get(key);
   if (now && now.status !== "failed") return; // loading or ready: nothing to do
   store.set(key, LOADING);
+  queued.set(key, ref);
+  // Wait a tick, so every card mounted in this commit joins the same request.
+  flushTimer ??= setTimeout(flush, 0);
   notify();
-  const q = new URLSearchParams({ surah: String(ref.surah), from: String(ref.from_ayah), to: String(ref.to_ayah) });
-  if (ref.from_word != null) q.set("fromWord", String(ref.from_word));
-  if (ref.to_word != null) q.set("toWord", String(ref.to_word));
-  fetch(`/api/exam-builder/quran?${q}`)
-    .then(async (res) => {
-      // 400: the route found no such range. Not a failure to retry, an answer.
-      if (res.status === 400) return [] as SnippetWord[];
-      if (!res.ok) throw new Error(String(res.status));
-      return (await res.json()) as SnippetWord[];
-    })
-    .then((words) => store.set(key, { status: "ready", words: Array.isArray(words) ? words : [] }))
-    .catch(() => store.set(key, FAILED))
-    .finally(notify);
 }
 
 /** The words for `ref` (null or an invalid ref: idle, nothing fetched). */

@@ -159,6 +159,47 @@ describe("buildPaperDocx", () => {
   });
 });
 
+describe("buildPaperDocx with Qur'an refs", () => {
+  const pic = { "bank/a.png": { data: PNG_1X1, width: 1, height: 1, type: "png" as const } };
+  const build = async (list: PaperItem[], quranText: Record<string, string>) => {
+    const bytes = await buildPaperDocx({ paper, sections, items: list, images: pic, scheme: false, quranText });
+    const files = unzipSync(bytes);
+    return { xml: strFromU8(files["word/document.xml"]), media: Object.keys(files).filter((f) => f.startsWith("word/media/")) };
+  };
+
+  it("sets the prompt's words as Arabic text in place of the picture, which stays the fallback", async () => {
+    const q = item({ id: "q", prompt: "Count the madd.", prompt_images: ["bank/a.png"], prompt_quran: { surah: 109, from_ayah: 1, to_ayah: 1, basmala: true } });
+    const typeset = await build([q], { "109:1-1": "قُلْ يَـٰٓأَيُّهَا ٱلْكَـٰفِرُونَ ﴿١﴾" });
+    expect(typeset.media).toHaveLength(0);
+    expect(text(typeset.xml)).toContain("قُلْ");
+    expect(text(typeset.xml)).toContain("بِسْمِ ٱللَّهِ"); // the basmala above
+    const fallback = await build([q], {});
+    expect(fallback.media).toHaveLength(1);
+  });
+
+  it("does the same per option, and never labels part of an ayah", async () => {
+    const q = item({
+      id: "q", prompt: "Which is iqlaab?", prompt_quran: { surah: 2, from_ayah: 27, to_ayah: 27, from_word: 5, to_word: 6 },
+      options: [
+        { text: "", image: "bank/a.png", correct: false, quran: { surah: 2, from_ayah: 27, to_ayah: 27, from_word: 5, to_word: 6 } },
+        { text: "", image: "bank/a.png", correct: false },
+      ],
+    });
+    const out = await build([q], { "2:27-27@5-6": "مِنۢ بَعْدِ" });
+    expect(text(out.xml)).toContain("مِنۢ بَعْدِ");
+    expect(out.media).toHaveLength(1); // the second option keeps its picture
+    const missing = await build([q], {});
+    expect(text(missing.xml)).not.toMatch(/\(Surah/); // the practical table has a "Surah" column
+  });
+
+  it("keeps the picture for a circled letter: Word cannot draw the circle over the words", async () => {
+    const q = item({ id: "q", prompt: "Which letter is circled?", prompt_images: ["bank/a.png"], prompt_quran: { surah: 1, from_ayah: 3, to_ayah: 3, circle: { word: 1, x: 0.3, w: 0.2 } } });
+    const out = await build([q], { "1:3-3": "ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ ﴿٣﴾" });
+    expect(out.media).toHaveLength(1);
+    expect(text(out.xml)).not.toContain("ٱلرَّحِيمِ");
+  });
+});
+
 describe("fitPicture", () => {
   const mm = (px: number) => (px * 25.4) / 96;
 

@@ -4,6 +4,11 @@
  * Edit the paper's copy of a question "from its base": wording, type,
  * options and which are correct, marks, the answer / mark scheme, writing
  * lines, and its pictures. The bank's original is never touched.
+ *
+ * Qur'an words named by a ref are typeset in place of the picture, which
+ * stays stored as the fallback. "Picture" for the question's Arabic clears
+ * the copy's ref so the picture shows; an option with both has its own
+ * Typeset / Picture switch (switching back before saving restores its ref).
  */
 import { useState, useTransition } from "react";
 import { ArrowDown, ArrowUp, ImageOff, Plus, Undo2, X } from "lucide-react";
@@ -14,16 +19,61 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { snippetLabel } from "@/lib/exam-builder/quran-lines";
+import { optionFilled } from "@/lib/exam-builder/bank-validate";
+import { refLabel } from "@/lib/exam-builder/quran-lines";
 import { draftFromRef, readDraft, type RefDraft } from "@/lib/exam-builder/quran-ref-draft";
-import type { McqOption, PaperItem, QuestionKind, Result } from "@/lib/exam-builder/types";
+import type { McqOption, PaperItem, QuestionKind, QuranRef, Result } from "@/lib/exam-builder/types";
 import { cn } from "@/lib/utils";
 import { ArabicModeSwitch, AyahPreview, QuranRefFields, type ArabicMode } from "./arabic-choice";
+import { OriginalPictures } from "./original-pictures";
+import { TypesetAyah } from "./typeset-ayah";
 import type { Item } from "./paper-state";
 
 export type ItemPatch = Partial<Pick<PaperItem, "prompt" | "options" | "select_many" | "answer" | "marks" | "answer_lines" | "prompt_images" | "prompt_quran" | "kind">>;
 
-const blank = (): McqOption => ({ text: "", image: null, correct: false });
+/** An option as the form holds it: `stash` keeps a ref switched to "Picture" until the save. */
+type EditOption = McqOption & { stash?: QuranRef };
+
+const blank = (): EditOption => ({ text: "", image: null, correct: false });
+
+/** The option as saved: no stash, no empty ref. */
+function saved(o: EditOption): McqOption {
+  const { stash: _s, quran, ...rest } = o;
+  void _s;
+  return quran ? { ...rest, quran } : rest;
+}
+
+/** The same range as `b`, ignoring its marks. */
+const sameRange = (a: QuranRef, b: QuranRef) =>
+  a.surah === b.surah && a.from_ayah === b.from_ayah && a.to_ayah === b.to_ayah && a.from_word === b.from_word && a.to_word === b.to_word;
+
+/** A typed ref keeps the basmala and circle the copy had, when it names the same range. */
+function keepMarks(ref: QuranRef, had: QuranRef | null): QuranRef {
+  if (!had || !sameRange(ref, had)) return ref;
+  return { ...ref, ...(had.basmala ? { basmala: true } : null), ...(had.circle ? { circle: had.circle } : null) };
+}
+
+function OptionArabicSwitch({ typeset, onChange, n }: { typeset: boolean; onChange: (typeset: boolean) => void; n: number }) {
+  return (
+    <div role="radiogroup" aria-label={`Arabic for option ${n}`} className="inline-flex w-fit overflow-hidden rounded-md border border-line text-xs">
+      {([[true, "Typeset"], [false, "Picture"]] as const).map(([v, label]) => (
+        <button
+          key={label}
+          type="button"
+          role="radio"
+          aria-checked={typeset === v}
+          onClick={() => onChange(v)}
+          className={cn(
+            "min-h-7 px-2.5 font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+            typeset === v ? "bg-[color-mix(in_oklab,var(--brand)_28%,var(--card))] text-foreground" : "bg-card text-muted-foreground hover:bg-muted",
+          )}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function Picture({ url, onRemove, label }: { url?: string; onRemove: () => void; label: string }) {
   return (
@@ -45,22 +95,27 @@ function Form({ item, onSave, onDone }: { item: Item; onSave: (patch: ItemPatch)
   const [kind, setKind] = useState<QuestionKind>(item.kind);
   const [prompt, setPrompt] = useState(item.prompt === "New question" ? "" : item.prompt);
   const [images, setImages] = useState<string[]>(item.prompt_images);
-  const [options, setOptions] = useState<McqOption[]>(item.options?.length ? item.options : [blank(), blank(), blank(), blank()]);
+  const [options, setOptions] = useState<EditOption[]>(item.options?.length ? item.options : [blank(), blank(), blank(), blank()]);
   const [selectMany, setSelectMany] = useState(item.select_many);
   const [marks, setMarks] = useState(String(item.marks));
   const [answer, setAnswer] = useState(item.answer ?? "");
   const [lines, setLines] = useState(String(item.answer_lines));
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
-  // Arabic for the question. Pictures win over a typeset ayah when both are
-  // set, so switching to the typeset text takes the pictures off this copy —
-  // only once the teacher says so (`replacePictures`).
+  // Arabic for the question. A ref wins over the pictures, which stay stored
+  // as the fallback; "Picture" clears this copy's ref so the picture shows.
   const hadPictures = item.prompt_images.filter(Boolean).length > 0;
-  const [mode, setMode] = useState<ArabicMode>(hadPictures ? "picture" : item.prompt_quran ? "typeset" : "none");
+  const [mode, setMode] = useState<ArabicMode>(item.prompt_quran ? "typeset" : hadPictures ? "picture" : "none");
   const [draft, setDraft] = useState<RefDraft>(() => draftFromRef(item.prompt_quran));
-  const [replacePictures, setReplacePictures] = useState(false);
   const [refErrors, setRefErrors] = useState(false);
-  const switchToTypeset = () => { setMode("typeset"); setReplacePictures(true); };
+  const switchToTypeset = () => setMode("typeset");
+  const setOptTypeset = (i: number, typeset: boolean) =>
+    setOptions((os) => os.map((o, j) => {
+      if (j !== i) return o;
+      if (typeset && o.stash) return { ...o, quran: o.stash, stash: undefined };
+      if (!typeset && o.quran) return { ...o, quran: undefined, stash: o.quran };
+      return o;
+    }));
 
   const setOpt = (i: number, patch: Partial<McqOption>) =>
     setOptions((os) => os.map((o, j) => (j === i ? { ...o, ...patch } : patch.correct && !selectMany ? { ...o, correct: false } : o)));
@@ -93,18 +148,16 @@ function Form({ item, onSave, onDone }: { item: Item; onSave: (patch: ItemPatch)
       if (mode === "typeset") {
         const read = readDraft(draft);
         if (!read.ok) { setRefErrors(true); return setError(`Typeset ayah: ${read.error}`); }
-        const live = images.filter(Boolean).length > 0;
-        if (live && !replacePictures) {
-          return setError("Tick “Use the typeset text instead of the picture” to switch, or choose Picture to keep it.");
-        }
-        patch.prompt_quran = read.ref;
-        patch.prompt_images = [];
+        // The pictures stay as the fallback, shown only if the words cannot load.
+        patch.prompt_quran = keepMarks(read.ref, item.prompt_quran);
+      } else if (mode === "picture") {
+        patch.prompt_quran = null;
       } else if (mode === "none") {
         patch.prompt_images = [];
         patch.prompt_quran = null;
       }
       if (kind === "mcq") {
-        patch.options = options.filter((o) => o.text.trim() || o.image);
+        patch.options = options.map(saved).filter(optionFilled);
         patch.select_many = selectMany;
       } else {
         const l = Number(lines);
@@ -149,23 +202,26 @@ function Form({ item, onSave, onDone }: { item: Item; onSave: (patch: ItemPatch)
 
         <div className="grid gap-2.5" data-testid="arabic-choice">
           <span className="text-sm font-medium">Arabic for this question</span>
-          <ArabicModeSwitch mode={mode} onChange={(m) => { setMode(m); setError(null); if (m !== "typeset") setReplacePictures(false); }} />
+          <ArabicModeSwitch mode={mode} onChange={(m) => { setMode(m); setError(null); }} />
+          <OriginalPictures question={item} />
 
           {mode === "picture" && (
             images.length > 0 ? (
               <div className={cn("grid gap-3", item.prompt_quran && "sm:grid-cols-2")}>
                 <div className="grid content-start gap-2">
-                  {item.prompt_quran && <span className="text-xs text-muted-foreground">The picture</span>}
+                  {item.prompt_quran && <span className="text-xs text-muted-foreground">The picture: saving shows it on this paper instead of the typeset words</span>}
                   {images.map((p, i) => (
                     <Picture key={`${p}-${i}`} url={item.imageUrls[p]} onRemove={() => setImages((xs) => xs.filter((_, j) => j !== i))} label={`Remove picture ${i + 1}`} />
                   ))}
                 </div>
                 {item.prompt_quran && (
                   <div className="grid content-start gap-2">
-                    <span className="text-xs text-muted-foreground">The same ayah typeset ({snippetLabel(item.prompt_quran)})</span>
+                    <span className="text-xs text-muted-foreground">
+                      The same words typeset{refLabel(item.prompt_quran) ? ` (${refLabel(item.prompt_quran)})` : ""}
+                    </span>
                     <AyahPreview quran={item.prompt_quran} />
                     <Button variant="outline" size="sm" className="w-fit" onClick={switchToTypeset}>
-                      Use typeset text instead of the picture
+                      <Undo2 aria-hidden /> Use the typeset words
                     </Button>
                   </div>
                 )}
@@ -182,15 +238,11 @@ function Form({ item, onSave, onDone }: { item: Item; onSave: (patch: ItemPatch)
               <QuranRefFields draft={draft} onChange={(d) => { setDraft(d); setRefErrors(false); }} showErrors={refErrors} idPrefix={`edit-${item.id}`} />
               {images.filter(Boolean).length > 0 && (
                 <div className="grid gap-2 border-t border-line pt-3">
-                  <label className="flex items-start gap-2 text-sm">
-                    <Checkbox checked={replacePictures} onCheckedChange={(c) => { setReplacePictures(c === true); setError(null); }} className="mt-0.5" />
-                    <span>
-                      Use the typeset text instead of the picture
-                      <span className="block text-xs text-muted-foreground">The picture comes off this paper&apos;s copy when you save. The bank keeps it.</span>
-                    </span>
-                  </label>
-                  <Button variant="ghost" size="sm" className="w-fit" onClick={() => { setMode("picture"); setReplacePictures(false); setError(null); }}>
-                    <Undo2 aria-hidden /> Go back to the picture
+                  <p className="text-xs text-muted-foreground">
+                    The picture stays with the question and shows only if the typeset words cannot load.
+                  </p>
+                  <Button variant="ghost" size="sm" className="w-fit" onClick={() => { setMode("picture"); setError(null); }}>
+                    <Undo2 aria-hidden /> Show the picture instead
                   </Button>
                 </div>
               )}
@@ -219,7 +271,17 @@ function Form({ item, onSave, onDone }: { item: Item; onSave: (patch: ItemPatch)
                   <Button variant="ghost" size="icon-xs" onClick={() => moveOpt(i, 1)} disabled={i === options.length - 1} aria-label={`Move option ${i + 1} down`}><ArrowDown /></Button>
                   <Button variant="ghost" size="icon-xs" className="hover:text-danger" onClick={() => setOptions((os) => os.filter((_, j) => j !== i))} aria-label={`Remove option ${i + 1}`}><X /></Button>
                 </div>
-                {o.image && (
+                {o.image && (o.quran || o.stash) && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <OptionArabicSwitch typeset={!!o.quran} onChange={(t) => setOptTypeset(i, t)} n={i + 1} />
+                    {o.quran && (
+                      <span className="rounded border border-line bg-white px-2 text-[#00004d]">
+                        <TypesetAyah quran={o.quran} size="option" />
+                      </span>
+                    )}
+                  </div>
+                )}
+                {o.image && !o.quran && (
                   <Picture url={item.imageUrls[o.image]} onRemove={() => setOpt(i, { image: null })} label={`Remove the picture in option ${i + 1}`} />
                 )}
               </div>

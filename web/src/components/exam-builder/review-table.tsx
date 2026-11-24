@@ -21,8 +21,9 @@ import { splitReviewNote } from "@/lib/exam-builder/bank-validate";
 import { groupTopics, topicPath } from "@/lib/exam-builder/topics";
 import type { BankQuestion, ReviewStatus, Topic } from "@/lib/exam-builder/types";
 import { cn } from "@/lib/utils";
+import { OriginalPictures } from "./original-pictures";
 import { ReviewEditDialog } from "./review-edit-dialog";
-import { screenQuranSlot } from "./typeset-ayah";
+import { screenQuran } from "./typeset-ayah";
 import {
   DEFAULT_FILTERS, hasAnswer, isNarrowed, reviewCounts, reviewMatcher, type ReviewFilters, type ReviewView,
 } from "./review-filter";
@@ -319,15 +320,17 @@ function QuestionCard({
 
         <div className="font-semibold">
           <QuestionPrompt
-            prompt={q.prompt} images={q.prompt_images} imageUrls={q.imageUrls} quran={q.prompt_quran} quranSlot={screenQuranSlot(q)} variant="screen"
+            prompt={q.prompt} images={q.prompt_images} imageUrls={q.imageUrls} quran={q.prompt_quran} renderQuran={screenQuran} variant="screen"
           />
         </div>
+
+        <OriginalPictures question={q} />
 
         {q.kind === "mcq" && (
           q.options?.length ? (
             <div className="space-y-1">
               {q.select_many && <p className="text-xs text-muted-foreground">Select all that apply</p>}
-              <OptionList options={q.options} imageUrls={q.imageUrls} showCorrect variant="screen" />
+              <OptionList options={q.options} imageUrls={q.imageUrls} showCorrect renderQuran={screenQuran} variant="screen" />
               {noCorrect && <p className="text-xs text-warn">No option is marked as the right one.</p>}
             </div>
           ) : <p className="text-sm text-warn">Multiple choice, but no options were imported.</p>
