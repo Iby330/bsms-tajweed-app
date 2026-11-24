@@ -370,8 +370,11 @@ export function Workspace({
     }
   };
 
-  const saveItem = (id: string, patch: ItemPatch) =>
-    commitAwait((s) => L.updateItemLocal(s, id, patch), () => A.updateItem(id, patch));
+  const saveItem = (id: string, patch: ItemPatch, imageUrls: Record<string, string>) =>
+    commitAwait((s) => {
+      const was = s.items.find((i) => i.id === id);
+      return L.updateItemLocal(s, id, was ? { ...patch, imageUrls: { ...was.imageUrls, ...imageUrls } } : patch);
+    }, () => A.updateItem(id, patch));
 
   const saveHeader = (patch: Partial<Paper>) =>
     commitAwait((s) => L.updatePaperLocal(s, patch), () => A.updatePaper(paper.id, patch));
@@ -594,7 +597,7 @@ export function Workspace({
         defaultTopic={writing?.topic}
         onSubmit={submitNew}
       />
-      <ItemEditor item={editing} onOpenChange={(o) => { if (!o) setEditingId(null); }} onSave={saveItem} />
+      <ItemEditor item={editing} profileId={profileId} onOpenChange={(o) => { if (!o) setEditingId(null); }} onSave={saveItem} />
       <PaperHeaderForm open={headerOpen} onOpenChange={setHeaderOpen} paper={paper} onSave={saveHeader} />
 
       <ConfirmDialog

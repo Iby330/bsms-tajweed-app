@@ -7,8 +7,8 @@
  *
  * Qur'an words named by a ref are typeset in place of the picture, which
  * stays stored as the fallback. "Picture" for the question's Arabic clears
- * the copy's ref so the picture shows; an option with both has its own
- * Typeset / Picture switch (switching back before saving restores its ref).
+ * the copy's ref so the picture shows. Each option can carry Arabic of its
+ * own, a picture or typeset words (see option-arabic.tsx).
  */
 import { useState, useTransition } from "react";
 import { ArrowDown, ArrowUp, ImageOff, Plus, Undo2, X } from "lucide-react";
@@ -22,58 +22,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { optionFilled } from "@/lib/exam-builder/bank-validate";
 import { refLabel } from "@/lib/exam-builder/quran-lines";
 import { draftFromRef, readDraft, type RefDraft } from "@/lib/exam-builder/quran-ref-draft";
-import type { McqOption, PaperItem, QuestionKind, QuranRef, Result } from "@/lib/exam-builder/types";
+import type { PaperItem, QuestionKind, Result } from "@/lib/exam-builder/types";
 import { cn } from "@/lib/utils";
 import { ArabicModeSwitch, AyahPreview, QuranRefFields, type ArabicMode } from "./arabic-choice";
+import { blankOption, keepMarks, OptionArabic, readOption, toFormOption, type FormOption } from "./option-arabic";
 import { OriginalPictures } from "./original-pictures";
-import { TypesetAyah } from "./typeset-ayah";
 import type { Item } from "./paper-state";
 
 export type ItemPatch = Partial<Pick<PaperItem, "prompt" | "options" | "select_many" | "answer" | "marks" | "answer_lines" | "prompt_images" | "prompt_quran" | "kind">>;
-
-/** An option as the form holds it: `stash` keeps a ref switched to "Picture" until the save. */
-type EditOption = McqOption & { stash?: QuranRef };
-
-const blank = (): EditOption => ({ text: "", image: null, correct: false });
-
-/** The option as saved: no stash, no empty ref. */
-function saved(o: EditOption): McqOption {
-  const { stash: _s, quran, ...rest } = o;
-  void _s;
-  return quran ? { ...rest, quran } : rest;
-}
-
-/** The same range as `b`, ignoring its marks. */
-const sameRange = (a: QuranRef, b: QuranRef) =>
-  a.surah === b.surah && a.from_ayah === b.from_ayah && a.to_ayah === b.to_ayah && a.from_word === b.from_word && a.to_word === b.to_word;
-
-/** A typed ref keeps the basmala and circle the copy had, when it names the same range. */
-function keepMarks(ref: QuranRef, had: QuranRef | null): QuranRef {
-  if (!had || !sameRange(ref, had)) return ref;
-  return { ...ref, ...(had.basmala ? { basmala: true } : null), ...(had.circle ? { circle: had.circle } : null) };
-}
-
-function OptionArabicSwitch({ typeset, onChange, n }: { typeset: boolean; onChange: (typeset: boolean) => void; n: number }) {
-  return (
-    <div role="radiogroup" aria-label={`Arabic for option ${n}`} className="inline-flex w-fit overflow-hidden rounded-md border border-line text-xs">
-      {([[true, "Typeset"], [false, "Picture"]] as const).map(([v, label]) => (
-        <button
-          key={label}
-          type="button"
-          role="radio"
-          aria-checked={typeset === v}
-          onClick={() => onChange(v)}
-          className={cn(
-            "min-h-7 px-2.5 font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
-            typeset === v ? "bg-[color-mix(in_oklab,var(--brand)_28%,var(--card))] text-foreground" : "bg-card text-muted-foreground hover:bg-muted",
-          )}
-        >
-          {label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 function Picture({ url, onRemove, label }: { url?: string; onRemove: () => void; label: string }) {
   return (
@@ -91,11 +47,16 @@ function Picture({ url, onRemove, label }: { url?: string; onRemove: () => void;
   );
 }
 
-function Form({ item, onSave, onDone }: { item: Item; onSave: (patch: ItemPatch) => Promise<Result>; onDone: () => void }) {
+function Form({ item, profileId, onSave, onDone }: {
+  item: Item; profileId: string; onSave: (patch: ItemPatch, imageUrls: Record<string, string>) => Promise<Result>; onDone: () => void;
+}) {
   const [kind, setKind] = useState<QuestionKind>(item.kind);
   const [prompt, setPrompt] = useState(item.prompt === "New question" ? "" : item.prompt);
   const [images, setImages] = useState<string[]>(item.prompt_images);
-  const [options, setOptions] = useState<EditOption[]>(item.options?.length ? item.options : [blank(), blank(), blank(), blank()]);
+  const [options, setOptions] = useState<FormOption[]>(() =>
+    item.options?.length ? item.options.map(toFormOption) : [blankOption(), blankOption(), blankOption(), blankOption()]);
+  const [newUrls, setNewUrls] = useState<Record<string, string>>({});
+  const urls = { ...item.imageUrls, ...newUrls };
   const [selectMany, setSelectMany] = useState(item.select_many);
   const [marks, setMarks] = useState(String(item.marks));
   const [answer, setAnswer] = useState(item.answer ?? "");
@@ -109,15 +70,7 @@ function Form({ item, onSave, onDone }: { item: Item; onSave: (patch: ItemPatch)
   const [draft, setDraft] = useState<RefDraft>(() => draftFromRef(item.prompt_quran));
   const [refErrors, setRefErrors] = useState(false);
   const switchToTypeset = () => setMode("typeset");
-  const setOptTypeset = (i: number, typeset: boolean) =>
-    setOptions((os) => os.map((o, j) => {
-      if (j !== i) return o;
-      if (typeset && o.stash) return { ...o, quran: o.stash, stash: undefined };
-      if (!typeset && o.quran) return { ...o, quran: undefined, stash: o.quran };
-      return o;
-    }));
-
-  const setOpt = (i: number, patch: Partial<McqOption>) =>
+  const setOpt = (i: number, patch: Partial<FormOption>) =>
     setOptions((os) => os.map((o, j) => (j === i ? { ...o, ...patch } : patch.correct && !selectMany ? { ...o, correct: false } : o)));
   const moveOpt = (i: number, d: -1 | 1) =>
     setOptions((os) => {
@@ -157,14 +110,17 @@ function Form({ item, onSave, onDone }: { item: Item; onSave: (patch: ItemPatch)
         patch.prompt_quran = null;
       }
       if (kind === "mcq") {
-        patch.options = options.map(saved).filter(optionFilled);
+        const read = options.map((o, i) => readOption(o, i + 1));
+        const bad = read.find((r) => !r.ok);
+        if (bad && !bad.ok) return setError(bad.error);
+        patch.options = read.flatMap((r) => (r.ok && optionFilled(r.option) ? [r.option] : []));
         patch.select_many = selectMany;
       } else {
         const l = Number(lines);
         if (!Number.isInteger(l) || l < 0 || l > 30) return setError("Writing lines must be a whole number from 0 to 30.");
         patch.answer_lines = l;
       }
-      const res = await onSave(patch);
+      const res = await onSave(patch, newUrls);
       if (!res.ok) setError(res.error);
       else onDone();
     });
@@ -271,23 +227,15 @@ function Form({ item, onSave, onDone }: { item: Item; onSave: (patch: ItemPatch)
                   <Button variant="ghost" size="icon-xs" onClick={() => moveOpt(i, 1)} disabled={i === options.length - 1} aria-label={`Move option ${i + 1} down`}><ArrowDown /></Button>
                   <Button variant="ghost" size="icon-xs" className="hover:text-danger" onClick={() => setOptions((os) => os.filter((_, j) => j !== i))} aria-label={`Remove option ${i + 1}`}><X /></Button>
                 </div>
-                {o.image && (o.quran || o.stash) && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <OptionArabicSwitch typeset={!!o.quran} onChange={(t) => setOptTypeset(i, t)} n={i + 1} />
-                    {o.quran && (
-                      <span className="rounded border border-line bg-white px-2 text-[#00004d]">
-                        <TypesetAyah quran={o.quran} size="option" />
-                      </span>
-                    )}
-                  </div>
-                )}
-                {o.image && !o.quran && (
-                  <Picture url={item.imageUrls[o.image]} onRemove={() => setOpt(i, { image: null })} label={`Remove the picture in option ${i + 1}`} />
-                )}
+                <OptionArabic
+                  option={o} n={i + 1} idPrefix={`edit-${item.id}`} profileId={profileId} imageUrls={urls}
+                  onChange={(p) => setOpt(i, p)}
+                  onUploaded={(path, url) => setNewUrls((u) => ({ ...u, [path]: url }))}
+                />
               </div>
             ))}
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <Button variant="outline" size="sm" onClick={() => setOptions((os) => [...os, blank()])} disabled={options.length >= 10}>
+              <Button variant="outline" size="sm" onClick={() => setOptions((os) => [...os, blankOption()])} disabled={options.length >= 10}>
                 <Plus /> Add an option
               </Button>
               <label className="flex items-center gap-2 text-sm">
@@ -328,16 +276,19 @@ function Form({ item, onSave, onDone }: { item: Item; onSave: (patch: ItemPatch)
 }
 
 export function ItemEditor({
-  item, onOpenChange, onSave,
+  item, profileId, onOpenChange, onSave,
 }: {
   item: Item | null;
+  /** The signed-in teacher: new pictures upload under new/<profileId>/. */
+  profileId: string;
   onOpenChange: (open: boolean) => void;
-  onSave: (id: string, patch: ItemPatch) => Promise<Result>;
+  /** `imageUrls`: signed URLs for pictures uploaded in the editor, so they show at once. */
+  onSave: (id: string, patch: ItemPatch, imageUrls: Record<string, string>) => Promise<Result>;
 }) {
   return (
     <Dialog open={item !== null} onOpenChange={onOpenChange}>
       <DialogContent frameClassName="sm:max-w-2xl" className="grid-cols-[minmax(0,1fr)]">
-        {item && <Form key={item.id} item={item} onSave={(p) => onSave(item.id, p)} onDone={() => onOpenChange(false)} />}
+        {item && <Form key={item.id} item={item} profileId={profileId} onSave={(p, u) => onSave(item.id, p, u)} onDone={() => onOpenChange(false)} />}
       </DialogContent>
     </Dialog>
   );

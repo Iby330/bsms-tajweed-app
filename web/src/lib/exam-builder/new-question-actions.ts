@@ -44,7 +44,7 @@ async function teacher(): Promise<({ ok: true } & Me) | Fail> {
 /** A paper and a question section of it, both uuids. */
 export type Placement = { paperId: string; sectionId: string };
 
-/** Pictures in a question are only the caller's own uploads. */
+/** Pictures in a question, its options' included, are only the caller's own uploads. */
 function ownPictures(paths: string[], meId: string): boolean {
   return paths.every((p) => isOwnUpload(p, meId));
 }
@@ -64,7 +64,7 @@ export async function addBankQuestion(
   const clean = cleanNewQuestion(input);
   if (!clean.ok) return clean;
   const q = clean.value;
-  if (!ownPictures(q.prompt_images, me.id)) return fail("A picture is not one of ours.");
+  if (!ownPictures(collectImagePaths(q), me.id)) return fail("A picture is not one of ours.");
   if (place && (!isUuid(place.paperId) || !isUuid(place.sectionId))) return fail("That paper isn't there, or isn't yours.");
 
   const db = await supabaseServer();
@@ -124,7 +124,7 @@ export async function addCustomItem(
   const clean = cleanNewQuestion({ ...(typeof input === "object" && input ? input : {}), topic_id: "paper-only" });
   if (!clean.ok) return clean;
   const q = clean.value;
-  if (!ownPictures(q.prompt_images, me.id)) return fail("A picture is not one of ours.");
+  if (!ownPictures(collectImagePaths(q), me.id)) return fail("A picture is not one of ours.");
 
   const blank = await addBlankItem(paperId, sectionId, q.kind);
   if (!blank.ok) return blank;
@@ -144,7 +144,7 @@ export async function addCustomItem(
     await removeItem(blank.item.id);
     return filled;
   }
-  const imageUrls = await signExamImages(q.prompt_images);
+  const imageUrls = await signExamImages(collectImagePaths(q));
   return { ok: true, item: { ...blank.item, ...patch }, imageUrls };
 }
 

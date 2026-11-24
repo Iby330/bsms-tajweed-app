@@ -20,13 +20,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { signNewQuestionImage } from "@/lib/exam-builder/new-question-actions";
 import { groupTopics } from "@/lib/exam-builder/topics";
 import { EMPTY_DRAFT, readDraft, type RefDraft } from "@/lib/exam-builder/quran-ref-draft";
 import type { McqOption, QuestionKind, QuranRef, Topic } from "@/lib/exam-builder/types";
-import { supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { ArabicModeSwitch, QuranRefFields, type ArabicMode } from "./arabic-choice";
+import { blankOption, OptionArabic, readOption, type FormOption } from "./option-arabic";
+import { PICTURE_ACCEPT, uploadPicture } from "./upload-picture";
 
 /** What the form hands back: the question as the actions take it. */
 export type NewQuestionInput = {
@@ -42,10 +42,6 @@ export type NewQuestionInput = {
   marks: number;
 };
 
-const BUCKET = "exam-questions";
-const MAX_BYTES = 3 * 1024 * 1024;
-const TYPES: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif" };
-const blank = (): McqOption => ({ text: "", image: null, correct: false });
 
 type Errors = Partial<Record<"topic" | "prompt" | "options" | "marks" | "picture" | "ayah" | "form", string>>;
 
@@ -68,7 +64,8 @@ function Form({
   const [uploading, setUploading] = useState(false);
   const [arabic, setArabic] = useState<ArabicMode>("picture");
   const [draft, setDraft] = useState<RefDraft>(EMPTY_DRAFT);
-  const [options, setOptions] = useState<McqOption[]>([blank(), blank(), blank(), blank()]);
+  const [options, setOptions] = useState<FormOption[]>(() => [blankOption(), blankOption(), blankOption(), blankOption()]);
+  const [optionUrls, setOptionUrls] = useState<Record<string, string>>({});
   const [selectMany, setSelectMany] = useState(false);
   const [marks, setMarks] = useState("1");
   const [answer, setAnswer] = useState("");
@@ -79,31 +76,20 @@ function Form({
 
   /** Typing into a field clears its complaint. */
   const clear = (k: keyof Errors) => setErrors((e) => (e[k] ? { ...e, [k]: undefined } : e));
-  const setOpt = (i: number, patch: Partial<McqOption>) => {
+  const setOpt = (i: number, patch: Partial<FormOption>) => {
     clear("options");
     setOptions((os) => os.map((o, j) => (j === i ? { ...o, ...patch } : patch.correct && !selectMany ? { ...o, correct: false } : o)));
   };
 
   const upload = async (file: File | undefined) => {
     if (!file) return;
-    const ext = TYPES[file.type];
-    if (!ext) return setErrors((e) => ({ ...e, picture: "Choose a PNG, JPEG, WebP or GIF picture." }));
-    if (file.size > MAX_BYTES) return setErrors((e) => ({ ...e, picture: "That picture is over 3 MB. Crop it or save it smaller." }));
     setErrors((e) => ({ ...e, picture: undefined }));
     setUploading(true);
-    try {
-      const path = `new/${profileId}/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabaseBrowser().storage.from(BUCKET).upload(path, file, { contentType: file.type, upsert: false });
-      if (error) throw new Error(error.message);
-      const signed = await signNewQuestionImage(path);
-      if (!signed.ok) throw new Error(signed.error);
-      setPicture({ path, url: signed.url });
-    } catch {
-      setErrors((e) => ({ ...e, picture: "The picture didn't upload. Check the connection and try again." }));
-    } finally {
-      setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
+    const r = await uploadPicture(file, profileId);
+    setUploading(false);
+    if (fileRef.current) fileRef.current.value = "";
+    if (r.ok) setPicture({ path: r.path, url: r.url });
+    else setErrors((e) => ({ ...e, picture: r.error }));
   };
 
   const save = () => {
@@ -115,8 +101,11 @@ function Form({
     if (!marks.trim() || !Number.isFinite(m) || m < 0.5 || m > 100 || !Number.isInteger(m * 2)) {
       next.marks = "Marks must be between 0.5 and 100, in halves.";
     }
-    const filled = options.filter(optionFilled);
-    if (kind === "mcq" && filled.length < 2) next.options = "Fill in at least two options.";
+    const readOpts = options.map((o, i) => readOption(o, i + 1));
+    const badOpt = readOpts.find((r) => !r.ok);
+    const filled = readOpts.flatMap((r) => (r.ok && optionFilled(r.option) ? [r.option] : []));
+    if (kind === "mcq" && badOpt && !badOpt.ok) next.options = badOpt.error;
+    else if (kind === "mcq" && filled.length < 2) next.options = "Fill in at least two options.";
     const read = arabic === "typeset" ? readDraft(draft) : null;
     if (read && !read.ok) next.ayah = read.error;
     setErrors(next);
@@ -136,7 +125,8 @@ function Form({
     start(async () => {
       let err: string | void;
       try {
-        err = await onSubmit(q, mode === "paper" && keepOut, picture && arabic === "picture" ? { [picture.path]: picture.url } : {});
+        const urls = { ...(kind === "mcq" ? optionUrls : {}), ...(picture && arabic === "picture" ? { [picture.path]: picture.url } : {}) };
+        err = await onSubmit(q, mode === "paper" && keepOut, urls);
       } catch {
         err = "Couldn't reach the server. Check the connection and try again.";
       }
@@ -234,7 +224,7 @@ function Form({
               <input
                 ref={fileRef}
                 type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif"
+                accept={PICTURE_ACCEPT}
                 className="sr-only"
                 id="new-question-picture"
                 onChange={(e) => upload(e.target.files?.[0])}
@@ -254,17 +244,24 @@ function Form({
           <fieldset className="grid gap-2">
             <legend className="mb-1 text-sm font-medium">Options <span className="font-normal text-muted-foreground">· tick the correct {selectMany ? "ones" : "one"}</span></legend>
             {options.map((o, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <label className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground" title="Correct answer">
-                  <Checkbox checked={o.correct} onCheckedChange={(c) => setOpt(i, { correct: c === true })} aria-label={`Option ${i + 1} is correct`} />
-                  <span className={cn("max-sm:sr-only", o.correct && "font-semibold text-ok")}>{o.correct ? "Correct" : "Correct?"}</span>
-                </label>
-                <Input dir="auto" value={o.text} onChange={(e) => setOpt(i, { text: e.target.value })} aria-label={`Option ${i + 1}`} placeholder={`Option ${i + 1}`} className="h-9 min-w-0 flex-1" />
-                <Button variant="ghost" size="icon-xs" className="hover:text-danger" onClick={() => setOptions((os) => os.filter((_, j) => j !== i))} disabled={options.length <= 2} aria-label={`Remove option ${i + 1}`}><X /></Button>
+              <div key={i} className="grid gap-1.5 rounded-lg border border-line p-2">
+                <div className="flex items-center gap-2">
+                  <label className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground" title="Correct answer">
+                    <Checkbox checked={o.correct} onCheckedChange={(c) => setOpt(i, { correct: c === true })} aria-label={`Option ${i + 1} is correct`} />
+                    <span className={cn("max-sm:sr-only", o.correct && "font-semibold text-ok")}>{o.correct ? "Correct" : "Correct?"}</span>
+                  </label>
+                  <Input dir="auto" value={o.text} onChange={(e) => setOpt(i, { text: e.target.value })} aria-label={`Option ${i + 1}`} placeholder={`Option ${i + 1}`} className="h-9 min-w-0 flex-1" />
+                  <Button variant="ghost" size="icon-xs" className="hover:text-danger" onClick={() => setOptions((os) => os.filter((_, j) => j !== i))} disabled={options.length <= 2} aria-label={`Remove option ${i + 1}`}><X /></Button>
+                </div>
+                <OptionArabic
+                  option={o} n={i + 1} idPrefix="new-question" profileId={profileId} imageUrls={optionUrls}
+                  onChange={(p) => setOpt(i, p)}
+                  onUploaded={(path, url) => setOptionUrls((u) => ({ ...u, [path]: url }))}
+                />
               </div>
             ))}
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <Button variant="outline" size="sm" onClick={() => setOptions((os) => [...os, blank()])} disabled={options.length >= 10}>
+              <Button variant="outline" size="sm" onClick={() => setOptions((os) => [...os, blankOption()])} disabled={options.length >= 10}>
                 <Plus aria-hidden /> Add an option
               </Button>
               <label className="flex items-center gap-2 text-sm">

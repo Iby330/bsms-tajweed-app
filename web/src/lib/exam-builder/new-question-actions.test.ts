@@ -4,7 +4,8 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ currentProfile: vi.fn(), supabaseServer: vi.fn() }));
 vi.mock("./images", () => ({
   signExamImages: vi.fn(async (paths: string[]) => Object.fromEntries(paths.map((p) => [p, `https://signed/${p}`]))),
-  collectImagePaths: (q: { prompt_images: string[] }) => q.prompt_images,
+  collectImagePaths: (q: { prompt_images: string[]; options: { image: string | null }[] | null }) =>
+    [...q.prompt_images, ...(q.options ?? []).flatMap((o) => (o.image ? [o.image] : []))],
 }));
 
 import { currentProfile, supabaseServer } from "@/lib/supabase/server";
@@ -88,6 +89,17 @@ describe("addBankQuestion", () => {
     as(TEACHER, world);
     await expect(addBankQuestion({ ...good, prompt_images: ["bank/x.png"] })).resolves.toMatchObject({ ok: false });
     await expect(addBankQuestion({ ...good, prompt_images: ["new/someone-else/x.png"] })).resolves.toMatchObject({ ok: false });
+  });
+
+  it("refuses an option picture that is not the caller's own upload, and takes one that is", async () => {
+    as(TEACHER, world);
+    const mcq = (image: string) => ({
+      ...good, kind: "mcq", prompt_images: [],
+      options: [{ text: "", image, correct: true }, { text: "", image: null, correct: false, quran: { surah: 2, from_ayah: 8, to_ayah: 8, from_word: 2, to_word: 2 } }],
+    });
+    await expect(addBankQuestion(mcq("bank/x.png"))).resolves.toMatchObject({ ok: false });
+    await expect(addBankQuestion(mcq("new/someone-else/x.png"))).resolves.toMatchObject({ ok: false });
+    await expect(addBankQuestion(mcq(`new/${ME}/word.png`))).resolves.toMatchObject({ ok: true });
   });
 
   it("inserts it as the caller's, clean, with who wrote it and when", async () => {

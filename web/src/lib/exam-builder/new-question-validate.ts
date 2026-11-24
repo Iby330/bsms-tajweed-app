@@ -74,6 +74,7 @@ export function cleanNewQuestion(input: unknown): Clean<NewQuestion> {
   const problem = mcqProblem(kind, opts);
   if (problem) return fail(problem);
   if ((p.prompt_images ?? []).some((path) => !path.startsWith("new/"))) return fail("A picture is not one of ours.");
+  if ((opts ?? []).some((o) => o.image && !o.image.startsWith("new/"))) return fail("A picture is not one of ours.");
 
   return {
     ok: true,

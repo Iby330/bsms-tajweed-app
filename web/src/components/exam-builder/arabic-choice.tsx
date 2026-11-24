@@ -4,15 +4,17 @@
  * "Arabic for this question": a picture, the ayah typeset from the mushaf,
  * or none. Shared by the item editor and "Write a new question".
  *
- * `QuranRefFields` takes the surah and ayah range (and, behind "Part of an
- * ayah", the words) and previews the typeset text beneath, fetched a moment
- * after the typing stops.
+ * `QuranRefFields` takes the surah and ayah range, then shows the ayah's
+ * words to click: left alone the whole ayah is used; one click takes that
+ * word, a second click takes everything from the first to it. The typeset
+ * text is previewed beneath, fetched a moment after the typing stops.
  */
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { snippetKey } from "@/lib/exam-builder/quran-lines";
 import { readDraft, surahTag, type RefDraft } from "@/lib/exam-builder/quran-ref-draft";
 import type { QuranRef } from "@/lib/exam-builder/types";
+import type { QuranWord } from "@/lib/quran/mushaf";
 import { cn } from "@/lib/utils";
 import { QuranSnippet } from "./quran-snippet";
 import { useQuranWords } from "./use-quran-words";
@@ -73,6 +75,72 @@ export function AyahPreview({ quran }: { quran: QuranRef | null }) {
 
 const field = "h-9 w-20 tabular-nums";
 
+/** A word's place in the range: ayah, then position, as one sortable number. */
+const at = (ayah: number, position: number) => ayah * 1000 + position;
+
+/** The ayah range the words are picked from: what the teacher typed, before any words were chosen. */
+type Span = { from: string; to: string };
+
+function WordPicker({ draft, span, onChange }: { draft: RefDraft; span: Span; onChange: (d: RefDraft) => void }) {
+  const base = readDraft({ surah: draft.surah, from: span.from, to: span.to, fromWord: "", toWord: "" });
+  const baseRef = base.ok ? base.ref : null;
+  const settled = useSettled(baseRef, baseRef ? snippetKey(baseRef) : "");
+  const state = useQuranWords(settled);
+  if (!settled || state.status !== "ready") return null;
+  const words = state.words.filter((w) => !w.isEnd);
+  if (words.length === 0) return null;
+
+  const read = readDraft(draft);
+  const chosen = !!(draft.fromWord.trim() || draft.toWord.trim()) && read.ok;
+  const lo = chosen ? at(read.ref.from_ayah, read.ref.from_word ?? 1) : -1;
+  const hi = chosen ? at(read.ref.to_ayah, read.ref.to_word ?? 999) : -1;
+  const count = chosen ? words.filter((w) => at(w.ayah, w.position) >= lo && at(w.ayah, w.position) <= hi).length : 0;
+
+  const whole = () => onChange({ ...draft, from: span.from, to: span.to, fromWord: "", toWord: "" });
+  const pick = (w: QuranWord) => {
+    const k = at(w.ayah, w.position);
+    if (chosen && lo === hi && k === lo) return whole();
+    const [a, b] = chosen && lo === hi ? [Math.min(lo, k), Math.max(lo, k)] : [k, k];
+    const fa = Math.floor(a / 1000), ta = Math.floor(b / 1000);
+    onChange({ ...draft, from: String(fa), to: ta === fa ? "" : String(ta), fromWord: String(a % 1000), toWord: String(b % 1000) });
+  };
+
+  return (
+    <div className="grid gap-1.5">
+      <div dir="rtl" className="flex flex-wrap gap-1" role="group" aria-label="The words of the ayah: click to choose some">
+        {words.map((w) => {
+          const on = chosen && at(w.ayah, w.position) >= lo && at(w.ayah, w.position) <= hi;
+          return (
+            <button
+              key={`${w.ayah}:${w.position}`}
+              type="button"
+              aria-pressed={on}
+              title={`Ayah ${w.ayah}, word ${w.position}`}
+              onClick={() => pick(w)}
+              className={cn(
+                "rounded-md border px-1.5 text-[#00004d] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                on ? "border-brand bg-[color-mix(in_oklab,var(--brand)_28%,white)]" : "border-line bg-white hover:border-foreground/40",
+              )}
+            >
+              <QuranSnippet words={[w]} variant="screen" size="option" />
+            </button>
+          );
+        })}
+      </div>
+      <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+        {chosen ? (
+          <>
+            <span>{count === 1 ? "1 word chosen." : `${count} words chosen.`} Click a word to start again.</span>
+            <button type="button" onClick={whole} className="font-medium text-brand underline-offset-4 hover:underline">Use the whole ayah</button>
+          </>
+        ) : (
+          <span>The whole ayah is used. To use only some of it, click a word, or click the first word and then the last.</span>
+        )}
+      </p>
+    </div>
+  );
+}
+
 export function QuranRefFields({
   draft, onChange, showErrors, idPrefix,
 }: {
@@ -86,9 +154,14 @@ export function QuranRefFields({
   const ref = read.ok ? read.ref : null;
   const settled = useSettled(ref, ref ? snippetKey(ref) : "");
   const tag = surahTag(draft.surah);
-  const set = (k: keyof RefDraft) => (e: React.ChangeEvent<HTMLInputElement>) => onChange({ ...draft, [k]: e.target.value });
   const typed = Object.values(draft).some((v) => v.trim());
-  const [partOpen, setPartOpen] = useState(!!(draft.fromWord || draft.toWord));
+  const [span, setSpan] = useState<Span>({ from: draft.from, to: draft.to });
+  // Typing a surah or ayah number starts the words again.
+  const set = (k: "surah" | "from" | "to") => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value;
+    if (k !== "surah") setSpan((sp) => ({ ...sp, [k]: v }));
+    onChange({ ...draft, ...(k === "surah" ? null : { from: span.from, to: span.to }), [k]: v, fromWord: "", toWord: "" });
+  };
 
   return (
     <div className="grid gap-3">
@@ -109,20 +182,7 @@ export function QuranRefFields({
           <Input type="number" inputMode="numeric" min={1} value={draft.to} onChange={set("to")} placeholder={draft.from || ""} className={field} />
         </label>
       </div>
-      <details className="text-sm" open={partOpen} onToggle={(e) => setPartOpen(e.currentTarget.open)}>
-        <summary className="w-fit cursor-pointer text-xs font-medium text-brand underline-offset-4 hover:underline">Part of an ayah</summary>
-        <div className="mt-2 flex flex-wrap items-end gap-3">
-          <label className="grid gap-1 text-xs font-medium">
-            Only words from
-            <Input type="number" inputMode="numeric" min={1} value={draft.fromWord} onChange={set("fromWord")} className={field} />
-          </label>
-          <label className="grid gap-1 text-xs font-medium">
-            to
-            <Input type="number" inputMode="numeric" min={1} value={draft.toWord} onChange={set("toWord")} className={field} />
-          </label>
-          <p className="basis-full text-xs text-muted-foreground">Words count from 1 at the start of the first ayah; &ldquo;to&rdquo; counts in the last ayah.</p>
-        </div>
-      </details>
+      <WordPicker draft={draft} span={span} onChange={onChange} />
       {!read.ok && (showErrors || typed) ? (
         <p className="text-xs text-danger" role="alert">{read.error}</p>
       ) : (
