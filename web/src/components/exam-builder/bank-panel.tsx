@@ -69,7 +69,10 @@ export function BankPanel({
   questions,
   reveal = null,
   className,
+  onEdit,
 }: {
+  /** Admins on the bank page: open a question to change it. Keep it stable, the cards are memoised. */
+  onEdit?: (q: BankQuestion) => void;
   topics: Topic[];
   questions: BankQuestion[];
   /** A topic to open (with its series), e.g. where a just-written question went. */
@@ -137,7 +140,7 @@ export function BankPanel({
   const cards = (list: BankQuestion[]) => (
     <div className="grid gap-2 px-2 pt-1 pb-3">
       {list.map((q) => (
-        <BankQuestionCard key={q.id} q={q} />
+        <BankQuestionCard key={q.id} q={q} onEdit={onEdit} />
       ))}
     </div>
   );

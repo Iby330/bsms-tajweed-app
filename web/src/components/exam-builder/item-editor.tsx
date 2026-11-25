@@ -9,6 +9,10 @@
  * stays stored as the fallback. "Picture" for the question's Arabic clears
  * the copy's ref so the picture shows. Each option can carry Arabic of its
  * own, a picture or typeset words (see option-arabic.tsx).
+ *
+ * The same form edits a BANK question (BankEditor, admins only): there it
+ * changes the original for every teacher, marks may be left blank, the topic
+ * can be moved, and writing lines are not asked (a bank question has none).
  */
 import { useState, useTransition } from "react";
 import { ArrowDown, ArrowUp, ImageOff, Plus, Undo2, X } from "lucide-react";
@@ -22,7 +26,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { optionFilled } from "@/lib/exam-builder/bank-validate";
 import { refLabel } from "@/lib/exam-builder/quran-lines";
 import { draftFromRef, readDraft, type RefDraft } from "@/lib/exam-builder/quran-ref-draft";
-import type { PaperItem, QuestionKind, Result } from "@/lib/exam-builder/types";
+import { groupTopics } from "@/lib/exam-builder/topics";
+import type { BankQuestion, PaperItem, QuestionKind, Result, Topic } from "@/lib/exam-builder/types";
 import { cn } from "@/lib/utils";
 import { ArabicModeSwitch, AyahPreview, QuranRefFields, type ArabicMode } from "./arabic-choice";
 import { blankOption, keepMarks, OptionArabic, readOption, toFormOption, type FormOption } from "./option-arabic";
@@ -30,6 +35,17 @@ import { OriginalPictures } from "./original-pictures";
 import type { Item } from "./paper-state";
 
 export type ItemPatch = Partial<Pick<PaperItem, "prompt" | "options" | "select_many" | "answer" | "marks" | "answer_lines" | "prompt_images" | "prompt_quran" | "kind">>;
+/** What the form sends for a bank question: marks may be blank, and it has a topic but no writing lines. */
+export type BankEditPatch = Omit<ItemPatch, "marks" | "answer_lines"> & { marks?: number | null; topic_id?: string };
+type AnyPatch = Omit<ItemPatch, "marks"> & { marks?: number | null; topic_id?: string };
+
+/** What the form needs of a question, whether it is a paper's copy or the bank's original. */
+type Editable = Pick<PaperItem, "id" | "kind" | "prompt" | "prompt_images" | "prompt_quran" | "options" | "select_many" | "answer"> & {
+  marks: number | null;
+  answer_lines?: number;
+  topic_id?: string;
+  imageUrls: Record<string, string>;
+};
 
 function Picture({ url, onRemove, label }: { url?: string; onRemove: () => void; label: string }) {
   return (
@@ -47,9 +63,14 @@ function Picture({ url, onRemove, label }: { url?: string; onRemove: () => void;
   );
 }
 
-function Form({ item, profileId, onSave, onDone }: {
-  item: Item; profileId: string; onSave: (patch: ItemPatch, imageUrls: Record<string, string>) => Promise<Result>; onDone: () => void;
+function Form({ item, profileId, bankTopics, onSave, onDone }: {
+  item: Editable; profileId: string;
+  /** Set when this is the bank's original: its topics, for moving the question. */
+  bankTopics?: Topic[];
+  onSave: (patch: AnyPatch, imageUrls: Record<string, string>) => Promise<Result>; onDone: () => void;
 }) {
+  const bank = !!bankTopics;
+  const [topicId, setTopicId] = useState(item.topic_id ?? "");
   const [kind, setKind] = useState<QuestionKind>(item.kind);
   const [prompt, setPrompt] = useState(item.prompt === "New question" ? "" : item.prompt);
   const [images, setImages] = useState<string[]>(item.prompt_images);
@@ -58,9 +79,9 @@ function Form({ item, profileId, onSave, onDone }: {
   const [newUrls, setNewUrls] = useState<Record<string, string>>({});
   const urls = { ...item.imageUrls, ...newUrls };
   const [selectMany, setSelectMany] = useState(item.select_many);
-  const [marks, setMarks] = useState(String(item.marks));
+  const [marks, setMarks] = useState(item.marks == null ? "" : String(item.marks));
   const [answer, setAnswer] = useState(item.answer ?? "");
-  const [lines, setLines] = useState(String(item.answer_lines));
+  const [lines, setLines] = useState(String(item.answer_lines ?? 0));
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   // Arabic for the question. A ref wins over the pictures, which stay stored
@@ -86,12 +107,13 @@ function Form({ item, profileId, onSave, onDone }: {
   const save = () =>
     start(async () => {
       setError(null);
-      const m = Number(marks);
+      const blank = bank && !marks.trim();
+      const m = blank ? null : Number(marks);
       if (!prompt.trim()) return setError("The question can't be empty.");
-      if (!Number.isFinite(m) || m < 0.5 || m > 100 || !Number.isInteger(m * 2)) {
-        return setError("Marks must be between 0.5 and 100, in halves.");
+      if (m !== null && (!Number.isFinite(m) || m < 0.5 || m > 100 || !Number.isInteger(m * 2))) {
+        return setError(bank ? "Marks must be blank, or between 0.5 and 100 in halves." : "Marks must be between 0.5 and 100, in halves.");
       }
-      const patch: ItemPatch = {
+      const patch: AnyPatch = {
         kind,
         prompt,
         prompt_images: images,
@@ -115,11 +137,12 @@ function Form({ item, profileId, onSave, onDone }: {
         if (bad && !bad.ok) return setError(bad.error);
         patch.options = read.flatMap((r) => (r.ok && optionFilled(r.option) ? [r.option] : []));
         patch.select_many = selectMany;
-      } else {
+      } else if (!bank) {
         const l = Number(lines);
         if (!Number.isInteger(l) || l < 0 || l > 30) return setError("Writing lines must be a whole number from 0 to 30.");
         patch.answer_lines = l;
       }
+      if (bank && topicId && topicId !== item.topic_id) patch.topic_id = topicId;
       const res = await onSave(patch, newUrls);
       if (!res.ok) setError(res.error);
       else onDone();
@@ -128,8 +151,12 @@ function Form({ item, profileId, onSave, onDone }: {
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Edit question</DialogTitle>
-        <DialogDescription>Changes apply to this paper only. The question bank stays as it was.</DialogDescription>
+        <DialogTitle>{bank ? "Edit this bank question" : "Edit question"}</DialogTitle>
+        <DialogDescription>
+          {bank
+            ? "This changes the question in the bank for every teacher. Papers already built keep their own copy."
+            : "Changes apply to this paper only. The question bank stays as it was."}
+        </DialogDescription>
       </DialogHeader>
 
       <div className="grid gap-5">
@@ -151,6 +178,26 @@ function Form({ item, profileId, onSave, onDone }: {
           ))}
         </div>
 
+        {bankTopics && (
+          <label className="grid gap-1.5 text-sm font-medium">
+            Topic
+            <select
+              value={topicId}
+              onChange={(e) => setTopicId(e.target.value)}
+              className="h-9 w-full max-w-sm rounded-lg border border-input bg-transparent px-2 text-sm font-normal dark:bg-input/30"
+            >
+              {groupTopics(bankTopics).map((g) => g.children.length ? (
+                <optgroup key={g.topic.id} label={g.topic.title}>
+                  <option value={g.topic.id}>{g.topic.title} (general)</option>
+                  {g.children.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
+                </optgroup>
+              ) : (
+                <option key={g.topic.id} value={g.topic.id}>{g.topic.title}</option>
+              ))}
+            </select>
+          </label>
+        )}
+
         <label className="grid gap-1.5 text-sm font-medium">
           Question
           <Textarea dir="auto" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Type the question" className="min-h-20 text-base" autoFocus={!prompt} />
@@ -165,7 +212,7 @@ function Form({ item, profileId, onSave, onDone }: {
             images.length > 0 ? (
               <div className={cn("grid gap-3", item.prompt_quran && "sm:grid-cols-2")}>
                 <div className="grid content-start gap-2">
-                  {item.prompt_quran && <span className="text-xs text-muted-foreground">The picture: saving shows it on this paper instead of the typeset words</span>}
+                  {item.prompt_quran && <span className="text-xs text-muted-foreground">The picture: saving shows it {bank ? "in the bank" : "on this paper"} instead of the typeset words</span>}
                   {images.map((p, i) => (
                     <Picture key={`${p}-${i}`} url={item.imageUrls[p]} onRemove={() => setImages((xs) => xs.filter((_, j) => j !== i))} label={`Remove picture ${i + 1}`} />
                   ))}
@@ -207,7 +254,7 @@ function Form({ item, profileId, onSave, onDone }: {
 
           {mode === "none" && (
             <p className="text-xs text-muted-foreground">
-              {hadPictures || item.prompt_quran ? "No Arabic under the question: saving takes the picture and ayah off this paper's copy." : "No Arabic under the question."}
+              {hadPictures || item.prompt_quran ? (bank ? "No Arabic under the question: saving takes the picture and ayah off the bank's question." : "No Arabic under the question: saving takes the picture and ayah off this paper's copy.") : "No Arabic under the question."}
             </p>
           )}
         </div>
@@ -250,9 +297,9 @@ function Form({ item, profileId, onSave, onDone }: {
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="grid gap-1.5 text-sm font-medium">
             Marks
-            <Input type="number" inputMode="decimal" min={0.5} max={100} step={0.5} value={marks} onChange={(e) => setMarks(e.target.value)} className="h-9 w-28 tabular-nums" />
+            <Input type="number" inputMode="decimal" min={0.5} max={100} step={0.5} value={marks} onChange={(e) => setMarks(e.target.value)} placeholder={bank ? "not set" : undefined} className="h-9 w-28 tabular-nums" />
           </label>
-          {kind === "short" && (
+          {kind === "short" && !bank && (
             <label className="grid gap-1.5 text-sm font-medium">
               Writing lines on the paper
               <Input type="number" inputMode="numeric" min={0} max={30} step={1} value={lines} onChange={(e) => setLines(e.target.value)} className="h-9 w-28 tabular-nums" />
@@ -288,7 +335,31 @@ export function ItemEditor({
   return (
     <Dialog open={item !== null} onOpenChange={onOpenChange}>
       <DialogContent frameClassName="sm:max-w-2xl" className="grid-cols-[minmax(0,1fr)]">
-        {item && <Form key={item.id} item={item} profileId={profileId} onSave={(p, u) => onSave(item.id, p, u)} onDone={() => onOpenChange(false)} />}
+        {item && <Form key={item.id} item={item} profileId={profileId} onSave={(p, u) => onSave(item.id, p as ItemPatch, u)} onDone={() => onOpenChange(false)} />}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** The same form on the bank's own question. Shown to admins; the action refuses anyone else. */
+export function BankEditor({
+  question, topics, profileId, onOpenChange, onSave,
+}: {
+  question: BankQuestion | null;
+  topics: Topic[];
+  profileId: string;
+  onOpenChange: (open: boolean) => void;
+  onSave: (id: string, patch: BankEditPatch, imageUrls: Record<string, string>) => Promise<Result>;
+}) {
+  return (
+    <Dialog open={question !== null} onOpenChange={onOpenChange}>
+      <DialogContent frameClassName="sm:max-w-2xl" className="grid-cols-[minmax(0,1fr)]">
+        {question && (
+          <Form
+            key={question.id} item={question} profileId={profileId} bankTopics={topics}
+            onSave={(p, u) => onSave(question.id, p as BankEditPatch, u)} onDone={() => onOpenChange(false)}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

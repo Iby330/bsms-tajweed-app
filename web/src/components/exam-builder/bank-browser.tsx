@@ -9,16 +9,20 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { updateBankQuestion } from "@/lib/exam-builder/bank-actions";
 import { addBankQuestion } from "@/lib/exam-builder/new-question-actions";
 import { topicPath } from "@/lib/exam-builder/topics";
 import type { BankQuestion, Topic } from "@/lib/exam-builder/types";
 import { BankPanel } from "./bank-panel";
 import { useFitPictures } from "./fit-pictures";
+import { BankEditor, type BankEditPatch } from "./item-editor";
 import { NewQuestionForm, type NewQuestionInput } from "./new-question-form";
 
 export function BankBrowser({
-  topics, questions: initial, profileId,
+  topics, questions: initial, profileId, canEdit = false,
 }: {
+  /** An admin: each question carries Edit, which changes the bank's original. */
+  canEdit?: boolean;
   topics: Topic[];
   questions: BankQuestion[];
   profileId: string;
@@ -29,6 +33,22 @@ export function BankBrowser({
   const [writing, setWriting] = useState(false);
   const [reveal, setReveal] = useState<string | null>(null);
   const [added, setAdded] = useState<string | null>(null);
+  const [editing, setEditing] = useState<BankQuestion | null>(null);
+
+  const saveEdit = async (id: string, patch: BankEditPatch, imageUrls: Record<string, string>) => {
+    const res = await updateBankQuestion(id, patch);
+    if (!res.ok) return res;
+    setQuestions((qs) => qs.map((q) => (q.id === id ? {
+      ...q, ...patch,
+      prompt: (patch.prompt ?? q.prompt).trim(),
+      options: (patch.kind ?? q.kind) === "short" ? null : patch.options ?? q.options,
+      imageUrls: { ...q.imageUrls, ...imageUrls },
+    } : q)));
+    if (patch.topic_id) setReveal(patch.topic_id);
+    setAdded(null);
+    router.refresh();
+    return res;
+  };
 
   const submit = async (q: NewQuestionInput): Promise<string | void> => {
     const res = await addBankQuestion(q);
@@ -52,7 +72,12 @@ export function BankBrowser({
           </p>
         )}
       </div>
-      <BankPanel topics={topics} questions={questions} reveal={reveal} className="border border-line bg-card" />
+      <BankPanel topics={topics} questions={questions} reveal={reveal} className="border border-line bg-card" onEdit={canEdit ? setEditing : undefined} />
+      <BankEditor
+        question={editing} topics={topics} profileId={profileId}
+        onOpenChange={(open) => { if (!open) setEditing(null); }}
+        onSave={saveEdit}
+      />
       <NewQuestionForm
         open={writing}
         onOpenChange={setWriting}

@@ -25,7 +25,7 @@ export default async function ExamBank() {
           <span className="label">{questions.length} questions · {unused} not used before</span>
         </div>
       </header>
-      <BankBrowser topics={topics} questions={questions} profileId={me?.id ?? ""} />
+      <BankBrowser topics={topics} questions={questions} profileId={me?.id ?? ""} canEdit={!!me?.is_admin} />
     </>
   );
 }

@@ -4,10 +4,10 @@
  * One question in the bank: its wording and pictures, the options with the
  * correct one marked, its marks, where it was found and which exams already
  * used it. In the "Add a question" drawer it carries an Add button for the
- * section the drawer is adding to; on the bank page it is read-only.
+ * section the drawer is adding to; on the bank page an admin gets Edit.
  */
 import { memo, useState } from "react";
-import { AlertTriangle, Check, Plus } from "lucide-react";
+import { AlertTriangle, Check, Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatMarks } from "@/lib/exam-builder/numbering";
 import type { BankQuestion } from "@/lib/exam-builder/types";
@@ -31,7 +31,10 @@ function BankQuestionCardImpl({
   addLabel = "Add to paper",
   locked = false,
   topicLabel,
+  onEdit,
 }: {
+  /** Change the bank's own question (admins, on the bank page). */
+  onEdit?: (q: BankQuestion) => void;
   q: BankQuestion;
   /** The paper already holds a copy. */
   added?: boolean;
@@ -146,6 +149,11 @@ function BankQuestionCardImpl({
           )}
         </div>
 
+        {onEdit && (
+          <Button size="sm" variant="outline" className="shrink-0" onClick={() => onEdit(q)}>
+            <Pencil aria-hidden /> Edit
+          </Button>
+        )}
         {onAdd && (
           added ? (
             <span className={cn(chip, "min-h-8 bg-ok/15 px-3 text-xs text-ok")}>
