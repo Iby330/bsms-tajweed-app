@@ -1,10 +1,10 @@
 "use server";
 
 /**
- * The admin's corrections to the question bank, from the review page:
- * approve a question as it stands, edit it, or bin it (and restore it).
- * Teachers can add to the bank but never change it; only an admin can, and
- * row level security (0152: `is_admin()` for UPDATE) says so again.
+ * Corrections to the question bank. Any teacher can edit a question (0156:
+ * the bank page's Edit). Approving, binning and restoring, the review status
+ * and the "used in" labels are the admin's, from the review page; row level
+ * security lets a teacher update a row, so this file is what holds that line.
  *
  * An update RLS refuses comes back with no error and no rows, so every write
  * asks for the changed ids back and treats none as a failure.
@@ -33,7 +33,7 @@ type Fail = { ok: false; error: string };
 const PATH = "/teacher/exam-builder";
 const NOT_ADMIN = "Only an admin can change the bank.";
 const NO_QUESTION = "That question isn't in the bank.";
-const NOTHING_CHANGED = "Nothing changed — are you still an admin?";
+const NOTHING_CHANGED = "Nothing changed. Check you are still signed in as a teacher.";
 
 const fail = (error: string): Fail => ({ ok: false, error });
 
@@ -52,6 +52,17 @@ async function admin(): Promise<{ ok: true } | Fail> {
   const me = await currentProfile();
   if (!me?.is_admin) return fail(NOT_ADMIN);
   return { ok: true };
+}
+
+/** A signed-in teacher, and whether they are an admin. */
+async function teacher(): Promise<{ ok: true; isAdmin: boolean } | Fail> {
+  try {
+    await requireTeacher();
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Teachers only.");
+  }
+  const me = await currentProfile();
+  return { ok: true, isAdmin: !!me?.is_admin };
 }
 
 /** Write the change and confirm a row actually moved. */
@@ -81,8 +92,11 @@ export async function updateBankQuestion(id: string, patch: BankPatch): Promise<
   if (!isUuid(id)) return fail(NO_QUESTION);
   const clean = cleanBankPatch(patch);
   if (!clean.ok) return clean;
-  const ok = await admin();
+  const ok = await teacher();
   if (!ok.ok) return ok;
+  if (!ok.isAdmin && (clean.patch.review_status !== undefined || clean.patch.used_in !== undefined)) {
+    return fail("Only an admin can change a question's review status or where it was used.");
+  }
   const db = await supabaseServer();
   const update = { ...clean.patch };
 

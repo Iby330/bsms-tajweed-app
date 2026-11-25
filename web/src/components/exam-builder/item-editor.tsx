@@ -10,7 +10,7 @@
  * the copy's ref so the picture shows. Each option can carry Arabic of its
  * own, a picture or typeset words (see option-arabic.tsx).
  *
- * The same form edits a BANK question (BankEditor, admins only): there it
+ * The same form edits a BANK question (BankEditor, any teacher): there it
  * changes the original for every teacher, marks may be left blank, the topic
  * can be moved, and writing lines are not asked (a bank question has none).
  */
@@ -341,7 +341,7 @@ export function ItemEditor({
   );
 }
 
-/** The same form on the bank's own question. Shown to admins; the action refuses anyone else. */
+/** The same form on the bank's own question. Any teacher may; the action checks. */
 export function BankEditor({
   question, topics, profileId, onOpenChange, onSave,
 }: {

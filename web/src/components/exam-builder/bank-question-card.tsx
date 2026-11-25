@@ -4,7 +4,7 @@
  * One question in the bank: its wording and pictures, the options with the
  * correct one marked, its marks, where it was found and which exams already
  * used it. In the "Add a question" drawer it carries an Add button for the
- * section the drawer is adding to; on the bank page an admin gets Edit.
+ * section the drawer is adding to; on the bank page it carries Edit.
  */
 import { memo, useState } from "react";
 import { AlertTriangle, Check, Pencil, Plus } from "lucide-react";
@@ -33,7 +33,7 @@ function BankQuestionCardImpl({
   topicLabel,
   onEdit,
 }: {
-  /** Change the bank's own question (admins, on the bank page). */
+  /** Change the bank's own question (any teacher, on the bank page). */
   onEdit?: (q: BankQuestion) => void;
   q: BankQuestion;
   /** The paper already holds a copy. */

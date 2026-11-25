@@ -96,18 +96,28 @@ beforeEach(() => {
 afterEach(() => vi.clearAllMocks());
 
 describe("who may change the bank", () => {
-  it("refuses a teacher who is not an admin, and writes nothing", async () => {
+  it("keeps approving and binning for an admin: a teacher is refused, and nothing is written", async () => {
     const { respond } = bankWorld();
     const calls = as(TEACHER, respond);
     for (const r of [
       await approveBankQuestion(Q),
-      await updateBankQuestion(Q, { marks: 2 }),
       await archiveBankQuestion(Q, true),
     ]) {
       expect(r).toEqual({ ok: false, error: "Only an admin can change the bank." });
     }
     expect(writes(calls)).toEqual([]);
     expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("lets any teacher edit a question, but not its review status or where it was used", async () => {
+    const { respond } = bankWorld();
+    const calls = as(TEACHER, respond);
+    expect(await updateBankQuestion(Q, { marks: 2 })).toEqual({ ok: true });
+    expect(writes(calls)).toHaveLength(1);
+    const refused = { ok: false, error: "Only an admin can change a question's review status or where it was used." };
+    expect(await updateBankQuestion(Q, { review_status: "approved" })).toEqual(refused);
+    expect(await updateBankQuestion(Q, { used_in: ["EOT1 26/27"] })).toEqual(refused);
+    expect(writes(calls)).toHaveLength(1);
   });
 
   it("refuses a student and a signed-out caller", async () => {
@@ -119,7 +129,7 @@ describe("who may change the bank", () => {
 
   it("treats an update RLS swallowed (no rows back) as a failure", async () => {
     const calls = as(ADMIN, (c) => (c.op === "update" ? { data: [] } : {}));
-    expect(await approveBankQuestion(Q)).toEqual({ ok: false, error: "Nothing changed — are you still an admin?" });
+    expect(await approveBankQuestion(Q)).toEqual({ ok: false, error: "Nothing changed. Check you are still signed in as a teacher." });
     expect(writes(calls)[0].returning).toEqual(["id"]);
     expect(revalidatePath).not.toHaveBeenCalled();
   });

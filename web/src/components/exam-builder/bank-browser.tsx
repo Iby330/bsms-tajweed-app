@@ -21,7 +21,7 @@ import { NewQuestionForm, type NewQuestionInput } from "./new-question-form";
 export function BankBrowser({
   topics, questions: initial, profileId, canEdit = false,
 }: {
-  /** An admin: each question carries Edit, which changes the bank's original. */
+  /** A teacher: each question carries Edit, which changes the bank's original. */
   canEdit?: boolean;
   topics: Topic[];
   questions: BankQuestion[];

@@ -18,14 +18,14 @@ export default async function ExamBank() {
         <Crumbs items={[{ label: "Exam Builder", href: "/teacher/exam-builder" }, { label: "Question bank" }]} />
         <h1>Question bank <span>/ every past question, by topic.</span></h1>
         <p>
-          Open a series to see its rules, and a rule to see its questions. Write a new question to add it to the bank.
+          Open a series to see its rules, and a rule to see its questions. Write a new question to add it to the bank, or use Edit on a question to correct it.
           To put a question on a paper, open the paper and use the bank beside it.
         </p>
         <div className="meta">
           <span className="label">{questions.length} questions · {unused} not used before</span>
         </div>
       </header>
-      <BankBrowser topics={topics} questions={questions} profileId={me?.id ?? ""} canEdit={!!me?.is_admin} />
+      <BankBrowser topics={topics} questions={questions} profileId={me?.id ?? ""} canEdit={me?.role === "teacher"} />
     </>
   );
 }
