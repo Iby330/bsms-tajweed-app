@@ -341,6 +341,16 @@ export function ItemEditor({
   );
 }
 
+/** A bank question as it reads once an edit is saved, for the lists on screen. */
+export function mergeBankEdit(q: BankQuestion, patch: BankEditPatch, imageUrls: Record<string, string>): BankQuestion {
+  return {
+    ...q, ...patch,
+    prompt: (patch.prompt ?? q.prompt).trim(),
+    options: (patch.kind ?? q.kind) === "short" ? null : patch.options ?? q.options,
+    imageUrls: { ...q.imageUrls, ...imageUrls },
+  };
+}
+
 /** The same form on the bank's own question. Any teacher may; the action checks. */
 export function BankEditor({
   question, topics, profileId, onOpenChange, onSave,

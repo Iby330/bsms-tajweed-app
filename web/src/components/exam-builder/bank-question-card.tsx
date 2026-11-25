@@ -149,22 +149,24 @@ function BankQuestionCardImpl({
           )}
         </div>
 
-        {onEdit && (
-          <Button size="sm" variant="outline" className="shrink-0" onClick={() => onEdit(q)}>
-            <Pencil aria-hidden /> Edit
-          </Button>
-        )}
-        {onAdd && (
-          added ? (
-            <span className={cn(chip, "min-h-8 bg-ok/15 px-3 text-xs text-ok")}>
-              <Check className="size-3.5" aria-hidden /> On the paper
-            </span>
-          ) : (
-            <Button size="sm" className="shrink-0" disabled={locked} onClick={onAdd}>
-              <Plus aria-hidden /> {addLabel}
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+          {onEdit && (
+            <Button size="sm" variant="outline" className="px-2.5 text-xs" onClick={() => onEdit(q)} title="Change this question in the bank">
+              <Pencil aria-hidden /> Edit
             </Button>
-          )
-        )}
+          )}
+          {onAdd && (
+            added ? (
+              <span className={cn(chip, "min-h-8 bg-ok/15 px-3 text-xs text-ok")}>
+                <Check className="size-3.5" aria-hidden /> On the paper
+              </span>
+            ) : (
+              <Button size="sm" className="px-2.5 text-xs" disabled={locked} onClick={onAdd}>
+                <Plus aria-hidden /> {addLabel}
+              </Button>
+            )
+          )}
+        </div>
       </div>
     </article>
   );

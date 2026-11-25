@@ -34,6 +34,7 @@ import { ArrowLeft, Check, Eye, EyeOff, ListTree, Loader2, Lock, LockOpen, Users
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import * as A from "@/lib/exam-builder/actions";
+import { updateBankQuestion } from "@/lib/exam-builder/bank-actions";
 import { reloadPaper } from "@/lib/exam-builder/live-actions";
 import { addBankQuestion, addCustomItem } from "@/lib/exam-builder/new-question-actions";
 import { freshView, guessSectionKind, type DrawerView } from "@/lib/exam-builder/drawer";
@@ -46,7 +47,7 @@ import { AddDrawer } from "./add-drawer";
 import { ConfirmDialog } from "./confirm-dialog";
 import { ExportMenu } from "./export-menu";
 import { useFitPictures } from "./fit-pictures";
-import { ItemEditor, type ItemPatch } from "./item-editor";
+import { BankEditor, ItemEditor, mergeBankEdit, type BankEditPatch, type ItemPatch } from "./item-editor";
 import { NewQuestionForm, type NewQuestionInput } from "./new-question-form";
 import { PaperCanvas } from "./paper-canvas";
 import { PaperHeaderForm } from "./paper-header-form";
@@ -96,6 +97,13 @@ export function Workspace({
     });
   }, []);
   const [questions, setQuestions] = useState(initialQuestions);
+  // Editing the bank's own question from the drawer. Copies already on the paper do not change.
+  const [bankEditing, setBankEditing] = useState<BankQuestion | null>(null);
+  const saveBankEdit = async (id: string, patch: BankEditPatch, imageUrls: Record<string, string>) => {
+    const res = await updateBankQuestion(id, patch);
+    if (res.ok) setQuestions((qs) => qs.map((q) => (q.id === id ? mergeBankEdit(q, patch, imageUrls) : q)));
+    return res;
+  };
   useFitPictures();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -581,6 +589,7 @@ export function Workspace({
           paperMarks={total}
           locked={locked}
           onAdd={(q) => addFromBank(q, target.id)}
+          onEdit={setBankEditing}
           onWriteNew={(kind, topic) => setWriting({ sectionId: target.id, kind, topic })}
           onAddBlank={(kind) => addBlank(target.id, kind)}
           onClose={closeAdd}
@@ -596,6 +605,11 @@ export function Workspace({
         defaultKind={writing?.kind}
         defaultTopic={writing?.topic}
         onSubmit={submitNew}
+      />
+      <BankEditor
+        question={bankEditing} topics={topics} profileId={profileId}
+        onOpenChange={(o) => { if (!o) setBankEditing(null); }}
+        onSave={saveBankEdit}
       />
       <ItemEditor item={editing} profileId={profileId} onOpenChange={(o) => { if (!o) setEditingId(null); }} onSave={saveItem} />
       <PaperHeaderForm open={headerOpen} onOpenChange={setHeaderOpen} paper={paper} onSave={saveHeader} />

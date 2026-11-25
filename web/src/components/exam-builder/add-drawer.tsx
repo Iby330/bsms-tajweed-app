@@ -78,8 +78,10 @@ function StepRow({
 
 export function AddDrawer({
   section, view, onView, guess, resumed, added, topics, questions, onPaper, paperMarks, locked,
-  onAdd, onWriteNew, onAddBlank, onClose,
+  onAdd, onEdit, onWriteNew, onAddBlank, onClose,
 }: {
+  /** Change the bank's own question. Keep it stable: the cards are memoised. */
+  onEdit?: (q: BankQuestion) => void;
   section: Section;
   view: DrawerView;
   onView: (patch: Partial<DrawerView>) => void;
@@ -264,6 +266,7 @@ export function AddDrawer({
           q={q}
           added={onPaper.has(q.id)}
           onAdd={() => onAdd(q)}
+          onEdit={onEdit}
           addLabel={`Add to ${short}`}
           locked={locked}
           topicLabel={label(q)}

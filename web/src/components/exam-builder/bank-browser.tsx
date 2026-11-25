@@ -15,7 +15,7 @@ import { topicPath } from "@/lib/exam-builder/topics";
 import type { BankQuestion, Topic } from "@/lib/exam-builder/types";
 import { BankPanel } from "./bank-panel";
 import { useFitPictures } from "./fit-pictures";
-import { BankEditor, type BankEditPatch } from "./item-editor";
+import { BankEditor, mergeBankEdit, type BankEditPatch } from "./item-editor";
 import { NewQuestionForm, type NewQuestionInput } from "./new-question-form";
 
 export function BankBrowser({
@@ -38,12 +38,7 @@ export function BankBrowser({
   const saveEdit = async (id: string, patch: BankEditPatch, imageUrls: Record<string, string>) => {
     const res = await updateBankQuestion(id, patch);
     if (!res.ok) return res;
-    setQuestions((qs) => qs.map((q) => (q.id === id ? {
-      ...q, ...patch,
-      prompt: (patch.prompt ?? q.prompt).trim(),
-      options: (patch.kind ?? q.kind) === "short" ? null : patch.options ?? q.options,
-      imageUrls: { ...q.imageUrls, ...imageUrls },
-    } : q)));
+    setQuestions((qs) => qs.map((q) => (q.id === id ? mergeBankEdit(q, patch, imageUrls) : q)));
     if (patch.topic_id) setReveal(patch.topic_id);
     setAdded(null);
     router.refresh();
