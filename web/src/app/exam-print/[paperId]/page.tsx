@@ -68,7 +68,7 @@ export default async function ExamPrintPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <PrintToolbar paperId={paper.id} scheme={scheme} />
+      <PrintToolbar paperId={paper.id} scheme={scheme} pdf={sp.pdf === "1"} />
       <main className="ep-desk">
         <article className="ep-sheet" aria-label={scheme ? "Mark scheme" : "Exam paper"}>
           <header className="ep-head">

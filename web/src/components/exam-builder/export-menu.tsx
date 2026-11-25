@@ -2,7 +2,9 @@
 
 /**
  * Top right of the builder: print the paper or its mark scheme (the print
- * route opens in a new tab, where "Save as PDF" is the browser's own),
+ * route opens in a new tab), save either as a PDF (the same page, which opens
+ * the browser's save window by itself: a PDF carries the app's Qur'an fonts,
+ * which Word and Google Docs swap for their own),
  * download either as a Word file (/api/exam-builder/<id>/docx), and
  * mark the paper final — which stamps each bank question on it as used in
  * "<code> <season>" — or reopen it. On a draft (shared) its owner
@@ -47,6 +49,17 @@ export function ExportMenu({
           <ScrollText /> Print mark scheme
         </ActionLink>
         <ActionSeparator />
+        <ActionHeading>PDF</ActionHeading>
+        <ActionLink href={`/exam-print/${paper.id}?pdf=1`}>
+          <FileDown /> Save paper as PDF
+        </ActionLink>
+        <ActionLink href={`/exam-print/${paper.id}?scheme=1&pdf=1`}>
+          <FileDown /> Save mark scheme as PDF
+        </ActionLink>
+        <p className="max-w-64 px-2.5 pt-0.5 pb-1.5 text-xs leading-snug text-muted-foreground">
+          Keeps the Qur&apos;an font exactly as it is in the app.
+        </p>
+        <ActionSeparator />
         <ActionHeading>Word</ActionHeading>
         <ActionDownload href={`/api/exam-builder/${paper.id}/docx`}>
           <FileDown /> Download paper (Word)
@@ -55,7 +68,8 @@ export function ExportMenu({
           <FileDown /> Download mark scheme (Word)
         </ActionDownload>
         <p className="max-w-64 px-2.5 pt-0.5 pb-1.5 text-xs leading-snug text-muted-foreground">
-          Opens in Word, or upload it to Google Drive to edit as a Google Doc.
+          Opens in Word, or upload it to Google Drive to edit as a Google Doc. Word and Google Docs use their own Arabic
+          font, so the Qur&apos;an text will look different.
         </p>
         <ActionSeparator />
         <ActionHeading>Finish</ActionHeading>

@@ -1,10 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Screen-only controls above the printed paper (print.css hides them).
+ *
+ * Reached from "Save … as PDF" (`?pdf=1`), the page opens the browser's
+ * print window by itself once the fonts and pictures are in, with a tip to
+ * pick "Save as PDF". The browser offers the page title as the file name.
+ * The flag comes off the address afterwards, so a reload doesn't reopen it.
  *
  * Also sizes the Qur'anic pictures. A picture's pixel height is roughly its
  * number of lines of mushaf text (~170px a line in the source documents), and
@@ -45,8 +50,9 @@ function picturesSettled(): Promise<void> {
   ).then(() => undefined);
 }
 
-export function PrintToolbar({ paperId, scheme }: { paperId: string; scheme: boolean }) {
+export function PrintToolbar({ paperId, scheme, pdf = false }: { paperId: string; scheme: boolean; pdf?: boolean }) {
   const [busy, setBusy] = useState(false);
+  const autoOpened = useRef(false);
 
   useEffect(() => {
     const imgs = pictures();
@@ -69,6 +75,15 @@ export function PrintToolbar({ paperId, scheme }: { paperId: string; scheme: boo
     }
   }
 
+  useEffect(() => {
+    if (!pdf || autoOpened.current) return;
+    autoOpened.current = true;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("pdf");
+    window.history.replaceState(window.history.state, "", url);
+    void print(); // once, on arrival
+  }, [pdf]);
+
   const base = `/exam-print/${paperId}`;
   return (
     <div className="ep-toolbar" role="toolbar" aria-label="Print controls">
@@ -89,7 +104,10 @@ export function PrintToolbar({ paperId, scheme }: { paperId: string; scheme: boo
           {busy ? "Preparing…" : "Print / Save as PDF"}
         </button>
       </div>
-      <p className="ep-toolbar-tip">In the print window choose A4 and turn off &lsquo;Headers and footers&rsquo;.</p>
+      <p className="ep-toolbar-tip">
+        {pdf ? <>For a PDF, set the destination to &lsquo;Save as PDF&rsquo;. </> : null}
+        In the print window choose A4 and turn off &lsquo;Headers and footers&rsquo;.
+      </p>
     </div>
   );
 }
