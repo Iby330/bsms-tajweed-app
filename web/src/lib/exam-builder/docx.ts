@@ -21,10 +21,19 @@
  * Kept to what Word, Google Docs and Pages all open the same way: plain
  * paragraphs with tab stops and borders, inline pictures, and tables with an
  * explicit column grid. No Word numbering, no floating shapes.
+ *
+ * Arabic inside a left-to-right line is fenced with direction marks (see
+ * `fenced` and `handBack`), so Google Docs keeps the brackets of "(٢)", a "?"
+ * after "س" and the "(1 mark)" that follows where they belong. The marks never split ("(1 mark)" holds
+ * a no-break space) and sit at the right margin after the question text. The Arabic
+ * face is the app's own Uthmanic Hafs, carried inside the file when the
+ * caller passes its bytes (`arabicFont`): Word shows it even where it is not
+ * installed. Google Docs ignores fonts carried in a file and uses its own.
  */
 import {
   AlignmentType,
   BorderStyle,
+  CharacterSet,
   Document,
   HeightRule,
   ImageRun,
@@ -61,9 +70,38 @@ export type PaperDocxInput = {
   scheme: boolean;
   /** snippetKey(ref) → the words as text (readableText). A ref not here prints its picture. */
   quranText?: Record<string, string>;
+  /** The Uthmanic Hafs font file (public/fonts/uthmanic_hafs_v22.ttf), to carry inside the document. */
+  arabicFont?: Uint8Array;
 };
 
-/** Qur'an words as runs: right to left, Arabic face, `size` pt; the circled word (if any) underlined. */
+/** Right-to-left and left-to-right marks: invisible, they only steer the direction of what is next to them. */
+const RLM = "\u200F";
+const LRM = "\u200E";
+
+/**
+ * Arabic for a run inside a left-to-right line, fenced: a right-to-left mark
+ * each side keeps its own edge punctuation (the brackets of "(٢)") with it.
+ * `start`/`end: false` for the words inside a run of words fenced as a whole.
+ * After it comes `handBack`. (Unicode's isolates would do both jobs in one,
+ * but Google Docs ignores them.)
+ */
+function fenced(text: string, edges: { start?: boolean; end?: boolean } = {}): string {
+  const { start = true, end = true } = edges;
+  return `${start ? RLM : ""}${text}${end ? RLM : ""}`;
+}
+
+/**
+ * The run after fenced Arabic: a left-to-right mark, then `text`. Without it
+ * a "?" after "س" lands on the Arabic side, and the "1" of a "(1 mark)" that
+ * follows counts as an Arabic number, turning the line's end into "1) mark)".
+ */
+const handBack = (text = "", style: IRunOptions = {}) => new TextRun({ ...style, text: `${LRM}${text}` });
+
+/**
+ * Qur'an words as runs: right to left, Arabic face, `size` pt; the circled
+ * word (if any) underlined. Fenced (see `fenced`), as they can sit in a
+ * left-to-right option line.
+ */
 function quranRuns(text: string, ref: QuranRef, size: number): TextRun[] {
   const words = text.split(" ");
   const circled = ref.circle ? ref.circle.word - (ref.from_word ?? 1) : -1;
@@ -77,8 +115,15 @@ function quranRuns(text: string, ref: QuranRef, size: number): TextRun[] {
       language: { bidirectional: "ar-SA" },
       ...(underline ? { underline: {} } : {}),
     });
-  if (circled < 0 || circled >= words.length) return [run(text)];
-  return words.flatMap((w, i) => [...(i > 0 ? [run(" ")] : []), run(w, i === circled)]);
+  if (circled < 0 || circled >= words.length) return [run(fenced(text)), handBack()];
+  const lastWord = words.length - 1;
+  return [
+    ...words.flatMap((w, i) => [
+      ...(i > 0 ? [run(" ")] : []),
+      run(fenced(w, { start: i === 0, end: i === lastWord }), i === circled),
+    ]),
+    handBack(),
+  ];
 }
 
 /** The ref's text when it should print as text: not when a circle needs the picture that has one. */
@@ -119,8 +164,13 @@ const MAX_PICTURE_MM = 75;
 // ── fonts ────────────────────────────────────────────────────────────────
 
 const SERIF = "Times New Roman";
-/** In Word on Windows and Mac; Google Docs and Pages substitute their own Arabic face. */
-const ARABIC = "Traditional Arabic";
+/**
+ * The app's Uthmanic Hafs (public/fonts/uthmanic_hafs_v22.ttf), by the family
+ * name inside the file. Carried in the document when the caller passes its
+ * bytes, so Word shows it on any machine; Google Docs and Pages substitute
+ * their own Arabic face.
+ */
+const ARABIC = "kfgqpc_hafs_uthmanic_script";
 /** ☐ ☑ are not in Times New Roman; name a face that has them rather than leave it to chance. */
 const SYMBOL = "Segoe UI Symbol";
 
@@ -143,25 +193,40 @@ type RunStyle = { bold?: boolean; italics?: boolean; size?: number; allCaps?: bo
 /**
  * One line of mixed English and Arabic as runs. Arabic runs are marked
  * right-to-left and set in the Arabic face, slightly larger (the print view's
- * 1.3em), never bold (the Qur'anic face is never faux-bolded); the rest keeps
- * the paragraph's direction, so an English sentence with an Arabic word in it
- * reads in English order.
+ * 1.3em), never bold (the Qur'anic face is never faux-bolded), and fenced
+ * (see `fenced`); the rest keeps the paragraph's direction, so an English
+ * sentence with an Arabic word in it reads in English order.
  */
 function textRuns(text: string, style: RunStyle = {}, arabicScale = 1.3): TextRun[] {
   const size = style.size ?? 12;
-  return splitRuns(text).map((run) =>
-    run.ar
-      ? new TextRun({
-          text: seatDaggerAlif(run.text),
-          rightToLeft: true,
-          font: { ascii: ARABIC, hAnsi: ARABIC, cs: ARABIC },
-          size: PT(Math.round(size * arabicScale)),
-          bold: false,
-          italics: false,
-          language: { bidirectional: "ar-SA" },
-        })
-      : new TextRun({ text: run.text, ...runStyle(style) }),
-  );
+  return splitRuns(text).flatMap((run) => {
+    if (!run.ar) return [new TextRun({ text: run.text, ...runStyle(style) })];
+    // The run's own edge spaces stay outside the fence, on the English side.
+    const [, lead, core, trail] = /^(\s*)([\s\S]*?)(\s*)$/.exec(run.text) ?? ["", "", run.text, ""];
+    if (!core) return [new TextRun({ text: run.text, ...runStyle(style) })];
+    return [
+      ...(lead ? [new TextRun({ text: lead, ...runStyle(style) })] : []),
+      new TextRun({
+        text: fenced(keepTogether(seatDaggerAlif(core))),
+        rightToLeft: true,
+        font: { ascii: ARABIC, hAnsi: ARABIC, cs: ARABIC },
+        size: PT(Math.round(size * arabicScale)),
+        bold: false,
+        italics: false,
+        language: { bidirectional: "ar-SA" },
+      }),
+      handBack(trail, runStyle(style)),
+    ];
+  });
+}
+
+/**
+ * A short Arabic phrase inside English ("رضي الله عنه") keeps to one line: its
+ * spaces become no-break spaces, as the print view never splits it. A long
+ * one (a whole ayah typed into a question) still wraps.
+ */
+function keepTogether(arabic: string): string {
+  return arabic.split(/\s+/).length <= 4 ? arabic.replace(/ /g, "\u00A0") : arabic;
 }
 
 function runStyle(style: RunStyle): IRunOptions {
@@ -365,7 +430,61 @@ function header(paper: Paper, total: number, scheme: boolean): Paragraph[] {
   return out;
 }
 
-/** "1.  Bold question text ……… (1 mark)", then any further lines of the prompt and its pictures. */
+
+/** "(1 mark)" that never breaks across lines. */
+const marksText = (marks: number) => marksLabel(marks).replace(/ /g, "\u00A0");
+
+// ── how wide a line of bold question text runs ──────────────────────────
+
+const MM_PER_PT = 25.4 / 72;
+const NARROW = new Set("ijlt'.,:;!|()[]frI-\"“”’‘");
+const WIDE = new Set("mwMW");
+/** Arabic marks (harakat, small high letters) take no width of their own. */
+const ARABIC_MARK = /[\u064B-\u065F\u0670\u06D6-\u06ED]/;
+const ARABIC_LETTER = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/;
+
+/**
+ * Bold Times New Roman's width for `text` at `pt`, in mm, from rough
+ * per-character widths: within a few per cent of the real metrics, a little
+ * over, which is the safe side for "do the marks still fit". Arabic letters
+ * at the 1.3 size textRuns sets them in.
+ */
+export function textWidthMm(text: string, pt = 12): number {
+  let em = 0;
+  for (const c of text) {
+    if (c === " " || c === "\u00A0") em += 0.25;
+    else if (ARABIC_MARK.test(c) || c === "\u200E" || c === "\u200F") continue;
+    else if (ARABIC_LETTER.test(c)) em += 0.5 * 1.3;
+    else if (NARROW.has(c)) em += 0.31;
+    else if (WIDE.has(c)) em += 0.85;
+    else if (c >= "0" && c <= "9") em += 0.5;
+    else if (c !== c.toLowerCase()) em += 0.7;
+    else em += 0.52;
+  }
+  return em * pt * MM_PER_PT;
+}
+
+/** The width of the last line `text` wraps to in a column `columnMm` wide, wrapping between words as Word does. */
+export function lastLineWidthMm(text: string, columnMm: number): number {
+  const space = textWidthMm(" ");
+  let line = 0;
+  for (const word of text.split(/ +/).filter(Boolean)) {
+    const w = textWidthMm(word);
+    if (line > 0 && line + space + w > columnMm) line = w;
+    else line += (line > 0 ? space : 0) + w;
+  }
+  return line;
+}
+
+/** Room left of the marks: a tab needs some, and the estimate is rough. */
+const MARKS_GAP_MM = 3;
+
+/**
+ * "1.  Bold question text ……… (1 mark)", then any further lines of the
+ * prompt and its pictures. Plain paragraphs, so "keep with next" holds the
+ * question to its options on one page in Word and Google Docs alike (a
+ * table here would not: Google Docs never keeps a table with what follows).
+ */
 function questionHead(
   item: PaperItem,
   number: number | undefined,
@@ -376,10 +495,18 @@ function questionHead(
   const promptLines = lines(item.prompt);
   const first = promptLines[0] ?? "";
   const rest = promptLines.slice(1);
+  const marks = marksText(item.marks);
+  // A question whose last line is too full for its marks would push them to
+  // the start of the next line (Google Docs) or split them: give them a line
+  // of their own instead, at the right.
+  const column = TEXT_W_MM - NUM_MM;
+  const ownLine = lastLineWidthMm(first, column) + textWidthMm(marks) + MARKS_GAP_MM > column;
+  const marksRun = new TextRun({ text: marks, bold: true });
   const out: Paragraph[] = [
     new Paragraph({
       keepNext: true,
       keepLines: true,
+      bidirectional: false,
       // The section heading sits closer to its first question than questions do to each other.
       spacing: { before: firstInSection ? 120 : 240 },
       indent: { left: tw(NUM_MM), hanging: tw(NUM_MM) },
@@ -391,16 +518,17 @@ function questionHead(
         new TextRun({ text: `${number ?? ""}.`, bold: true }),
         tab(true),
         ...textRuns(first, { bold: true }),
-        tab(true),
-        new TextRun({ text: marksLabel(item.marks), bold: true }),
+        ...(ownLine ? [] : [tab(true), marksRun]),
       ],
     }),
+    ...(ownLine ? [new Paragraph({ keepNext: true, alignment: AlignmentType.RIGHT, children: [marksRun] })] : []),
   ];
   for (const l of rest) {
     out.push(
       new Paragraph({
         keepNext: true,
         keepLines: true,
+        bidirectional: false,
         indent: { left: tw(NUM_MM) },
         children: textRuns(l, { bold: true }),
       }),
@@ -417,8 +545,10 @@ function questionHead(
         keepLines: true,
         bidirectional: true,
         alignment: AlignmentType.CENTER,
-        spacing: { before: 80 },
-        indent: { left: tw(NUM_MM) },
+        spacing: { before: 120, after: 40 },
+        // Both sides: in a right-to-left paragraph Google Docs and Word take
+        // "left" as the leading (right) edge, so one-sided would mirror.
+        indent: { left: tw(NUM_MM), right: tw(NUM_MM) },
         children,
       });
     if (item.prompt_quran.basmala) out.push(ar(quranRuns(BASMALA, { ...item.prompt_quran, circle: undefined }, 18), true));
@@ -478,8 +608,11 @@ function optionParagraphs(
           shading: { type: "clear" as const, color: "auto", fill: "E8E8E8" },
         }
       : {};
-    const box = [symbol(on ? TICKED : BOX, on), tab(on)];
+    // The mark first: a line that starts with a box and then Arabic would
+    // otherwise be taken for a right-to-left one by Google Docs.
+    const box = [new TextRun(LRM), symbol(on ? TICKED : BOX, on), tab(on)];
     const base = {
+      bidirectional: false,
       indent: { left, hanging: tw(BOX_MM) },
       tabStops: [{ type: TabStopType.LEFT, position: left }],
       spacing: { before: i === 0 ? 80 : 30 },
@@ -497,9 +630,10 @@ function optionParagraphs(
         out.push(
           new Paragraph({
             keepNext: !last,
+            bidirectional: false,
             indent: { left },
             spacing: { before: 20 },
-            children: arabicRuns,
+            children: [new TextRun(LRM), ...arabicRuns],
           }),
         );
       }
@@ -689,6 +823,10 @@ export async function buildPaperDocx(input: PaperDocxInput): Promise<Uint8Array>
 
   const doc = new Document({
     creator: "BSMS Tajweed",
+    // Word shows a font carried in the file on any machine (fsType 0: free to embed).
+    ...(input.arabicFont
+      ? { fonts: [{ name: ARABIC, data: Buffer.from(input.arabicFont), characterSet: CharacterSet.ARABIC }] }
+      : {}),
     // The file's own title: the paper's name rides along here, never on the page.
     title: [namedTitle(paper), scheme ? "Mark scheme" : ""].filter(Boolean).join(" — "),
     styles: {

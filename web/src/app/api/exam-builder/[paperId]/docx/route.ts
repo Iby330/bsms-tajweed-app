@@ -55,15 +55,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ pape
   const paths = [...new Set(items.flatMap(collectImagePaths))];
   // The Qur'an words named by refs, as text; a range that fails to load
   // prints its picture instead (docx.ts).
-  const [images, snippets] = await Promise.all([
+  const [images, snippets, arabicFont] = await Promise.all([
     downloadImages(paths),
     loadQuranSnippets(items.flatMap(questionRefs)).catch(() => ({})),
+    arabicFontFor(request),
   ]);
   const quranText = Object.fromEntries(Object.entries(snippets).map(([key, words]) => [key, readableText(words)]));
 
   let bytes: Uint8Array;
   try {
-    bytes = await buildPaperDocx({ paper, sections, items, images, scheme, quranText });
+    bytes = await buildPaperDocx({ paper, sections, items, images, scheme, quranText, arabicFont });
   } catch {
     return Response.json({ error: "Couldn't build the Word file." }, { status: 500 });
   }
@@ -80,6 +81,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ pape
 }
 
 /** Each picture's bytes and size, path → image. Failures are left out. */
+/**
+ * The app's Uthmanic Hafs font, to carry inside the file so Word shows it on
+ * any machine. Fetched from the site's own /fonts (a public, CDN-served file;
+ * no filesystem to trace into the function) and kept for the warm instance.
+ * Without it the file still builds and Word uses its own Arabic face.
+ */
+let arabicFontBytes: Promise<Uint8Array | undefined> | null = null;
+function arabicFontFor(request: Request): Promise<Uint8Array | undefined> {
+  arabicFontBytes ??= fetch(new URL("/fonts/uthmanic_hafs_v22.ttf", request.url))
+    .then(async (res) => (res.ok ? new Uint8Array(await res.arrayBuffer()) : undefined))
+    .catch(() => undefined)
+    .then((bytes) => {
+      if (!bytes) arabicFontBytes = null; // try again next time
+      return bytes;
+    });
+  return arabicFontBytes;
+}
+
 async function downloadImages(paths: string[]): Promise<Record<string, DocxImage>> {
   const out: Record<string, DocxImage> = {};
   if (paths.length === 0) return out;

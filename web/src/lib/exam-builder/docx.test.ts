@@ -1,6 +1,6 @@
 import { strFromU8, unzipSync } from "fflate";
 import { describe, expect, it } from "vitest";
-import { buildPaperDocx, fitPicture, readImageSize, type DocxImage } from "./docx";
+import { buildPaperDocx, lastLineWidthMm, textWidthMm, fitPicture, readImageSize, type DocxImage } from "./docx";
 import type { Paper, PaperItem, Section } from "./types";
 
 const PAPER_ID = "00000000-0000-4000-8000-000000000001";
@@ -96,8 +96,9 @@ describe("buildPaperDocx", () => {
     expect(t).toContain("Section B - Short Answer Questions (2 marks)");
     expect(t).toContain("Section C - Practical Component (9 marks)");
     expect(t).toContain("How many letters are included in the Huruf Al-Isti&apos;laa?");
-    expect(t).toContain("(1 mark)");
-    expect(t).toContain("(2 marks)");
+    // A question's marks never break across lines: a no-break space inside.
+    expect(t).toContain("(1\u00A0mark)");
+    expect(t).toContain("(2\u00A0marks)");
     expect(t).toContain("☐");
     expect(t).toContain("Question 3");
     expect(t).toContain("Order - before/after");
@@ -143,9 +144,38 @@ describe("buildPaperDocx", () => {
     const { xml } = await documentXml(false);
     const arabicRun = xml.match(/<w:r>(?:(?!<\/w:r>).)*رَحْمَة(?:(?!<\/w:r>).)*<\/w:r>/)?.[0] ?? "";
     expect(arabicRun).toContain("<w:rtl/>");
-    expect(arabicRun).toContain('w:cs="Traditional Arabic"');
+    expect(arabicRun).toContain('w:cs="kfgqpc_hafs_uthmanic_script"');
     const englishRun = xml.match(/<w:r>(?:(?!<\/w:r>).)*Why is the Qur(?:(?!<\/w:r>).)*<\/w:r>/)?.[0] ?? "";
     expect(englishRun).not.toContain("<w:rtl/>");
+  });
+
+  it("fences Arabic inside an English line with direction marks, and starts option lines left to right", async () => {
+    const { xml } = await documentXml(false);
+    // RLM each side of the Arabic, its edge spaces outside, then an LRM to hand the line back to English.
+    expect(text(xml)).toContain("Explain with \u200Fرَحْمَة\u200F\u200E in your answer.");
+    // The LRM opens a left-to-right run of its own, not part of the Arabic one.
+    const handBack = xml.match(/<w:r>(?:(?!<\/w:r>).)*>\u200E <\/w:t><\/w:r>/)?.[0] ?? "";
+    expect(handBack).not.toBe("");
+    expect(handBack).not.toContain("<w:rtl/>");
+    // Every option line opens with an LRM, ahead of its box.
+    expect(text(xml)).toContain("\u200E☐Five");
+  });
+
+  it("keeps a short Arabic phrase in an English line on one line, and lets a long one wrap", async () => {
+    const short = item({ id: "s", prompt: "Appointed by Abu Bakr رضي الله عنه to compile it." });
+    const long = item({ id: "l", prompt: "Recite قُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ مَلِكِ ٱلنَّاسِ please." });
+    const t = text((await documentXml(false, {}, [short, long])).xml);
+    expect(t).toContain("رضي\u00A0الله\u00A0عنه");
+    expect(t).toContain("قُلْ أَعُوذُ");
+  });
+
+  it("carries the Arabic font in the file only when given its bytes", async () => {
+    const font = new Uint8Array(64).fill(7);
+    const withFont = unzipSync(await buildPaperDocx({ paper, sections, items, images: {}, scheme: false, arabicFont: font }));
+    expect(Object.keys(withFont).some((f) => f.startsWith("word/fonts/"))).toBe(true);
+    expect(strFromU8(withFont["word/fontTable.xml"])).toContain("kfgqpc_hafs_uthmanic_script");
+    const { files } = await documentXml(false);
+    expect(Object.keys(files).some((f) => f.startsWith("word/fonts/"))).toBe(false);
   });
 
   it("embeds pictures it has and says so for one it does not", async () => {
@@ -245,5 +275,31 @@ describe("readImageSize", () => {
     expect(readImageSize(Uint8Array.from([1, 2, 3, 4]))).toBeNull();
     expect(readImageSize(new Uint8Array(0))).toBeNull();
     expect(readImageSize(Uint8Array.from([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50]))).toBeNull();
+  });
+});
+
+describe("question marks and the width estimate", () => {
+  it("estimates bold 12pt text within a few per cent of the real font (Times New Roman Bold metrics)", () => {
+    // Real widths measured from the font: 159.0mm and 15.9mm.
+    expect(textWidthMm("When pronouncing Tanwin, what letter is typically pronounced phonetically at the end?")).toBeGreaterThan(155);
+    expect(textWidthMm("When pronouncing Tanwin, what letter is typically pronounced phonetically at the end?")).toBeLessThan(166);
+    expect(textWidthMm("(1\u00A0mark)")).toBeGreaterThan(14);
+    expect(textWidthMm("(1\u00A0mark)")).toBeLessThan(18);
+  });
+
+  it("wraps between words to find the last line", () => {
+    const word = textWidthMm("abcd");
+    expect(lastLineWidthMm("abcd abcd abcd", word * 2 + 3)).toBeCloseTo(word, 5);
+  });
+
+  it("puts the marks on their own line when the question fills its last line, else after a tab", async () => {
+    const full = item({ id: "f", prompt: "When pronouncing Tanwin, what letter is typically pronounced phonetically at the end?" });
+    const short = item({ id: "s", prompt: "How long is Ghunna held for?" });
+    const xml = strFromU8(unzipSync(await buildPaperDocx({ paper, sections, items: [full, short], images: {}, scheme: false }))["word/document.xml"]);
+    const paras = [...xml.matchAll(/<w:p>.*?<\/w:p>/g)].map((m) => m[0]);
+    const fullHead = paras.find((p) => p.includes("phonetically"))!;
+    expect(fullHead).not.toContain("mark)");
+    expect(paras[paras.indexOf(fullHead) + 1]).toMatch(/<w:jc w:val="right"\/>.*\(1\u00A0mark\)/);
+    expect(paras.find((p) => p.includes("Ghunna held"))).toContain("(1\u00A0mark)");
   });
 });
