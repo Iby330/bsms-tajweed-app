@@ -66,7 +66,6 @@ export function Workspace({
   topics,
   questions: initialQuestions,
   profileId,
-  isAdmin = false,
   quranWords,
 }: {
   initial: LoadedPaper;
@@ -74,8 +73,6 @@ export function Workspace({
   questions: BankQuestion[];
   /** The signed-in teacher: new pictures upload under new/<profileId>/. */
   profileId: string;
-  /** An admin can make anyone's draft private again. */
-  isAdmin?: boolean;
   /** The words of the typeset ayahs already on the paper, by snippetKey. */
   quranWords?: Record<string, SnippetWord[]>;
 }) {
@@ -489,7 +486,7 @@ export function Workspace({
             paper={paper}
             bankCount={addedIds.size}
             onSetFinal={setFinal}
-            onMakePrivate={paper.shared && (mine || isAdmin) ? () => setPublishing("private") : undefined}
+            onMakePrivate={paper.shared && mine ? () => setPublishing("private") : undefined}
           />
         </div>
         {error && <p className="pb-2 text-xs text-danger" role="alert">{error}</p>}
@@ -636,7 +633,7 @@ export function Workspace({
       >
         <p>
           The other teachers will stop seeing it, and anyone who has it open will be told it has gone. Only{" "}
-          {mine ? "you" : "the teacher who made it"} and the admins can open it then.
+          {mine ? "you" : "the teacher who made it"} can open it then.
         </p>
       </ConfirmDialog>
     </div>

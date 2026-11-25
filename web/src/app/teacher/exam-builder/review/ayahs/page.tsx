@@ -12,12 +12,12 @@ export const metadata: Metadata = { title: "Typeset words against the pictures" 
 export const dynamic = "force-dynamic";
 
 /**
- * Admin only (anyone else gets a 404, as on the review page): every bank
+ * Teachers only (anyone else gets a 404, as on the review page): every bank
  * question whose Qur'an picture has typeset words, picture beside words, so
  * the owner can check each swap and keep a picture where it is better.
  */
 export default async function AyahReviewPage() {
-  if (!(await currentProfile())?.is_admin) notFound();
+  if ((await currentProfile())?.role !== "teacher") notFound();
   const { questions } = await loadBankForReview();
   const entries = ayahEntries(questions, AYAH_PROPOSALS);
 

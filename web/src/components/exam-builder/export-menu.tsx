@@ -5,8 +5,8 @@
  * route opens in a new tab, where "Save as PDF" is the browser's own),
  * download either as a Word file (/api/exam-builder/<id>/docx), and
  * mark the paper final — which stamps each bank question on it as used in
- * "<code> <season>" — or reopen it. On a draft (shared) its owner (or an
- * admin) can make it private again from here.
+ * "<code> <season>" — or reopen it. On a draft (shared) its owner
+ * can make it private again from here.
  */
 import { useState } from "react";
 import { ChevronDown, EyeOff, FileCheck2, FileDown, LockOpen, Printer, ScrollText } from "lucide-react";
@@ -23,7 +23,7 @@ export function ExportMenu({
   /** questions on the paper that came from the bank (the ones that get stamped) */
   bankCount: number;
   onSetFinal: (final: boolean) => Promise<string | void>;
-  /** Shown on a draft (shared paper) to its owner or an admin. */
+  /** Shown on a draft (shared paper) to its owner. */
   onMakePrivate?: () => void;
 }) {
   const [confirm, setConfirm] = useState<"final" | "reopen" | null>(null);

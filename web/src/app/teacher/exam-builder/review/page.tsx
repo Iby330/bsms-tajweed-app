@@ -9,12 +9,12 @@ export const metadata: Metadata = { title: "Review the bank" };
 export const dynamic = "force-dynamic";
 
 /**
- * Admin-only review of the imported questions. Anyone else gets a 404, not a
- * "not allowed": the page should not be discoverable. The actions check for
- * an admin again, and row level security a third time.
+ * The review of the imported questions, open to every teacher (the Exam
+ * Builder has no admins). Anyone else gets a 404. The actions check for a
+ * teacher again, and row level security a third time.
  */
 export default async function ReviewBank() {
-  if (!(await currentProfile())?.is_admin) notFound();
+  if ((await currentProfile())?.role !== "teacher") notFound();
   const { topics, questions } = await loadBankForReview();
 
   return (

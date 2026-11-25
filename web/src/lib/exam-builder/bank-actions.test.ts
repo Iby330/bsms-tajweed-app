@@ -96,28 +96,18 @@ beforeEach(() => {
 afterEach(() => vi.clearAllMocks());
 
 describe("who may change the bank", () => {
-  it("keeps approving and binning for an admin: a teacher is refused, and nothing is written", async () => {
+  it("gives every teacher the same access: edit, approve, bin and label, with no admin needed", async () => {
     const { respond } = bankWorld();
     const calls = as(TEACHER, respond);
     for (const r of [
+      await updateBankQuestion(Q, { marks: 2 }),
+      await updateBankQuestion(Q, { review_status: "approved", used_in: ["EOT1 26/27"] }),
       await approveBankQuestion(Q),
       await archiveBankQuestion(Q, true),
     ]) {
-      expect(r).toEqual({ ok: false, error: "Only an admin can change the bank." });
+      expect(r).toEqual({ ok: true });
     }
-    expect(writes(calls)).toEqual([]);
-    expect(revalidatePath).not.toHaveBeenCalled();
-  });
-
-  it("lets any teacher edit a question, but not its review status or where it was used", async () => {
-    const { respond } = bankWorld();
-    const calls = as(TEACHER, respond);
-    expect(await updateBankQuestion(Q, { marks: 2 })).toEqual({ ok: true });
-    expect(writes(calls)).toHaveLength(1);
-    const refused = { ok: false, error: "Only an admin can change a question's review status or where it was used." };
-    expect(await updateBankQuestion(Q, { review_status: "approved" })).toEqual(refused);
-    expect(await updateBankQuestion(Q, { used_in: ["EOT1 26/27"] })).toEqual(refused);
-    expect(writes(calls)).toHaveLength(1);
+    expect(writes(calls)).toHaveLength(4);
   });
 
   it("refuses a student and a signed-out caller", async () => {

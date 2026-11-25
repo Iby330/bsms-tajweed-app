@@ -24,7 +24,6 @@ export default async function ExamPaper({ params }: { params: Promise<{ paperId:
       topics={bank.topics}
       questions={bank.questions}
       profileId={me.id}
-      isAdmin={me.is_admin}
       quranWords={quranWords}
     />
   );

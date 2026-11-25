@@ -40,7 +40,7 @@ export default async function ExamBuilder() {
             <Library className="size-4" aria-hidden /> Browse the question bank
             <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
           </Link>
-          {profile?.is_admin && (
+          {profile?.role === "teacher" && (
             <Link href="/teacher/exam-builder/review" className={link}>
               <ClipboardCheck className="size-4" aria-hidden /> Review imported questions
               <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />

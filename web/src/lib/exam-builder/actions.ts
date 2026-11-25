@@ -252,8 +252,8 @@ export async function setPaperFinal(id: string, final: boolean): Promise<Result<
 
 /**
  * Publish the paper to every teacher (they can then edit it, mark it final,
- * reopen or delete it), or make it private again. Only the owner or an admin
- * can make it private: RLS refuses anyone else (0155), this says why first.
+ * reopen or delete it), or make it private again. Only the owner can make
+ * it private: RLS refuses anyone else (0157), this says why first.
  */
 export async function setPaperShared(id: string, shared: boolean): Promise<Result> {
   if (!isUuid(id)) return fail(NO_PAPER);
@@ -268,7 +268,7 @@ export async function setPaperShared(id: string, shared: boolean): Promise<Resul
   const { data: row, error: readErr } = await db.from("exam_papers").select("id, owner_id").eq("id", id).maybeSingle();
   if (readErr) return dbFail(readErr);
   if (!row) return fail(NO_PAPER);
-  if (!shared && row.owner_id !== me.id && !me.is_admin) {
+  if (!shared && row.owner_id !== me.id) {
     return fail("Only the teacher who made this paper can make it private again.");
   }
   const now = new Date().toISOString();

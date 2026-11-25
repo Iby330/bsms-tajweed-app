@@ -281,7 +281,7 @@ describe("setPaperShared", () => {
     expect(typeof (update.args[0] as { published_at: unknown }).published_at).toBe("string");
   });
 
-  it("lets only the owner or an admin make it private again", async () => {
+  it("lets only the owner make it private again: an admin flag changes nothing", async () => {
     let calls = as(TEACHER, world(OWNER));
     await expect(setPaperShared(PAPER, false)).resolves.toMatchObject({ ok: false, error: expect.stringMatching(/Only the teacher who made/) });
     expect(calls.some((c) => c.op === "update")).toBe(false);
@@ -291,7 +291,7 @@ describe("setPaperShared", () => {
     expect(calls.find((c) => c.op === "update")!.args[0]).toMatchObject({ shared: false, published_at: null });
 
     as({ ...TEACHER, is_admin: true }, world(OWNER));
-    await expect(setPaperShared(PAPER, false)).resolves.toEqual({ ok: true });
+    await expect(setPaperShared(PAPER, false)).resolves.toMatchObject({ ok: false, error: expect.stringMatching(/Only the teacher who made/) });
   });
 
   it("says when the paper isn't there", async () => {

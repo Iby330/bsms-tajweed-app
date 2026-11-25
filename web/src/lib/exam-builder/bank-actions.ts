@@ -1,10 +1,9 @@
 "use server";
 
 /**
- * Corrections to the question bank. Any teacher can edit a question (0156:
- * the bank page's Edit). Approving, binning and restoring, the review status
- * and the "used in" labels are the admin's, from the review page; row level
- * security lets a teacher update a row, so this file is what holds that line.
+ * Corrections to the question bank: edit a question, approve it as it
+ * stands, or bin it (and restore it). Every teacher can (0156, 0157): the
+ * Exam Builder has no admins.
  *
  * An update RLS refuses comes back with no error and no rows, so every write
  * asks for the changed ids back and treats none as a failure.
@@ -17,7 +16,7 @@
  */
 import { revalidatePath } from "next/cache";
 import type { Database } from "@/lib/database.types";
-import { currentProfile, supabaseServer } from "@/lib/supabase/server";
+import { supabaseServer } from "@/lib/supabase/server";
 import { requireTeacher } from "@/lib/teacher/guards";
 import { AYAH_PROPOSALS } from "./ayah-proposals";
 import { slotChoice, type SlotKey, type SlotUpdate } from "./ayah-review";
@@ -31,7 +30,7 @@ type BankUpdate = Database["public"]["Tables"]["exam_bank_questions"]["Update"];
 type Fail = { ok: false; error: string };
 
 const PATH = "/teacher/exam-builder";
-const NOT_ADMIN = "Only an admin can change the bank.";
+const NOT_ADMIN = "Only a teacher can change the bank.";
 const NO_QUESTION = "That question isn't in the bank.";
 const NOTHING_CHANGED = "Nothing changed. Check you are still signed in as a teacher.";
 
@@ -42,27 +41,14 @@ function dbFail(error: { message: string; code?: string }): Fail {
   return fail(error.message);
 }
 
-/** A signed-in teacher who is an admin, or a refusal. */
-async function admin(): Promise<{ ok: true } | Fail> {
+/** A signed-in teacher, or a refusal. The Exam Builder has no admins: every teacher has the same access. */
+async function teacher(): Promise<{ ok: true } | Fail> {
   try {
     await requireTeacher();
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Teachers only.");
   }
-  const me = await currentProfile();
-  if (!me?.is_admin) return fail(NOT_ADMIN);
   return { ok: true };
-}
-
-/** A signed-in teacher, and whether they are an admin. */
-async function teacher(): Promise<{ ok: true; isAdmin: boolean } | Fail> {
-  try {
-    await requireTeacher();
-  } catch (e) {
-    return fail(e instanceof Error ? e.message : "Teachers only.");
-  }
-  const me = await currentProfile();
-  return { ok: true, isAdmin: !!me?.is_admin };
 }
 
 /** Write the change and confirm a row actually moved. */
@@ -77,7 +63,7 @@ async function write(db: Db, id: string, update: BankUpdate): Promise<Result> {
 /** Keep the question exactly as it is, and mark it looked at. */
 export async function approveBankQuestion(id: string): Promise<Result> {
   if (!isUuid(id)) return fail(NO_QUESTION);
-  const ok = await admin();
+  const ok = await teacher();
   if (!ok.ok) return ok;
   const db = await supabaseServer();
   return write(db, id, { review_status: "approved" });
@@ -94,9 +80,6 @@ export async function updateBankQuestion(id: string, patch: BankPatch): Promise<
   if (!clean.ok) return clean;
   const ok = await teacher();
   if (!ok.ok) return ok;
-  if (!ok.isAdmin && (clean.patch.review_status !== undefined || clean.patch.used_in !== undefined)) {
-    return fail("Only an admin can change a question's review status or where it was used.");
-  }
   const db = await supabaseServer();
   const update = { ...clean.patch };
 
@@ -126,7 +109,7 @@ export async function updateBankQuestion(id: string, patch: BankPatch): Promise<
 export async function archiveBankQuestion(id: string, archived: boolean): Promise<Result> {
   if (!isUuid(id)) return fail(NO_QUESTION);
   if (typeof archived !== "boolean") return fail("Bin it or restore it?");
-  const ok = await admin();
+  const ok = await teacher();
   if (!ok.ok) return ok;
   const db = await supabaseServer();
   return write(db, id, { archived });
@@ -143,7 +126,7 @@ export async function setAyahSlot(id: string, key: SlotKey, use: boolean): Promi
   if (typeof use !== "boolean" || typeof key !== "string" || !(key === "prompt" || key === "term" || key.startsWith("option:"))) {
     return fail("That isn't a part of the question.");
   }
-  const ok = await admin();
+  const ok = await teacher();
   if (!ok.ok) return ok;
   const db = await supabaseServer();
   const { data: row, error } = await db

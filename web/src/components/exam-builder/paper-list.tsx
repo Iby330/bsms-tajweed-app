@@ -3,7 +3,7 @@
 /**
  * Every paper the teacher can open, newest change first: their own, the
  * other teachers' drafts (anyone can work on a draft; its card says who made
- * it), and for an admin everyone's private ones too. A paper is a card that
+ * it). A paper is a card that
  * opens the builder. Its heading is the paper's name, renamed in place (final papers
  * too), with the printed title under it. A draft can be deleted from here
  * (a final paper has to be reopened first, which the builder does).

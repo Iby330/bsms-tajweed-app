@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * The admin's edit form for one bank question, in a Dialog (a bottom sheet
+ * The review page's edit form for one bank question, in a Dialog (a bottom sheet
  * on a phone). Sends only the fields that changed, plus the review status the
  * question should end on: approved, unless "keep it flagged" is ticked.
  */

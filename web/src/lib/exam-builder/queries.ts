@@ -11,7 +11,7 @@ import { isUuid } from "./validate";
 /**
  * Exam Builder loaders. Every read goes through the caller's own client, so
  * row level security decides what comes back: teachers read the bank, a
- * paper is visible to its owner and to admins, and to every teacher once
+ * paper is visible to its owner, and to every teacher once
  * published. A failed read throws (to the nearest error boundary); a paper
  * the caller cannot see is null.
  *
@@ -91,7 +91,7 @@ export const loadBank = cache(async (): Promise<{ topics: Topic[]; questions: Ba
   return { topics, questions: questions.sort(byTopic(topics)) };
 });
 
-/** The admin's review list: archived included, `check` first, then by topic and age. */
+/** The review list: archived included, `check` first, then by topic and age. */
 export const loadBankForReview = cache(async (): Promise<{ topics: Topic[]; questions: BankQuestion[] }> => {
   const [topics, rows] = await Promise.all([loadTopics(), bankRows(true)]);
   const questions = await withImages(rows);
@@ -101,8 +101,7 @@ export const loadBankForReview = cache(async (): Promise<{ topics: Topic[]; ques
 });
 
 /**
- * The caller's papers, every published paper, and (for an admin) everyone's
- * private ones too, most recently changed first, each with its question count,
+ * The caller's papers and every shared paper, most recently changed first, each with its question count,
  * its total as "Max Marks" would print it, and who made it.
  */
 export const loadMyPapers = cache(async (): Promise<PaperSummary[]> => {

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * The admin's pass over the imported bank: a summary strip that doubles as
+ * The teachers' pass over the imported bank: a summary strip that doubles as
  * the pile picker, filters, and one card per question with everything needed
  * to judge it (why it was flagged, prompt and pictures, options with the
  * right one ticked, the answer, marks, topic, sources). Approve, Edit, Bin.
