@@ -15,7 +15,12 @@ them:
      up by (lib/lessons/carousels.ts)
 
 Nothing touches the database. The change goes live when the files and the
-JSON are committed and pushed to main.
+JSON are committed and pushed to main, and it shows only on a lesson whose
+youtube_id is the id given here: if that lesson row does not exist yet (a new
+lecture), the carousel shows nowhere until a migration adds it, the way
+web/supabase/migrations/0149_sahabah_stories_4.sql did for Lecture 4. The
+script cannot see the database, so it only checks the migrations folder for
+the id and says so when it is missing.
 
 Usage:
     python3 execution/publish_carousel.py --lecture 4 --youtube gVuTxhca40s \
@@ -26,6 +31,8 @@ added or removed). Use the "With sound effects" set: the page plays slides
 muted until the student turns the sound on.
 
 Needs ffmpeg and ffprobe: .tooling/ffmpeg/ (see LEARNINGS.md) or on PATH.
+In a git worktree, where the git-ignored .tooling/ is absent, the main
+checkout's .tooling/ffmpeg/ is used.
 """
 
 from __future__ import annotations
@@ -41,6 +48,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PUBLIC = ROOT / "web" / "public" / "carousels"
 MANIFEST = ROOT / "web" / "src" / "lib" / "lessons" / "carousels.json"
+MIGRATIONS = ROOT / "web" / "supabase" / "migrations"
 
 WIDTH, HEIGHT = 720, 960
 CRF = "27"
@@ -49,10 +57,22 @@ CRF = "27"
 POSTER_AT = 0.7
 
 
+def tooling_dirs() -> list[Path]:
+    dirs = [ROOT / ".tooling" / "ffmpeg"]
+    # .tooling/ is git-ignored, so a git worktree does not have it: there
+    # .git is a file pointing into the main checkout, which does.
+    dotgit = ROOT / ".git"
+    if dotgit.is_file():
+        linked = re.match(r"gitdir:\s*(.+?)/\.git/worktrees/", dotgit.read_text())
+        if linked:
+            dirs.append(Path(linked.group(1)) / ".tooling" / "ffmpeg")
+    return dirs
+
+
 def tool(name: str) -> str:
-    local = ROOT / ".tooling" / "ffmpeg" / name
-    if local.exists():
-        return str(local)
+    for folder in tooling_dirs():
+        if (folder / name).exists():
+            return str(folder / name)
     found = shutil.which(name)
     if not found:
         sys.exit(f"{name} not found: put it in .tooling/ffmpeg/ (see LEARNINGS.md) or on PATH")
@@ -74,6 +94,20 @@ def probe(ffprobe: str, path: Path) -> tuple[int, int, float]:
     data = json.loads(out)
     stream = data["streams"][0]
     return int(stream["width"]), int(stream["height"]), float(data["format"]["duration"])
+
+
+def lesson_migration(youtube_id: str) -> Path | None:
+    """The migration that mentions this YouTube id, if the repo has one.
+
+    Reads files only. A lesson can exist without one, and a migration in the
+    repo may not have been applied yet, so this is a prompt to check, not proof.
+    """
+    if not MIGRATIONS.is_dir():
+        return None
+    for path in sorted(MIGRATIONS.glob("*.sql")):
+        if youtube_id in path.read_text(errors="ignore"):
+            return path
+    return None
 
 
 def main() -> int:
@@ -145,6 +179,14 @@ def main() -> int:
 
     print(f"Lecture {args.lecture}: {len(entries)} slides, {total / 1e6:.1f} MB, in {out_dir.relative_to(ROOT)}")
     print(f"Listed in {MANIFEST.relative_to(ROOT)} under {args.youtube}. Commit both, then push main to release.")
+    lesson = lesson_migration(args.youtube)
+    if lesson:
+        print(f"Lesson: {lesson.relative_to(ROOT)} mentions {args.youtube}. Make sure it has been applied: "
+              "the carousel shows only on a lesson with that youtube_id.")
+    else:
+        print(f"WARNING: no migration in {MIGRATIONS.relative_to(ROOT)} mentions {args.youtube}. The carousel shows "
+              "only on a lesson whose youtube_id is that id. If the lesson row does not exist yet, add it with a "
+              "migration (see 0149_sahabah_stories_4.sql), or the carousel shows nowhere.")
     return 0
 
 
