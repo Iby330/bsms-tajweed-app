@@ -278,5 +278,80 @@
         "seconds": 11
       }
     ]
+  },
+  "DYihHxrjiuA": {
+    "lecture": 5,
+    "slides": [
+      {
+        "video": "/carousels/sahabah-05/01.mp4",
+        "poster": "/carousels/sahabah-05/01.jpg",
+        "seconds": 10
+      },
+      {
+        "video": "/carousels/sahabah-05/02.mp4",
+        "poster": "/carousels/sahabah-05/02.jpg",
+        "seconds": 16
+      },
+      {
+        "video": "/carousels/sahabah-05/03.mp4",
+        "poster": "/carousels/sahabah-05/03.jpg",
+        "seconds": 17
+      },
+      {
+        "video": "/carousels/sahabah-05/04.mp4",
+        "poster": "/carousels/sahabah-05/04.jpg",
+        "seconds": 18
+      },
+      {
+        "video": "/carousels/sahabah-05/05.mp4",
+        "poster": "/carousels/sahabah-05/05.jpg",
+        "seconds": 17
+      },
+      {
+        "video": "/carousels/sahabah-05/06.mp4",
+        "poster": "/carousels/sahabah-05/06.jpg",
+        "seconds": 19
+      },
+      {
+        "video": "/carousels/sahabah-05/07.mp4",
+        "poster": "/carousels/sahabah-05/07.jpg",
+        "seconds": 18
+      },
+      {
+        "video": "/carousels/sahabah-05/08.mp4",
+        "poster": "/carousels/sahabah-05/08.jpg",
+        "seconds": 19
+      },
+      {
+        "video": "/carousels/sahabah-05/09.mp4",
+        "poster": "/carousels/sahabah-05/09.jpg",
+        "seconds": 16
+      },
+      {
+        "video": "/carousels/sahabah-05/10.mp4",
+        "poster": "/carousels/sahabah-05/10.jpg",
+        "seconds": 17
+      },
+      {
+        "video": "/carousels/sahabah-05/11.mp4",
+        "poster": "/carousels/sahabah-05/11.jpg",
+        "seconds": 18
+      },
+      {
+        "video": "/carousels/sahabah-05/12.mp4",
+        "poster": "/carousels/sahabah-05/12.jpg",
+        "seconds": 18
+      },
+      {
+        "video": "/carousels/sahabah-05/13.mp4",
+        "poster": "/carousels/sahabah-05/13.jpg",
+        "seconds": 19
+      },
+      {
+        "video": "/carousels/sahabah-05/14.mp4",
+        "poster": "/carousels/sahabah-05/14.jpg",
+        "seconds": 11
+      }
+    ]
   }
 }
